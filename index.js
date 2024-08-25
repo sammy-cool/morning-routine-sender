@@ -1,22 +1,20 @@
-const express = require('express');
-const nodemailer = require('nodemailer');
-const twilio = require('twilio');
+const express = require("express");
+const nodemailer = require("nodemailer");
+const twilio = require("twilio");
+require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Twilio Configuration (optional)
-const accountSid = 'your_twilio_account_sid';
-const authToken = 'your_twilio_auth_token';
-const client = twilio(accountSid, authToken);
-
 // Email Configuration
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'your_email@gmail.com',
-        pass: 'your_email_password'
-    }
+  host: process.env.TRANSPORTER_HOST,
+  //   port: process.env.TRANSPORTER_PORT,
+  //   secure: process.env.TRANSPORTER_SECURE, // upgrade later with STARTTLS
+  auth: {
+    user: process.env.FROM_USER,
+    pass: process.env.PASSWORD,
+  },
 });
 
 // Your morning routine recommendation
@@ -32,33 +30,22 @@ Here's your personalized morning routine to increase productivity:
 `;
 
 // Endpoint to send an email
-app.get('/send-email', (req, res) => {
-    const mailOptions = {
-        from: 'your_email@gmail.com',
-        to: 'priyanshu.alt191@gmail.com', // Replace with your email
-        subject: 'Your Morning Routine',
-        text: morningRoutine
-    };
+app.get("/send-email", (req, res) => {
+  const mailOptions = {
+    from: process.env.FROM_USER,
+    to: process.env.TO_USER, // Replace with your email
+    subject: "Your Morning Routine",
+    text: morningRoutine,
+  };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return res.status(500).send('Error sending email: ' + error.toString());
-        }
-        res.send('Email sent: ' + info.response);
-    });
-});
-
-// Endpoint to send an SMS (optional)
-app.get('/send-sms', (req, res) => {
-    client.messages.create({
-        body: morningRoutine,
-        from: '+12345678901', // Replace with your Twilio phone number
-        to: '+9183xxxxxxx71'  // Replace with your phone number
-    })
-    .then(message => res.send('SMS sent: ' + message.sid))
-    .catch(error => res.status(500).send('Error sending SMS: ' + error.toString()));
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return res.status(500).send("Error sending email: " + error.toString());
+    }
+    res.send("Email sent successfully to: Priyanshu");
+  });
 });
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
