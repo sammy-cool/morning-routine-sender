@@ -36,7 +36,7 @@ function getNewRandomQuote(
 }
 
 function getEmailHtmlTemplateAndUpdate() {
-  // Email Template
+  // Email Template Changes before sending it!
   const folderName = "email-html-template";
   const emailTemplatePath = path.join(folderName, "email-template.html");
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
@@ -81,7 +81,7 @@ function getEmailHtmlTemplateAndUpdate() {
       themeMessage: "Prepare & Plan!",
     },
   };
-  const { gradient, themeMessage } = themes["Monday"];
+  const { gradient, themeMessage } = themes[currentDay];
   emailTemplate = emailTemplate.replaceAll("header_footer_gradient", gradient);
   emailTemplate = emailTemplate.replace("${{currentDay}}", currentDay);
   emailTemplate = emailTemplate.replace("${{themeMessage}}", themeMessage);
