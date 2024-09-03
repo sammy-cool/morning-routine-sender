@@ -4,10 +4,16 @@ const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
 
-const { updateCache, getNewRandomQuote, cache } = require("./helper/shared-data");
-const {generateRandomMessageID} = require("./helper/util");
+// file imports
+const {
+  updateCache,
+  getNewRandomQuote,
+  cache,
+} = require("./helper/shared-data");
+const { generateRandomMessageID } = require("./helper/util");
 const { createTransporter } = require("./config/email-config");
 
+// Express app
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -15,12 +21,13 @@ const port = process.env.PORT || 3000;
 const transporter = createTransporter();
 
 // Email Template
-const emailTemplatePath = path.join(__dirname, "email-template.html");
+const folderName = "email-html-template";
+const emailTemplatePath = path.join(folderName, "email-template.html");
 const emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
 
 // Default Message for root URL
 app.get("/", (req, res) => {
-  res.send("Hit The Send Email Endpoint to receive the email!");
+  res.send(`Hit The Send Email Endpoint to receive the email!`);
 });
 
 // Example Route
@@ -46,7 +53,7 @@ app.get("/send-email", (req, res) => {
       "If-Modified-Since": `<${randomQuote}>`,
     },
   };
-  
+
   // Remove the cached value
   // TODO: it's not empacting anyway if I delete the lastSentQuote but, I'm keeping it to understand it later!
   //! and done this changes to update the value where it is resolved no any special changes, but want to understand more of it :) later!
