@@ -17,7 +17,7 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
       .header {
-        background: linear-gradient(90deg, #007bff, #4caf50);
+        background: header_footer_gradient;
         color: #fff;
         padding: 10px;
         text-align: center;
@@ -51,7 +51,7 @@
         color: #4caf50;
       }
       .footer {
-        background: linear-gradient(90deg, #007bff, #4caf50);
+        background: header_footer_gradient;
         color: #fff;
         padding: 10px;
         text-align: center;
@@ -126,10 +126,10 @@
   <body>
     <div class="container">
       <div class="header" id="header">
-        <h1>Your Morning Routine for <span id="day"></span></h1>
+        <h1>Your Morning Routine for <span id="day">${{currentDay}}</span></h1>
       </div>
       <div class="content">
-        <h2 id="themeMessage"></h2>
+        <h2 id="themeMessage">${{themeMessage}}</h2>
         <p>
           Here's a simple morning routine to help you boost your productivity and set a positive tone for the day:
         </p>
