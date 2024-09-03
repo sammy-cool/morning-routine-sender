@@ -1,23 +1,13 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
+const { sendEmail } = require("./scheduled-jobs/email-jobs");
 require("dotenv").config();
-
-// File imports
-const {
-  cache,
-  updateCache,
-  getNewRandomQuote,
-  getEmailHtmlTemplateAndUpdate,
-} = require("./helper/shared-data");
-const { generateRandomMessageID } = require("./helper/util");
-const { createTransporter } = require("./config/email-config");
+const cron = require("node-cron");
+const compression = require('compression');
 
 // Express app
 const app = express();
+app.use(compression());
 const port = process.env.PORT || 3000;
-
-// Email Configuration
-const transporter = createTransporter();
 
 // Default Message for root URL
 app.get("/", (req, res) => {
@@ -37,45 +27,22 @@ app.get("/example-route", (req, res, next) => {
   throw new Error("Example error");
 });
 
-// Endpoint to send an email
-app.get("/send-email", (req, res) => {
-  const randomQuote = getNewRandomQuote();
-
-  // Email options
-  const mailOptions = {
-    from: `Eureka! ${process.env.FROM_USER}`,
-    to: `Priyanshu ${process.env.TO_USER}`, // Replace with your email
-    subject: `Your Morning Routine: ${randomQuote} - ${new Date().toLocaleTimeString()}`,
-    html: getEmailHtmlTemplateAndUpdate(),
-    headers: {
-      "Content-Type": "text/html",
-      "In-Reply-To": "",
-      "Message-ID": `<${generateRandomMessageID()}@example.com>`,
-      "If-Modified-Since": `<${randomQuote}>`, // TODO: it's not impacting anyway neither above these #@{{"In-Reply-To","Message-ID","If-Modified-Since"}} and added these for ungroup the mail thread and last one to exclude the value from cache, But I'm keeping it to understand it later!
-    },
-  };
-
-  // Remove the cached value
-  // TODO: it's not impacting anyway if I delete the lastSentQuote, But I'm keeping it to understand it later!
-  //! and done this changes to update the value where it is resolved no any special changes, but want to understand more of it :) later!
-  cache.delete("lastSentQuote");
-
-  // Send email
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Error sending email:", error);
-      res.status(500).send("Error sending email: " + error.toString());
-    } else {
-      // Track the last sent quote
-      const key = "lastSentQuote";
-      const value = randomQuote;
-      updateCache(key, value);
-
-      console.log("Email sent successfully to:", info.accepted);
-      res.send("Email sent successfully to: Priyanshu");
-    }
-  });
+// Schedule the email to be sent daily at 6:55 AM
+cron.schedule('55 6 * * *', () => {
+  console.log('Running a task every day at 6:55 AM');
+  sendEmail();
 });
+
+//! Schedule a job to run every minute testing purpose only
+// cron.schedule('* * * * *', () => {
+//   console.log('Running a task every minute');
+  // Add logic here to check if the current time is 30 seconds past the minute mark
+  // For testing purposes, you might use setTimeout within this job
+//   setTimeout(() => {
+//     console.log('Running a test task 30 seconds after the minute');
+//     sendEmail();
+//   }, 30000); // 30 seconds
+// });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
