@@ -51,12 +51,12 @@ app.get("/send-email", (req, res) => {
       "Content-Type": "text/html",
       "In-Reply-To": "",
       "Message-ID": `<${generateRandomMessageID()}@example.com>`,
-      "If-Modified-Since": `<${randomQuote}>`, //TODO: it's not empacting anyway neither above these #@{{"In-Reply-To","Message-ID","If-Modified-Since"}} and added these for ungroup the mail thread and last one to exclude the value from cache, But I'm keeping it to understand it later!
+      "If-Modified-Since": `<${randomQuote}>`, // TODO: it's not impacting anyway neither above these #@{{"In-Reply-To","Message-ID","If-Modified-Since"}} and added these for ungroup the mail thread and last one to exclude the value from cache, But I'm keeping it to understand it later!
     },
   };
 
-    // Remove the cached value
-  // TODO: it's not empacting anyway if I delete the lastSentQuote, But I'm keeping it to understand it later!
+  // Remove the cached value
+  // TODO: it's not impacting anyway if I delete the lastSentQuote, But I'm keeping it to understand it later!
   //! and done this changes to update the value where it is resolved no any special changes, but want to understand more of it :) later!
   cache.delete("lastSentQuote");
 
