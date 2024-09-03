@@ -1,5 +1,4 @@
 // shared-data.js
-const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -10,8 +9,6 @@ function updateCache(key, value) {
 }
 
 function getCacheValue(key) {
-  console.log("key", key);
-  console.log("cache", cache);
   return cache.get(key);
 }
 
