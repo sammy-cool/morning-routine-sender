@@ -44,7 +44,7 @@ app.get("/example-route", (req, res, next) => {
 });
 
 // Schedule the email to be sent daily at 6:55 AM
-cron.schedule("55 6 * * *", () => {
+cron.schedule("25 1 * * *", () => {
   console.log("Running a task every day at 6:55 AM");
   sendEmail();
 });
