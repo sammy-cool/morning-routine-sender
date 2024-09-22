@@ -20,6 +20,16 @@ function getNewRandomQuote(
     "Smile, it's a new day.",
     "You got this.",
     "Happiness is a choice.",
+    "Today is full of possibilities.",
+    "Make today amazing.",
+    "Embrace the new day with a smile.",
+    "Start fresh, stay positive.",
+    "You are capable of great things.",
+    "New day, new opportunities.",
+    "Believe in yourself and all that you are.",
+    "The future is yours to create.",
+    "Every day is a chance to be better.",
+    "Let your light shine bright.",
   ];
   const randomIndex = Math.floor(Math.random() * quotes.length);
   const randomQuote = quotes[randomIndex];

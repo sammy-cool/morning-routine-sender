@@ -1,5 +1,10 @@
 const { createTransporter } = require("../config/email-config");
-const { getEmailHtmlTemplateAndUpdate, cache, getNewRandomQuote, updateCache } = require("../helper/shared-data");
+const {
+  getEmailHtmlTemplateAndUpdate,
+  cache,
+  getNewRandomQuote,
+  updateCache,
+} = require("../helper/shared-data");
 const { generateRandomMessageID } = require("../helper/util");
 
 // Email Configuration
@@ -8,12 +13,13 @@ const transporter = createTransporter();
 // Function || Endpoint to send an email
 const sendEmail = () => {
   const randomQuote = getNewRandomQuote();
+  const utcTime = new Date().toLocaleTimeString("en-US", { timeZone: "UTC" });
 
   // Email options
   const mailOptions = {
     from: `Eureka! ${process.env.FROM_USER}`,
     to: `Priyanshu ${process.env.TO_USER}`, // Replace with your email
-    subject: `Your Morning Routine: ${randomQuote} - ${new Date().toLocaleTimeString()}`,
+    subject: `Your Morning Routine: ${randomQuote} - ${utcTime}`,
     html: getEmailHtmlTemplateAndUpdate(),
     headers: {
       "Content-Type": "text/html",
