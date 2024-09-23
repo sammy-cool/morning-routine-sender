@@ -14,13 +14,15 @@ const transporter = createTransporter();
 async function sendEmail() {
   try {
     const randomQuote = await getNewRandomQuote();
-    const utcTime = new Date().toLocaleTimeString("en-US", { timeZone: "UTC" });
+    const istTime = new Date().toLocaleTimeString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
 
     // Email options
     const mailOptions = {
       from: `Eureka! ${process.env.FROM_USER}`,
       to: `Priyanshu ${process.env.TO_USER}`, // Replace with your email
-      subject: `Your Morning Routine: ${randomQuote} - ${utcTime}`,
+      subject: `Your Morning Routine: ${randomQuote} - ${istTime}`,
       html: await getEmailHtmlTemplateAndUpdate(),
       headers: {
         "Content-Type": "text/html",
