@@ -30,7 +30,7 @@ app.get("/", (req, res) => {
 // Endpoint to send an email
 app.get("/send-email", async (req, res) => {
   try {
-    sendEmail(); // Wait for the sendEmail function to complete
+    await sendEmail(); // Wait for the sendEmail function to complete
     res.send("Email sent successfully!");
   } catch (error) {
     res.status(500).send("Error sending email: " + error.toString());
@@ -43,10 +43,14 @@ app.get("/example-route", (req, res, next) => {
   throw new Error("Example error");
 });
 
-// Schedule the email to be sent daily at 6:55 AM
-cron.schedule("25 1 * * *", () => {
-  console.log("Running a task every day at 6:55 AM");
-  sendEmail();
+// Schedule the email at 1:25 AM to be sent daily at 6:55 AM because of the server timezone
+cron.schedule("25 1 * * *", async () => {
+  try {
+    console.log("Running a task every day at 1:25 AM");
+    await sendEmail();
+  } catch (error) {
+    console.error("Error in scheduled task:", error);
+  }
 });
 
 //! Schedule a job to run every minute testing purpose only

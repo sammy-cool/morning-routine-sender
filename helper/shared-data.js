@@ -1,6 +1,7 @@
 // shared-data.js
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
 
 let cache = new Map();
 
@@ -12,42 +13,59 @@ function getCacheValue(key) {
   return cache.get(key);
 }
 
-function getNewRandomQuote(
+async function getNewRandomQuote(
   lastSentQuote = getCacheValue("lastSentQuote") || ""
 ) {
-  const quotes = [
-    "Rise and shine.",
-    "Smile, it's a new day.",
-    "You got this.",
-    "Happiness is a choice.",
-    "Today is full of possibilities.",
-    "Make today amazing.",
-    "Embrace the new day with a smile.",
-    "Start fresh, stay positive.",
-    "You are capable of great things.",
-    "New day, new opportunities.",
-    "Believe in yourself and all that you are.",
-    "The future is yours to create.",
-    "Every day is a chance to be better.",
-    "Let your light shine bright.",
-  ];
-  const randomIndex = Math.floor(Math.random() * quotes.length);
-  const randomQuote = quotes[randomIndex];
+  try {
+    const quotes = [
+      "Rise and shine.",
+      "Smile, it's a new day.",
+      "You got this.",
+      "Happiness is a choice.",
+      "Today is full of possibilities.",
+      "Make today amazing.",
+      "Embrace the new day with a smile.",
+      "Start fresh, stay positive.",
+      "You are capable of great things.",
+      "New day, new opportunities.",
+      "Believe in yourself and all that you are.",
+      "The future is yours to create.",
+      "Every day is a chance to be better.",
+      "Let your light shine bright.",
+    ];
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    const randomQuote = quotes[randomIndex];
 
-  if (randomQuote === lastSentQuote) {
-    return getNewRandomQuote();
+    if (randomQuote === lastSentQuote) {
+      return getNewRandomQuote();
+    }
+
+    updateCache("lastSentQuote", randomQuote);
+    return randomQuote;
+  } catch (error) {
+    console.log("Error getting new random quote:", error);
+    throw error;
   }
-
-  updateCache("lastSentQuote", randomQuote);
-  return randomQuote;
 }
 
-function getEmailHtmlTemplateAndUpdate() {
+// Function to fetch a quote from FavQs API
+async function getDailyQuote() {
+  try {
+    const response = await axios.get("https://favqs.com/api/qotd");
+    return response.data.quote.body + " - " + response.data.quote.author;
+  } catch (error) {
+    console.error("Error fetching quote:", error);
+    throw error;
+  }
+}
+
+async function getEmailHtmlTemplateAndUpdate() {
   // Email Template Changes before sending it!
   const folderName = "email-html-template";
   const emailTemplatePath = path.join(folderName, "email-template.html");
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
 
+  const htmlTemplateQuote = await getDailyQuote();
   const daysOfWeek = [
     "Sunday",
     "Monday",
@@ -92,6 +110,7 @@ function getEmailHtmlTemplateAndUpdate() {
   emailTemplate = emailTemplate.replaceAll("header_footer_gradient", gradient);
   emailTemplate = emailTemplate.replace("${{currentDay}}", currentDay);
   emailTemplate = emailTemplate.replace("${{themeMessage}}", themeMessage);
+  emailTemplate = emailTemplate.replace("${{dailyQuotes}}", htmlTemplateQuote);
 
   return emailTemplate;
 }
