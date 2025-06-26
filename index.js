@@ -27,6 +27,11 @@ app.get("/", (req, res) => {
   `);
 });
 
+// Health-check endpoint
+app.get("/health-check", (req, res) => {
+  res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
 // Endpoint to send an email
 app.get("/send-email", async (req, res) => {
   try {
