@@ -13,7 +13,7 @@ const port = process.env.PORT || 3000;
 app.get("/", (req, res) => {
   const domain = req.protocol + "://" + req.get("host");
   console.log("Domain:", domain);
-  const endpointLink = `${domain}/send-email`;
+  
   res.send(`
     <html>
       <head>
@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
       </head>
       <body>
         <h1>Hit The Send Email Endpoint to receive the email!</h1>
-        <a href="${endpointLink}" target="_blank">Send Email</a>
+        <a href="${domain}/send-email" target="_blank">Send Email</a>
         <br/>
         <a href="https://priyanshu-eureka.netlify.app/" target="_blank">Visit My Website</a>
         <br/>
