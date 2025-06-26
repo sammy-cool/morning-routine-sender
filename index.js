@@ -22,6 +22,10 @@ app.get("/", (req, res) => {
       <body>
         <h1>Hit The Send Email Endpoint to receive the email!</h1>
         <a href="${endpointLink}" target="_blank">Send Email</a>
+        <br/>
+        <a href="https://priyanshu-eureka.netlify.app/" target="_blank">Visit My Website</a>
+        <br/>
+        <a href="${domain}/health-check" target="_blank">Health Check</a>
       </body>
     </html>
   `);
