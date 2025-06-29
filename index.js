@@ -1,8 +1,10 @@
-const express = require("express");
-const { sendEmail } = require("./scheduled-jobs/email-jobs");
 require("dotenv").config();
-const cron = require("node-cron");
+const express = require("express");
 const compression = require("compression");
+const cron = require("node-cron");
+
+const { runEmailJob } = require("./email-core/emailJobs");
+const { cleanupOldEntries } = require("./email-core/emailTracker");
 
 // Express app
 const app = express();
@@ -13,7 +15,7 @@ const port = process.env.PORT || 3000;
 app.get("/", (req, res) => {
   const domain = req.protocol + "://" + req.get("host");
   console.log("Domain:", domain);
-  
+
   res.send(`
     <html>
       <head>
@@ -39,7 +41,7 @@ app.get("/health-check", (req, res) => {
 // Endpoint to send an email
 app.get("/send-email", async (req, res) => {
   try {
-    await sendEmail(); // Wait for the sendEmail function to complete
+    await runEmailJob(); // Wait for the runEmailJob function to complete
     res.send("Email sent successfully!");
   } catch (error) {
     res.status(500).send("Error sending email: " + error.toString());
@@ -52,26 +54,42 @@ app.get("/example-route", (req, res, next) => {
   throw new Error("Example error");
 });
 
-// Schedule the email at 1:25 AM to be sent daily at 6:55 AM because of the server timezone
-cron.schedule("25 1 * * *", async () => {
-  try {
-    console.log("Running a task every day at 1:25 AM");
-    await sendEmail();
-  } catch (error) {
-    console.error("Error in scheduled task:", error);
+// Schedule the email at 7:00 AM daily!
+cron.schedule(
+  "45 6 * * *",
+  async () => {
+    try {
+      console.log("Running runEmailJob at 7:00 AM Asia/Kolkata timezone");
+      await runEmailJob();
+    } catch (error) {
+      console.error("Error in scheduled task:", error);
+    }
+  },
+  {
+    timezone: "Asia/Kolkata",
   }
+);
+
+// Clean up tracker entries older than 7 days every Sunday at 3:00 AM Asia/Kolkata timezone
+cron.schedule("0 3 * * 0", cleanupOldEntries, {
+  timezone: "Asia/Kolkata",
 });
 
-//! Schedule a job to run every minute testing purpose only
-// cron.schedule('* * * * *', () => {
-//   console.log('Running a task every minute');
-// Add logic here to check if the current time is 30 seconds past the minute mark
-// For testing purposes, you might use setTimeout within this job
-//   setTimeout(() => {
-//     console.log('Running a test task 30 seconds after the minute');
-//     sendEmail();
-//   }, 30000); // 30 seconds
-// });
+//testing porpuse for locally
+// cron.schedule(
+//   "* * * * *",
+//   async () => {
+//     try {
+//       console.log("Running runEmailJob at 7:00 AM Asia/Kolkata timezone");
+//       await runEmailJob();
+//     } catch (error) {
+//       console.error("Error in scheduled task:", error);
+//     }
+//   },
+//   {
+//     timezone: "Asia/Kolkata",
+//   }
+// );
 
 // Error handling middleware
 app.use((err, req, res, next) => {

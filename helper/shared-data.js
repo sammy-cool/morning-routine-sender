@@ -61,8 +61,8 @@ async function getDailyQuote() {
 
 async function getEmailHtmlTemplateAndUpdate() {
   // Email Template Changes before sending it!
-  const folderName = "email-html-template";
-  const emailTemplatePath = path.join(folderName, "email-template.html");
+  const __dirname = "email-html-template";
+  const emailTemplatePath = path.join(__dirname, "email-template.html");
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
 
   const htmlTemplateQuote = await getDailyQuote();
