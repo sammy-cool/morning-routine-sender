@@ -1,3 +1,5 @@
+const validator = require("validator");
+
 const { createTransporter } = require("../config/email-config");
 const { shouldSendEmail, updateTracker } = require("./emailTracker");
 const { sendEmailFn } = require("./emailService");
@@ -28,13 +30,20 @@ async function alertAdmin(failedRecipients, type) {
 // Function || Endpoint to send an email
 async function runEmailJob() {
   const recipients = [
-    "priyanshu.alt191@gmail.com",
-    // add more recipients as needed
+    "priyanshu.alt191@gmail.com", // Valid
+    // "invalid@", // Invalid
+    // "not-an-email", // Invalid
   ];
   const type = "daily_report";
   const failedRecipients = [];
 
   for (const email of recipients) {
+    if (!validator.isEmail(email)) {
+      console.error(`Invalid email address: ${email}`);
+      failedRecipients.push(email);
+      continue; // Skip to the next email
+    }
+
     if (!shouldSendEmail(email, type)) {
       console.log(`Skipped: ${type} already sent successfully to ${email}`);
       continue;

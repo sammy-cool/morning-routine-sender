@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const compression = require("compression");
 const cron = require("node-cron");
+const rateLimit = require("express-rate-limit");
 
 const { runEmailJob } = require("./email-core/emailJobs");
 const { cleanupOldEntries } = require("./email-core/emailTracker");
@@ -10,6 +11,13 @@ const { cleanupOldEntries } = require("./email-core/emailTracker");
 const app = express();
 app.use(compression());
 const port = process.env.PORT || 3000;
+
+// Rate limiter for /send-email
+const sendEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // Allow 5 requests per IP
+  message: "Too many requests from this IP, please try again after 15 minutes.",
+});
 
 // Default Message for root URL
 app.get("/", (req, res) => {
@@ -39,7 +47,7 @@ app.get("/health-check", (req, res) => {
 });
 
 // Endpoint to send an email
-app.get("/send-email", async (req, res) => {
+app.get("/send-email", sendEmailLimiter, async (req, res) => {
   try {
     await runEmailJob(); // Wait for the runEmailJob function to complete
     res.send("Email sent successfully!");

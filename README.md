@@ -28,6 +28,8 @@ cd morning-routine-sender
 npm install
 ```
 
+- API rate limiting with `express-rate-limit` for security.
+
 ### 3. Setup Environment Variables
 
 Create a `.env` file by copying the example:
