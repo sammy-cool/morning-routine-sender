@@ -1,5 +1,6 @@
 const validator = require("validator");
 
+const logger = require("../logger");
 const { createTransporter } = require("../config/email-config");
 const { shouldSendEmail, updateTracker } = require("./emailTracker");
 const { sendEmailFn } = require("./emailService");
@@ -21,9 +22,9 @@ async function alertAdmin(failedRecipients, type) {
       subject: `Alert: Failed ${type} emails`,
       text: message,
     });
-    console.log("Admin alerted about failed emails.");
+    logger.info("Admin alerted about failed emails.");
   } catch (err) {
-    console.error("Failed to send admin alert:", err);
+    logger.error("Failed to send admin alert:", err);
   }
 }
 
@@ -39,24 +40,24 @@ async function runEmailJob() {
 
   for (const email of recipients) {
     if (!validator.isEmail(email)) {
-      console.error(`Invalid email address: ${email}`);
+      logger.error(`Invalid email address: ${email}`);
       failedRecipients.push(email);
       continue; // Skip to the next email
     }
 
     if (!shouldSendEmail(email, type)) {
-      console.log(`Skipped: ${type} already sent successfully to ${email}`);
+      logger.info(`Skipped: ${type} already sent successfully to ${email}`);
       continue;
     }
 
     try {
       await sendEmailFn(email);
       updateTracker(email, type, "success");
-      console.log(`✅ Email sent to ${email}`);
+      logger.info(`✅ Email sent to ${email}`);
     } catch (err) {
       updateTracker(email, type, "failed", err.message);
       failedRecipients.push(email);
-      console.error(`❌ Failed to send email to ${email}:`, err.message);
+      logger.error(`❌ Failed to send email to ${email}: ${err.message}`);
     }
   }
 

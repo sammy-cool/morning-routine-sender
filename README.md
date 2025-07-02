@@ -28,7 +28,14 @@ cd morning-routine-sender
 npm install
 ```
 
+### Dependencies & Features
+
 - API rate limiting with `express-rate-limit` for security.
+- Structured logging with `winston` for debugging and monitoring.
+  ## 📜 Logging
+- Logs are saved to `error.log` (errors only) and `combined.log` (all logs) in the project root.
+- In development, logs also appear in the console.
+- Uses `winston` for structured, JSON-formatted logging.
 
 ### 3. Setup Environment Variables
 
