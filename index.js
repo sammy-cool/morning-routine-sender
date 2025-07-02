@@ -3,7 +3,9 @@ const express = require("express");
 const compression = require("compression");
 const cron = require("node-cron");
 const rateLimit = require("express-rate-limit");
+const validator = require("validator");
 
+const logger = require("./logger");
 const { runEmailJob } = require("./email-core/emailJobs");
 const { cleanupOldEntries } = require("./email-core/emailTracker");
 
@@ -19,10 +21,11 @@ const sendEmailLimiter = rateLimit({
   message: "Too many requests from this IP, please try again after 15 minutes.",
 });
 
+//API Endpoints
 // Default Message for root URL
 app.get("/", (req, res) => {
   const domain = req.protocol + "://" + req.get("host");
-  console.log("Domain:", domain);
+  logger.info("Domain:", domain);
 
   res.send(`
     <html>
@@ -49,11 +52,35 @@ app.get("/health-check", (req, res) => {
 // Endpoint to send an email
 app.get("/send-email", sendEmailLimiter, async (req, res) => {
   try {
-    await runEmailJob(); // Wait for the runEmailJob function to complete
-    res.send("Email sent successfully!");
+    const results = await runEmailJob();
+    res.status(200).json({
+      message: "Email job completed",
+      results: {
+        sent: results.sent,
+        skipped: results.skipped,
+        failed: results.failed,
+        invalid: results.invalid,
+      },
+    });
   } catch (error) {
-    res.status(500).send("Error sending email: " + error.toString());
+    logger.error(`Error in send-email endpoint: ${error.message}`);
+    res.status(500).json({
+      message: "Error processing email job",
+      error: error.message,
+    });
   }
+});
+
+//unsubscribe endpoint
+app.get("/unsubscribe", (req, res) => {
+  const email = req.query.email ? decodeURIComponent(req.query.email) : null;
+  if (!email || typeof email !== "string" || !validator.isEmail(email)) {
+    logger.error(`Invalid or missing email parameter: ${email}`);
+    return res.status(400).send("A valid email is required");
+  }
+  logger.info(`Unsubscribe request received for ${email}`);
+  res.send("You have been unsubscribed. Thank you!");
+  // TODO: Add logic to remove email from recipients list later
 });
 
 // Example Route
@@ -67,10 +94,10 @@ cron.schedule(
   "45 6 * * *",
   async () => {
     try {
-      console.log("Running runEmailJob at 7:00 AM Asia/Kolkata timezone");
+      logger.info("Running runEmailJob at 7:00 AM Asia/Kolkata timezone");
       await runEmailJob();
     } catch (error) {
-      console.error("Error in scheduled task:", error);
+      logger.error("Error in scheduled task:", error);
     }
   },
   {
@@ -88,10 +115,10 @@ cron.schedule("0 3 * * 0", cleanupOldEntries, {
 //   "* * * * *",
 //   async () => {
 //     try {
-//       console.log("Running runEmailJob at 7:00 AM Asia/Kolkata timezone");
+//       logger.info("Running runEmailJob at 7:00 AM Asia/Kolkata timezone");
 //       await runEmailJob();
 //     } catch (error) {
-//       console.error("Error in scheduled task:", error);
+//       logger.error("Error in scheduled task:", error);
 //     }
 //   },
 //   {
@@ -101,10 +128,10 @@ cron.schedule("0 3 * * 0", cleanupOldEntries, {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error("Error:", err);
+  logger.error("Error:", err);
   res.status(500).send("Internal Server Error");
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  logger.info(`Server running on port ${port}`);
 });

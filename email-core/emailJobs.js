@@ -37,16 +37,24 @@ async function runEmailJob() {
   ];
   const type = "daily_report";
   const failedRecipients = [];
+  const results = {
+    sent: [],
+    skipped: [],
+    failed: [],
+    invalid: [],
+  };
 
   for (const email of recipients) {
     if (!validator.isEmail(email)) {
       logger.error(`Invalid email address: ${email}`);
+      results.invalid.push(email);
       failedRecipients.push(email);
-      continue; // Skip to the next email
+      continue;
     }
 
     if (!shouldSendEmail(email, type)) {
       logger.info(`Skipped: ${type} already sent successfully to ${email}`);
+      results.skipped.push(email);
       continue;
     }
 
@@ -57,11 +65,13 @@ async function runEmailJob() {
     } catch (err) {
       updateTracker(email, type, "failed", err.message);
       failedRecipients.push(email);
+      results.failed.push({ email, error: err.message });
       logger.error(`❌ Failed to send email to ${email}: ${err.message}`);
     }
   }
 
   await alertAdmin(failedRecipients, type);
+  return results;
 }
 
 module.exports = { runEmailJob };

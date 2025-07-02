@@ -59,7 +59,7 @@ async function getDailyQuote() {
   }
 }
 
-async function getEmailHtmlTemplateAndUpdate() {
+async function getEmailHtmlTemplateAndUpdate(unsubscribeLink) {
   // Email Template Changes before sending it!
   const __dirname = "email-html-template";
   const emailTemplatePath = path.join(__dirname, "email-template.html");
@@ -111,6 +111,10 @@ async function getEmailHtmlTemplateAndUpdate() {
   emailTemplate = emailTemplate.replace("${{currentDay}}", currentDay);
   emailTemplate = emailTemplate.replace("${{themeMessage}}", themeMessage);
   emailTemplate = emailTemplate.replace("${{dailyQuotes}}", htmlTemplateQuote);
+  emailTemplate = emailTemplate.replace(
+    "${{unsubscribeLink}}",
+    unsubscribeLink
+  );
 
   return emailTemplate;
 }

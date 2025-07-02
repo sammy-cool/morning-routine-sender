@@ -3,10 +3,5 @@
     "date": "2025-07-02",
     "status": "success",
     "error": null
-  },
-  "daily_report:test@domain.com": {
-    "date": "2025-07-02",
-    "status": "success",
-    "error": null
   }
 }

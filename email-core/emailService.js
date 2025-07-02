@@ -1,3 +1,4 @@
+const logger = require("../logger");
 const { createTransporter } = require("../config/email-config");
 const {
   cache,
@@ -9,53 +10,63 @@ const { generateRandomMessageID } = require("../helper/util");
 
 const transporter = createTransporter();
 
-async function sendEmailFn(toEmail) {
-  console.log("Sending email...");
+async function generateEmailOptions(toEmail, randomQuote) {
+  const istTime = new Date().toLocaleTimeString("en-IN", {
+    timeZone: "Asia/Kolkata",
+  });
+
+  const domain = process.env.RENDER_DOMAIN || "http://localhost:3000";
+  const unsubscribeLink = `${domain}/unsubscribe?email=${encodeURIComponent(
+    toEmail
+  )}`;
+
+  return {
+    from: `Eureka! ${process.env.FROM_USER}`,
+    to: `Priyanshu ${toEmail}`,
+    subject: `Your Morning Routine: ${randomQuote} - ${istTime}`,
+    html: await getEmailHtmlTemplateAndUpdate(unsubscribeLink),
+    headers: {
+      "Content-Type": "text/html",
+      "In-Reply-To": "",
+      "Message-ID": `<${generateRandomMessageID()}@example.com>`,
+      "If-Modified-Since": `<${randomQuote}>`,
+    },
+  };
+}
+
+async function sendEmail(mailOptions, randomQuote) {
   try {
-    const randomQuote = await getNewRandomQuote();
-    const istTime = new Date().toLocaleTimeString("en-IN", {
-      timeZone: "Asia/Kolkata",
-    });
-
-    // Email options
-    const mailOptions = {
-      from: `Eureka! ${process.env.FROM_USER}`,
-      to: `Priyanshu ${toEmail}`,
-      subject: `Your Morning Routine: ${randomQuote} - ${istTime}`,
-      html: await getEmailHtmlTemplateAndUpdate(),
-      headers: {
-        "Content-Type": "text/html",
-        "In-Reply-To": "",
-        "Message-ID": `<${generateRandomMessageID()}@example.com>`,
-        "If-Modified-Since": `<${randomQuote}>`, // TODO: it's not impacting anyway neither above these #@{{"In-Reply-To","Message-ID","If-Modified-Since"}} and added these for ungroup the mail thread and last one to exclude the value from cache, But I'm keeping it to understand it later!
-      },
-    };
-
-    // Remove the cached value
-    // TODO: it's not impacting anyway if I delete the lastSentQuote, But I'm keeping it to understand it later!
-    //! and done this changes to update the value where it is resolved no any special changes, but want to understand more of it :) later!
     cache.delete("lastSentQuote");
 
-    // Send email using Promise to work with async-await
     const info = await new Promise((resolve, reject) => {
       transporter.sendMail(mailOptions, (error, mailInfo) => {
         if (error) {
-          console.error("Error sending email:", error);
+          logger.error(`Error sending email: ${error.message}`);
           reject(error);
         } else {
-          // Update and Track the last sent quote
-          const key = "lastSentQuote";
-          const value = randomQuote;
-          updateCache(key, value);
-
-          console.log("Email sent successfully to:", mailInfo.accepted);
+          updateCache("lastSentQuote", randomQuote);
+          logger.info(`Email sent successfully to: ${mailInfo.accepted}`);
           resolve(mailInfo);
         }
       });
     });
-    console.log("Email sent successfully to:", info.response);
+
+    return info;
   } catch (error) {
-    console.log("Error sending email:", error);
+    logger.error(`Failed to send email: ${error.message}`);
+    throw error;
+  }
+}
+
+async function sendEmailFn(toEmail) {
+  logger.info("Preparing to send email...");
+  try {
+    const randomQuote = await getNewRandomQuote();
+    const mailOptions = await generateEmailOptions(toEmail, randomQuote);
+    const info = await sendEmail(mailOptions, randomQuote);
+    return info;
+  } catch (error) {
+    logger.error(`Error in sendEmailFn: ${error.message}`);
     throw error;
   }
 }
