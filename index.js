@@ -58,6 +58,7 @@ app.get("/health-check", (req, res) => {
 app.get(`/send-email`, sendEmailLimiter, async (req, res) => {
   if (req.query.key !== process.env.CRON_API_KEY) {
     return res.status(403).json({ error: "Forbidden" });
+    logger.error("Forbidden");
   }
 
   try {
