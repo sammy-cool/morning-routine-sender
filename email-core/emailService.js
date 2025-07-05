@@ -11,7 +11,7 @@ const { generateRandomMessageID } = require("../helper/util");
 const transporter = createTransporter();
 
 async function generateEmailOptions(toEmail, randomQuote) {
-  const istTime = new Date().toLocaleTimeString("en-IN", {
+  const IST_Time = new Date().toLocaleTimeString("en-IN", {
     timeZone: "Asia/Kolkata",
   });
 
@@ -23,7 +23,7 @@ async function generateEmailOptions(toEmail, randomQuote) {
   return {
     from: `Eureka! ${process.env.FROM_USER}`,
     to: `Priyanshu ${toEmail}`,
-    subject: `Your Morning Routine: ${randomQuote} - ${istTime}`,
+    subject: `Your Morning Routine: ${randomQuote} - ${IST_Time}`,
     html: await getEmailHtmlTemplateAndUpdate(unsubscribeLink),
     headers: {
       "Content-Type": "text/html",

@@ -28,7 +28,7 @@ async function alertAdmin(failedRecipients, type) {
   }
 }
 
-// Function || Endpoint to send an email
+// Function to send an email
 async function runEmailJob() {
   const recipients = [
     "priyanshu.alt191@gmail.com", // Valid
@@ -61,6 +61,7 @@ async function runEmailJob() {
     try {
       await sendEmailFn(email);
       updateTracker(email, type, "success");
+      results.sent.push({ email, success: `${type}_success` });
       logger.info(`✅ Email sent to ${email}`);
     } catch (err) {
       updateTracker(email, type, "failed", err.message);

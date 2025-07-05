@@ -11,6 +11,11 @@ const { cleanupOldEntries } = require("./email-core/emailTracker");
 
 // Express app
 const app = express();
+
+// !INFO: - Render (your hosting platform) uses a reverse proxy to forward requests to your Node.js app. But since Express doesn’t trust proxies by default, it ignores this header.
+// Tell Express to trust the reverse proxy (Render/Vercel/Heroku/etc)
+app.set("trust proxy", 1); // 1 = only trust the first proxy
+
 app.use(compression());
 const port = process.env.PORT || 3000;
 
@@ -50,26 +55,34 @@ app.get("/health-check", (req, res) => {
 });
 
 // Endpoint to send an email
-app.get("/send-email", sendEmailLimiter, async (req, res) => {
-  try {
-    const results = await runEmailJob();
-    res.status(200).json({
-      message: "Email job completed",
-      results: {
-        sent: results.sent,
-        skipped: results.skipped,
-        failed: results.failed,
-        invalid: results.invalid,
-      },
-    });
-  } catch (error) {
-    logger.error(`Error in send-email endpoint: ${error.message}`);
-    res.status(500).json({
-      message: "Error processing email job",
-      error: error.message,
-    });
+app.get(
+  `/send-email?key=${process.env.CRON_API_KEY}`,
+  sendEmailLimiter,
+  async (req, res) => {
+    if (req.query.key !== process.env.CRON_API_KEY) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    try {
+      const results = await runEmailJob();
+      res.status(200).json({
+        message: "Email job completed",
+        results: {
+          sent: results.sent,
+          skipped: results.skipped,
+          failed: results.failed,
+          invalid: results.invalid,
+        },
+      });
+    } catch (error) {
+      logger.error(`Error in send-email endpoint: ${error.message}`);
+      res.status(500).json({
+        message: "Error processing email job",
+        error: error.message,
+      });
+    }
   }
-});
+);
 
 //unsubscribe endpoint
 app.get("/unsubscribe", (req, res) => {

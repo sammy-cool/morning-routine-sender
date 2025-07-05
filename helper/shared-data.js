@@ -59,10 +59,28 @@ async function getDailyQuote() {
   }
 }
 
+// 1. Choose a routine based on the day
+function getRoutineType() {
+  const day = new Date().getDay(); // 0 = Sunday, 1 = Monday, ...
+  const map = {
+    1: "email-template",
+    2: "routine-deep-work",
+    3: "routine-learning",
+    4: "routine-mindfulness",
+    5: "routine-career",
+    6: "routine-default",
+    0: "routine-reflection",
+  };
+  return map[day] || "email-template";
+}
+
 async function getEmailHtmlTemplateAndUpdate(unsubscribeLink) {
   // Email Template Changes before sending it!
   const __dirname = "email-html-template";
-  const emailTemplatePath = path.join(__dirname, "email-template.html");
+  const emailTemplatePath = path.join(
+    __dirname,
+    `${getRoutineType()}.html || email-template.html`
+  );
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
 
   const htmlTemplateQuote = await getDailyQuote();
