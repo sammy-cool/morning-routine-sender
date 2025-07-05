@@ -68,8 +68,8 @@ function getRoutineType() {
     3: "routine-learning",
     4: "routine-mindfulness",
     5: "routine-career",
-    6: "routine-default",
-    0: "routine-reflection",
+    6: "routine-reflection",
+    0: "routine-default",
   };
   return map[day] || "email-template";
 }
@@ -77,10 +77,7 @@ function getRoutineType() {
 async function getEmailHtmlTemplateAndUpdate(unsubscribeLink) {
   // Email Template Changes before sending it!
   const __dirname = "email-html-template";
-  const emailTemplatePath = path.join(
-    __dirname,
-    `${getRoutineType()}.html || email-template.html`
-  );
+  const emailTemplatePath = path.join(__dirname, `${getRoutineType()}.html`);
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
 
   const htmlTemplateQuote = await getDailyQuote();
@@ -126,13 +123,10 @@ async function getEmailHtmlTemplateAndUpdate(unsubscribeLink) {
   };
   const { gradient, themeMessage } = themes[currentDay];
   emailTemplate = emailTemplate.replaceAll("header_footer_gradient", gradient);
-  emailTemplate = emailTemplate.replace("${{currentDay}}", currentDay);
-  emailTemplate = emailTemplate.replace("${{themeMessage}}", themeMessage);
-  emailTemplate = emailTemplate.replace("${{dailyQuotes}}", htmlTemplateQuote);
-  emailTemplate = emailTemplate.replace(
-    "${{unsubscribeLink}}",
-    unsubscribeLink
-  );
+  emailTemplate = emailTemplate.replace("{{currentDay}}", currentDay);
+  emailTemplate = emailTemplate.replace("{{themeMessage}}", themeMessage);
+  emailTemplate = emailTemplate.replace("{{dailyQuotes}}", htmlTemplateQuote);
+  emailTemplate = emailTemplate.replace("{{unsubscribeLink}}", unsubscribeLink);
 
   return emailTemplate;
 }
