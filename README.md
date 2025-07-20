@@ -122,8 +122,6 @@ The `/send-email` endpoint returns a JSON response:
 
 ## 📁 Project Structure
 
-```
-
 .
 ├── config/
 │ └── email-config.js # SMTP config
@@ -138,7 +136,7 @@ The `/send-email` endpoint returns a JSON response:
 ├── .env.example # Environment variable sample
 ├── Procfile # Heroku deployment file
 
-````
+```
 
 ---
 
@@ -154,7 +152,7 @@ git push heroku main
 heroku config:set FROM_USER=...
 heroku config:set TO_USER=...
 # ...other env variables
-````
+```
 
 ---
 
