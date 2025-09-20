@@ -8,6 +8,7 @@ const validator = require("validator");
 const logger = require("./logger");
 const { runEmailJob } = require("./email-core/emailJobs");
 const { cleanupOldEntries } = require("./email-core/emailTracker");
+const { unsubscribeUser } = require("./lib/myLib");
 
 // Express app
 const app = express();
@@ -33,20 +34,157 @@ app.get("/", (req, res) => {
   logger.info("Domain:", domain);
 
   res.send(`
-    <html>
+    <html lang="en">
       <head>
-        <title>Send Email</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Email Dashboard</title>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification"></script>
+        <style>
+          body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+          }
+          .container {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            padding: 2rem 3rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            max-width: 600px;
+          }
+          h1 {
+            margin-bottom: 2rem;
+            font-weight: 600;
+            font-size: 1.8rem;
+          }
+          #gg {
+            display: block;
+            width: 100%;
+            padding: 14px 20px;
+            margin: 12px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+          }
+          #gg:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+          }
+          .unsubscribe { background: #e63946; }
+          .send { background: #06d6a0; }
+          .website { background: #118ab2; }
+          .health { background: #ffd166; color: #333; }
+        </style>
+        <script>
+          async function unsubscribe() {
+            const res = await fetch("${domain}/unsubscribe-health");
+            const data = await res.text();
+            customizableToast.createToast({duration: 5000, message: data, type: "success", position: "top-full-width" , textColor: "snow"});
+          }
+          async function sendEmail() {
+          
+            performDataSync = async (key = null) => {
+            const url = key ? \`${domain}/send-email?key=\${encodeURIComponent(key)}\` : \`${domain}/send-email\`;
+              const res = await fetch(url);
+              const data = await res.text();
+              customizableToast.createToast({animationDuration: 2000,  duration: 8000, message: data, type: "success", position: "top-full-width" , textColor: "snow"});
+            }
+            customizableToast.createToast({
+              duration: 5000,
+              message: 'Click to send email Manually',
+              type: "info",
+              backgroundColor: "red",
+              textColor: "snow",
+              cta: {
+                label: "Send Email API",
+                onClick: async () => { await performDataSync() },
+              },
+              position: "top-full-width"
+            });
+            customizableToast.createToast({
+              duration: 5000,
+              animationDuration: 2000,
+              message: 'Click to send email Manually with Key',
+              type: "info",
+              backgroundColor: "red",
+              textColor: "snow",
+              cta: {
+                label: "Send Email API with Key",
+                onClick: async () => { await performDataSync('EUREKA') },
+              },
+              position: "top-full-width"
+            });
+          }
+          async function website() {
+            const data = "Website Opened Successfully Connecting to priyanshu-eureka.netlify.app Congratulations!";
+            websiteJump = async () => {
+              window.open("https://priyanshu-eureka.netlify.app/", '_blank');
+              customizableToast.createToast({duration: 5000, message: data, type: "info", position: "top-full-width" , textColor: "snow"});
+            }
+            customizableToast.createToast({
+              duration: 5000,
+              message: "Click to open website",
+              type: "info",
+              backgroundColor: "red",
+              textColor: "snow",
+              cta: {
+                label: "Website Jump!",
+                onClick: async () => { await websiteJump() },
+              },
+              position: "top-full-width"
+            });
+          }
+          async function healthCheck() {
+            performDataSync = async () => {
+              const res = await fetch("${domain}/health-check");
+              const data = await res.text();
+              customizableToast.createToast({duration: 5000, message: data, type: "success", position: "top-full-width" , textColor: "snow"});
+            }
+            customizableToast.createToast({
+              duration: 5000,
+              message: 'Click to health check of the APP',
+              type: "info",
+              backgroundColor: "red",
+              textColor: "snow",
+              cta: {
+                label: "Health Check API",
+                onClick: async () => { await performDataSync() },
+              },
+              position: "top-full-width"
+            });
+          }
+        </script>
       </head>
       <body>
-        <h1>Hit The Send Email Endpoint to receive the email!</h1>
-        <a href="${domain}/send-email" target="_blank">Send Email</a>
-        <br/>
-        <a href="https://priyanshu-eureka.netlify.app/" target="_blank">Visit My Website</a>
-        <br/>
-        <a href="${domain}/health-check" target="_blank">Health Check</a>
+        <div class="container">
+          <h1>🚀 Email & API Dashboard</h1>
+          <button id="gg" class="unsubscribe" onclick="unsubscribe()">Unsubscribe</button>
+          <button id="gg" class="send" onclick="sendEmail()">Send Email</button>
+          <button id="gg" class="website" onclick="website()">Open Website</button>
+          <button id="gg" class="health" onclick="healthCheck()">Health Check</button>
+        </div>
       </body>
     </html>
   `);
+});
+
+app.get("/unsubscribe-health", (req, res) => {
+  const email = req.query.email || "unknown@example.com";
+  const message = unsubscribeUser(email);
+  res.send(message);
 });
 
 // Health-check endpoint
@@ -57,8 +195,8 @@ app.get("/health-check", (req, res) => {
 // Endpoint to send an email
 app.get(`/send-email`, sendEmailLimiter, async (req, res) => {
   if (req.query.key !== process.env.CRON_API_KEY) {
-    return res.status(403).json({ error: "Forbidden" });
     logger.error("Forbidden");
+    return res.status(403).json({ error: "Forbidden" });
   }
 
   try {
