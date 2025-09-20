@@ -123,7 +123,7 @@ app.get("/", (req, res) => {
               textColor: "snow",
               cta: {
                 label: "Send Email API with Key",
-                onClick: async () => { await performDataSync('EUREKA') },
+                onClick: async () => { await performDataSync('eureka') },
               },
               position: "top-full-width"
             });
