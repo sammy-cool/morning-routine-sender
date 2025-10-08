@@ -40,7 +40,7 @@ app.get("/", (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Email Dashboard</title>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification"></script>
+        <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"></script>
         <style>
           body {
             margin: 0;
@@ -134,6 +134,10 @@ app.get("/", (req, res) => {
               window.open("https://priyanshu-eureka.netlify.app/", '_blank');
               customizableToast.createToast({duration: 5000, message: data, type: "info", position: "top-full-width" , textColor: "snow"});
             }
+              sassWebsiteJump = async () => {
+              window.open("https://sass-landing-page.web.app/", '_blank');
+              customizableToast.createToast({duration: 5000, message: data, type: "info", position: "top-full-width" , textColor: "snow"});
+            }
             customizableToast.createToast({
               duration: 5000,
               message: "Click to open website",
@@ -143,6 +147,18 @@ app.get("/", (req, res) => {
               cta: {
                 label: "Website Jump!",
                 onClick: async () => { await websiteJump() },
+              },
+              position: "top-full-width"
+            });
+            customizableToast.createToast({
+              duration: 5000,
+              message: "Click to open sass-page",
+              type: "info",
+              // backgroundColor: "red",
+              textColor: "snow",
+              cta: {
+                label: "SaSS Website Jump!",
+                onClick: async () => { await sassWebsiteJump() },
               },
               position: "top-full-width"
             });
@@ -156,9 +172,9 @@ app.get("/", (req, res) => {
             customizableToast.createToast({
               duration: 5000,
               message: 'Click to health check of the APP',
-              type: "info",
-              backgroundColor: "red",
-              textColor: "snow",
+              // type: "info",
+              // backgroundColor: "red",
+              // textColor: "snow",
               cta: {
                 label: "Health Check API",
                 onClick: async () => { await performDataSync() },
