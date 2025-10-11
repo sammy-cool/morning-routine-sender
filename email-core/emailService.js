@@ -1,74 +1,81 @@
+// email-core/emailService.js
+const fs = require("fs").promises;
+const path = require("path");
 const logger = require("../logger");
-const { createTransporter } = require("../config/email-config");
-const {
-  cache,
-  getEmailHtmlTemplateAndUpdate,
-  getNewRandomQuote,
-  updateCache,
-} = require("../helper/shared-data");
-const { generateRandomMessageID } = require("../helper/util");
 
-const transporter = createTransporter();
-
-async function generateEmailOptions(toEmail, randomQuote) {
-  const IST_Time = new Date().toLocaleTimeString("en-IN", {
-    timeZone: "Asia/Kolkata",
-  });
-
-  const domain = process.env.RENDER_DOMAIN || "http://localhost:3000";
-  const unsubscribeLink = `${domain}/unsubscribe?email=${encodeURIComponent(
-    toEmail
-  )}`;
-
-  return {
-    from: `Eureka! ${process.env.FROM_USER}`,
-    to: `Priyanshu ${toEmail}`,
-    subject: `Your Morning Routine: ${randomQuote} - ${IST_Time}`,
-    html: await getEmailHtmlTemplateAndUpdate(unsubscribeLink),
-    headers: {
-      "Content-Type": "text/html",
-      "In-Reply-To": "",
-      "Message-ID": `<${generateRandomMessageID()}@example.com>`,
-      "If-Modified-Since": `<${randomQuote}>`,
-    },
-  };
-}
-
-async function sendEmail(mailOptions, randomQuote) {
+/**
+ * Send routine email
+ * @param {Transporter} transporter - Nodemailer transporter
+ * @param {string} recipient - Recipient email
+ * @param {string} templateType - Template type
+ */
+async function sendRoutineEmail(
+  transporter,
+  recipient,
+  templateType = "default"
+) {
   try {
-    cache.delete("lastSentQuote");
+    // Load HTML template
+    const templatePath = path.join(
+      __dirname,
+      "..",
+      "email-html-template",
+      `routine-${templateType}.html`
+    );
 
-    const info = await new Promise((resolve, reject) => {
-      transporter.sendMail(mailOptions, (error, mailInfo) => {
-        if (error) {
-          logger.error(`Error sending email: ${error.message}`);
-          reject(error);
-        } else {
-          updateCache("lastSentQuote", randomQuote);
-          logger.info(`Email sent successfully to: ${mailInfo.accepted}`);
-          resolve(mailInfo);
-        }
+    let htmlContent;
+    try {
+      htmlContent = await fs.readFile(templatePath, "utf-8");
+    } catch (error) {
+      logger.warn(`Template ${templateType} not found, using default`, {
+        templateType,
       });
+      const defaultPath = path.join(
+        __dirname,
+        "..",
+        "email-html-template",
+        "routine-default.html"
+      );
+      htmlContent = await fs.readFile(defaultPath, "utf-8");
+    }
+
+    // Replace variables in template (if any)
+    htmlContent = htmlContent.replace(/{{email}}/g, recipient);
+    htmlContent = htmlContent.replace(
+      /{{date}}/g,
+      new Date().toLocaleDateString()
+    );
+
+    // Send email
+    const info = await transporter.sendMail({
+      from: `"${process.env.FROM_NAME || "Morning Routine"}" <${
+        process.env.FROM_USER
+      }>`,
+      to: recipient,
+      subject: `Your Morning Routine - ${templateType
+        .replace("-", " ")
+        .toUpperCase()}`,
+      html: htmlContent,
+      headers: {
+        "X-Template-Type": templateType,
+        "X-Job-Type": "routine-email",
+      },
     });
 
-    return info;
+    logger.info("Email sent", { recipient, templateType });
+    return {
+      success: true,
+      messageId: info.messageId,
+      response: info.response,
+    };
   } catch (error) {
-    logger.error(`Failed to send email: ${error.message}`);
+    logger.error("Email send error", {
+      error: error.message,
+      recipient,
+      templateType,
+    });
     throw error;
   }
 }
 
-async function sendEmailFn(toEmail) {
-  logger.info("Preparing to send email...");
-  try {
-    const randomQuote = await getNewRandomQuote();
-    const mailOptions = await generateEmailOptions(toEmail, randomQuote);
-    const info = await sendEmail(mailOptions, randomQuote);
-    return info;
-  } catch (error) {
-    logger.error(`Error in sendEmailFn: ${error.message}`);
-    throw error;
-  }
-}
-
-module.exports = { sendEmailFn };
+module.exports = { sendRoutineEmail };

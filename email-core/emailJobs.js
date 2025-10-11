@@ -2,7 +2,7 @@ const validator = require("validator");
 
 const logger = require("../logger");
 const { createTransporter } = require("../config/email-config");
-const { shouldSendEmail, updateTracker } = require("./emailTracker");
+// const { shouldSendEmail, updateTracker } = require("./emailTracker");
 const { sendEmailFn } = require("./emailService");
 
 // Email Configuration
@@ -60,11 +60,11 @@ async function runEmailJob() {
 
     try {
       await sendEmailFn(email);
-      updateTracker(email, type, "success");
+      // updateTracker(email, type, "success");
       results.sent.push({ email, success: `${type}_success` });
       logger.info(`✅ Email sent to ${email}`);
     } catch (err) {
-      updateTracker(email, type, "failed", err.message);
+      // updateTracker(email, type, "failed", err.message);
       failedRecipients.push(email);
       results.failed.push({ email, error: err.message });
       logger.error(`❌ Failed to send email to ${email}: ${err.message}`);
