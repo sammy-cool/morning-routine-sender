@@ -28,7 +28,7 @@
     "ioredis-mock": "^8.13.0",
     "knex": "^3.1.0",
     "node-cron": "^3.0.3",
-    "nodemailer": "^6.9.14",
+    "nodemailer": "^7.0.7",
     "nodemon": "^3.1.4",
     "pg": "^8.16.3",
     "sqlite3": "^5.1.7",
