@@ -138,3 +138,122 @@ module.exports = {
   getNewRandomQuote,
   getEmailHtmlTemplateAndUpdate,
 };
+
+// helper/shared-data.js
+require("dotenv").config();
+
+/**
+ * Shared data for users and their routine preferences
+ * In production, this should come from a database
+ */
+const USERS = [
+  {
+    email: process.env.TEST_EMAIL || "test@example.com",
+    templateType: "routine-default",
+    cronPattern: "0 8 * * *", // 8 AM daily
+    timezone: "Asia/Kolkata",
+    isActive: true,
+  },
+  // Add more test users if needed
+  {
+    email: process.env.TEST_EMAIL_2 || "test2@example.com",
+    templateType: "email-template",
+    cronPattern: "30 7 * * *", // 7:30 AM daily
+    timezone: "Asia/Kolkata",
+    isActive: true,
+  },
+  {
+    email: "lordsmobile.007ishq@gmail.com",
+    templateType: "email-template",
+    cronPattern: "30 7 * * *",
+    timezone: "Asia/Kolkata",
+    isActive: true,
+  },
+  {
+    email: "lordsmobile.999ishq@gmail.com",
+    templateType: "routine-deep-work",
+    cronPattern: "0 7 * * *",
+    timezone: "Asia/Kolkata",
+    isActive: true,
+  },
+  {
+    email: "ishqyt007@gmail.com",
+    templateType: "routine-career",
+    cronPattern: "30 6 * * *",
+    timezone: "Asia/Kolkata",
+    isActive: true,
+  },
+];
+
+/**
+ * Get all active users
+ * @returns {Array} Array of user objects
+ */
+function getUsers() {
+  const activeUsers = USERS.filter((user) => user.isActive !== false);
+  console.log(`📋 Found ${activeUsers.length} active users in shared data`);
+  return activeUsers;
+}
+
+/**
+ * Get user by email
+ * @param {string} email - User email
+ * @returns {object|null} User object or null
+ */
+function getUserByEmail(email) {
+  return USERS.find((user) => user.email === email) || null;
+}
+
+/**
+ * Add new user (in-memory for now)
+ * @param {object} user - User object
+ */
+function addUser(user) {
+  const exists = USERS.find((u) => u.email === user.email);
+  if (!exists) {
+    USERS.push({
+      email: user.email,
+      templateType: user.templateType || "default",
+      cronPattern: user.cronPattern || "0 8 * * *",
+      timezone: user.timezone || "Asia/Kolkata",
+      isActive: true,
+    });
+    console.log(`✅ User added: ${user.email}`);
+  } else {
+    console.log(`⚠️  User already exists: ${user.email}`);
+  }
+}
+
+/**
+ * Remove user
+ * @param {string} email - User email
+ */
+function removeUser(email) {
+  const index = USERS.findIndex((u) => u.email === email);
+  if (index > -1) {
+    USERS.splice(index, 1);
+    console.log(`🗑️  User removed: ${email}`);
+  }
+}
+
+/**
+ * Update user preferences
+ * @param {string} email - User email
+ * @param {object} updates - Updates to apply
+ */
+function updateUser(email, updates) {
+  const user = USERS.find((u) => u.email === email);
+  if (user) {
+    Object.assign(user, updates);
+    console.log(`✏️  User updated: ${email}`);
+  }
+}
+
+module.exports = {
+  getUsers,
+  getUserByEmail,
+  addUser,
+  removeUser,
+  updateUser,
+  USERS, // Export for direct access if needed
+};

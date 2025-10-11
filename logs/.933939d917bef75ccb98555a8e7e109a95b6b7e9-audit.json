@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 7
+    },
+    "auditLog": "D:\\github_desktop\\mrn-lib-testing\\logs\\.933939d917bef75ccb98555a8e7e109a95b6b7e9-audit.json",
+    "files": [
+        {
+            "date": 1760198272211,
+            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\error-2025-10-11.log",
+            "hash": "f893751d93490059e2eb87b010404dcb2ff54c011a262a93e617d8c529dc861c"
+        }
+    ],
+    "hashType": "sha256"
+}
