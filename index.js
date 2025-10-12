@@ -749,7 +749,7 @@ app.post("/send-test-email", async (req, res) => {
       templateType: templateType || "default",
     });
 
-    res.json({
+    return res.status(200).json({
       success: true,
       messageId: result.messageId,
       email,
@@ -760,9 +760,10 @@ app.post("/send-test-email", async (req, res) => {
       error: error.message,
     });
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error.message || "Unknown error occurred",
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 });
