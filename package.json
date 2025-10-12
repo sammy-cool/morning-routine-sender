@@ -1,5 +1,6 @@
 {
   "name": "morning-routine-sender",
+  "description": "Automated morning routine email sender",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,17 +10,19 @@
     "db:migrate": "knex migrate:latest",
     "db:rollback": "knex migrate:rollback",
     "db:seed": "knex seed:run",
+    "db:status": "knex migrate:status",
+    "seed:make-users": "knex seed:make users",
     "db:migrate-json": "node scripts/migrate-json-to-db.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@bull-board/api": "^6.13.0",
     "@bull-board/express": "^6.13.0",
     "axios": "^1.12.2",
     "bullmq": "^5.61.0",
     "compression": "^1.8.1",
+    "cors": "^2.8.5",
     "customizable-toast-notification": "^3.9.7",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
@@ -40,6 +43,11 @@
   "devDependencies": {
     "@types/ioredis": "^4.28.10"
   },
-  "keywords": ["email", "automation", "scheduler", "nodejs"],
+  "keywords": [
+    "email",
+    "automation",
+    "scheduler",
+    "nodejs"
+  ],
   "author": "Priyanshu"
 }

@@ -1,6 +1,7 @@
 // index.js
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const {
   createTransporter,
   closeTransporter,
@@ -10,6 +11,26 @@ const emailScheduler = require("./email-core/emailScheduler"); // Add this
 const logger = require("./logger");
 
 const app = express();
+// const allowedOrigins = [
+//   "https://morning-routine-sender.onrender.com/",
+//   "https://priyanshu-eureka.netlify.app/",
+//   "http://localhost:2900/",
+//   "http://localhost:2900/send-test-email",
+// ];
+
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+// };
+
+// app.use(cors(corsOptions));
+app.use(cors());
+
 const PORT = process.env.PORT || 2900;
 
 app.use(express.json());
@@ -35,7 +56,8 @@ app.get("/health", (req, res) => {
 
 // index.js - Enhanced admin dashboard endpoint
 app.get("/", (req, res) => {
-  const domain = req.protocol + "://" + req.get("host");
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  const domain = protocol + "://" + req.get("host");
   logger.info("Dashboard accessed", { domain, ip: req.ip });
 
   res.send(`
@@ -48,14 +70,14 @@ app.get("/", (req, res) => {
         <title>📧 Morning Routine Sender - Admin Dashboard</title>
         
         <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link preload href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         
         <!-- Toast Notification Library -->
-        <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"></script>
         
         <!-- Icons -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-        <link rel="icon" type="image/png" sizes="64x64" href="/assets/mrn-brand-ico.png">
+        <link async rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <link defer rel="icon" type="image/png" sizes="64x64" href="/assets/mrn-brand-ico.png">
         <style>
           * {
             margin: 0;
@@ -624,7 +646,7 @@ app.get("/", (req, res) => {
           async function rescheduleJobs() {
             if (!confirm("Reschedule all email jobs? This will reload the job scheduler.")) return;
             
-            showToast("🔄 Rescheduling jobs... (requires server restart)", "info");
+            showToast("🔄 Rescheduling jobs... (requires server restart)", "warning");
           }
           
           // Stats shortcuts

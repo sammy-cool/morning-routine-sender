@@ -1,52 +1,53 @@
-const sqlite3 = require("sqlite3").verbose();
+const { Client } = require("pg");
 
-// Open the database
-let db = new sqlite3.Database("storage/email-tracker.db", (err) => {
-  if (err) {
-    console.error("Error opening database:", err.message);
-  } else {
-    console.log("Connected to the email-tracker.db database.");
-  }
+// Create a new PostgreSQL client
+const client = new Client({
+  connectionString:
+    "postgresql://mrn_user:M0pLwyIqMCwE1GnJoDCz0tvMiXhlE6EK@dpg-d3lte08gjchc73cn5drg-a.oregon-postgres.render.com/mrn",
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
-// List all tables
-db.all(
-  "SELECT name FROM sqlite_master WHERE type='table'",
-  [],
-  (err, tables) => {
-    if (err) {
-      console.error("Error fetching tables:", err.message);
+// Async wrapper function
+(async () => {
+  try {
+    await client.connect();
+    console.log("✅ Connected to the PostgreSQL database.");
+
+    // Fetch all user-defined tables from public schema
+    const tablesResult = await client.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+    `);
+
+    const tableNames = tablesResult.rows.map((row) => row.table_name);
+    if (tableNames.length === 0) {
+      console.log("⚠️ No tables found in the database.");
       return;
     }
 
-    console.log("Tables in the database:");
-    tables.forEach((table) => {
-      console.log(`- ${table.name}`);
+    console.log("\n📦 Tables in the database:");
+    tableNames.forEach((name) => {
+      // Apply bold only to actual string values
+      if (typeof name === "string") {
+        console.log(`- ${name}`);
+      }
     });
 
-    // Optionally query one table (change the name to an actual one)
-    const exampleTable = tables[3]?.name; // Pick the first table //SELECT * FROM email_tracker ORDER BY sent_at DESC LIMIT 5;
-    if (exampleTable) {
-      db.all(`SELECT * FROM ${exampleTable} LIMIT 100`, [], (err, rows) => {
-        if (err) {
-          console.error("Error reading data:", err.message);
-          return;
-        }
-
-        console.log(`\nData from "${exampleTable}" table:`);
-        console.table(rows);
-      });
+    // Loop through each table and display its data
+    for (const tableName of tableNames) {
+      console.log(`\n📄 Data from "${tableName}" table:`);
+      const dataResult = await client.query(
+        `SELECT * FROM "${tableName}" LIMIT 100`
+      );
+      console.table(dataResult.rows);
     }
+  } catch (error) {
+    console.error("❌ Error:", error.message || error);
+  } finally {
+    await client.end();
+    console.log("🔌 Database connection closed.");
   }
-);
-
-// Close the DB after a short delay to ensure queries complete
-setTimeout(() => {
-  db.close((err) => {
-    if (err) {
-      console.error("Error closing database:", err.message);
-    } else {
-      console.log("Closed the database connection.");
-    }
-  });
-}, 1000);
+})();
