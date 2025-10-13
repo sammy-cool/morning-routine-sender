@@ -797,13 +797,17 @@ app.post("/send-bulk-now", async (req, res) => {
 // Start server
 const server = app.listen(PORT, () => {
   logger.info(`✅ Server started on port ${PORT}`);
-  logger.info("🔄 Mode: Auto-scheduling enabled with node-cron");
+  logger.info(
+    `🔄 Mode: ${
+      process.env.NODE_ENV || "development"
+    } Auto-scheduling enabled with node-cron`
+  );
 
   // Initialize automatic scheduling
   setTimeout(() => {
     logger.info("⏰ Initializing automatic email scheduling...");
     emailScheduler.scheduleAllJobs();
-  }, 8000); // 8 second delay to ensure everything is ready
+  }, 5000); // 8 second delay to ensure everything is ready
 
   // Schedule cleanup jobs
   setTimeout(() => {

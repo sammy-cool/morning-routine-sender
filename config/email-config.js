@@ -88,11 +88,12 @@ function createTransporter() {
     transporter.verify((error, success) => {
       if (error) {
         console.error("❌ SMTP configuration error:", error.message);
-        console.error("❌ SMTP configuration fullError:", error);
         console.error("Please verify your SMTP settings in .env file");
         // In production, you might want to exit process here
         if (process.env.NODE_ENV === "production") {
-          process.exit(1);
+          console.log(
+            "⚠️  App will start but emails may fail. Consider using API instead."
+          );
         }
       } else {
         console.log("✅ SMTP transporter is ready to send emails");
