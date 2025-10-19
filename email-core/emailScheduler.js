@@ -286,10 +286,12 @@ function scheduleCleanupJobs() {
   const cleanupJob = cron.schedule(
     "0 2 * * *",
     async () => {
-      logger.info("🧹 Running scheduled database cleanup...");
+      logger.info(
+        `🧹 Running scheduled database cleanup of last ${process.env.DB_RETENTION_DAYS} days!...`
+      );
 
       // Delete records older than 30 days
-      await cleanupOldEmailRecords(30);
+      await cleanupOldEmailRecords(process.env.DB_RETENTION_DAYS || 30);
 
       // Optimize database
       await optimizeDatabase();
