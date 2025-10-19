@@ -969,8 +969,8 @@ app.post("/admin/cleanup-database", async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    logger.error("Manual cleanup failed", { error: error.message });
-    res.status(500).json({ success: false, error: error.message });
+    logger.error("Manual cleanup failed", { error: error.message || error });
+    res.status(500).json({ success: false, error: error.message || error });
   }
 });
 
@@ -982,8 +982,8 @@ app.get("/admin/database-stats", async (req, res) => {
 
     res.json(stats);
   } catch (error) {
-    logger.error("Failed to get stats", { error: error.message });
-    res.status(500).json({ success: false, error: error.message });
+    logger.error("Failed to get stats", { error: error.message || error });
+    res.status(500).json({ success: false, error: error.message || error });
   }
 });
 
@@ -1013,8 +1013,8 @@ app.post("/admin/cleanup-logs", async (req, res) => {
 
     res.json({ success: true, deleted });
   } catch (error) {
-    logger.error("Log cleanup failed", { error: error.message });
-    res.status(500).json({ success: false, error: error.message });
+    logger.error("Log cleanup failed", { error: error.message || error });
+    res.status(500).json({ success: false, error: error.message || error });
   }
 });
 
@@ -1085,10 +1085,10 @@ app.post("/send-bulk-now", async (req, res) => {
       ...result,
     });
   } catch (error) {
-    logger.error("❌ Bulk send failed", { error: error.message });
+    logger.error("❌ Bulk send failed", { error: error.message || error });
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error.message || error || "Unknown error occurred",
     });
   }
 });
@@ -1143,7 +1143,7 @@ async function gracefulShutdown(signal) {
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("uncaughtException", (error) => {
-  logger.error("Uncaught exception", { error: error.message });
+  logger.error("Uncaught exception", { error: error.message || error });
   gracefulShutdown("uncaughtException");
 });
 process.on("unhandledRejection", (reason) => {
