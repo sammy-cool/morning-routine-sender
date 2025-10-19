@@ -6,12 +6,12 @@ const logger = require("../logger");
  * Delete email records older than specified days
  * @param {number} days - Number of days to keep
  */
-async function cleanupOldEmailRecords(days = 30) {
+async function cleanupOldEmailRecords(days) {
   try {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
-    logger.info("🧹 Starting database cleanup", {
+    logger.info(`🧹 Starting database cleanup of last ${days} days!`, {
       cutoffDate: cutoffDate.toISOString(),
       daysToKeep: days,
     });

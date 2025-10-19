@@ -936,12 +936,35 @@ app.get("/", (req, res) => {
 `);
 });
 
+// Database read endpoint
+app.get("/read-db", async (req, res) => {
+  try {
+    const { readDb } = require("./helper/read-db");
+    const result = await readDb();
+    logger.info("Database reading successful");
+    res.json({ success: true, data: result });
+  } catch (error) {
+    logger.error("Database reading failed", { error: error.message || error });
+    res.status(500).json({ success: false, error: error.message || error });
+  }
+});
+
 // Manual database cleanup endpoint (admin only)
 app.post("/admin/cleanup-database", async (req, res) => {
   try {
-    const { days = 30 } = req.body;
-    const { cleanupOldEmailRecords } = require("./helper/database-cleanup");
+    const DEFAULT_DAYS = 30;
+    const envDays = Number(process.env.DB_RETENTION_DAYS);
+    const bodyDays = Number(req?.body?.days);
 
+    let days = DEFAULT_DAYS;
+
+    if (Number.isFinite(bodyDays) && bodyDays > 0) {
+      days = bodyDays;
+    } else if (Number.isFinite(envDays) && envDays > 0) {
+      days = envDays;
+    }
+
+    const { cleanupOldEmailRecords } = require("./helper/database-cleanup");
     const result = await cleanupOldEmailRecords(days);
 
     res.json(result);
