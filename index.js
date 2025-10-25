@@ -65,6 +65,14 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/manifest.json", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "manifest.json"));
+});
+
+app.get("/sw.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "sw.js"));
+});
+
 // index.js - Enhanced admin dashboard endpoint
 app.get("/", (req, res) => {
   const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
