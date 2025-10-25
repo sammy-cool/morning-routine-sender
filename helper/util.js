@@ -23,4 +23,11 @@ function generateRandomString(length) {
   return randomString;
 }
 
-module.exports = { generateRandomMessageID };
+function maskEmail(email) {
+  const [local, domain] = email.split("@");
+  const maskedLocal =
+    local[0] + "*".repeat(Math.max(local.length - 2, 1)) + local.slice(-1);
+  return `${maskedLocal}@${domain}`;
+}
+
+module.exports = { generateRandomMessageID, maskEmail };
