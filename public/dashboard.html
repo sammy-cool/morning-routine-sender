@@ -16,8 +16,16 @@
     />
     <meta name="author" content="Priyanshu" />
     <meta name="theme-color" content="#4f46e5" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="MR Sender" />
 
-    <!-- Open Graph -->
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
     <meta
       property="og:title"
       content="Morning Routine Sender - Admin Dashboard"
@@ -31,12 +39,14 @@
     <title>Morning Routine Sender - Professional Dashboard</title>
 
     <!-- Favicon -->
+    <!-- Icons -->
     <link
       rel="icon"
       type="image/png"
       sizes="64x64"
       href="/assets/mrn-brand-ico.png"
     />
+    <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png" />
 
     <!-- Performance: Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
@@ -63,6 +73,12 @@
     <!-- Toast Library -->
     <script
       src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
+      defer
+      crossorigin="anonymous"
+    ></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
       defer
     ></script>
 
@@ -645,6 +661,265 @@
         border-top-color: white;
         animation: spin 0.8s linear infinite;
       }
+
+      /* ========== NEW: Settings Panel Styles ========== */
+      .settings-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.3s;
+      }
+
+      .settings-modal.active {
+        display: flex;
+      }
+
+      .settings-panel {
+        background: var(--bg-primary);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-xl);
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .settings-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-lg);
+        padding-bottom: var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .settings-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+      }
+
+      .settings-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: var(--spacing-xs);
+      }
+
+      .settings-group {
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .settings-group-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .settings-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-md);
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .settings-item-label {
+        font-weight: 500;
+      }
+
+      .settings-item-desc {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 24px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--gray-300);
+        border-radius: 24px;
+        transition: 0.3s;
+      }
+
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.3s;
+      }
+
+      input:checked + .toggle-slider {
+        background: var(--primary);
+      }
+
+      input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+      }
+
+      select {
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        cursor: pointer;
+      }
+
+      /* ========== NEW: Analytics Panel Styles ========== */
+      .analytics-section {
+        margin-top: var(--spacing-xl);
+      }
+
+      .chart-container {
+        background: var(--bg-primary);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-color);
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-md);
+      }
+
+      .chart-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+      }
+
+      .chart-filters {
+        display: flex;
+        gap: var(--spacing-sm);
+      }
+
+      .filter-btn {
+        padding: var(--spacing-xs) var(--spacing-md);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .filter-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+
+      /* ========== NEW: Install Prompt ========== */
+      .install-prompt {
+        position: fixed;
+        bottom: 80px;
+        right: 24px;
+        background: var(--bg-primary);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 8px 24px var(--shadow);
+        border: 1px solid var(--border-color);
+        max-width: 300px;
+        display: none;
+        animation: slideUp 0.3s;
+        z-index: 997;
+      }
+
+      .install-prompt.show {
+        display: block;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .install-prompt-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+        font-weight: 600;
+      }
+
+      .install-prompt-text {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-md);
+      }
+
+      .install-prompt-actions {
+        display: flex;
+        gap: var(--spacing-sm);
+      }
+
+      .install-btn-small {
+        flex: 1;
+        padding: var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        border: none;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .install-btn-small.primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .install-btn-small.secondary {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+      }
     </style>
   </head>
 
@@ -662,6 +937,15 @@
           <span class="status-dot"></span>
           <span id="systemStatus">Online</span>
         </div>
+
+        <!-- Settings Button -->
+        <button
+          class="theme-toggle"
+          onclick="openSettings()"
+          aria-label="Open settings"
+        >
+          <i class="fas fa-cog"></i>
+        </button>
         <button
           class="theme-toggle"
           onclick="toggleTheme()"
@@ -871,6 +1155,41 @@
         </div>
       </section>
 
+      <!-- NEW: Analytics Section -->
+      <section class="analytics-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <i class="fas fa-chart-pie"></i>
+            Analytics & Insights
+          </h2>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3 class="chart-title">Email Trends</h3>
+            <div class="chart-filters">
+              <button class="filter-btn active" onclick="setChartRange(7)">
+                7 Days
+              </button>
+              <button class="filter-btn" onclick="setChartRange(30)">
+                30 Days
+              </button>
+              <button class="filter-btn" onclick="setChartRange(90)">
+                90 Days
+              </button>
+            </div>
+          </div>
+          <canvas id="emailTrendsChart" height="80"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3 class="chart-title">Template Usage</h3>
+          </div>
+          <canvas id="templateUsageChart" height="80"></canvas>
+        </div>
+      </section>
+
       <!-- Footer -->
       <footer class="footer">
         <p>
@@ -893,6 +1212,152 @@
         </p>
       </footer>
     </main>
+
+    <!-- NEW: Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+      <div class="settings-panel">
+        <div class="settings-header">
+          <h2 class="settings-title">
+            <i class="fas fa-cog"></i>
+            Settings
+          </h2>
+          <button class="settings-close" onclick="closeSettings()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Appearance</div>
+
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Theme</div>
+              <div class="settings-item-desc">
+                Choose your preferred color scheme
+              </div>
+            </div>
+            <select id="themeSetting" onchange="updateThemeSetting(this.value)">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="auto">Auto</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Notifications</div>
+
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Toast Position</div>
+              <div class="settings-item-desc">Where notifications appear</div>
+            </div>
+            <select
+              id="toastPosition"
+              onchange="updateToastPosition(this.value)"
+            >
+              <option value="top-right">Top Right</option>
+              <option value="top-center">Top Center</option>
+              <option value="bottom-right">Bottom Right</option>
+              <option value="bottom-center">Bottom Center</option>
+            </select>
+          </div>
+
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Notification Sound</div>
+              <div class="settings-item-desc">Play sound on notifications</div>
+            </div>
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                id="notificationSound"
+                onchange="updateSoundSetting(this.checked)"
+              />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Email</div>
+
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Default Template</div>
+              <div class="settings-item-desc">Template for test emails</div>
+            </div>
+            <select
+              id="defaultTemplate"
+              onchange="updateDefaultTemplate(this.value)"
+            >
+              <option value="default">Default</option>
+              <option value="deep-work">Deep Work</option>
+              <option value="career">Career</option>
+              <option value="learning">Learning</option>
+              <option value="mindfulness">Mindfulness</option>
+              <option value="reflection">Reflection</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Dashboard</div>
+
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Activity Log</div>
+              <div class="settings-item-desc">
+                Show activity sidebar on load
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                id="activityLogDefault"
+                onchange="updateActivityLogSetting(this.checked)"
+              />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Auto Refresh</div>
+              <div class="settings-item-desc">Refresh stats automatically</div>
+            </div>
+            <select id="autoRefresh" onchange="updateAutoRefresh(this.value)">
+              <option value="0">Off</option>
+              <option value="30">Every 30s</option>
+              <option value="60">Every 1 min</option>
+              <option value="300">Every 5 min</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW: PWA Install Prompt -->
+    <div class="install-prompt" id="installPrompt">
+      <div class="install-prompt-header">
+        <i class="fas fa-download"></i>
+        Install App
+      </div>
+      <p class="install-prompt-text">
+        Install Morning Routine Sender for quick access and offline use.
+      </p>
+      <div class="install-prompt-actions">
+        <button class="install-btn-small primary" onclick="installPWA()">
+          Install
+        </button>
+        <button
+          class="install-btn-small secondary"
+          onclick="dismissInstallPrompt()"
+        >
+          Later
+        </button>
+      </div>
+    </div>
 
     <!-- Activity Sidebar -->
     <aside class="activity-sidebar" id="activitySidebar">
@@ -927,7 +1392,7 @@
           }
 
           const defaults = {
-            position: "top-right",
+            position: "top-center",
             animationDuration: 300,
             textColor: "snow",
             duration: 5000,
@@ -1059,7 +1524,8 @@
 
         ActivityLogger.log(`Theme changed to ${newTheme} mode`);
         ToastManager.info(
-          `${newTheme === "dark" ? "🌙" : "☀️"} ${newTheme} mode activated`
+          `${newTheme === "dark" ? "🌙" : "☀️"} ${newTheme} mode activated`,
+          { position: "top-center" }
         );
       }
 
@@ -1531,6 +1997,261 @@
           });
         }
       });
+
+      /* ========== PWA Registration ========== */
+      let deferredPrompt;
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((reg) => {
+              // console.log("Service Worker registered", reg);
+              ActivityLogger.log("PWA enabled", "success");
+              ActivityLogger.log("Service Worker registered", "success");
+            })
+            .catch((err) => console.log("SW registration failed", err));
+        });
+      }
+
+      globalThis.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById("installPrompt").classList.add("show");
+      });
+
+      function installPWA() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === "accepted") {
+              ToastManager.success("App installed successfully!");
+              ActivityLogger.log("PWA installed", "success");
+            }
+            deferredPrompt = null;
+            document.getElementById("installPrompt").classList.remove("show");
+          });
+        }
+      }
+
+      function dismissInstallPrompt() {
+        document.getElementById("installPrompt").classList.remove("show");
+        localStorage.setItem("installPromptDismissed", "true");
+      }
+
+      /* ========== Settings Functions ========== */
+      const Settings = {
+        get(key, defaultValue) {
+          const value = localStorage.getItem(`setting_${key}`);
+          return value !== null ? JSON.parse(value) : defaultValue;
+        },
+        set(key, value) {
+          localStorage.setItem(`setting_${key}`, JSON.stringify(value));
+        },
+      };
+
+      function openSettings() {
+        document.getElementById("settingsModal").classList.add("active");
+        loadSettingsValues();
+        ActivityLogger.log("Settings opened");
+      }
+
+      function closeSettings() {
+        document.getElementById("settingsModal").classList.remove("active");
+      }
+
+      function loadSettingsValues() {
+        document.getElementById("themeSetting").value = Settings.get(
+          "theme",
+          "light"
+        );
+        document.getElementById("toastPosition").value = Settings.get(
+          "toastPosition",
+          "top-right"
+        );
+        document.getElementById("notificationSound").checked = Settings.get(
+          "notificationSound",
+          false
+        );
+        document.getElementById("defaultTemplate").value = Settings.get(
+          "defaultTemplate",
+          "default"
+        );
+        document.getElementById("activityLogDefault").checked = Settings.get(
+          "activityLogDefault",
+          false
+        );
+        document.getElementById("autoRefresh").value = Settings.get(
+          "autoRefresh",
+          "0"
+        );
+      }
+
+      function updateThemeSetting(value) {
+        Settings.set("theme", value);
+        if (value !== "auto") {
+          document.documentElement.setAttribute("data-theme", value);
+          document.getElementById("themeIcon").className =
+            value === "dark" ? "fas fa-sun" : "fas fa-moon";
+        }
+        ToastManager.info(`Theme set to ${value}`);
+        ActivityLogger.log(`Theme changed to ${value}`);
+      }
+
+      function updateToastPosition(value) {
+        Settings.set("toastPosition", value);
+        ToastManager.info(`Toast position: ${value}`);
+      }
+
+      function updateSoundSetting(value) {
+        Settings.set("notificationSound", value);
+        ToastManager.info(value ? "Sounds enabled" : "Sounds disabled");
+      }
+
+      function updateDefaultTemplate(value) {
+        Settings.set("defaultTemplate", value);
+        ToastManager.info(`Default template: ${value}`);
+      }
+
+      function updateActivityLogSetting(value) {
+        Settings.set("activityLogDefault", value);
+        ToastManager.info(
+          value
+            ? "Activity log will open by default"
+            : "Activity log will stay closed"
+        );
+      }
+
+      function updateAutoRefresh(value) {
+        Settings.set("autoRefresh", value);
+        setupAutoRefresh();
+        ToastManager.info(
+          value === "0" ? "Auto-refresh disabled" : `Refreshing every ${value}s`
+        );
+      }
+
+      let autoRefreshInterval = null;
+
+      function setupAutoRefresh() {
+        if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+
+        const interval = Settings.get("autoRefresh", "0");
+        if (interval !== "0" && interval !== 0) {
+          autoRefreshInterval = setInterval(() => {
+            loadDashboardStats();
+            ActivityLogger.log("Stats auto-refreshed");
+          }, parseInt(interval) * 1000);
+        }
+      }
+
+      /* ========== Analytics Charts ========== */
+      let emailTrendsChart = null;
+      let templateUsageChart = null;
+
+      function initCharts() {
+        // Email Trends Chart
+        const ctx1 = document.getElementById("emailTrendsChart");
+        if (ctx1 && typeof Chart !== "undefined") {
+          emailTrendsChart = new Chart(ctx1, {
+            type: "line",
+            data: {
+              labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+              datasets: [
+                {
+                  label: "Emails Sent",
+                  data: [12, 19, 3, 5, 2, 3, 9],
+                  borderColor: "rgb(79, 70, 229)",
+                  backgroundColor: "rgba(79, 70, 229, 0.1)",
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+              },
+              scales: {
+                y: { beginAtZero: true },
+              },
+            },
+          });
+        }
+
+        // Template Usage Chart
+        const ctx2 = document.getElementById("templateUsageChart");
+        if (ctx2 && typeof Chart !== "undefined") {
+          templateUsageChart = new Chart(ctx2, {
+            type: "doughnut",
+            data: {
+              labels: [
+                "Default",
+                "Deep Work",
+                "Career",
+                "Learning",
+                "Mindfulness",
+                "Reflection",
+              ],
+              datasets: [
+                {
+                  data: [30, 20, 15, 15, 10, 10],
+                  backgroundColor: [
+                    "rgb(79, 70, 229)",
+                    "rgb(124, 58, 237)",
+                    "rgb(16, 185, 129)",
+                    "rgb(245, 158, 11)",
+                    "rgb(239, 68, 68)",
+                    "rgb(59, 130, 246)",
+                  ],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: "bottom" },
+              },
+            },
+          });
+        }
+      }
+
+      function setChartRange(days) {
+        document
+          .querySelectorAll(".filter-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        event.target.classList.add("active");
+        // TODO: Fetch data for selected range and update chart
+        ToastManager.info(`Chart range: ${days} days`);
+      }
+
+      /* ========== Enhanced DOMContentLoaded ========== */
+      window.addEventListener("DOMContentLoaded", async () => {
+        // Existing initialization code...
+
+        // Initialize new features
+        setupAutoRefresh();
+
+        // Show activity log if setting enabled
+        if (Settings.get("activityLogDefault", false)) {
+          toggleActivityLog();
+        }
+
+        // Initialize charts after a delay
+        setTimeout(() => {
+          initCharts();
+          ActivityLogger.log("Analytics initialized", "success");
+        }, 1000);
+      });
+
+      // Close settings modal on outside click
+      document
+        .getElementById("settingsModal")
+        .addEventListener("click", (e) => {
+          if (e.target.id === "settingsModal") {
+            closeSettings();
+          }
+        });
     </script>
   </body>
 </html>
