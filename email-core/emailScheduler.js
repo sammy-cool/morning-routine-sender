@@ -79,6 +79,7 @@ const {
   cleanupOldEmailRecords,
   optimizeDatabase,
 } = require("../helper/database-cleanup");
+const { maskEmail } = require("../helper/util");
 
 let transporter = null;
 let scheduledJobs = [];
@@ -272,7 +273,7 @@ function stopAllJobs() {
  */
 function getScheduledJobsStatus() {
   return scheduledJobs.map(({ email, cronPattern }) => ({
-    email,
+    email: maskEmail(email),
     cronPattern,
     status: "active",
   }));
