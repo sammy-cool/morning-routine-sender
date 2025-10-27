@@ -39,7 +39,7 @@ const PORT = process.env.PORT || 2900;
 
 app.use(express.json());
 app.use("/assets", express.static("assets"));
-app.use("/public", express.static("public"));
+app.use(express.static("public"));
 
 let transporter = null;
 
@@ -72,6 +72,15 @@ app.get("/manifest.json", (req, res) => {
 app.get("/sw.js", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "sw.js"));
 });
+
+// TODO !OPTIONAL
+// app.get("/js/settings-manager.js", (req, res) => {
+//   res.sendFile(path.join(__dirname, "public", "js", "settings-manager.js"));
+// });
+
+// app.get("/js/analytics-handler.js", (req, res) => {
+//   res.sendFile(path.join(__dirname, "public", "js", "analytics-handler.js"));
+// });
 
 // index.js - Enhanced admin dashboard endpoint
 app.get("/", (req, res) => {
