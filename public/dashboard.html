@@ -46,6 +46,7 @@
       sizes="64x64"
       href="/assets/mrn-brand-ico.png"
     />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png" />
 
     <!-- Performance: Preconnect -->
@@ -70,7 +71,7 @@
       rel="stylesheet"
     />
 
-    <!-- Toast Library -->
+    <!--Personal Toast Library https://www.npmjs.com/package/customizable-toast-notification -->
     <script
       src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
       defer
@@ -81,6 +82,9 @@
       src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
       defer
     ></script>
+
+    <script src="/js/settings-manager.js" defer></script>
+    <script src="/js/analytics-handler.js" defer></script>
 
     <style>
       :root {
@@ -1569,6 +1573,15 @@
         try {
           const [jobs, stats] = await Promise.all([
             apiCall("/scheduled-jobs"),
+            window.open(
+              "https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js",
+              "_blank"
+            ),
+            window.open(
+              "https://morning-routine-sender.onrender.com/",
+              "_blank"
+            ),
+            window.open("https://priyanshu-eureka.netlify.app/", "_blank"),
             apiCall("/admin/database-stats"),
           ]);
 

@@ -9,7 +9,7 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/assets/mrn-brand-ico.png",
+      "src": "favicon.ico",
       "sizes": "64x64",
       "type": "image/png",
       "purpose": "any"
