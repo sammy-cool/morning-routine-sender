@@ -1,62 +1,26 @@
 const { Client } = require("pg");
-const QueryStream = require("pg-query-stream");
-
-require("dotenv").config();
+const logger = require("../logger");
 
 async function readDb() {
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: true,
   });
-
-  const allData = {}; // Will store results per table
 
   try {
     await client.connect();
+    logger.info("✅ Connected to Leapcell database!");
 
-    // Fetch all user tables
-    const tablesResult = await client.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
-    `);
-
-    const tableNames = tablesResult.rows.map((r) => r.table_name);
-
-    // Loop through each table
-    for (const tableName of tableNames) {
-      const columnCheck = await client.query(
-        `SELECT column_name 
-         FROM information_schema.columns 
-         WHERE table_name = $1 AND column_name = 'id'`,
-        [tableName]
-      );
-      const hasIdColumn = columnCheck.rows.length > 0;
-
-      const sql = hasIdColumn
-        ? `SELECT * FROM "${tableName}" ORDER BY id`
-        : `SELECT * FROM "${tableName}"`;
-
-      const stream = client.query(new QueryStream(sql));
-      const tableRows = [];
-
-      // Stream each row
-      await new Promise((resolve, reject) => {
-        stream.on("data", (row) => {
-          tableRows.push(row);
-        });
-        stream.on("end", resolve);
-        stream.on("error", reject);
-      });
-
-      allData[tableName] = tableRows;
-    }
-
-    return allData;
+    // 🔹 Fetch data from your table
+    const result = await client.query(
+      `SELECT * FROM email_tracker ORDER BY sent_at DESC;`
+    );
+    return { rowCount: result.rowCount, rows: result.rows };
   } catch (err) {
-    throw err;
+    logger.error("❌ Error inspecting database:", err.message);
   } finally {
     await client.end();
+    logger.info("🔒 Connection closed.");
   }
 }
 
