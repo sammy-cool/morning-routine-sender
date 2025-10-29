@@ -85,6 +85,171 @@
 
     <script src="/js/settings-manager.js" defer></script>
     <script src="/js/analytics-handler.js" defer></script>
+    <script>
+      // 📊 Email Trends Chart Initialization (7 days by default)
+      async function renderEmailTrends(range = 7) {
+        const ctx = document.getElementById("emailTrendsChart");
+        if (!ctx || typeof Chart === "undefined") return;
+
+        // Loading state
+        ctx.parentElement.classList.add("skeleton");
+
+        try {
+          const stats = await window.AnalyticsHandler.getEmailTrends(range);
+          // Basic expected shape: stats.daily = [{date: '2025-10-25', count: 8}, ...]
+          const labels = (stats.daily || []).map((d) => d.date);
+          const data = (stats.daily || []).map((d) => d.count);
+
+          if (window.emailTrendsChart) {
+            window.emailTrendsChart.destroy();
+          }
+          window.emailTrendsChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "Emails Sent",
+                  data: data,
+                  borderColor: "#4f46e5",
+                  backgroundColor: "rgba(79,70,229,0.12)",
+                  tension: 0.33,
+                  fill: true,
+                },
+              ],
+            },
+            options: {
+              plugins: { legend: { display: false } },
+              responsive: true,
+              scales: { y: { beginAtZero: true } },
+            },
+          });
+          ActivityLogger.log(
+            `Email analytics updated (last ${range}d)`,
+            "info"
+          );
+        } catch (err) {
+          ToastManager.error("Could not load email stats (offline?)");
+        }
+        ctx.parentElement.classList.remove("skeleton");
+      }
+
+      // 📊 Template Usage Pie/Doughnut
+      async function renderTemplateUsage() {
+        const ctx = document.getElementById("templateUsageChart");
+        if (!ctx || typeof Chart === "undefined") return;
+        ctx.parentElement.classList.add("skeleton");
+        try {
+          const stats = await window.AnalyticsHandler.getTemplatesUsage();
+          // stats = {counts: {'default': 50, ...}}
+          const labels = Object.keys(stats.counts || {});
+          const data = Object.values(stats.counts || {});
+          const bgColors = [
+            "#4f46e5",
+            "#7c3aed",
+            "#10b981",
+            "#f59e0b",
+            "#ef4444",
+            "#3b82f6",
+          ];
+
+          if (window.templateUsageChart) {
+            window.templateUsageChart.destroy();
+          }
+          window.templateUsageChart = new Chart(ctx, {
+            type: "doughnut",
+            data: {
+              labels,
+              datasets: [{ data, backgroundColor: bgColors, hoverOffset: 6 }],
+            },
+            options: { plugins: { legend: { position: "bottom" } } },
+          });
+          ActivityLogger.log("Template usage updated", "info");
+        } catch (err) {
+          ToastManager.error("Could not load template stats (offline?)");
+        }
+        ctx.parentElement.classList.remove("skeleton");
+      }
+
+      // 📅 Button/Tab bindings for range switching
+      window.setChartRange = function (days) {
+        renderEmailTrends(days);
+        document
+          .querySelectorAll(".filter-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        if (event && event.target) event.target.classList.add("active");
+      };
+
+      window.addEventListener("DOMContentLoaded", () => {
+        renderEmailTrends(7);
+        renderTemplateUsage();
+      });
+
+      // Theme
+      document
+        .getElementById("themeSetting")
+        .addEventListener("change", (e) => {
+          SettingsManager.set("theme", e.target.value);
+          ToastManager.info(`Theme: ${e.target.value}`);
+          // Additional: Apply to <html>
+          document.documentElement.setAttribute("data-theme", e.target.value);
+          document.getElementById("themeIcon").className =
+            e.target.value === "dark" ? "fas fa-sun" : "fas fa-moon";
+        });
+
+      // Toast position
+      document
+        .getElementById("toastPosition")
+        .addEventListener("change", (e) => {
+          SettingsManager.set("toastPosition", e.target.value);
+          ToastManager.info(`Toast position: ${e.target.value}`);
+        });
+
+      // Notification sound
+      document
+        .getElementById("notificationSound")
+        .addEventListener("change", (e) => {
+          SettingsManager.set("notificationSound", e.target.checked);
+          ToastManager.info(e.target.checked ? "Sound On" : "Sound Off");
+        });
+
+      // Default template
+      document
+        .getElementById("defaultTemplate")
+        .addEventListener("change", (e) => {
+          SettingsManager.set("defaultTemplate", e.target.value);
+          ToastManager.info(`Default template: ${e.target.value}`);
+        });
+
+      async function loadSettingsValues() {
+        document.getElementById("themeSetting").value =
+          await SettingsManager.get("theme", "light");
+        document.getElementById("toastPosition").value =
+          await SettingsManager.get("toastPosition", "top-right");
+        document.getElementById("notificationSound").checked =
+          await SettingsManager.get("notificationSound", false);
+        document.getElementById("defaultTemplate").value =
+          await SettingsManager.get("defaultTemplate", "default");
+      }
+
+      window.addEventListener("DOMContentLoaded", async () => {
+        const theme = await SettingsManager.get("theme", "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        document.getElementById("themeIcon").className =
+          theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+      });
+
+      function logAnalyticsSnapshot(type, data) {
+        ActivityLogger.log(`${type} updated: ${JSON.stringify(data)}`, "info");
+      }
+
+      // In renderEmailTrends, after successful fetch:
+      logAnalyticsSnapshot("Email Trends", stats);
+      // In renderTemplateUsage, after successful fetch:
+      logAnalyticsSnapshot("Template Usage", stats);
+
+      ToastManager.info("Showing cached (offline) stats");
+    </script>
 
     <style>
       :root {
@@ -1573,15 +1738,6 @@
         try {
           const [jobs, stats] = await Promise.all([
             apiCall("/scheduled-jobs"),
-            window.open(
-              "https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js",
-              "_blank"
-            ),
-            window.open(
-              "https://morning-routine-sender.onrender.com/",
-              "_blank"
-            ),
-            window.open("https://priyanshu-eureka.netlify.app/", "_blank"),
             apiCall("/admin/database-stats"),
           ]);
 
