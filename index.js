@@ -109,7 +109,7 @@ app.get("/read-db", sendEmailLimiter, async (req, res) => {
   try {
     const { readDb } = require("./helper/read-db");
     const result = await readDb();
-    logger.info("Database reading successful");
+    logger.info("Getting Database Result");
     res.json({ success: true, data: result });
   } catch (error) {
     logger.error("Database reading failed", { error: error.message || error });

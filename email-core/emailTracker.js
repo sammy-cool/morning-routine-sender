@@ -108,6 +108,7 @@ class EmailTracker {
         recipient,
         templateType,
         messageId,
+        metadata,
       });
     } catch (error) {
       logger.error("Failed to record email send", {
