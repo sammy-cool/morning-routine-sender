@@ -285,7 +285,7 @@ function getScheduledJobsStatus() {
 function scheduleCleanupJobs() {
   // Database cleanup - every day at 2 AM
   const cleanupJob = cron.schedule(
-    "0 2 * * *",
+    "0 2 * * 0",
     async () => {
       logger.info(
         `🧹 Running scheduled database cleanup of last ${process.env.DB_RETENTION_DAYS} days!...`
@@ -303,7 +303,7 @@ function scheduleCleanupJobs() {
     }
   );
 
-  logger.info("✅ Cleanup job scheduled (daily at 2 AM)");
+  logger.info("✅ Cleanup job scheduled (every sunday at 2 AM)");
 
   return cleanupJob;
 }
