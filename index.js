@@ -295,7 +295,7 @@ const server = app.listen(PORT, () => {
   // Schedule cleanup jobs
   setTimeout(() => {
     emailScheduler.scheduleCleanupJobs();
-    logger.info("🧹 Database cleanup scheduled (daily at 2 AM)");
+    logger.info("🧹 Database cleanup scheduled for every (Sunday at 2 AM)");
   }, 10000);
 });
 
