@@ -92,3 +92,8 @@ TEST_EMAIL = priyanshup28997@gmail.com
 USE_MOCK_REDIS = true
 
 ❌ Failed to send email: Failed to execute 'json' on 'Response': Unexpected end of JSON input
+Agar aapka Express app Nginx, Render, Vercel, ya AWS ALB ke peeche chal raha hai,
+to req.protocol always "http" ya empty dikha sakta hai —
+kyunki Express ko actual client protocol ka pata nahi hota.
+✅ Fix: trust proxy enable karo
+app.set("trust proxy", true);

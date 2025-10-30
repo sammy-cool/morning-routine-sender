@@ -9,6 +9,7 @@ const {
 const emailTracker = require("./email-core/emailTracker");
 const emailScheduler = require("./email-core/emailScheduler"); // Add this
 const logger = require("./logger");
+const { setApiBase } = require("./middleware/setApiBase");
 
 const app = express();
 const fs = require("node:fs");
@@ -33,14 +34,14 @@ const rateLimit = require("express-rate-limit");
 // };
 
 // app.use(cors(corsOptions));
+
 app.use(cors());
-
-const PORT = process.env.PORT || 2900;
-
 app.use(express.json());
+app.use(setApiBase);
 app.use("/assets", express.static("assets"));
 app.use(express.static("public"));
 
+const PORT = process.env.PORT || 2900;
 let transporter = null;
 
 function getTransporter() {
@@ -84,8 +85,7 @@ app.get("/sw.js", (req, res) => {
 
 // index.js - Enhanced admin dashboard endpoint
 app.get("/", (req, res) => {
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-  const domain = protocol + "://" + req.get("host");
+  const domain = app.locals.apiBase;
   logger.info("Dashboard accessed", { domain, ip: req.ip });
 
   // Read HTML file
