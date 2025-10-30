@@ -1,0 +1,50 @@
+<mjml>
+  <mj-head>
+    <mj-title>Morning Routine Update</mj-title>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" color="#333" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f0f0f0">
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-image src="{{logoUrl}}" alt="Logo" width="120px" />
+        <mj-text font-size="20px" font-weight="bold">
+          Hello {{userName}},
+        </mj-text>
+        <mj-text font-size="16px" line-height="1.5">
+          Here's your daily update for Day {{dayNumber}}.
+        </mj-text>
+        <mj-text font-size="14px">{{dailyTip}}</mj-text>
+        <mj-button background-color="#007BFF" color="#fff" href="{{ctaUrl}}">
+          {{ctaText}}
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    {{#if trendingNews}}
+    <mj-section background-color="#f9f9f9" padding="20px">
+      <mj-column>
+        <mj-text font-weight="bold" font-size="18px" color="#007BFF">
+          Trending News
+        </mj-text>
+        {{#each trendingNews}}
+        <mj-text font-size="14px" line-height="1.4">
+          <a href="{{this.url}}" style="color: #007bff; text-decoration: none">
+            {{this.title}} </a
+          ><br />
+          <small style="color: #666">{{this.description}}</small>
+        </mj-text>
+        {{/each}}
+      </mj-column>
+    </mj-section>
+    {{/if}}
+    <mj-section background-color="#e9e9e9" padding="15px">
+      <mj-column>
+        <mj-text font-size="11px" color="#666">
+          You are receiving this because you subscribed to Morning Routine.
+          <a href="{{unsubscribeUrl}}" style="color: #007bff">Unsubscribe</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
