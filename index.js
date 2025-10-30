@@ -10,6 +10,7 @@ const emailTracker = require("./email-core/emailTracker");
 const emailScheduler = require("./email-core/emailScheduler"); // Add this
 const logger = require("./logger");
 const { setApiBase } = require("./middleware/setApiBase");
+const { unsubscribeUser } = require("./lib/myLib");
 
 const app = express();
 const fs = require("node:fs");
@@ -206,18 +207,21 @@ app.post("/send-test-email", sendEmailLimiter, async (req, res) => {
       logger.info("⚡ Skipping API key check for ADMIN EMAIL!");
     }
 
-    const emailService = require("./email-core/emailService");
+    const emailService = require("./src/email/emailSender");
 
     const result = await emailService.sendRoutineEmail(
       getTransporter(),
-      email,
-      templateType || "default"
+      req.app.locals,
+      {
+        email,
+      }
     );
 
     await emailTracker.recordSend(
       email,
       templateType || "default",
       result.messageId,
+      result,
       { manual: true }
     );
 
@@ -244,6 +248,15 @@ app.post("/send-test-email", sendEmailLimiter, async (req, res) => {
       details: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
+});
+
+app.get("/unsubscribe", (req, res) => {
+  logger.info("Unsubscribing user", {
+    email: req.query.email || "Hurray 🎉 User Unsubscribed",
+  });
+  res.json(
+    unsubscribeUser(req.query.email || "unknown@example.com", req.app.locals)
+  );
 });
 
 // NEW: Get scheduled jobs status
