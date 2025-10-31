@@ -304,7 +304,7 @@ const server = app.listen(PORT, () => {
   setTimeout(() => {
     logger.info("⏰ Initializing automatic email scheduling...");
     emailScheduler.scheduleAllJobs();
-  }, 5000); // 8 second delay to ensure everything is ready
+  }, 5000); // delay for few seconds to ensure everything is ready
 
   // Schedule cleanup jobs
   setTimeout(() => {
