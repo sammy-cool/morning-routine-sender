@@ -73,7 +73,7 @@ const logger = require("../logger");
 // email-core/emailScheduler.js
 const cron = require("node-cron");
 const { createTransporter } = require("../config/email-config");
-const emailService = require("./emailService");
+const emailService = require("../src/email/emailSender");
 const emailTracker = require("./emailTracker");
 const {
   cleanupOldEmailRecords,
@@ -97,7 +97,7 @@ function getTransporter() {
 /**
  * Send routine email to a single user
  */
-async function sendRoutineEmail(user) {
+async function sendRoutineEmail(user, appLocals) {
   try {
     // Check if already sent today
     const alreadySent = await emailTracker.wasEmailSentToday(
@@ -116,8 +116,8 @@ async function sendRoutineEmail(user) {
     // Send email
     const result = await emailService.sendRoutineEmail(
       getTransporter(),
-      user.email,
-      user.templateType || "default"
+      appLocals,
+      { email: user.email }
     );
 
     // Record in database
@@ -156,7 +156,7 @@ async function sendRoutineEmail(user) {
 /**
  * Send emails to all active users
  */
-async function sendBulkEmails() {
+async function sendBulkEmails(appLocals) {
   logger.info("🚀 Starting bulk email send...");
 
   const users = sharedData.getUsers();
@@ -165,7 +165,7 @@ async function sendBulkEmails() {
   let skippedCount = 0;
 
   for (const user of users) {
-    const result = await sendRoutineEmail(user);
+    const result = await sendRoutineEmail(user, appLocals);
 
     if (result.status === "success") {
       successCount++;
@@ -222,7 +222,7 @@ function scheduleAllJobs() {
             time: new Date().toISOString(),
           });
 
-          await sendRoutineEmail(user);
+          await sendRoutineEmail(user, appLocals);
         },
         {
           scheduled: true,

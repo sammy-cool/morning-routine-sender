@@ -36,7 +36,8 @@ const rateLimit = require("express-rate-limit");
 
 // app.use(cors(corsOptions));
 
-app.enable("trust proxy");
+// app.enable("trust proxy");
+
 app.use(cors());
 app.use(express.json());
 app.use(setApiBase);
@@ -277,7 +278,7 @@ app.post("/send-bulk-now", sendEmailLimiter, async (req, res) => {
   }
 
   try {
-    const result = await emailScheduler.sendBulkEmails();
+    const result = await emailScheduler.sendBulkEmails(req.app.locals);
     res.json({
       success: true,
       ...result,
