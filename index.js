@@ -7,7 +7,7 @@ const {
   closeTransporter,
 } = require("./config/email-config");
 const emailTracker = require("./email-core/emailTracker");
-const emailScheduler = require("./email-core/emailScheduler"); // Add this
+const emailScheduler = require("./email-core/emailScheduler");
 const logger = require("./logger");
 const { setApiBase } = require("./middleware/setApiBase");
 const { unsubscribeUser } = require("./lib/myLib");
@@ -188,8 +188,6 @@ app.get("/admin/database-stats", async (req, res) => {
 // Logs cleanup endpoint
 app.post("/admin/cleanup-logs", async (req, res) => {
   try {
-    const fs = require("fs").promises;
-    const path = require("path");
     const logsDir = path.join(__dirname, "logs");
 
     const files = await fs.readdir(logsDir);

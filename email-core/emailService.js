@@ -9,7 +9,6 @@ const { dailyDevNews, todayUTCYYYYMMDD } = require("../helper/util");
 const mjmlTemplatePath = path.join(
   __dirname,
   "..",
-  "..",
   "email-templates",
   "email-template.mjml"
 );

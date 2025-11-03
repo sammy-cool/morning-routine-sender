@@ -303,7 +303,7 @@ function scheduleCleanupJobs() {
     }
   );
 
-  logger.info("✅ Cleanup job scheduled (every sunday at 2 AM)");
+  // logger.info("✅ Cleanup job scheduled (every sunday at 2 AM)");
 
   return cleanupJob;
 }
