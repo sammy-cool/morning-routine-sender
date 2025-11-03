@@ -69,6 +69,33 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/secret-jobs-scheduler", (req, res) => {
+  try {
+    if (req.query.key !== process.env.CRON_API_KEY) {
+      logger.error("Forbidden access to scheduler endpoint");
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    logger.info("⏰ Initializing manual email scheduling...");
+    setTimeout(() => {
+      try {
+        emailScheduler.scheduleAllJobs();
+      } catch (err) {
+        logger.error("Error scheduling jobs", { error: err.message || err });
+      }
+    }, 2000);
+    return res
+      .status(200)
+      .json({ success: true, message: "Manual scheduling initialized" });
+  } catch (error) {
+    logger.error("Manual scheduling failed", { error: error.message || error });
+    res.status(500).json({ success: false, error: error.message || error });
+  }
+  // } finally {
+  //   res.status(200).json({ success: true });
+  // }
+});
+
 app.get("/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "manifest.json"));
 });
@@ -193,6 +220,7 @@ app.post("/admin/cleanup-logs", async (req, res) => {
 app.post("/send-test-email", sendEmailLimiter, async (req, res) => {
   try {
     const { email, templateType } = req.body;
+    templateType ?? "basic";
     if (
       email !== process.env.FROM_USER &&
       req.query.key !== process.env.CRON_API_KEY
@@ -209,28 +237,25 @@ app.post("/send-test-email", sendEmailLimiter, async (req, res) => {
       logger.info("⚡ Skipping API key check for ADMIN EMAIL!");
     }
 
-    const emailService = require("./src/email/emailSender");
+    const emailService = require("./email-core/emailService");
 
     const result = await emailService.sendRoutineEmail(
       getTransporter(),
       req.app.locals,
       {
         email,
+        templateType,
       }
     );
 
-    await emailTracker.recordSend(
-      email,
-      templateType || "default",
-      result.messageId,
-      result,
-      { manual: true }
-    );
+    await emailTracker.recordSend(email, templateType, result.messageId, {
+      manual: true,
+    });
 
-    logger.info("✅ Test email sent successfully", {
+    logger.info("✅ Email sent successfully manually.", {
       email,
       messageId: result.messageId,
-      templateType: templateType || "default",
+      templateType,
     });
 
     return res.status(200).json({
@@ -294,9 +319,8 @@ app.post("/send-bulk-now", sendEmailLimiter, async (req, res) => {
 
 // Start server
 const server = app.listen(PORT, () => {
-  logger.info(`✅ Server started on port ${PORT}`);
   logger.info(
-    `🔄 Mode: ${
+    `✅ Server started on port ${PORT} > 🔄 Mode: ${
       process.env.NODE_ENV || "development"
     } Auto-scheduling enabled with node-cron`
   );

@@ -73,7 +73,7 @@ const logger = require("../logger");
 // email-core/emailScheduler.js
 const cron = require("node-cron");
 const { createTransporter } = require("../config/email-config");
-const emailService = require("../src/email/emailSender");
+const emailService = require("./emailService");
 const emailTracker = require("./emailTracker");
 const {
   cleanupOldEmailRecords,
@@ -97,18 +97,18 @@ function getTransporter() {
 /**
  * Send routine email to a single user
  */
-async function sendRoutineEmail(user, appLocals) {
+async function sendRoutineEmail(transporter, appLocals, userData) {
   try {
     // Check if already sent today
     const alreadySent = await emailTracker.wasEmailSentToday(
-      user.email,
-      user.templateType || "default"
+      userData.email,
+      userData.templateType || "basic"
     );
 
     if (alreadySent) {
       logger.info("Email already sent today, skipping", {
-        email: user.email,
-        templateType: user.templateType,
+        email: userData.email,
+        templateType: userData.templateType,
       });
       return { status: "skipped", reason: "already_sent_today" };
     }
@@ -117,34 +117,34 @@ async function sendRoutineEmail(user, appLocals) {
     const result = await emailService.sendRoutineEmail(
       getTransporter(),
       appLocals,
-      { email: user.email }
+      userData
     );
 
     // Record in database
     await emailTracker.recordSend(
-      user.email,
-      user.templateType || "default",
+      userData.email,
+      userData.templateType,
       result.messageId,
       { scheduled: true }
     );
 
     logger.info("✅ Scheduled email sent successfully", {
-      email: user.email,
+      email: userData.email,
       messageId: result.messageId,
-      templateType: user.templateType,
+      templateType: userData.templateType,
     });
 
     return { status: "success", messageId: result.messageId };
   } catch (error) {
     logger.error("❌ Failed to send scheduled email", {
-      email: user.email,
+      email: userData.email,
       error: error.message,
     });
 
     // Record failure
     await emailTracker.recordFailure(
-      user.email,
-      user.templateType || "default",
+      userData.email,
+      userData.templateType,
       error.message,
       0
     );
@@ -156,7 +156,7 @@ async function sendRoutineEmail(user, appLocals) {
 /**
  * Send emails to all active users
  */
-async function sendBulkEmails(appLocals) {
+async function sendBulkEmails() {
   logger.info("🚀 Starting bulk email send...");
 
   const users = sharedData.getUsers();
@@ -165,7 +165,7 @@ async function sendBulkEmails(appLocals) {
   let skippedCount = 0;
 
   for (const user of users) {
-    const result = await sendRoutineEmail(user, appLocals);
+    const result = await sendRoutineEmail(user);
 
     if (result.status === "success") {
       successCount++;
@@ -222,7 +222,7 @@ function scheduleAllJobs() {
             time: new Date().toISOString(),
           });
 
-          await sendRoutineEmail(user, appLocals);
+          await sendRoutineEmail(user);
         },
         {
           scheduled: true,
