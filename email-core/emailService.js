@@ -1,77 +1,78 @@
 // email-core/emailService.js
-const fs = require("fs").promises;
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
+const mjml2html = require("mjml");
+const handlebars = require("handlebars");
 const logger = require("../logger");
+const { dailyDevNews, todayUTCYYYYMMDD } = require("../helper/util");
+
+const mjmlTemplatePath = path.join(
+  __dirname,
+  "..",
+  "..",
+  "email-templates",
+  "email-template.mjml"
+);
+const mjmlSource = fs.readFileSync(mjmlTemplatePath, "utf-8");
+const template = handlebars.compile(mjmlSource);
 
 /**
  * Send routine email
  * @param {Transporter} transporter - Nodemailer transporter
- * @param {string} recipient - Recipient email
+ * @param {Object} userData - user details {name, email, dayNumber, dailyTip, ctaUrl}
+ * @param {Object} appLocals - app.locals object from Express for apiBase etc.
  * @param {string} templateType - Template type
  */
-async function sendRoutineEmail(
-  transporter,
-  recipient,
-  templateType = "default"
-) {
+async function sendRoutineEmail(transporter, appLocals, userData) {
   try {
-    // Load HTML template
-    const templatePath = path.join(
-      __dirname,
-      "..",
-      "email-html-template",
-      `routine-${templateType}.html`
-    );
+    const trendingNews = await dailyDevNews();
+    const baseUrl = appLocals.officialDomain;
+    const dayNumber = todayUTCYYYYMMDD().split("-").at(-1);
 
-    let htmlContent;
-    try {
-      htmlContent = await fs.readFile(templatePath, "utf-8");
-    } catch (error) {
-      logger.warn(`Template ${templateType} not found, using default`, {
-        templateType,
-      });
-      const defaultPath = path.join(
-        __dirname,
-        "..",
-        "email-html-template",
-        "routine-default.html"
-      );
-      htmlContent = await fs.readFile(defaultPath, "utf-8");
+    const data = {
+      logoUrl: `${process.env.LOGO_URL}`,
+      userName: userData.name || "Priyanshu",
+      dayNumber: dayNumber,
+      dailyTip: userData.dailyTip || "Something to be get curious today!",
+      ctaUrl: `${baseUrl}`,
+      ctaText: "View Your Routine",
+      trendingNews,
+      unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(
+        userData.email
+      )}`,
+    };
+
+    const renderedMjml = template(data);
+    const { html, errors } = mjml2html(renderedMjml, {
+      validationLevel: "strict",
+    });
+
+    if (errors.length) {
+      logger.error("MJML Errors:", errors);
+      throw new Error("Email template rendering error");
     }
 
-    // Replace variables in template (if any)
-    htmlContent = htmlContent.replace(/{{email}}/g, recipient);
-    htmlContent = htmlContent.replace(
-      /{{date}}/g,
-      new Date().toLocaleDateString()
-    );
+    const text = `Hello ${data.userName},\n\n${data.dailyTip}\n\nVisit here: ${data.ctaUrl}`;
 
     // Send email
     const info = await transporter.sendMail({
-      from: `"${process.env.FROM_NAME || "Morning Routine"}" <${
-        process.env.FROM_USER
-      }>`,
-      to: recipient,
-      subject: `Your Morning Routine - ${templateType
-        .replace("-", " ")
-        .toUpperCase()}`,
-      html: htmlContent,
-      headers: {
-        "X-Template-Type": templateType,
-        "X-Job-Type": "routine-email",
-      },
+      from: '"Morning Routine" <no-reply@gmail.com>',
+      to: userData.email,
+      subject: `Day ${data.dayNumber} Morning Routine Update`,
+      html,
+      text,
     });
 
-    logger.info("Email sent", { recipient, templateType });
+    logger.info(`Email sent successfully to ${userData.email}`);
     return {
       success: true,
       messageId: info.messageId,
       response: info.response,
     };
   } catch (error) {
-    logger.error("Email send error", {
+    logger.error("Failed to send email:", {
       error: error.message,
-      recipient,
+      email: userData.email,
       templateType,
     });
     throw error;

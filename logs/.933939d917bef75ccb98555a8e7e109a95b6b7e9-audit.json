@@ -6,11 +6,6 @@
     "auditLog": "D:\\github_desktop\\mrn-lib-testing\\logs\\.933939d917bef75ccb98555a8e7e109a95b6b7e9-audit.json",
     "files": [
         {
-            "date": 1761531018805,
-            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\error-2025-10-27.log",
-            "hash": "2500511a99dea8653e20757e4154d5c335efe20eb182720066212afd30dea94e"
-        },
-        {
             "date": 1761649817421,
             "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\error-2025-10-28.log",
             "hash": "73ba481e6d357f094f2d7d21131e4cf15b3c95e9bdec8b8d7ce7b011f23ec65d"
@@ -34,6 +29,11 @@
             "date": 1761972705899,
             "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\error-2025-11-01.log",
             "hash": "140db8acf6f266424b1aa00a4c1464d8ad37a20f0d77860cdf43ca6f2d0e4f7e"
+        },
+        {
+            "date": 1762166317243,
+            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\error-2025-11-03.log",
+            "hash": "b09b8b2850946c404d83f70d130044c26c0c7a3fd66642b47b5bbe2963599632"
         }
     ],
     "hashType": "sha256"
