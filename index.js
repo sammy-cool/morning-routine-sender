@@ -2,6 +2,12 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const app = express();
+const fs = require("node:fs");
+const path = require("node:path");
+const crypto = require("node:crypto");
+const Redis = require("ioredis");
+
 const {
   createTransporter,
   closeTransporter,
@@ -11,10 +17,6 @@ const emailScheduler = require("./email-core/emailScheduler");
 const logger = require("./logger");
 const { setApiBase } = require("./middleware/setApiBase");
 const { unsubscribeUser } = require("./lib/myLib");
-
-const app = express();
-const fs = require("node:fs");
-const path = require("node:path");
 const rateLimit = require("express-rate-limit");
 
 // const allowedOrigins = [
@@ -46,6 +48,29 @@ app.use(express.static("public"));
 
 const PORT = process.env.PORT || 2900;
 let transporter = null;
+const redis = new Redis(process.env.REDIS_LEAP_URL || "redis://127.0.0.1:6379");
+
+// -------------- CONFIG --------------
+const KEY_EXPIRY_SECONDS = 300; // 5 minutes
+
+// 🔹 Generate one-time key (protected route)
+app.get("/generate-admin-key", async (req, res) => {
+  const adminSecret = req.get("x-admin-secret") || req.query.adminSecret;
+
+  if (adminSecret !== process.env.ADMIN_KEY) {
+    logger.error("Forbidden: Invalid admin secret");
+    return res.status(403).json({ message: "Forbidden: Invalid admin secret" });
+  }
+
+  const key = crypto.randomBytes(32).toString("hex");
+  await redis.set(`admin_key:${key}`, "valid", "EX", KEY_EXPIRY_SECONDS);
+
+  logger.info(`🔑 New one-time key generated 🔹: GG!`);
+  res.json({
+    message: "✅ One-time key generated (valid for 5 minutes)",
+    key,
+  });
+});
 
 function getTransporter() {
   if (!transporter) {
@@ -69,31 +94,49 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("/secret-jobs-scheduler", (req, res) => {
-  try {
-    if (req.query.key !== process.env.CRON_API_KEY) {
-      logger.error("Forbidden access to scheduler endpoint");
-      return res.status(403).json({ error: "Forbidden" });
-    }
+const allowedIPs = new Set(["127.0.0.1", "::1", "YOUR_SERVER_IP"]);
 
-    logger.info("⏰ Initializing manual email scheduling...");
-    setTimeout(() => {
-      try {
-        emailScheduler.scheduleAllJobs();
-      } catch (err) {
-        logger.error("Error scheduling jobs", { error: err.message || err });
-      }
-    }, 2000);
-    return res
-      .status(200)
-      .json({ success: true, message: "Manual scheduling initialized" });
-  } catch (error) {
-    logger.error("Manual scheduling failed", { error: error.message || error });
-    res.status(500).json({ success: false, error: error.message || error });
+app.post("/secret-jobs-scheduler", async (req, res) => {
+  const clientIP = req.ip || req.socket.remoteAddress;
+  const { key, action } = req.query;
+
+  //IP Restriction
+  if (process.env.NODE_ENV === "development") {
+    if (!allowedIPs.has(clientIP)) {
+      logger.error("❌ Forbidden: Unauthorized IP");
+      return res.status(403).json({ message: "❌ Forbidden: Unauthorized IP" });
+    }
   }
-  // } finally {
-  //   res.status(200).json({ success: true });
-  // }
+
+  if (!key) return res.status(400).json({ message: "Missing ?key parameter" });
+
+  const keyExists = await redis.get(`admin_key:${key}`);
+
+  if (!keyExists) {
+    return res.status(403).json({ message: "❌ Invalid or expired key" });
+  }
+
+  // Valid key → delete immediately (one-time use)
+  await redis.del(`admin_key:${key}`);
+
+  try {
+    if (action === "start") {
+      emailScheduler.scheduleAllJobs();
+      return res.json({ message: "✅ All cron jobs scheduled and running." });
+    } else if (action === "stop") {
+      emailScheduler.stopAllJobs();
+      return res.json({ message: "🛑 All cron jobs stopped." });
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Invalid or missing ?action=start|stop parameter." });
+    }
+  } catch (error) {
+    logger.error("Error managing cron jobs:", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error.", error: error.message });
+  }
 });
 
 app.get("/manifest.json", (req, res) => {
