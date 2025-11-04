@@ -50,11 +50,22 @@ const PORT = process.env.PORT || 2900;
 let transporter = null;
 const redis = new Redis(process.env.REDIS_LEAP_URL || "redis://127.0.0.1:6379");
 
+redis.on("connect", () => {
+  logger.info("✅ Redis connected");
+});
+
+redis.on("error", (err) => {
+  logger.error("❌ Redis connection error:", err.message);
+});
+
 // -------------- CONFIG --------------
 const KEY_EXPIRY_SECONDS = 300; // 5 minutes
 
 // 🔹 Generate one-time key (protected route)
 app.get("/generate-admin-key", async (req, res) => {
+  await redis.connect();
+  logger.info("Redis connected manually after lazyConnect");
+  logger.info("🔑 Generating one-time key 🔹 (protected route)");
   const adminSecret = req.get("x-admin-secret") || req.query.adminSecret;
 
   if (adminSecret !== process.env.ADMIN_KEY) {
@@ -197,12 +208,17 @@ app.post("/admin/cleanup-database", async (req, res) => {
     const envDays = Number(process.env.DB_RETENTION_DAYS);
     const bodyDays = Number(req?.body?.days);
 
-    let days = DEFAULT_DAYS;
+    let days;
 
     if (Number.isFinite(bodyDays) && bodyDays > 0) {
       days = bodyDays;
     } else if (Number.isFinite(envDays) && envDays > 0) {
       days = envDays;
+    } else {
+      logger.warn(
+        "No days specified in Body | Env | Specified days is not Greater than Zero!, using default value"
+      );
+      days = DEFAULT_DAYS;
     }
 
     const { cleanupOldEmailRecords } = require("./helper/database-cleanup");
@@ -260,8 +276,9 @@ app.post("/admin/cleanup-logs", async (req, res) => {
 // Manual email trigger endpoint
 app.post("/send-test-email", sendEmailLimiter, async (req, res) => {
   try {
-    const { email, templateType } = req.body;
-    templateType ?? "basic";
+    const { email } = req.body;
+    let templateType = req.body.templateType || "basic";
+
     if (
       email !== process.env.FROM_USER &&
       req.query.key !== process.env.CRON_API_KEY
@@ -303,7 +320,7 @@ app.post("/send-test-email", sendEmailLimiter, async (req, res) => {
       success: true,
       messageId: result.messageId,
       email,
-      templateType: templateType || "default",
+      templateType,
     });
   } catch (error) {
     logger.error("❌ Failed to send test email", {

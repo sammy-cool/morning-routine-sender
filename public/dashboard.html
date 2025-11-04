@@ -95,15 +95,15 @@
         ctx.parentElement.classList.add("skeleton");
 
         try {
-          const stats = await window.AnalyticsHandler.getEmailTrends(range);
+          const stats = await globalThis.AnalyticsHandler.getEmailTrends(range);
           // Basic expected shape: stats.daily = [{date: '2025-10-25', count: 8}, ...]
           const labels = (stats.daily || []).map((d) => d.date);
           const data = (stats.daily || []).map((d) => d.count);
 
-          if (window.emailTrendsChart) {
-            window.emailTrendsChart.destroy();
+          if (globalThis.emailTrendsChart) {
+            globalThis.emailTrendsChart.destroy();
           }
-          window.emailTrendsChart = new Chart(ctx, {
+          globalThis.emailTrendsChart = new Chart(ctx, {
             type: "line",
             data: {
               labels: labels,
@@ -129,6 +129,10 @@
             "info"
           );
         } catch (err) {
+          ActivityLogger.log(
+            `Could not load email stats (offline?): ${err}`,
+            "warning"
+          );
           ToastManager.error("Could not load email stats (offline?)");
         }
         ctx.parentElement.classList.remove("skeleton");
@@ -140,7 +144,7 @@
         if (!ctx || typeof Chart === "undefined") return;
         ctx.parentElement.classList.add("skeleton");
         try {
-          const stats = await window.AnalyticsHandler.getTemplatesUsage();
+          const stats = await globalThis.AnalyticsHandler.getTemplatesUsage();
           // stats = {counts: {'default': 50, ...}}
           const labels = Object.keys(stats.counts || {});
           const data = Object.values(stats.counts || {});
@@ -153,10 +157,10 @@
             "#3b82f6",
           ];
 
-          if (window.templateUsageChart) {
-            window.templateUsageChart.destroy();
+          if (globalThis.templateUsageChart) {
+            globalThis.templateUsageChart.destroy();
           }
-          window.templateUsageChart = new Chart(ctx, {
+          globalThis.templateUsageChart = new Chart(ctx, {
             type: "doughnut",
             data: {
               labels,
@@ -166,21 +170,28 @@
           });
           ActivityLogger.log("Template usage updated", "info");
         } catch (err) {
+          ActivityLogger.log(
+            `Could not load template stats (offline?): ${err}`,
+            "warning"
+          );
           ToastManager.error("Could not load template stats (offline?)");
         }
         ctx.parentElement.classList.remove("skeleton");
       }
 
       // 📅 Button/Tab bindings for range switching
-      window.setChartRange = function (days) {
+      globalThis.setChartRange = function (days) {
         renderEmailTrends(days);
-        document
-          .querySelectorAll(".filter-btn")
-          .forEach((btn) => btn.classList.remove("active"));
-        if (event && event.target) event.target.classList.add("active");
+        const filterBtns = document.querySelectorAll(".filter-btn");
+        for (const btn of filterBtns) {
+          btn.classList.remove("active");
+        }
+        if (event && event.target) {
+          event.target.classList.add("active");
+        }
       };
 
-      window.addEventListener("DOMContentLoaded", () => {
+      globalThis.addEventListener("DOMContentLoaded", () => {
         renderEmailTrends(7);
         renderTemplateUsage();
       });
@@ -192,7 +203,7 @@
           SettingsManager.set("theme", e.target.value);
           ToastManager.info(`Theme: ${e.target.value}`);
           // Additional: Apply to <html>
-          document.documentElement.setAttribute("data-theme", e.target.value);
+          document.documentElement.dataset.theme = e.target.value;
           document.getElementById("themeIcon").className =
             e.target.value === "dark" ? "fas fa-sun" : "fas fa-moon";
         });
@@ -232,9 +243,9 @@
           await SettingsManager.get("defaultTemplate", "default");
       }
 
-      window.addEventListener("DOMContentLoaded", async () => {
+      globalThis.addEventListener("DOMContentLoaded", async () => {
         const theme = await SettingsManager.get("theme", "light");
-        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.dataset.theme = theme;
         document.getElementById("themeIcon").className =
           theme === "dark" ? "fas fa-sun" : "fas fa-moon";
       });
@@ -1576,7 +1587,7 @@
               if (typeof customizableToast.dismiss === "function") {
                 customizableToast.dismiss(id);
               } else if (typeof customizableToast.noop === "function") {
-                customizableToast.noop();
+                customizableToast.noop(id);
               }
             },
           };
@@ -1634,14 +1645,13 @@
           const item = document.createElement("div");
           item.className = "activity-item";
 
-          const icon =
-            type === "success"
-              ? "✅"
-              : type === "error"
-              ? "❌"
-              : type === "warning"
-              ? "⚠️"
-              : "ℹ️";
+          const icons = {
+            success: "✅",
+            error: "❌",
+            warning: "⚠️",
+          };
+
+          const icon = icons[type] || "ℹ️";
 
           item.innerHTML = `
           <div>${icon} ${message}</div>
@@ -1652,7 +1662,7 @@
 
           // Keep only last 20 items
           while (logDiv.children.length > 20) {
-            logDiv.removeChild(logDiv.lastChild);
+            logDiv.lastChild.remove();
           }
         }
       }
@@ -1682,10 +1692,10 @@
       /* ==================== Theme Toggle ==================== */
       function toggleTheme() {
         const html = document.documentElement;
-        const currentTheme = html.getAttribute("data-theme");
+        const currentTheme = html.dataset.theme;
         const newTheme = currentTheme === "dark" ? "light" : "dark";
 
-        html.setAttribute("data-theme", newTheme);
+        html.dataset.theme = newTheme;
         localStorage.setItem("theme", newTheme);
 
         const icon = document.getElementById("themeIcon");
@@ -1708,7 +1718,7 @@
       globalThis.addEventListener("DOMContentLoaded", async () => {
         // Set theme
         const savedTheme = localStorage.getItem("theme") || "light";
-        document.documentElement.setAttribute("data-theme", savedTheme);
+        document.documentElement.dataset.theme = savedTheme;
         document.getElementById("themeIcon").className =
           savedTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
 
@@ -1862,7 +1872,7 @@
         const daysInput = prompt("Delete records older than (days):", "30");
         if (!daysInput) return;
 
-        const days = parseInt(daysInput, 10);
+        const days = Number.parseInt(daysInput, 10);
         if (!days || days <= 0) {
           ToastManager.warning("Please enter a valid number of days");
           return;
@@ -1928,11 +1938,11 @@
             });
           } else {
             let message = `📅 ${jobs.length} Scheduled Jobs:\n\n`;
-            jobs.forEach((job) => {
+            for (const job of jobs) {
               message += `• ${job.email || "unknown"} - ${
                 job.cronPattern || "n/a"
               }\n`;
-            });
+            }
             alert(message);
 
             ToastManager.success("Jobs loaded successfully", {
@@ -2114,7 +2124,9 @@
           "reflection",
         ];
         let message = "📧 Available Templates:\n\n";
-        templates.forEach((t) => (message += `• routine-${t}\n`));
+        for (const t of templates) {
+          message += `• routine-${t}\n`;
+        }
         alert(message);
         ActivityLogger.log("Templates viewed");
       }
@@ -2212,7 +2224,10 @@
       const Settings = {
         get(key, defaultValue) {
           const value = localStorage.getItem(`setting_${key}`);
-          return value !== null ? JSON.parse(value) : defaultValue;
+          if (value === null) {
+            return defaultValue;
+          }
+          return JSON.parse(value);
         },
         set(key, value) {
           localStorage.setItem(`setting_${key}`, JSON.stringify(value));
@@ -2259,7 +2274,7 @@
       function updateThemeSetting(value) {
         Settings.set("theme", value);
         if (value !== "auto") {
-          document.documentElement.setAttribute("data-theme", value);
+          document.documentElement.dataset.theme = value;
           document.getElementById("themeIcon").className =
             value === "dark" ? "fas fa-sun" : "fas fa-moon";
         }
@@ -2309,7 +2324,7 @@
           autoRefreshInterval = setInterval(() => {
             loadDashboardStats();
             ActivityLogger.log("Stats auto-refreshed");
-          }, parseInt(interval) * 1000);
+          }, Number.parseInt(interval) * 1000);
         }
       }
 
@@ -2354,7 +2369,7 @@
             type: "doughnut",
             data: {
               labels: [
-                "Default",
+                "Basic",
                 "Deep Work",
                 "Career",
                 "Learning",
@@ -2386,16 +2401,19 @@
       }
 
       function setChartRange(days) {
-        document
-          .querySelectorAll(".filter-btn")
-          .forEach((btn) => btn.classList.remove("active"));
+        const filterBtns = document.querySelectorAll(".filter-btn");
+
+        for (const btn of filterBtns) {
+          btn.classList.remove("active");
+        }
+
         event.target.classList.add("active");
         // TODO: Fetch data for selected range and update chart
         ToastManager.info(`Chart range: ${days} days`);
       }
 
       /* ========== Enhanced DOMContentLoaded ========== */
-      window.addEventListener("DOMContentLoaded", async () => {
+      globalThis.addEventListener("DOMContentLoaded", async () => {
         // Existing initialization code...
 
         // Initialize new features
