@@ -63,8 +63,6 @@ const KEY_EXPIRY_SECONDS = 300; // 5 minutes
 
 // 🔹 Generate one-time key (protected route)
 app.get("/generate-admin-key", async (req, res) => {
-  await redis.connect();
-  logger.info("Redis connected manually after lazyConnect");
   logger.info("🔑 Generating one-time key 🔹 (protected route)");
   const adminSecret = req.get("x-admin-secret") || req.query.adminSecret;
 
