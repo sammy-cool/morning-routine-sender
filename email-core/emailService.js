@@ -32,7 +32,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       logoUrl: `${process.env.LOGO_URL}`,
       userName: userData.name || "Priyanshu",
       dayNumber: dayNumber,
-      dailyTip: userData.dailyTip || "Something to be get curious today!",
+      dailyTip: userData.dailyTip || "Something to be get curious about today!",
       ctaUrl: `${baseUrl}`,
       ctaText: "View Your Routine",
       trendingNews,
