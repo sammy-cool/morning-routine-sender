@@ -149,7 +149,7 @@ require("dotenv").config();
 const USERS = [
   {
     email: process.env.TEST_EMAIL || "test@example.com",
-    templateType: "routine-default",
+    templateType: "basic",
     cronPattern: "0 8 * * *", // 8 AM daily
     timezone: "Asia/Kolkata",
     isActive: true,
@@ -157,28 +157,28 @@ const USERS = [
   // Add more test users if needed
   {
     email: process.env.TEST_EMAIL_2 || "test2@example.com",
-    templateType: "email-template",
+    templateType: "basic",
     cronPattern: "30 7 * * *", // 7:30 AM daily
     timezone: "Asia/Kolkata",
     isActive: true,
   },
   {
     email: "lordsmobile.007ishq@gmail.com",
-    templateType: "email-template",
+    templateType: "basic",
     cronPattern: "30 7 * * *",
     timezone: "Asia/Kolkata",
     isActive: true,
   },
   {
     email: "lordsmobile.999ishq@gmail.com",
-    templateType: "routine-deep-work",
+    templateType: "basic",
     cronPattern: "0 7 * * *",
     timezone: "Asia/Kolkata",
     isActive: true,
   },
   {
     email: "ishqyt007@gmail.com",
-    templateType: "routine-career",
+    templateType: "basic",
     cronPattern: "30 6 * * *",
     timezone: "Asia/Kolkata",
     isActive: true,
@@ -209,19 +209,23 @@ function getUserByEmail(email) {
  * @param {object} user - User object
  */
 function addUser(user) {
-  const exists = USERS.find((u) => u.email === user.email);
-  if (!exists) {
-    USERS.push({
-      email: user.email,
-      templateType: user.templateType || "default",
-      cronPattern: user.cronPattern || "0 8 * * *",
-      timezone: user.timezone || "Asia/Kolkata",
-      isActive: true,
-    });
-    console.log(`✅ User added: ${user.email}`);
-  } else {
+  const userExists = USERS.find(
+    (u) => u.email.toLowerCase() === user.email.toLowerCase()
+  );
+
+  if (userExists) {
     console.log(`⚠️  User already exists: ${user.email}`);
+    return;
   }
+
+  USERS.push({
+    email: user.email,
+    templateType: user.templateType || "basic",
+    cronPattern: user.cronPattern || "0 8 * * *",
+    timezone: user.timezone || "Asia/Kolkata",
+    isActive: true,
+  });
+  console.log(`✅ User added: ${user.email}`);
 }
 
 /**
