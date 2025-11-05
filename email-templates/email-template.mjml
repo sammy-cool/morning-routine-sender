@@ -1,48 +1,156 @@
 <mjml>
   <mj-head>
-    <mj-title>Morning Routine Update</mj-title>
+    <mj-title>Morning Routine Motivation</mj-title>
     <mj-attributes>
-      <mj-all font-family="Arial, sans-serif" color="#333" />
+      <mj-all font-family="Montserrat, Arial, sans-serif" color="#272727" />
+      <mj-class
+        name="headline"
+        font-size="28px"
+        font-weight="bold"
+        color="#3B82F6"
+        padding-top="12px"
+      />
+      <mj-class
+        name="subhead"
+        font-size="20px"
+        font-weight="600"
+        color="#16A34A"
+      />
+      <mj-class name="main-text" font-size="16px" color="#374151" />
+      <mj-class
+        name="motivation"
+        font-size="18px"
+        color="#DC2626"
+        font-weight="bold"
+        padding="12px 0"
+      />
+      <mj-class
+        name="cta-btn"
+        background-color="#F59E42"
+        color="#fff"
+        border-radius="6px"
+        font-weight="bold"
+        font-size="18px"
+        padding="18px 30px"
+      />
     </mj-attributes>
+    <mj-style inline="inline">
+      .underline { text-decoration: underline; } .gradient-bg { background:
+      linear-gradient(90deg, #3B82F6 0%, #F59E42 100%); -webkit-background-clip:
+      text; -webkit-text-fill-color: transparent; } @media
+      (prefers-color-scheme: dark) { body { background-color: #1a1a1a
+      !important; color: #eee !important; } } .motivator { letter-spacing:1.5px;
+      font-weight:bold; } .preheader { display:none !important; }
+    </mj-style>
   </mj-head>
-  <mj-body background-color="#f0f0f0">
-    <mj-section background-color="#ffffff" padding="20px">
+  <mj-body background-color="#F1F5F9">
+    <mj-raw>
+      <!-- Preheader text for inbox preview -->
+      <span class="preheader" style="display: none; color: transparent"
+        >Conquer your morning, ignite your ambitions: Your daily boost is
+        here!</span
+      >
+    </mj-raw>
+    <mj-section
+      background-color="#fff"
+      border-radius="16px"
+      padding="36px 0 0 0"
+    >
       <mj-column>
-        <mj-image src="{{logoUrl}}" alt="Logo" width="120px" />
-        <mj-text font-size="20px" font-weight="bold">
-          Hello {{userName}},
+        <mj-image src="{{logoUrl}}" width="90px" alt="Routine Logo" />
+        <mj-text mj-class="headline gradient-bg" align="center"
+          >Rise. Grind. Shine!</mj-text
+        >
+        <mj-text mj-class="subhead" align="center">
+          Day {{dayNumber}} · Make Today Legendary!
         </mj-text>
-        <mj-text font-size="16px" line-height="1.5">
-          Here's your daily update for Day {{dayNumber}}.
+        <mj-divider border-width="2px" border-color="#3B82F6" width="40%" />
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#fff" padding-bottom="0">
+      <mj-column>
+        <mj-text mj-class="motivation" align="center">
+          “The secret of your future is hidden in your daily routine.”
         </mj-text>
-        <mj-text font-size="14px">{{dailyTip}}</mj-text>
-        <mj-button background-color="#007BFF" color="#fff" href="{{ctaUrl}}">
-          {{ctaText}}
-        </mj-button>
+        <mj-text mj-class="main-text" align="center" padding-bottom="16px">
+          {{dailyTip}}
+        </mj-text>
+        <mj-button mj-class="cta-btn" href="{{ctaUrl}}" align="center"
+          >{{ctaText}}</mj-button
+        >
       </mj-column>
     </mj-section>
     {{#if trendingNews}}
-    <mj-section background-color="#f9f9f9" padding="20px">
+    <mj-section
+      background-color="#F1F5F9"
+      border-radius="8px"
+      padding="26px 0 5px 0"
+    >
       <mj-column>
-        <mj-text font-weight="bold" font-size="18px" color="#007BFF">
-          Trending News
-        </mj-text>
+        <mj-text
+          font-size="19px"
+          color="#111"
+          font-weight="bold"
+          align="center"
+          padding-bottom="10px"
+          >🔥 Trending Tech & Life</mj-text
+        >
         {{#each trendingNews}}
-        <mj-text font-size="14px" line-height="1.4">
-          <a href="{{this.url}}" style="color: #007bff; text-decoration: none">
-            {{this.title}} </a
-          ><br />
-          <small style="color: #666">{{this.description}}</small>
+        <mj-text font-size="15.5px" color="#222" align="center">
+          <a
+            href="{{this.url}}"
+            class="underline"
+            style="color: #dc2626; text-decoration: none; font-weight: bold"
+            >{{this.title}}</a
+          >
+          <div class="main-text">{{this.description}}</div>
         </mj-text>
         {{/each}}
       </mj-column>
     </mj-section>
     {{/if}}
-    <mj-section background-color="#e9e9e9" padding="15px">
+    <mj-section background-color="#fff" padding-bottom="18px">
       <mj-column>
-        <mj-text font-size="11px" color="#666">
-          You are receiving this because you subscribed to Morning Routine.
-          <a href="{{unsubscribeUrl}}" style="color: #007bff">Unsubscribe</a>
+        <mj-divider border-width="1px" border-color="#ddd" />
+        <mj-text font-size="13px" color="#868686" align="center">
+          You are unstoppable, {{userName}}.
+          <span class="motivator">Keep building. Keep moving.</span>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section
+      background-color="#fff"
+      border-radius="0 0 16px 16px"
+      padding="0"
+    >
+      <mj-column>
+        <mj-text
+          align="center"
+          color="#aaa"
+          font-size="11px"
+          padding-top="8px"
+          padding-bottom="0"
+        >
+          You’re receiving this because you joined
+          <span class="gradient-bg">Morning Routine</span>.<br />
+          <a
+            class="footer-link"
+            style="color: #3b82f6"
+            href="{{unsubscribeUrl}}"
+            >Unsubscribe</a
+          >
+          ·
+          <a class="footer-link" style="color: #16a34a" href="{{ctaUrl}}"
+            >Open in browser</a
+          >
+        </mj-text>
+        <mj-text
+          align="center"
+          color="#bbb"
+          font-size="11px"
+          padding="6px 0 0 0"
+        >
+          &copy; {{year}} Morning Routine
         </mj-text>
       </mj-column>
     </mj-section>

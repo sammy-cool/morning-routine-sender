@@ -34,6 +34,11 @@
             "date": 1762345438550,
             "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\rejections-2025-11-05.log",
             "hash": "26a6c4ebb0a2e37d573c221f7342d8eed1daa9cc0fb8dbb50b1f84dfc0a47f5d"
+        },
+        {
+            "date": 1762367457780,
+            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\rejections-2025-11-06.log",
+            "hash": "744defb94f8946efed0f961e74370f7f8e7761bdaf24185688aa108147c47570"
         }
     ],
     "hashType": "sha256"

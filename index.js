@@ -90,7 +90,7 @@ function getTransporter() {
 
 const sendEmailLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 3, // Allow 5 requests per IP
+  max: process.env.ALLOWED_RATE_LIMITER, // Allow 5 requests per IP
   message: "Too many requests from this IP, please try again after 15 minutes.",
 });
 
@@ -359,7 +359,9 @@ app.post("/send-bulk-now", sendEmailLimiter, async (req, res) => {
   }
 
   try {
-    const result = await emailScheduler.sendBulkEmails(req.app.locals);
+    const adminSkip = req.query.adminSkip;
+    const appLocals = req.app.locals;
+    const result = await emailScheduler.sendBulkEmails(adminSkip, appLocals);
     res.json({
       success: true,
       ...result,
