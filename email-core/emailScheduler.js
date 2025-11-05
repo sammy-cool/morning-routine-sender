@@ -97,7 +97,11 @@ function getTransporter() {
 /**
  * Send routine email to a single user
  */
-async function sendRoutineEmail(userData, appLocals = process.env.RENDER_URL) {
+async function sendRoutineEmail(
+  userData,
+  adminSkip = "GG!",
+  appLocals = process.env.RENDER_URL
+) {
   try {
     // Check if already sent today
     const alreadySent = await emailTracker.wasEmailSentToday(
@@ -105,12 +109,23 @@ async function sendRoutineEmail(userData, appLocals = process.env.RENDER_URL) {
       userData.templateType
     );
 
+    const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
     if (alreadySent) {
-      logger.info("Email already sent today, skipping", {
+      const logMessage = isAdminSkip
+        ? "Admin override active — proceeding despite prior send."
+        : "Email already sent today, skipping.";
+
+      const logLevel = isAdminSkip ? "warn" : "info";
+
+      logger[logLevel](logMessage, {
         email: userData.email,
         templateType: userData.templateType,
+        adminOverride: isAdminSkip,
       });
-      return { status: "skipped", reason: "already_sent_today" };
+
+      if (!isAdminSkip) {
+        return { status: "skipped", reason: "already_sent_today" };
+      }
     }
 
     // Send email
@@ -156,7 +171,7 @@ async function sendRoutineEmail(userData, appLocals = process.env.RENDER_URL) {
 /**
  * Send emails to all active users
  */
-async function sendBulkEmails(appLocals) {
+async function sendBulkEmails(adminSkip, appLocals) {
   logger.info("🚀 Starting bulk email send...");
 
   const users = sharedData.getUsers();
@@ -165,7 +180,7 @@ async function sendBulkEmails(appLocals) {
   let skippedCount = 0;
 
   for (const user of users) {
-    const result = await sendRoutineEmail(user, appLocals);
+    const result = await sendRoutineEmail(user, adminSkip, appLocals);
 
     if (result.status === "success") {
       successCount++;
