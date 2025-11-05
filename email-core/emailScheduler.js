@@ -97,12 +97,12 @@ function getTransporter() {
 /**
  * Send routine email to a single user
  */
-async function sendRoutineEmail(transporter, appLocals, userData) {
+async function sendRoutineEmail(userData, appLocals = process.env.RENDER_URL) {
   try {
     // Check if already sent today
     const alreadySent = await emailTracker.wasEmailSentToday(
       userData.email,
-      userData.templateType || "basic"
+      userData.templateType
     );
 
     if (alreadySent) {
@@ -156,7 +156,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
 /**
  * Send emails to all active users
  */
-async function sendBulkEmails() {
+async function sendBulkEmails(appLocals) {
   logger.info("🚀 Starting bulk email send...");
 
   const users = sharedData.getUsers();
@@ -165,7 +165,7 @@ async function sendBulkEmails() {
   let skippedCount = 0;
 
   for (const user of users) {
-    const result = await sendRoutineEmail(user);
+    const result = await sendRoutineEmail(user, appLocals);
 
     if (result.status === "success") {
       successCount++;
@@ -199,7 +199,7 @@ function scheduleAllJobs() {
     userCount: users.length,
   });
 
-  users.forEach((user) => {
+  for (const user of users) {
     const cronPattern = user.cronPattern || "0 8 * * *"; // Default: 8 AM daily
 
     try {
@@ -209,7 +209,7 @@ function scheduleAllJobs() {
           email: user.email,
           cronPattern,
         });
-        return;
+        continue;
       }
 
       // Schedule job
@@ -218,7 +218,7 @@ function scheduleAllJobs() {
         async () => {
           logger.info("⏰ Cron job triggered", {
             email: user.email,
-            templateType: user.templateType,
+            templateType: "basic",
             time: new Date().toISOString(),
           });
 
@@ -229,29 +229,19 @@ function scheduleAllJobs() {
           timezone: user.timezone || "Asia/Kolkata",
         }
       );
-
       scheduledJobs.push({
         email: user.email,
         job,
         cronPattern,
       });
-
-      logger.info("✅ Cron job scheduled", {
+    } catch (error) {
+      logger.error("Failed to schedule recurring job", {
+        error: error.message,
         email: user.email,
         cronPattern,
-        timezone: user.timezone || "Asia/Kolkata",
-      });
-    } catch (error) {
-      logger.error("Failed to schedule cron job", {
-        email: user.email,
-        error: error.message,
       });
     }
-  });
-
-  logger.info("📅 All cron jobs scheduled", {
-    jobCount: scheduledJobs.length,
-  });
+  }
 }
 
 /**
@@ -260,10 +250,10 @@ function scheduleAllJobs() {
 function stopAllJobs() {
   logger.info("🛑 Stopping all cron jobs...");
 
-  scheduledJobs.forEach(({ email, job }) => {
+  for (const { email, job } of scheduledJobs) {
     job.stop();
     logger.info("Stopped cron job", { email });
-  });
+  }
 
   scheduledJobs = [];
 }
