@@ -1631,7 +1631,7 @@
 
         static dismissAll() {
           if (typeof customizableToast?.dismiss === "function") {
-            customizableToast.dismiss();
+            customizableToast.customizableToast.noop()();
           } else if (typeof customizableToast?.noop === "function") {
             customizableToast.noop();
           }
@@ -1779,7 +1779,7 @@
         const loading = ToastManager.loading("Sending test email...", {
           label: "Cancel",
           onClick: () => {
-            ToastManager.dismissAll();
+            customizableToast.noop();
             ToastManager.warning("Email sending cancelled");
             ActivityLogger.log("Email sending cancelled", "warning");
           },
@@ -1791,7 +1791,7 @@
           body: JSON.stringify({ email, templateType: template }),
         });
 
-        loading.dismiss();
+        customizableToast.noop();
 
         if (result.success) {
           ToastManager.success(`✅ Email sent to ${email}`, {
@@ -1830,7 +1830,7 @@
           ActivityLogger.log("Bulk email sending started");
 
           const result = await apiCall("/send-bulk-now", { method: "POST" });
-          loading.dismiss();
+          customizableToast.noop();
 
           if (result.success) {
             const successCount = result.data.successCount || 0;
@@ -1896,7 +1896,7 @@
                 body: JSON.stringify({ days }),
               });
 
-              loading.dismiss();
+              customizableToast.noop();
 
               if (result.success) {
                 const deleted = result.data.deleted || 0;
@@ -1963,9 +1963,10 @@
 
       /* ==================== System Health ==================== */
       async function systemHealth() {
-        const loading = ToastManager.loading("Checking system health...");
+        ToastManager.loading("Checking system health...");
+
         const result = await apiCall("/health");
-        loading.dismiss();
+        customizableToast.noop();
 
         if (result.success && result.data) {
           const status = result.data.status || "unknown";
@@ -2037,7 +2038,7 @@
           const loading = ToastManager.loading("Reading database...");
 
           const result = await apiCall("/read-db");
-          loading.dismiss();
+          customizableToast.noop();
 
           if (result.success && result.data) {
             const jsonData = JSON.stringify(result.data, null, 2);
@@ -2088,8 +2089,8 @@
                 {
                   duration: 5000,
                   cta: {
-                    label: "Dismiss All",
-                    onClick: () => ToastManager.dismissAll(),
+                    label: "customizableToast.noop() All",
+                    onClick: () => customizableToast.noop(),
                   },
                 }
               );
@@ -2167,7 +2168,7 @@
       /* ==================== Keyboard Shortcuts ==================== */
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
-          ToastManager.dismissAll();
+          customizableToast.noop();
         }
 
         // Ctrl/Cmd + K for quick actions
