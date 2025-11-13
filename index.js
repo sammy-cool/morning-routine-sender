@@ -7,6 +7,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const Redis = require("ioredis");
+const cookieParser = require("cookie-parser");
 
 const {
   createTransporter,
@@ -43,12 +44,47 @@ const rateLimit = require("express-rate-limit");
 app.use(cors());
 app.use(express.json());
 app.use(setApiBase);
+app.use(cookieParser());
+
+// Protected dashboard.html
+app.get("/admin-dashboard", async (req, res, next) => {
+  try {
+    if (req.cookies?.mrn_role === "admin") {
+      const domain =
+        app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+
+      logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
+      let html = fs.readFileSync(
+        path.join(__dirname, "public", "dashboard.html"),
+        "utf8"
+      );
+      html = html.replace("__DOMAIN__", domain);
+      return res.send(html);
+    }
+    // fallback to index (user view)
+    return res.redirect("/");
+  } catch (err) {
+    logger.error(
+      "Failed to serve dashboard.html: redirecting back to user view",
+      err
+    );
+    return res.redirect("/");
+  }
+});
+
 app.use("/assets", express.static("assets"));
 app.use(express.static("public"));
 
 const PORT = process.env.PORT || 2900;
 let transporter = null;
-const redis = new Redis(process.env.REDIS_LEAP_URL || "redis://127.0.0.1:6379");
+const redis = new Redis(
+  process.env.REDIS_LEAP_URL || "redis://127.0.0.1:6379",
+  {
+    tls: {}, // Required for Render Redis (enables SSL)
+    // maxRetriesPerRequest: null, // prevents retry limit errors
+    // enableReadyCheck: false,    // avoids ready check errors
+  }
+);
 
 redis.on("connect", () => {
   logger.info("✅ Redis connected");
@@ -165,21 +201,96 @@ app.get("/sw.js", (req, res) => {
 //   res.sendFile(path.join(__dirname, "public", "js", "analytics-handler.js"));
 // });
 
-// index.js - Enhanced admin dashboard endpoint
-app.get("/", (req, res) => {
-  const domain = app.locals.apiBase;
-  logger.info("Dashboard accessed", { domain, ip: req.ip });
+// Serve user dashboard separately
+app.get("/user-dashboard", (req, res) => {
+  const domain = app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
 
-  // Read HTML file
+  logger.info("User Dashboard accessed", { domain, ip: req.ip });
   let html = fs.readFileSync(
-    path.join(__dirname, "public", "dashboard.html"),
+    path.join(__dirname, "public", "user-dashboard.html"),
     "utf8"
   );
-
-  // Replace placeholder with actual domain
   html = html.replace("__DOMAIN__", domain);
-
   res.send(html);
+});
+
+// index.js - Enhanced admin dashboard endpoint
+// Root route - Enterprise skeleton + key modal
+// =================== ROOT ROUTE (SKELETON + MODAL) ===================
+app.get("/", (req, res) => {
+  const domain = app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+
+  logger.info("Landing page accessed", { domain, ip: req.ip });
+
+  const skeleton = `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Enterprise Email Dashboard - Admin & User view" />
+    <link rel="canonical" href="${domain}" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Enterprise Dashboard</title>
+    <script defer src="/js/skeleton-loader.js"></script>
+    <script defer src="/js/key-modal.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f4f6f8;
+      }
+      .loader {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 6px solid #dcdcdc;
+        border-top: 6px solid #007bff;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <div class="loader" aria-label="Loading Enterprise Dashboard..."></div>
+  </body>
+  </html>`;
+  res.send(skeleton);
+});
+
+// ---------- Verify admin key (client POSTs key here) ----------
+app.post("/verify-admin-key", express.json(), async (req, res) => {
+  try {
+    const key = req.body?.key ? String(req.body.key).trim() : null;
+    if (!key) return res.status(400).json({ error: "Missing key" });
+
+    const keyExists = await redis.get(`admin_key:${key}`);
+    if (!keyExists) {
+      // not an admin key — return 200 but role user (keeping UX simple)
+      return res.status(200).json({ role: "user" });
+    }
+
+    // valid one-time key -> delete it (one-time use)
+    await redis.del(`admin_key:${key}`);
+
+    // Optional: set short-lived secure cookie so admin view is accessible for a few minutes
+    // NOTE: set 'secure: true' in production (HTTPS)
+    res.cookie("mrn_role", "admin", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 5 * 60 * 1000, // 5 minutes
+    });
+
+    return res.json({ role: "admin" });
+  } catch (err) {
+    logger.error("verify-admin-key error", { error: err.message || err });
+    return res.status(500).json({ error: "Server error verifying key" });
+  }
 });
 
 // Database read endpoint
