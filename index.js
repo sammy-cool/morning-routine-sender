@@ -46,7 +46,7 @@ app.use(express.json());
 app.use(setApiBase);
 app.use(cookieParser());
 
-// Protected dashboard.html
+// Protected admin-dashboard.html
 app.get("/admin-dashboard", async (req, res, next) => {
   try {
     if (req.cookies?.mrn_role === "admin") {
@@ -55,7 +55,7 @@ app.get("/admin-dashboard", async (req, res, next) => {
 
       logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
       let html = fs.readFileSync(
-        path.join(__dirname, "public", "dashboard.html"),
+        path.join(__dirname, "public", "admin-dashboard.html"),
         "utf8"
       );
       html = html.replace("__DOMAIN__", domain);
@@ -65,7 +65,7 @@ app.get("/admin-dashboard", async (req, res, next) => {
     return res.redirect("/");
   } catch (err) {
     logger.error(
-      "Failed to serve dashboard.html: redirecting back to user view",
+      "Failed to serve admin-dashboard: redirecting back to user view",
       err
     );
     return res.redirect("/");

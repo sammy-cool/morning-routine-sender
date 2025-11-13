@@ -4,7 +4,7 @@ const urlsToCache = [
   // "/",
   // "/favicon.ico",
   // "/assets/mrn-brand-ico.png",
-  // "/dashboard.html",
+  // "/admin-dashboard.html",
   // "/user-dashboard",
   // "/assets/css/style.css",
   // "/manifest.json",
