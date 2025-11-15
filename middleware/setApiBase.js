@@ -11,7 +11,7 @@ function setApiBase(req, res, next) {
   const renderUrl = `${process.env.RENDER_URL}`;
 
   logger.info("API Base URL:", { baseURL });
-  req.app.locals.apiBase = baseURL;
+  req.app.locals.apiBase = baseURL || renderUrl;
   req.app.locals.officialDomain = renderUrl;
   next();
 }
