@@ -1,0 +1,205 @@
+.off-load-page {
+  height: 100vh;
+  font-family: "Inter", system-ui, sans-serif;
+  background: #f9fafb;
+  overflow: hidden;
+  position: relative;
+  z-index: 98;
+}
+
+.loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.loader {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-ring {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 6px solid transparent;
+  border-top-color: #2563eb;
+  animation: rotate 1.4s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.4));
+}
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 20%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  overflow: hidden;
+  position: relative;
+}
+
+.logo img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+/* === Particle explosion === */
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #2563eb;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.9;
+  animation: fly 1.8s ease forwards;
+  filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.6));
+}
+
+@keyframes fly {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* === Destruction fade === */
+.fade-out {
+  animation: dissolve 1.8s ease forwards;
+}
+
+@keyframes dissolve {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+    filter: blur(10px);
+    visibility: hidden;
+  }
+}
+
+/* === Skeleton layout === */
+.skeleton-container {
+  transition: opacity 0.8s ease;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  color: #111827;
+}
+
+.skeleton-container.show {
+  opacity: 1;
+}
+
+.skeleton-wrapper {
+  width: 90%;
+  max-width: 700px;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.skeleton {
+  height: 2rem;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #ececec 25%, #f5f5f5 50%, #ececec 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+
+.skeleton.header {
+  height: 3rem;
+  width: 100%;
+}
+
+.skeleton.box {
+  height: 8rem;
+  border-radius: 20px;
+  width: 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.logo-skeleton {
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-skeleton img {
+  width: 48px;
+  height: 48px;
+}
+
+.logo-skeleton span {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.footer {
+  position: fixed;
+  bottom: 20px;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .logo-ring {
+    width: 120px;
+    height: 120px;
+  }
+  .logo {
+    width: 64px;
+    height: 64px;
+  }
+}

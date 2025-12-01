@@ -5,11 +5,9 @@ const urlsToCache = [
   "/favicon.ico",
   "/manifest.json",
   "/css/loader.css",
+  "/assets/mrn-brand-ico.png",
 
   "/",
-  "/admin-dashboard.html",
-  "/user-dashboard.html",
-  "/assets/mrn-brand-ico.png",
 
   "/js/settings-manager.js",
   "/js/analytics-handler.js",
@@ -135,7 +133,8 @@ self.addEventListener("fetch", (event) => {
 //     caches
 //       .keys()
 //       .then((names) =>
-//         Promise.all(
+//         Promise
+// .all(
 //           names.map((name) =>
 //             name === CACHE_NAME ? null : caches.delete(name)
 //           )

@@ -1,343 +1,466 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="index,follow" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="/css/loader.css" />
+
+    <!-- Primary SEO -->
+    <title>Morning Routine Sender — Dashboard</title>
     <meta
       name="description"
-      content="Enterprise Email Suite - Admin & User Dashboard Portal"
+      content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
     />
-    <link rel="canonical" href="https://yourdomain.com/" />
+    <meta
+      name="keywords"
+      content="email automation, scheduled emails, analytics, admin dashboard, monitoring"
+    />
+    <link rel="canonical" href="_DOMAIN_/" />
 
-    <title>Enterprise Dashboard Portal</title>
-
-    <!-- SEO / OG -->
-    <meta property="og:title" content="Enterprise Dashboard Portal" />
+    <!-- Open Graph -->
+    <meta property="og:title" content="Morning Routine Sender — Dashboard" />
     <meta
       property="og:description"
-      content="Secure admin & user dashboards with PWA support."
+      content="Schedule and monitor automated morning emails with analytics."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://yourdomain.com/" />
-    <meta property="og:image" content="/assets/screenshot-desktop.png" />
+    <meta property="og:url" content="_DOMAIN_/" />
+    <meta
+      property="og:image"
+      content="_DOMAIN_/assets/screenshot-desktop.png"
+    />
 
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" href="/assets/mrn-brand-ico.png" />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Morning Routine Sender — Dashboard" />
+    <meta
+      name="twitter:description"
+      content="Schedule and monitor automated morning emails with analytics."
+    />
+
+    <!-- JSON-LD structured data (Organization + WebSite) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Morning Routine Sender",
+        "url": "_DOMAIN_",
+        "description": "Automated email scheduling, analytics, and monitoring for morning routines."
+      }
+    </script>
+
+    <!-- Preconnect / performance -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" href="/favicon.ico" />
+
+    <script>
+      //   const loader = document.getElementById("loader");
+      //   const logoBox = document.getElementById("logoBox");
+      //   const skeleton = document.getElementById("skeletonContainer");
+      //   // Wait a bit for ring animation before destruction
+      //   //   setTimeout(() => {
+      //   // create brand-colored particle bursts
+      //   for (let i = 0; i < 22; i++) {
+      //     const p = document.createElement("span");
+      //     p.classList.add("particle");
+      //     const tx = (Math.random() - 0.5) * 280 + "px";
+      //     const ty = (Math.random() - 0.5) * 280 + "px";
+      //     p.style.setProperty("--tx", tx);
+      //     p.style.setProperty("--ty", ty);
+      //     logoBox?.appendChild(p);
+      //     //   setTimeout(() => p.remove(), 1800);
+      //   }
+      //   //   }, 1000);
+    </script>
     <style>
       :root {
-        --brand: #2563eb;
         --bg: #f9fafb;
+        --muted: #6b7280;
+        --accent: #0ea5e9;
+        --maxw: 1100px;
+        --radius: 12px;
+        --pad: 18px;
+        --brand: #2563eb;
       }
-
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
+      html,
       body {
-        height: 100vh;
-        font-family: "Inter", system-ui, sans-serif;
-        background: var(--bg);
-        overflow: hidden;
-        position: relative;
-      }
-
-      /* === FIXED CENTERED LOADER (does not shift skeleton) === */
-      .loader-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
         height: 100%;
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial;
+      }
+      header {
+        background: linear-gradient(90deg, #0ea5e980, #0369a180);
+        color: #333333;
+        padding: 20px 24px;
+      }
+      .container {
+        max-width: var(--maxw);
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      .hero {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 24px 0;
+      }
+      .card {
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
+        padding: var(--pad);
+      }
+      .placeholder {
+        height: 420px;
+        border: 2px dashed #e6e9ee;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+      }
+      footer {
+        padding: 32px 0;
+        color: var(--muted);
+        text-align: center;
+        font-size: 13px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: none;
+        background: var(--accent);
+        color: white;
+        text-decoration: none;
+      }
+      /* modal */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 9999;
-        pointer-events: none;
-      }
-
-      .loader {
-        position: relative;
-        width: 160px;
-        height: 160px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .logo-ring {
-        position: absolute;
-        width: 160px;
-        height: 160px;
-        border-radius: 50%;
-        border: 6px solid transparent;
-        border-top-color: var(--brand);
-        animation: rotate 1.4s linear infinite;
-        filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.4));
-      }
-      @keyframes rotate {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .logo {
-        width: 80px;
-        height: 80px;
-        border-radius: 20%;
-        background: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        z-index: 2;
-        overflow: hidden;
-        position: relative;
-      }
-
-      .logo img {
-        width: 60%;
-        height: 60%;
-        object-fit: contain;
-      }
-
-      /* === Particle explosion === */
-      .particle {
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        background: var(--brand);
-        border-radius: 50%;
-        pointer-events: none;
-        opacity: 0.9;
-        animation: fly 1.8s ease forwards;
-        filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.6));
-      }
-
-      @keyframes fly {
-        from {
-          transform: translate(0, 0) scale(1);
-          opacity: 1;
-        }
-        to {
-          transform: translate(var(--tx), var(--ty)) scale(0);
-          opacity: 0;
-        }
-      }
-
-      /* === Destruction fade === */
-      .fade-out {
-        animation: dissolve 1.8s ease forwards;
-      }
-
-      @keyframes dissolve {
-        0% {
-          opacity: 1;
-          transform: scale(1);
-          filter: blur(0px);
-        }
-        50% {
-          opacity: 0.8;
-          transform: scale(1.05);
-          filter: blur(3px);
-        }
-        100% {
-          opacity: 0;
-          transform: scale(1.1);
-          filter: blur(10px);
-          visibility: hidden;
-        }
-      }
-
-      /* === Skeleton layout === */
-      .skeleton-container {
-        transition: opacity 0.8s ease;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: var(--bg);
-        color: #111827;
-      }
-
-      .skeleton-container.show {
-        opacity: 1;
-      }
-
-      .skeleton-wrapper {
-        width: 90%;
-        max-width: 700px;
-        display: grid;
-        gap: 1.5rem;
-      }
-
-      .skeleton {
-        height: 18px;
-        border-radius: 10px;
-        background: linear-gradient(
-          90deg,
-          #ececec 25%,
-          #f5f5f5 50%,
-          #ececec 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 1.2s infinite;
-      }
-
-      .skeleton.header {
-        height: 30px;
-        width: 60%;
-      }
-
-      .skeleton.box {
-        height: 160px;
-        border-radius: 20px;
-        width: 100%;
-      }
-
-      @keyframes shimmer {
-        0% {
-          background-position: -200% 0;
-        }
-        100% {
-          background-position: 200% 0;
-        }
-      }
-
-      .logo-skeleton {
-        margin-bottom: 40px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .logo-skeleton img {
-        width: 48px;
-        height: 48px;
-      }
-
-      .logo-skeleton span {
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: #333;
-      }
-
-      .footer {
-        position: fixed;
-        bottom: 20px;
-        color: #999;
-        font-size: 0.9rem;
-      }
-
-      @media (max-width: 600px) {
-        .logo-ring {
-          width: 120px;
-          height: 120px;
-        }
-        .logo {
-          width: 64px;
-          height: 64px;
-        }
-      }
-
-      /* === CONTENT (after all loaders) === */
-      #content {
-        opacity: 0;
         visibility: hidden;
-        transition: opacity 1s ease;
+        opacity: 0;
+        transition: all 0.18s;
       }
-
-      #content.show {
-        opacity: 1;
+      .modal-backdrop.open {
         visibility: visible;
+        opacity: 1;
+      }
+      .modal {
+        width: 520px;
+        max-width: 94%;
+        background: #fff;
+        border-radius: 12px;
+        padding: 22px;
+        box-shadow: 0 12px 36px rgba(2, 6, 23, 0.18);
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      input[type="password"] {
+        width: 100%;
+        padding: 12px 0px;
+        border-radius: 8px;
+        border: 1px solid #e6e9ee;
+        margin-bottom: 12px;
+        font-size: 15px;
+      }
+      .meta {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .small {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 12px;
       }
     </style>
   </head>
   <body>
-    <div class="loader-container">
-      <div class="loader" id="loader">
-        <div class="logo-ring"></div>
-        <div class="logo" id="logoBox">
-          <img src="/assets/mrn-brand-ico.png" alt="MRN Logo" />
+    <div class="off-load-page" id="offPageLoader">
+      <div class="loader-container">
+        <div class="loader" id="loader">
+          <div class="logo-ring"></div>
+          <div class="logo" id="logoBox">
+            <img src="/assets/mrn-brand-ico.png" alt="MRN Logo" />
+          </div>
         </div>
       </div>
+
+      <div class="skeleton-container" id="skeletonContainer">
+        <div class="logo-skeleton">
+          <img src="/assets/mrn-brand-ico.png" alt="MRN Logo" />
+          <span>Enterprise Dashboard</span>
+        </div>
+        <div class="skeleton-wrapper">
+          <div class="skeleton header"></div>
+          <div class="skeleton box"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+        <div class="footer">Loading secure workspace...</div>
+      </div>
     </div>
 
-    <div class="skeleton-container" id="skeletonContainer">
-      <div class="logo-skeleton">
-        <img src="/assets/mrn-brand-ico.png" alt="MRN Logo" />
-        <span>Enterprise Dashboard</span>
+    <!-- Main Page -->
+    <header id="mainRootHeader">
+      <div class="container">
+        <h1 style="margin: 0; font-size: 20px">Morning Routine Sender</h1>
+        <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.95">
+          Enterprise dashboard — secure access required for admin features
+        </p>
       </div>
-      <div class="skeleton-wrapper">
-        <div class="skeleton header"></div>
-        <div class="skeleton box"></div>
-        <div class="skeleton"></div>
-        <div class="skeleton"></div>
-        <div class="skeleton"></div>
-        <div class="skeleton"></div>
-        <div class="skeleton"></div>
-      </div>
-      <div class="footer">Loading secure workspace...</div>
-    </div>
+    </header>
 
-    <div id="content"></div>
+    <main class="container" id="mainRoot">
+      <section class="hero">
+        <div style="flex: 1">
+          <h2 style="margin: 0 0 8px">
+            Deliver predictable morning emails — insight-first
+          </h2>
+          <p style="margin: 0 0 12px; color: var(--muted)">
+            View scheduling health, recent sends, and recipient engagement.
+            Admin features behind a secure key.
+          </p>
+          <div style="display: flex; gap: 12px">
+            <a class="btn" href="#" id="openModalBtn"
+              >Identify (admin / user)</a
+            >
+            <a class="btn" href="/unsubscribe?email=" style="background: #111"
+              >Unsubscribe (test)</a
+            >
+          </div>
+        </div>
+        <div style="width: 420px">
+          <div class="card placeholder">
+            <div>Live dashboard preview</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- info cards -->
+      <section
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 16px;
+        "
+      >
+        <div class="card">
+          <h3 style="margin-top: 0">Scheduling</h3>
+          <p class="meta">Cron jobs status, next run times, last runs</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top: 0">Analytics</h3>
+          <p class="meta">Open rates, delivery stats, bounced messages</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top: 0">Monitoring</h3>
+          <p class="meta">Errors, retries, alerts</p>
+        </div>
+      </section>
+
+      <section id="userView" style="margin-top: 18px">
+        <div class="card">
+          <h3 style="margin-top: 0">User Dashboard</h3>
+          <p class="meta">
+            Simplified user view — you can add custom blocks here or create
+            `/public/user-dashboard` and redirect to it.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer id="rootMainFooter">
+      <div class="container">
+        <small>&copy; Morning Routine Sender</small>
+      </div>
+    </footer>
+
+    <div
+      id="keyModal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="modal" role="document" aria-labelledby="modalTitle">
+        <h2 id="modalTitle">Enter access key</h2>
+        <p class="meta">
+          Admins: enter the one-time key generated via the admin tool. Keys are
+          one-time-use and expire quickly.
+        </p>
+        <label for="adminKey">Access key</label>
+        <input
+          id="adminKey"
+          type="password"
+          autocomplete="one-time-code"
+          placeholder="Enter admin key (one-time)"
+        />
+        <div style="display: flex; gap: 8px; justify-content: flex-end">
+          <button
+            id="cancelBtn"
+            class="btn"
+            style="background: #e6e9ee; color: #111"
+          >
+            Cancel
+          </button>
+          <button id="submitBtn" class="btn">Submit</button>
+        </div>
+        <p class="small">
+          If you are not an admin, close this to continue to the user view.
+        </p>
+      </div>
+    </div>
 
     <script>
-      window.addEventListener("load", () => {
-        const loader = document.getElementById("loader");
-        const logoBox = document.getElementById("logoBox");
-        const content = document.getElementById("content");
-        const skeleton = document.getElementById("skeletonContainer");
+      (function () {
+        const modalWrap = document.getElementById("keyModal");
+        const openBtn = document.getElementById("openModalBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const submitBtn = document.getElementById("submitBtn");
+        const adminKeyInput = document.getElementById("adminKey");
 
+        function openModal() {
+          modalWrap.classList.add("open");
+          modalWrap.setAttribute("aria-hidden", "false");
+          adminKeyInput.focus();
+        }
+        function closeModal() {
+          modalWrap.classList.remove("open");
+          modalWrap.setAttribute("aria-hidden", "true");
+          adminKeyInput.value = "";
+        }
+
+        openBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          openModal();
+        });
+        cancelBtn.addEventListener("click", function () {
+          closeModal();
+        });
+
+        // Submit -> POST /verify-admin-key
+        submitBtn.addEventListener("click", async function () {
+          const key = adminKeyInput.value.trim();
+          if (!key) {
+            adminKeyInput.focus();
+            return;
+          }
+          submitBtn.disabled = true;
+          try {
+            const resp = await fetch("/verify-admin-key", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key }),
+            });
+            const j = await resp.json();
+            if (resp.ok && j.role === "admin") {
+              // Admin -> redirect to existing admin dashboard
+              window.location.href = "/admin-dashboard";
+            } else {
+              // Not admin -> show user interface (already on page); optionally show message
+              alert("Key not recognized — showing user view.");
+              closeModal();
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Network error. Try again.");
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+      })();
+
+      window.addEventListener("load", function () {
         const API_BASE = document.location.href;
 
         // === PRELOAD NEXT PAGE IN HIDDEN IFRAME ===
-        const preloadFrame = document.createElement("iframe");
-        preloadFrame.src = "./generated-main.html";
-        preloadFrame.style.display = "none";
-        document.body.appendChild(preloadFrame);
+        //   const preloadFrame = document.createElement("iframe");
+        //   preloadFrame.src = "./generated-main.html";
+        //   preloadFrame.style.display = "none";
+        //   document.body.appendChild(preloadFrame);
 
-        preloadFrame.onload = () => {
-          console.log("Next page fully loaded! Starting loader transition...");
+        //   preloadFrame.onload = () => {
+        //     console.log(
+        //       "Next page fully loaded! Starting loader transition..."
+        //     );
 
-          // Wait a bit for ring animation before destruction
-          setTimeout(() => {
-            // create brand-colored particle bursts
-            for (let i = 0; i < 22; i++) {
-              const p = document.createElement("span");
-              p.classList.add("particle");
-              const tx = (Math.random() - 0.5) * 280 + "px";
-              const ty = (Math.random() - 0.5) * 280 + "px";
-              p.style.setProperty("--tx", tx);
-              p.style.setProperty("--ty", ty);
-              logoBox.appendChild(p);
-              setTimeout(() => p.remove(), 1800);
-            }
+        // start dissolve animation
+        const loader = document.getElementById("loader");
+        const skeleton = document.getElementById("skeletonContainer");
+        const offPageLoader = document.getElementById("offPageLoader");
+        const logoBox = document.getElementById("logoBox");
 
-            // start dissolve animation
-            loader.classList.add("fade-out");
+        // setTimeout(() => {
+        // create brand-colored particle bursts
+        for (let i = 0; i < 22; i++) {
+          const p = document.createElement("span");
+          p.classList.add("particle");
+          const tx = (Math.random() - 0.5) * 280 + "px";
+          const ty = (Math.random() - 0.5) * 280 + "px";
+          p.style.setProperty("--tx", tx);
+          p.style.setProperty("--ty", ty);
+          logoBox.appendChild(p);
+          setTimeout(() => p.remove(), 1800);
+        }
 
-            // After dissolve + particles finish (≈1.9s)
-            setTimeout(() => {
-              loader.remove(); // remove loader entirely
+        setTimeout(() => {
+          loader.classList.add("fade-out");
+          skeleton.classList.add("fade-out");
+          // loader.remove();
 
-              skeleton.style.transition = "opacity 1s ease";
-              skeleton.style.opacity = "0";
-              skeleton.remove();
+          skeleton.style.transition = "opacity 1s ease-out";
+          skeleton.style.opacity = "0";
 
-              // === SWITCH TO NEXT PAGE (fully loaded) ===
-              globalThis.location.replace("./generated-main.html");
-              // location.replace ensures no history entry
-            }, 1900);
-          }, 1500);
-        };
+          // skeleton.remove();
+
+          // === SWITCH TO NEXT PAGE (fully loaded) ===
+          // globalThis.location.replace("./generated-main.html");
+          // location.replace ensures no history entry
+          offPageLoader.remove();
+        }, 1900);
+        //   setTimeout(() => {
+        //     loader.classList.add("fade-out");
+        //     skeleton.style.transition = "opacity 1s ease";
+        //     skeleton.style.opacity = "0";
+        //     skeleton.remove();
+        //     offPageLoader.remove();
+        //   }, 1800);
+        // }, 2000);
+
+        const mainRoot = document.getElementById("mainRoot");
+        const mainRootHeader = document.getElementById("mainRootHeader");
+        const rootMainFooter = document.getElementById("rootMainFooter");
+        mainRoot.style.display = "none";
+        mainRootHeader.style.display = "none";
+        rootMainFooter.style.display = "none";
+        // === SWITCH TO NEXT PAGE (fully loaded) ===
+        // globalThis.location.replace("./generated-main.html");
+        // location.replace ensures no history entry
+
+        // show modal after skeleton is visible (optional)
+        setTimeout(function () {
+          mainRoot.style.display = "block";
+          mainRootHeader.style.display = "block";
+          rootMainFooter.style.display = "block";
+          // uncomment to auto-open:
+          // openModal();
+        }, 1950);
       });
     </script>
   </body>

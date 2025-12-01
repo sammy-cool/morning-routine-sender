@@ -6,19 +6,14 @@
     "auditLog": "D:\\github_desktop\\mrn-lib-testing\\logs\\.274ccf5e9f41f9e73c70cf5e7e2b2ec735508d6b-audit.json",
     "files": [
         {
-            "date": 1762966965756,
-            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\app-2025-11-12.log",
-            "hash": "9eb971730a6c48ff375b11ece8294ae8ef7433fa56e1edc5729703991829eed1"
+            "date": 1764424473132,
+            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\app-2025-11-29.log",
+            "hash": "46c4c318230548eccf7b3f844b9e2903cdd75a4eecb2665507b2d6c4d0f1a30f"
         },
         {
-            "date": 1762972202765,
-            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\app-2025-11-13.log",
-            "hash": "e1450ece462f6b65c0e5fcb86dccb94b9b6926aae52b4c49e0df8e089e82213e"
-        },
-        {
-            "date": 1763187655410,
-            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\app-2025-11-15.log",
-            "hash": "9dce8492f5fc19ee38d3b90914a7dc33f48feaf992059d028b49e93d4a9ee15e"
+            "date": 1764550525080,
+            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\app-2025-12-01.log",
+            "hash": "62dae51ea9c03509972d5cdfdbf98618137bda030b38c11b2a6b0144377881c1"
         }
     ],
     "hashType": "sha256"
