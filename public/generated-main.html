@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="/css/loader.css" />
+
+    <!-- Primary SEO -->
+    <title>Morning Routine Sender — Dashboard</title>
+    <meta
+      name="description"
+      content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
+    />
+    <meta
+      name="keywords"
+      content="email automation, scheduled emails, analytics, admin dashboard, monitoring"
+    />
+    <link rel="canonical" href="__DOMAIN__/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Morning Routine Sender — Dashboard" />
+    <meta
+      property="og:description"
+      content="Schedule and monitor automated morning emails with analytics."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="__DOMAIN__/" />
+    <meta
+      property="og:image"
+      content="__DOMAIN__/assets/screenshot-desktop.png"
+    />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Morning Routine Sender — Dashboard" />
+    <meta
+      name="twitter:description"
+      content="Schedule and monitor automated morning emails with analytics."
+    />
+
+    <!-- JSON-LD structured data (Organization + WebSite) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Morning Routine Sender",
+        "url": "__DOMAIN__",
+        "description": "Automated email scheduling, analytics, and monitoring for morning routines."
+      }
+    </script>
+
+    <!-- Preconnect / performance -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" href="/favicon.ico" />
+
+    <!-- Minimal critical CSS inline for skeleton -->
+    <style>
+      :root {
+        --bg: #f9fafb;
+        --muted: #6b7280;
+        --accent: #0ea5e9;
+        --maxw: 1100px;
+        --radius: 12px;
+        --pad: 18px;
+        --brand: #2563eb;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial;
+      }
+      header {
+        background: linear-gradient(90deg, #0ea5e980, #0369a180);
+        color: #333333;
+        padding: 20px 24px;
+      }
+      .container {
+        max-width: var(--maxw);
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      .hero {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 24px 0;
+      }
+      .card {
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
+        padding: var(--pad);
+      }
+      .placeholder {
+        height: 420px;
+        border: 2px dashed #e6e9ee;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+      }
+      footer {
+        padding: 32px 0;
+        color: var(--muted);
+        text-align: center;
+        font-size: 13px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: none;
+        background: var(--accent);
+        color: white;
+        text-decoration: none;
+      }
+      /* modal */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.18s;
+      }
+      .modal-backdrop.open {
+        visibility: visible;
+        opacity: 1;
+      }
+      .modal {
+        width: 520px;
+        max-width: 94%;
+        background: #fff;
+        border-radius: 12px;
+        padding: 22px;
+        box-shadow: 0 12px 36px rgba(2, 6, 23, 0.18);
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      input[type="password"] {
+        width: 100%;
+        padding: 12px 0px;
+        border-radius: 8px;
+        border: 1px solid #e6e9ee;
+        margin-bottom: 12px;
+        font-size: 15px;
+      }
+      .meta {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .small {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1 style="margin: 0; font-size: 20px">Morning Routine Sender</h1>
+        <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.95">
+          Enterprise dashboard — secure access required for admin features
+        </p>
+      </div>
+    </header>
+
+    <main class="container" id="mainRoot">
+      <section class="hero">
+        <div style="flex: 1">
+          <h2 style="margin: 0 0 8px">
+            Deliver predictable morning emails — insight-first
+          </h2>
+          <p style="margin: 0 0 12px; color: var(--muted)">
+            View scheduling health, recent sends, and recipient engagement.
+            Admin features behind a secure key.
+          </p>
+          <div style="display: flex; gap: 12px">
+            <a class="btn" href="#" id="openModalBtn"
+              >Identify (admin / user)</a
+            >
+            <a class="btn" href="/unsubscribe?email=" style="background: #111"
+              >Unsubscribe (test)</a
+            >
+          </div>
+        </div>
+        <div style="width: 420px">
+          <div class="card placeholder">
+            <div>Live dashboard preview</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- info cards -->
+      <section
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 16px;
+        "
+      >
+        <div class="card">
+          <h3 style="margin-top: 0">Scheduling</h3>
+          <p class="meta">Cron jobs status, next run times, last runs</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top: 0">Analytics</h3>
+          <p class="meta">Open rates, delivery stats, bounced messages</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top: 0">Monitoring</h3>
+          <p class="meta">Errors, retries, alerts</p>
+        </div>
+      </section>
+
+      <!-- user view placeholder — will be replaced if admin -->
+      <section id="userView" style="margin-top: 18px">
+        <div class="card">
+          <h3 style="margin-top: 0">User Dashboard</h3>
+          <p class="meta">
+            Simplified user view — you can add custom blocks here or create
+            `/public/user-dashboard.html` and redirect to it.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <small>&copy; Morning Routine Sender</small>
+      </div>
+    </footer>
+
+    <!-- Modal: ask for key -->
+    <div
+      id="keyModal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="modal" role="document" aria-labelledby="modalTitle">
+        <h2 id="modalTitle">Enter access key</h2>
+        <p class="meta">
+          Admins: enter the one-time key generated via the admin tool. Keys are
+          one-time-use and expire quickly.
+        </p>
+        <label for="adminKey">Access key</label>
+        <input
+          id="adminKey"
+          type="password"
+          autocomplete="one-time-code"
+          placeholder="Enter admin key (one-time)"
+        />
+        <div style="display: flex; gap: 8px; justify-content: flex-end">
+          <button
+            id="cancelBtn"
+            class="btn"
+            style="background: #e6e9ee; color: #111"
+          >
+            Cancel
+          </button>
+          <button id="submitBtn" class="btn">Submit</button>
+        </div>
+        <p class="small">
+          If you are not an admin, close this to continue to the user view.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Replace placeholder domain inserted server-side
+      (function () {
+        // Modal handling
+        const modalWrap = document.getElementById("keyModal");
+        const openBtn = document.getElementById("openModalBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const submitBtn = document.getElementById("submitBtn");
+        const adminKeyInput = document.getElementById("adminKey");
+
+        function openModal() {
+          modalWrap.classList.add("open");
+          modalWrap.setAttribute("aria-hidden", "false");
+          adminKeyInput.focus();
+        }
+        function closeModal() {
+          modalWrap.classList.remove("open");
+          modalWrap.setAttribute("aria-hidden", "true");
+          adminKeyInput.value = "";
+        }
+
+        openBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          openModal();
+        });
+        cancelBtn.addEventListener("click", function () {
+          closeModal();
+        });
+
+        // Submit -> POST /verify-admin-key
+        submitBtn.addEventListener("click", async function () {
+          const key = adminKeyInput.value.trim();
+          if (!key) {
+            adminKeyInput.focus();
+            return;
+          }
+          submitBtn.disabled = true;
+          try {
+            const resp = await fetch("/verify-admin-key", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key }),
+            });
+            const j = await resp.json();
+            if (resp.ok && j.role === "admin") {
+              // Admin -> redirect to existing admin dashboard
+              window.location.href = "/dashboard.html";
+            } else {
+              // Not admin -> show user interface (already on page); optionally show message
+              alert("Key not recognized — showing user view.");
+              closeModal();
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Network error. Try again.");
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+
+        // Auto-open modal a short time after page load if you want:
+        window.addEventListener("load", function () {
+          // show modal after skeleton is visible (optional)
+          setTimeout(function () {
+            // uncomment to auto-open:
+            // openModal();
+          }, 700);
+        });
+      })();
+    </script>
+  </body>
+</html>

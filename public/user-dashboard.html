@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Dashboard</title>
+    <meta name="description" content="User view of Enterprise Dashboard" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Welcome to the User Dashboard</h1>
+    </header>
+    <main>
+      <section id="info">
+        <p>Welcome, user! This is your dashboard interface.</p>
+        <p>Domain: <strong>__DOMAIN__</strong></p>
+      </section>
+      <section>
+        <button id="logout">Logout</button>
+      </section>
+    </main>
+    <script>
+      document.getElementById("logout").onclick = () => {
+        localStorage.removeItem("userRole");
+        globalThis.location.href = "/admin-dashboard";
+      };
+    </script>
+  </body>
+</html>

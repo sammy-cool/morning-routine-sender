@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index,follow" />
+    <meta
+      name="description"
+      content="Enterprise Email Suite - Admin & User Dashboard Portal"
+    />
+    <link rel="stylesheet" href="/css/loader.css" />
+    <link rel="canonical" href="_DOMAIN_/" />
+
+    <title>Enterprise Dashboard Portal</title>
+
+    <!-- SEO / OG -->
+    <meta property="og:title" content="Enterprise Dashboard Portal" />
+    <meta
+      property="og:description"
+      content="Secure admin & user dashboards with PWA support."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="_DOMAIN_/" />
+    <meta property="og:image" content="/assets/screenshot-desktop.png" />
+
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/assets/mrn-brand-ico.png" />
+    <style>
+      :root {
+        --brand: #2563eb;
+        --bg: #f9fafb;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* === CONTENT (after all loaders) === */
+      #content {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 1s ease;
+      }
+
+      #content.show {
+        opacity: 1;
+        visibility: visible;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="off-load-page">
+      <div class="loader-container">
+        <div class="loader" id="loader">
+          <div class="logo-ring"></div>
+          <div class="logo" id="logoBox">
+            <img src="/assets/mrn-brand-ico.png" alt="MRN Logo" />
+          </div>
+        </div>
+      </div>
+
+      <div class="skeleton-container" id="skeletonContainer">
+        <div class="logo-skeleton">
+          <img src="/assets/mrn-brand-ico.png" alt="MRN Logo" />
+          <span>Enterprise Dashboard</span>
+        </div>
+        <div class="skeleton-wrapper">
+          <div class="skeleton header"></div>
+          <div class="skeleton box"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+        <div class="footer">Loading secure workspace...</div>
+      </div>
+    </div>
+
+    <div id="content"></div>
+
+    <script>
+      window.addEventListener("load", () => {
+        const loader = document.getElementById("loader");
+        const logoBox = document.getElementById("logoBox");
+        const content = document.getElementById("content");
+        const skeleton = document.getElementById("skeletonContainer");
+
+        const API_BASE = document.location.href;
+
+        // === PRELOAD NEXT PAGE IN HIDDEN IFRAME ===
+        const preloadFrame = document.createElement("iframe");
+        preloadFrame.src = "./generated-main.html";
+        preloadFrame.style.display = "none";
+        document.body.appendChild(preloadFrame);
+
+        preloadFrame.onload = () => {
+          console.log("Next page fully loaded! Starting loader transition...");
+
+          // Wait a bit for ring animation before destruction
+          setTimeout(() => {
+            // create brand-colored particle bursts
+            for (let i = 0; i < 22; i++) {
+              const p = document.createElement("span");
+              p.classList.add("particle");
+              const tx = (Math.random() - 0.5) * 280 + "px";
+              const ty = (Math.random() - 0.5) * 280 + "px";
+              p.style.setProperty("--tx", tx);
+              p.style.setProperty("--ty", ty);
+              logoBox.appendChild(p);
+              setTimeout(() => p.remove(), 1800);
+            }
+
+            // start dissolve animation
+            loader.classList.add("fade-out");
+            skeleton.classList.add("fade-out");
+
+            // After dissolve + particles finish (≈1.9s)
+            setTimeout(() => {
+              loader.remove(); // remove loader entirely
+
+              skeleton.style.transition = "opacity 1s ease";
+              skeleton.style.opacity = "0";
+              skeleton.remove();
+
+              // === SWITCH TO NEXT PAGE (fully loaded) ===
+              // globalThis.location.replace("./generated-main.html");
+              // location.replace ensures no history entry
+            }, 1900);
+          }, 1500);
+        };
+      });
+    </script>
+  </body>
+</html>
