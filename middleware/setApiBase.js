@@ -3,15 +3,26 @@
 const logger = require("../logger");
 
 function setApiBase(req, res, next) {
-  logger.info("🔍 Setting API base URL for...\n", { path: req.path });
-
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
   const host = req.get("host");
-  const baseURL = `${protocol}://${host}`;
-  const renderUrl = `${process.env.RENDER_URL}`;
 
-  logger.info("API Base URL:", { baseURL });
-  req.app.locals.apiBase = baseURL || renderUrl;
+  // deployment official URL
+  const renderUrl = process.env.RENDER_URL;
+
+  let baseURL;
+  if (host) {
+    baseURL = `${protocol}://${host}`;
+  } else {
+    baseURL = renderUrl;
+  }
+
+  logger.info("🔍 Setting API base URL for...\n", {
+    baseURL: baseURL,
+    path: req.path || "unknown",
+    ip: req.ip,
+    timestamp: Date.now(),
+  });
+  req.app.locals.apiBase = baseURL;
   req.app.locals.officialDomain = renderUrl;
   next();
 }
