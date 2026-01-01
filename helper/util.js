@@ -91,7 +91,20 @@ async function dailyDevNews() {
   }
 }
 
+function setRoleCookie(res, role) {
+  const isProd = process.env.NODE_ENV === "production";
+
+  res.cookie("mrn_role", role, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
+    maxAge: 5 * 60 * 1000,
+  });
+}
+
 module.exports = {
+  setRoleCookie,
   generateRandomMessageID,
   maskEmail,
   todayUTCYYYYMMDD,

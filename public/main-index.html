@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/loader.css" />
 
     <!-- Primary SEO -->
-    <title>Morning Routine Sender — Dashboard</title>
+    <title>Morning Routine Sender — Landing Page</title>
     <meta
       name="description"
       content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
@@ -16,27 +16,31 @@
       name="keywords"
       content="email automation, scheduled emails, analytics, admin dashboard, monitoring"
     />
-    <link rel="canonical" href="_DOMAIN_/" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="__DOMAIN__/" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Morning Routine Sender — Dashboard" />
+    <meta property="og:title" content="Morning Routine Sender — Landing Page" />
     <meta
       property="og:description"
-      content="Schedule and monitor automated morning emails with analytics."
+      content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="_DOMAIN_/" />
+    <meta property="og:url" content="__DOMAIN__/" />
     <meta
       property="og:image"
-      content="_DOMAIN_/assets/screenshot-desktop.png"
+      content="__DOMAIN__/assets/screenshot-desktop.png"
     />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Morning Routine Sender — Dashboard" />
+    <meta
+      name="twitter:title"
+      content="Morning Routine Sender — Landing Page"
+    />
     <meta
       name="twitter:description"
-      content="Schedule and monitor automated morning emails with analytics."
+      content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
     />
 
     <!-- JSON-LD structured data (Organization + WebSite) -->
@@ -45,7 +49,7 @@
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "Morning Routine Sender",
-        "url": "_DOMAIN_",
+        "url": "__DOMAIN__/",
         "description": "Automated email scheduling, analytics, and monitoring for morning routines."
       }
     </script>
@@ -54,25 +58,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="icon" href="/favicon.ico" />
 
-    <script>
-      //   const loader = document.getElementById("loader");
-      //   const logoBox = document.getElementById("logoBox");
-      //   const skeleton = document.getElementById("skeletonContainer");
-      //   // Wait a bit for ring animation before destruction
-      //   //   setTimeout(() => {
-      //   // create brand-colored particle bursts
-      //   for (let i = 0; i < 22; i++) {
-      //     const p = document.createElement("span");
-      //     p.classList.add("particle");
-      //     const tx = (Math.random() - 0.5) * 280 + "px";
-      //     const ty = (Math.random() - 0.5) * 280 + "px";
-      //     p.style.setProperty("--tx", tx);
-      //     p.style.setProperty("--ty", ty);
-      //     logoBox?.appendChild(p);
-      //     //   setTimeout(() => p.remove(), 1800);
-      //   }
-      //   //   }, 1000);
-    </script>
     <style>
       :root {
         --bg: #f9fafb;
@@ -137,12 +122,17 @@
         color: white;
         text-decoration: none;
       }
+      #mainRoot,
+      #mainRootHeader,
+      #mainRootFooter {
+        display: none;
+      }
       /* modal */
       .modal-backdrop {
         position: fixed;
         inset: 0;
         background: rgba(2, 6, 23, 0.5);
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
         z-index: 9999;
@@ -285,7 +275,7 @@
       </section>
     </main>
 
-    <footer id="rootMainFooter">
+    <footer id="mainRootFooter">
       <div class="container">
         <small>&copy; Morning Routine Sender</small>
       </div>
@@ -327,141 +317,7 @@
       </div>
     </div>
 
-    <script>
-      (function () {
-        const modalWrap = document.getElementById("keyModal");
-        const openBtn = document.getElementById("openModalBtn");
-        const cancelBtn = document.getElementById("cancelBtn");
-        const submitBtn = document.getElementById("submitBtn");
-        const adminKeyInput = document.getElementById("adminKey");
-
-        function openModal() {
-          modalWrap.classList.add("open");
-          modalWrap.setAttribute("aria-hidden", "false");
-          adminKeyInput.focus();
-        }
-        function closeModal() {
-          modalWrap.classList.remove("open");
-          modalWrap.setAttribute("aria-hidden", "true");
-          adminKeyInput.value = "";
-        }
-
-        openBtn.addEventListener("click", function (e) {
-          e.preventDefault();
-          openModal();
-        });
-        cancelBtn.addEventListener("click", function () {
-          closeModal();
-        });
-
-        // Submit -> POST /verify-admin-key
-        submitBtn.addEventListener("click", async function () {
-          const key = adminKeyInput.value.trim();
-          if (!key) {
-            adminKeyInput.focus();
-            return;
-          }
-          submitBtn.disabled = true;
-          try {
-            const resp = await fetch("/verify-admin-key", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ key }),
-            });
-            const j = await resp.json();
-            if (resp.ok && j.role === "admin") {
-              // Admin -> redirect to existing admin dashboard
-              window.location.href = "/admin-dashboard";
-            } else {
-              // Not admin -> show user interface (already on page); optionally show message
-              alert("Key not recognized — showing user view.");
-              closeModal();
-            }
-          } catch (err) {
-            console.error(err);
-            alert("Network error. Try again.");
-          } finally {
-            submitBtn.disabled = false;
-          }
-        });
-      })();
-
-      window.addEventListener("load", function () {
-        const API_BASE = document.location.href;
-
-        // === PRELOAD NEXT PAGE IN HIDDEN IFRAME ===
-        //   const preloadFrame = document.createElement("iframe");
-        //   preloadFrame.src = "./generated-main.html";
-        //   preloadFrame.style.display = "none";
-        //   document.body.appendChild(preloadFrame);
-
-        //   preloadFrame.onload = () => {
-        //     console.log(
-        //       "Next page fully loaded! Starting loader transition..."
-        //     );
-
-        // start dissolve animation
-        const loader = document.getElementById("loader");
-        const skeleton = document.getElementById("skeletonContainer");
-        const offPageLoader = document.getElementById("offPageLoader");
-        const logoBox = document.getElementById("logoBox");
-
-        // setTimeout(() => {
-        // create brand-colored particle bursts
-        for (let i = 0; i < 22; i++) {
-          const p = document.createElement("span");
-          p.classList.add("particle");
-          const tx = (Math.random() - 0.5) * 280 + "px";
-          const ty = (Math.random() - 0.5) * 280 + "px";
-          p.style.setProperty("--tx", tx);
-          p.style.setProperty("--ty", ty);
-          logoBox.appendChild(p);
-          setTimeout(() => p.remove(), 1800);
-        }
-
-        setTimeout(() => {
-          loader.classList.add("fade-out");
-          skeleton.classList.add("fade-out");
-          // loader.remove();
-
-          skeleton.style.transition = "opacity 1s ease-out";
-          skeleton.style.opacity = "0";
-
-          // skeleton.remove();
-
-          // === SWITCH TO NEXT PAGE (fully loaded) ===
-          // globalThis.location.replace("./generated-main.html");
-          // location.replace ensures no history entry
-          offPageLoader.remove();
-        }, 1900);
-        //   setTimeout(() => {
-        //     loader.classList.add("fade-out");
-        //     skeleton.style.transition = "opacity 1s ease";
-        //     skeleton.style.opacity = "0";
-        //     skeleton.remove();
-        //     offPageLoader.remove();
-        //   }, 1800);
-        // }, 2000);
-
-        const mainRoot = document.getElementById("mainRoot");
-        const mainRootHeader = document.getElementById("mainRootHeader");
-        const rootMainFooter = document.getElementById("rootMainFooter");
-        mainRoot.style.display = "none";
-        mainRootHeader.style.display = "none";
-        rootMainFooter.style.display = "none";
-        // === SWITCH TO NEXT PAGE (fully loaded) ===
-        // globalThis.location.replace("./generated-main.html");
-        // location.replace ensures no history entry
-
-        // show modal after skeleton is visible (optional)
-        setTimeout(function () {
-          mainRoot.style.display = "block";
-          mainRootHeader.style.display = "block";
-          rootMainFooter.style.display = "block";
-          // uncomment to auto-open:
-          // openModal();
-        }, 1950);
-      });
-    </script>
+    <script src="/js/skeleton-loader.js"></script>
+    <script defer src="/js/landing-page-modal.js"></script>
   </body>
 </html>
