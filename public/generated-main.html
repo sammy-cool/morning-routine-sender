@@ -329,7 +329,7 @@
             const j = await resp.json();
             if (resp.ok && j.role === "admin") {
               // Admin -> redirect to existing admin dashboard
-              window.location.href = "/dashboard.html";
+              globalThis.location.href = "/admin-dashboard";
             } else {
               // Not admin -> show user interface (already on page); optionally show message
               alert("Key not recognized — showing user view.");

@@ -8,6 +8,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const Redis = require("ioredis");
 const cookieParser = require("cookie-parser");
+const compression = require("compression");
 
 const {
   createTransporter,
@@ -41,35 +42,38 @@ const rateLimit = require("express-rate-limit");
 
 // app.enable("trust proxy");
 
+app.disable("etag");
+app.use((req, res, next) => {
+  res.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  next();
+});
 app.use(cors());
 app.use(express.json());
 app.use(setApiBase);
 app.use(cookieParser());
+// ENABLE gzip / brotli
+app.use(compression());
 
 // Protected admin-dashboard.html
-app.get("/admin-dashboard", async (req, res, next) => {
-  try {
-    if (req.cookies?.mrn_role === "admin") {
-      const domain =
-        app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
-
-      logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
-      let html = fs.readFileSync(
-        path.join(__dirname, "public", "admin-dashboard.html"),
-        "utf8"
-      );
-      html = html.replace("__DOMAIN__", domain);
-      return res.send(html);
-    }
-    // fallback to index (user view)
-    return res.redirect("/");
-  } catch (err) {
-    logger.error(
-      "Failed to serve admin-dashboard: redirecting back to user view",
-      err
-    );
-    return res.redirect("/");
+app.get("/admin-dashboard", (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  if (req.cookies?.mrn_role !== "admin") {
+    return res.redirect(302, "/");
   }
+
+  const domain = app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+  logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
+  let html = fs.readFileSync(
+    path.join(__dirname, "admin-renderer/views", "admin-dashboard.html"),
+    "utf8"
+  );
+  html = html.replaceAll("__DOMAIN__", domain);
+  return res.send(html);
 });
 
 app.use("/assets", express.static("assets"));
@@ -100,6 +104,8 @@ const KEY_EXPIRY_SECONDS = 300; // 5 minutes
 // 🔹 Generate one-time key (protected route)
 app.get("/generate-admin-key", async (req, res) => {
   logger.info("🔑 Generating one-time key 🔹 (protected route)");
+
+  res.set("Cache-Control", "no-store");
   const adminSecret = req.get("x-admin-secret") || req.query.adminSecret;
 
   if (adminSecret !== process.env.ADMIN_KEY) {
@@ -114,6 +120,7 @@ app.get("/generate-admin-key", async (req, res) => {
   res.json({
     message: "✅ One-time key generated (valid for 5 minutes)",
     key,
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -218,48 +225,39 @@ app.get("/user-dashboard", (req, res) => {
 // Root route - Enterprise skeleton + key modal
 // =================== ROOT ROUTE (SKELETON + MODAL) ===================
 app.get("/", (req, res) => {
+  res.set("Cache-Control", "no-store");
   const domain = app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
 
-  logger.info("Landing page accessed", { domain, ip: req.ip });
+  try {
+    if (req.cookies?.mrn_role === "admin") {
+      logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
+      return res.redirect("/admin-dashboard");
+    } else if (req.cookies?.mrn_role === "user") {
+      logger.info("User Dashboard accessed", { domain, ip: req.ip });
+      return res.redirect("/user-dashboard");
+    } else {
+      // fallback to index (main view page)
+      logger.info("Landing page accessed", { domain, ip: req.ip });
 
-  const skeleton = `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Enterprise Email Dashboard - Admin & User view" />
-    <link rel="canonical" href="${domain}" />
-    <link rel="manifest" href="/manifest.json" />
-    <title>Enterprise Dashboard</title>
-    <script defer src="/js/skeleton-loader.js"></script>
-    <script defer src="/js/key-modal.js"></script>
-    <style>
-      body {
-        margin: 0;
-        font-family: 'Inter', system-ui, sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: #f4f6f8;
-      }
-      .loader {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        border: 6px solid #dcdcdc;
-        border-top: 6px solid #007bff;
-        animation: spin 1s linear infinite;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-  </head>
-  <body>
-    <div class="loader" aria-label="Loading Enterprise Dashboard..."></div>
-  </body>
-  </html>`;
-  res.send(skeleton);
+      let html = fs.readFileSync(
+        path.join(__dirname, "public", "main-index.html"),
+        "utf8"
+      );
+      html = html.replaceAll("__DOMAIN__", domain);
+      return res.send(html);
+    }
+  } catch (err) {
+    logger.error(
+      "Failed to serve dashboard: redirecting back to main view page",
+      err
+    );
+    let html = fs.readFileSync(
+      path.join(__dirname, "public", "main-index.html"),
+      "utf8"
+    );
+    html = html.replaceAll("__DOMAIN__", domain);
+    return res.send(html);
+  }
 });
 
 // ---------- Verify admin key (client POSTs key here) ----------
@@ -279,11 +277,14 @@ app.post("/verify-admin-key", express.json(), async (req, res) => {
 
     // Optional: set short-lived secure cookie so admin view is accessible for a few minutes
     // NOTE: set 'secure: true' in production (HTTPS)
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookie("mrn_role", "admin", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 5 * 60 * 1000, // 5 minutes
+      secure: isProd, // true on production
+      sameSite: isProd ? "none" : "lax",
+      path: "/", // required
+      maxAge: 5 * 60 * 1000,
     });
 
     return res.json({ role: "admin" });
