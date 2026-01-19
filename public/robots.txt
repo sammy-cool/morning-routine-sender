@@ -12,4 +12,4 @@ Disallow: /admin
 Disallow: /user-dashboard
 Disallow: /generated-main.html
 
-Allow: https://morning-routine-sender.onrender.com/
+Allow: /

@@ -9,6 +9,16 @@
             "date": 1767261009976,
             "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\exceptions-2026-01-01.log",
             "hash": "a1983274107f7be62e5043575e57739ec3a610b6239c4216fec0a35377013d5c"
+        },
+        {
+            "date": 1767533733530,
+            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\exceptions-2026-01-04.log",
+            "hash": "769a8393e7a443bf19f89ea46d96d1289a66e34705db2847027f29822939c2c0"
+        },
+        {
+            "date": 1767587708468,
+            "name": "D:\\github_desktop\\mrn-lib-testing\\logs\\exceptions-2026-01-05.log",
+            "hash": "7fef0bb035beb54bbddc5307d5267f75b1136c2c7204a38aeadf3baa9009fcd7"
         }
     ],
     "hashType": "sha256"

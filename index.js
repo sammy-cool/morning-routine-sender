@@ -146,6 +146,17 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/offline", (req, res, next) => {
+  const domain = app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+  logger.info("Landed in sleeping night", { domain, ip: req.ip });
+  let html = fs.readFileSync(
+    path.join(__dirname, "public", "offline.html"),
+    "utf8"
+  );
+  html = html.replaceAll("__DOMAIN__", domain);
+  return res.send(html);
+});
+
 const allowedIPs = new Set(["127.0.0.1", "::1", "YOUR_SERVER_IP"]);
 
 app.post("/secret-jobs-scheduler", async (req, res) => {
