@@ -1,10 +1,13 @@
-const CACHE_VERSION = "v3.0.1"; // ← Have to Increment on each deploy for cache isolation purposes (see https://developers.google.com/web/fundamentals/primers/service-workers/#update_a_service_worker)
+const CACHE_VERSION = "v3.0.2";
 const CACHE_NAME = `mrn-pwa-${CACHE_VERSION}`;
 
-const urlsToCache = [
+// STATIC ASSETS ONLY (NO HTML, NO AUTH)
+const STATIC_ASSETS = [
   "/favicon.ico",
   "/manifest.json",
+
   "/css/loader.css",
+
   "/assets/mrn-brand-ico.png",
   "/assets/screenshot-desktop.png",
   "/assets/screenshot-mobile.png",
@@ -12,127 +15,126 @@ const urlsToCache = [
   "/js/settings-manager.js",
   "/js/analytics-handler.js",
 
-  "https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js",
+  // SELF-HOSTED or PINNED ONLY
+  // "/js/customizable-toast-notification.js",
+  "https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.0/dist/index.umd.js",
   "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap",
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
   "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js",
+
+  // OFFLINE PAGE
+  "/offline",
 ];
 
-const DATA_API_ENDPOINTS = ["/admin/database-stats", "/scheduled-jobs"];
+// APIs allowed to cache (network-first)
+const PUBLIC_API_ENDPOINTS = ["/scheduled-jobs"];
 
+const ADMIN_API_ENDPOINTS = ["/admin/"];
+
+// ---------------- INSTALL ----------------
 self.addEventListener("install", (event) => {
-  globalThis.skipWaiting();
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[SW] Caching all assets");
-      return cache.addAll(urlsToCache);
+      return cache.addAll(STATIC_ASSETS);
     })
   );
 });
 
+// ---------------- ACTIVATE ----------------
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => {
-            console.log("[SW] Deleting old cache:", key);
-            return caches.delete(key);
-          })
-      );
-    })
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
+        )
+      )
   );
-  return globalThis.clients.claim();
+
+  self.clients.claim();
 });
 
+// ---------------- FETCH ----------------
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
+  const req = event.request;
+  const url = new URL(req.url);
 
-  if (DATA_API_ENDPOINTS.some((ep) => url.pathname.startsWith(ep))) {
+  // 1. NEVER CACHE NAVIGATION / HTML
+  if (req.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const respClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, respClone);
-          });
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request).then((cachedResponse) => {
-            return (
-              cachedResponse ||
-              new Response(JSON.stringify({ offline: true }), {
-                headers: { "Content-Type": "application/json" },
-              })
-            );
-          });
-        })
+      fetch(req).catch(() => {
+        const path = new URL(req.url).pathname;
+
+        // 🚨 Admin routes NEVER offline
+        if (
+          path === "/" ||
+          path.startsWith("/admin") ||
+          path.startsWith("/verify")
+        ) {
+          return new Response(
+            "<h1>Offline</h1><p>Admin access requires or maybe your internet connection is down.</p>",
+            { headers: { "Content-Type": "text/html" } }
+          );
+        }
+
+        // ✅ Public offline fallback
+        return caches.match("/offline");
+      })
     );
     return;
   }
 
-  if (event.request.method !== "GET") {
-    event.respondWith(fetch(event.request));
+  // 2. NEVER CACHE AUTH ROUTES
+  if (
+    url.pathname === "/" ||
+    url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/verify")
+  ) {
+    event.respondWith(fetch(req));
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return (
-        response ||
-        fetch(event.request).then((fetchResponse) => {
-          const fetchClone = fetchResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, fetchClone);
-          });
-          return fetchResponse;
+  // 3. APIs → NETWORK FIRST
+  // 🚨 Admin APIs: network only
+  if (ADMIN_API_ENDPOINTS.some((ep) => url.pathname.startsWith(ep))) {
+    event.respondWith(fetch(req));
+    return;
+  }
+
+  // Public APIs: network-first
+  if (PUBLIC_API_ENDPOINTS.some((ep) => url.pathname.startsWith(ep))) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          return res;
         })
-      );
-    })
-  );
-});
-
-self.addEventListener("message", (event) => {
-  if (event.source != globalThis) {
-    console.error("Message received from untrusted origin");
+        .catch(() => caches.match(req))
+    );
     return;
   }
 
-  if (event.data.action === "skipWaiting") {
-    globalThis.skipWaiting();
-    console.log("[SW] Message received:", event.data.action);
+  // 4. STATIC ASSETS → CACHE FIRST
+  if (req.method === "GET") {
+    event.respondWith(
+      caches.match(req).then((cached) => {
+        if (cached) return cached;
+
+        return fetch(req).then((res) => {
+          const type = res.headers.get("content-type") || "";
+          if (!type.includes("text/html")) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          }
+          return res;
+        });
+      })
+    );
   }
-});
-
-self.addEventListener("push", (event) => {
-  const data = event.data.json();
-  const notification = new Notification(data.title, data.options);
-  notification.onclick = () => window.focus();
-
-  event.waitUntil(notification);
-
-  console.log("[SW] Notification sent");
-});
-
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  console.log("[SW] Notification closed");
-});
-
-self.addEventListener("notificationclose", (event) => {
-  console.log(event.reason);
-});
-
-self.addEventListener("notificationerror", (event) => {
-  console.log(event.error);
-});
-
-self.addEventListener("error", (event) => {
-  console.error(event.error);
-});
-
-self.addEventListener("unhandledrejection", (event) => {
-  console.error(event.reason);
 });
