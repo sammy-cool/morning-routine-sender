@@ -46,7 +46,7 @@ app.disable("etag");
 app.use((req, res, next) => {
   res.set(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate"
+    "no-store, no-cache, must-revalidate, proxy-revalidate",
   );
   res.set("Pragma", "no-cache");
   res.set("Expires", "0");
@@ -70,7 +70,7 @@ app.get("/admin-dashboard", (req, res, next) => {
   logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
   let html = fs.readFileSync(
     path.join(__dirname, "admin-renderer/views", "admin-dashboard.html"),
-    "utf8"
+    "utf8",
   );
   html = html.replaceAll("__DOMAIN__", domain);
   return res.send(html);
@@ -87,7 +87,7 @@ const redis = new Redis(
     tls: {}, // Required for Render Redis (enables SSL)
     // maxRetriesPerRequest: null, // prevents retry limit errors
     // enableReadyCheck: false,    // avoids ready check errors
-  }
+  },
 );
 
 redis.on("connect", () => {
@@ -114,7 +114,16 @@ app.get("/generate-admin-key", async (req, res) => {
   }
 
   const key = crypto.randomBytes(32).toString("hex");
-  await redis.set(`admin_key:${key}`, "valid", "EX", KEY_EXPIRY_SECONDS);
+  try {
+    await redis.set(`admin_key:${key}`, "valid", "EX", KEY_EXPIRY_SECONDS);
+  } catch (error) {
+    logger.error("❌ Redis unavailable while generating admin key", {
+      error: error.message,
+    });
+    return res
+      .status(503)
+      .json({ message: "Service temporarily unavailable, try again shortly." });
+  }
 
   logger.info(`🔑 New one-time key generated 🔹: GG!`);
   res.json({
@@ -151,7 +160,7 @@ app.get("/offline", (req, res, next) => {
   logger.info("Landed in sleeping night", { domain, ip: req.ip });
   let html = fs.readFileSync(
     path.join(__dirname, "public", "offline.html"),
-    "utf8"
+    "utf8",
   );
   html = html.replaceAll("__DOMAIN__", domain);
   return res.send(html);
@@ -173,16 +182,26 @@ app.post("/secret-jobs-scheduler", async (req, res) => {
 
   if (!key) return res.status(400).json({ message: "Missing ?key parameter" });
 
-  const keyExists = await redis.get(`admin_key:${key}`);
+  let keyExists;
+  try {
+    keyExists = await redis.get(`admin_key:${key}`);
+  } catch (error) {
+    logger.error("❌ Redis unavailable while verifying key", {
+      error: error.message,
+    });
+    return res
+      .status(503)
+      .json({ message: "Service temporarily unavailable, try again shortly." });
+  }
 
   if (!keyExists) {
     return res.status(403).json({ message: "❌ Invalid or expired key" });
   }
 
-  // Valid key → delete immediately (one-time use)
-  await redis.del(`admin_key:${key}`);
-
   try {
+    // Valid key → delete immediately (one-time use)
+    await redis.del(`admin_key:${key}`);
+
     if (action === "start") {
       emailScheduler.scheduleAllJobs();
       return res.json({ message: "✅ All cron jobs scheduled and running." });
@@ -226,7 +245,7 @@ app.get("/user-dashboard", (req, res) => {
   logger.info("User Dashboard accessed", { domain, ip: req.ip });
   let html = fs.readFileSync(
     path.join(__dirname, "public", "user-dashboard.html"),
-    "utf8"
+    "utf8",
   );
   html = html.replace("__DOMAIN__", domain);
   res.send(html);
@@ -252,7 +271,7 @@ app.get("/", (req, res) => {
 
       let html = fs.readFileSync(
         path.join(__dirname, "public", "main-index.html"),
-        "utf8"
+        "utf8",
       );
       html = html.replaceAll("__DOMAIN__", domain);
       return res.send(html);
@@ -260,11 +279,11 @@ app.get("/", (req, res) => {
   } catch (err) {
     logger.error(
       "Failed to serve dashboard: redirecting back to main view page",
-      err
+      err,
     );
     let html = fs.readFileSync(
       path.join(__dirname, "public", "main-index.html"),
-      "utf8"
+      "utf8",
     );
     html = html.replaceAll("__DOMAIN__", domain);
     return res.send(html);
@@ -337,7 +356,7 @@ app.post("/admin/cleanup-database", async (req, res) => {
       days = envDays;
     } else {
       logger.warn(
-        "No days specified in Body | Env | Specified days is not Greater than Zero!, using default value"
+        "No days specified in Body | Env | Specified days is not Greater than Zero!, using default value",
       );
       days = DEFAULT_DAYS;
     }
@@ -424,7 +443,7 @@ app.post("/send-test-email", sendEmailLimiter, async (req, res) => {
       {
         email,
         templateType,
-      }
+      },
     );
 
     await emailTracker.recordSend(email, templateType, result.messageId, {
@@ -461,7 +480,7 @@ app.get("/unsubscribe", (req, res) => {
     email: req.query.email || "Hurray 🎉 User Unsubscribed",
   });
   res.json(
-    unsubscribeUser(req.query.email || "unknown@example.com", req.app.locals)
+    unsubscribeUser(req.query.email || "unknown@example.com", req.app.locals),
   );
 });
 
@@ -503,7 +522,7 @@ const server = app.listen(PORT, () => {
   logger.info(
     `✅ Server started on port ${PORT} > 🔄 Mode: ${
       process.env.NODE_ENV || "development"
-    } Auto-scheduling enabled with node-cron`
+    } Auto-scheduling enabled with node-cron`,
   );
 
   // Initialize automatic scheduling
