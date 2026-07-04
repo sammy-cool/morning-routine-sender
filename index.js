@@ -19,7 +19,6 @@ const emailScheduler = require("./email-core/emailScheduler");
 const logger = require("./logger");
 const { setApiBase } = require("./middleware/setApiBase");
 const { unsubscribeUser } = require("./lib/myLib");
-const rateLimit = require("express-rate-limit");
 
 // const allowedOrigins = [
 //   "https://morning-routine-sender.onrender.com/",
@@ -140,11 +139,7 @@ function getTransporter() {
   return transporter;
 }
 
-const sendEmailLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.ALLOWED_RATE_LIMITER, // Allow 5 requests per IP
-  message: "Too many requests from this IP, please try again after 15 minutes.",
-});
+const { sendEmailLimiter } = require("./middleware/rateLimiters");
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -325,93 +320,7 @@ app.post("/verify-admin-key", express.json(), async (req, res) => {
 });
 
 // Database read endpoint
-app.get("/read-db", sendEmailLimiter, async (req, res) => {
-  if (req.query.key !== process.env.CRON_API_KEY) {
-    logger.error("Forbidden");
-    return res.status(403).json({ error: "Forbidden" });
-  }
-  try {
-    const { readDb } = require("./helper/read-db");
-    const result = await readDb();
-    logger.info("Getting Database Result");
-    res.json({ success: true, data: result });
-  } catch (error) {
-    logger.error("Database reading failed", { error: error.message || error });
-    res.status(500).json({ success: false, error: error.message || error });
-  }
-});
-
-// Manual database cleanup endpoint (admin only)
-app.post("/admin/cleanup-database", async (req, res) => {
-  try {
-    const DEFAULT_DAYS = 30;
-    const envDays = Number(process.env.DB_RETENTION_DAYS);
-    const bodyDays = Number(req?.body?.days);
-
-    let days;
-
-    if (Number.isFinite(bodyDays) && bodyDays > 0) {
-      days = bodyDays;
-    } else if (Number.isFinite(envDays) && envDays > 0) {
-      days = envDays;
-    } else {
-      logger.warn(
-        "No days specified in Body | Env | Specified days is not Greater than Zero!, using default value",
-      );
-      days = DEFAULT_DAYS;
-    }
-
-    const { cleanupOldEmailRecords } = require("./helper/database-cleanup");
-    const result = await cleanupOldEmailRecords(days);
-
-    res.json(result);
-  } catch (error) {
-    logger.error("Manual cleanup failed", { error: error.message || error });
-    res.status(500).json({ success: false, error: error.message || error });
-  }
-});
-
-// Database stats endpoint
-app.get("/admin/database-stats", async (req, res) => {
-  try {
-    const { getDatabaseStats } = require("./helper/database-cleanup");
-    const stats = await getDatabaseStats();
-
-    res.json(stats);
-  } catch (error) {
-    logger.error("Failed to get stats", { error: error.message || error });
-    res.status(500).json({ success: false, error: error.message || error });
-  }
-});
-
-// Logs cleanup endpoint
-app.post("/admin/cleanup-logs", async (req, res) => {
-  try {
-    const logsDir = path.join(__dirname, "logs");
-
-    const files = await fs.readdir(logsDir);
-    let deleted = 0;
-
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - 3);
-
-    for (const file of files) {
-      const filePath = path.join(logsDir, file);
-      const stats = await fs.stat(filePath);
-
-      if (stats.mtime < cutoffDate) {
-        await fs.unlink(filePath);
-        deleted++;
-        logger.info("Deleted old log file", { file });
-      }
-    }
-
-    res.json({ success: true, deleted });
-  } catch (error) {
-    logger.error("Log cleanup failed", { error: error.message || error });
-    res.status(500).json({ success: false, error: error.message || error });
-  }
-});
+app.use(require("./routes/admin.routes"));
 
 // Manual email trigger endpoint
 app.post("/send-test-email", sendEmailLimiter, async (req, res) => {
