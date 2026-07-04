@@ -5,8 +5,6 @@ const cors = require("cors");
 const app = express();
 const fs = require("node:fs");
 const path = require("node:path");
-const crypto = require("node:crypto");
-const Redis = require("ioredis");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 
@@ -80,57 +78,7 @@ app.use(express.static("public"));
 
 const PORT = process.env.PORT || 2900;
 let transporter = null;
-const redis = new Redis(
-  process.env.REDIS_LEAP_URL || "redis://127.0.0.1:6379",
-  {
-    tls: {}, // Required for Render Redis (enables SSL)
-    // maxRetriesPerRequest: null, // prevents retry limit errors
-    // enableReadyCheck: false,    // avoids ready check errors
-  },
-);
-
-redis.on("connect", () => {
-  logger.info("✅ Redis connected");
-});
-
-redis.on("error", (err) => {
-  logger.error("❌ Redis connection error:", err.message);
-});
-
-// -------------- CONFIG --------------
-const KEY_EXPIRY_SECONDS = 300; // 5 minutes
-
-// 🔹 Generate one-time key (protected route)
-app.get("/generate-admin-key", async (req, res) => {
-  logger.info("🔑 Generating one-time key 🔹 (protected route)");
-
-  res.set("Cache-Control", "no-store");
-  const adminSecret = req.get("x-admin-secret") || req.query.adminSecret;
-
-  if (adminSecret !== process.env.ADMIN_KEY) {
-    logger.error("Forbidden: Invalid admin secret");
-    return res.status(403).json({ message: "Forbidden: Invalid admin secret" });
-  }
-
-  const key = crypto.randomBytes(32).toString("hex");
-  try {
-    await redis.set(`admin_key:${key}`, "valid", "EX", KEY_EXPIRY_SECONDS);
-  } catch (error) {
-    logger.error("❌ Redis unavailable while generating admin key", {
-      error: error.message,
-    });
-    return res
-      .status(503)
-      .json({ message: "Service temporarily unavailable, try again shortly." });
-  }
-
-  logger.info(`🔑 New one-time key generated 🔹: GG!`);
-  res.json({
-    message: "✅ One-time key generated (valid for 5 minutes)",
-    key,
-    timestamp: new Date().toISOString(),
-  });
-});
+app.use(require("./routes/auth.routes"));
 
 function getTransporter() {
   if (!transporter) {
@@ -159,61 +107,6 @@ app.get("/offline", (req, res, next) => {
   );
   html = html.replaceAll("__DOMAIN__", domain);
   return res.send(html);
-});
-
-const allowedIPs = new Set(["127.0.0.1", "::1", "YOUR_SERVER_IP"]);
-
-app.post("/secret-jobs-scheduler", async (req, res) => {
-  const clientIP = req.ip || req.socket.remoteAddress;
-  const { key, action } = req.query;
-
-  //IP Restriction
-  if (process.env.NODE_ENV === "development") {
-    if (!allowedIPs.has(clientIP)) {
-      logger.error("❌ Forbidden: Unauthorized IP");
-      return res.status(403).json({ message: "❌ Forbidden: Unauthorized IP" });
-    }
-  }
-
-  if (!key) return res.status(400).json({ message: "Missing ?key parameter" });
-
-  let keyExists;
-  try {
-    keyExists = await redis.get(`admin_key:${key}`);
-  } catch (error) {
-    logger.error("❌ Redis unavailable while verifying key", {
-      error: error.message,
-    });
-    return res
-      .status(503)
-      .json({ message: "Service temporarily unavailable, try again shortly." });
-  }
-
-  if (!keyExists) {
-    return res.status(403).json({ message: "❌ Invalid or expired key" });
-  }
-
-  try {
-    // Valid key → delete immediately (one-time use)
-    await redis.del(`admin_key:${key}`);
-
-    if (action === "start") {
-      emailScheduler.scheduleAllJobs();
-      return res.json({ message: "✅ All cron jobs scheduled and running." });
-    } else if (action === "stop") {
-      emailScheduler.stopAllJobs();
-      return res.json({ message: "🛑 All cron jobs stopped." });
-    } else {
-      return res
-        .status(400)
-        .json({ message: "Invalid or missing ?action=start|stop parameter." });
-    }
-  } catch (error) {
-    logger.error("Error managing cron jobs:", error);
-    return res
-      .status(500)
-      .json({ message: "Internal server error.", error: error.message });
-  }
 });
 
 app.get("/manifest.json", (req, res) => {
@@ -286,39 +179,6 @@ app.get("/", (req, res) => {
 });
 
 // ---------- Verify admin key (client POSTs key here) ----------
-app.post("/verify-admin-key", express.json(), async (req, res) => {
-  try {
-    const key = req.body?.key ? String(req.body.key).trim() : null;
-    if (!key) return res.status(400).json({ error: "Missing key" });
-
-    const keyExists = await redis.get(`admin_key:${key}`);
-    if (!keyExists) {
-      // not an admin key — return 200 but role user (keeping UX simple)
-      return res.status(200).json({ role: "user" });
-    }
-
-    // valid one-time key -> delete it (one-time use)
-    await redis.del(`admin_key:${key}`);
-
-    // Optional: set short-lived secure cookie so admin view is accessible for a few minutes
-    // NOTE: set 'secure: true' in production (HTTPS)
-    const isProd = process.env.NODE_ENV === "production";
-
-    res.cookie("mrn_role", "admin", {
-      httpOnly: true,
-      secure: isProd, // true on production
-      sameSite: isProd ? "none" : "lax",
-      path: "/", // required
-      maxAge: 5 * 60 * 1000,
-    });
-
-    return res.json({ role: "admin" });
-  } catch (err) {
-    logger.error("verify-admin-key error", { error: err.message || err });
-    return res.status(500).json({ error: "Server error verifying key" });
-  }
-});
-
 // Database read endpoint
 app.use(require("./routes/admin.routes"));
 
