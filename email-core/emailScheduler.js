@@ -1,5 +1,4 @@
 // email-core/emailScheduler.js
-// const { scheduleRepeatingJob, scheduleBulkEmails } = require("./emailQueue");
 const sharedData = require("../helper/shared-data");
 const logger = require("../logger");
 
