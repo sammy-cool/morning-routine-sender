@@ -11,6 +11,10 @@ const emailScheduler = require("./email-core/emailScheduler");
 const logger = require("./logger");
 const { setApiBase } = require("./middleware/setApiBase");
 const { closeTransporterConnection } = require("./config/mailTransporter");
+const { validateEnv } = require("./config/env");
+
+validateEnv();
+
 
 // const allowedOrigins = [
 //   "https://morning-routine-sender.onrender.com/",
