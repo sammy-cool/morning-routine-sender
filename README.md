@@ -1,174 +1,133 @@
 # 🌞 Morning Routine Sender
 
-**Morning Routine Sender** is a lightweight Node.js app that automatically sends a daily motivational email using custom HTML templates and inspirational quotes.
+A Node.js/Express backend that sends scheduled, personalized "morning routine" emails (MJML template + a daily quote) to a user list, tracks every send in PostgreSQL, and provides an admin dashboard (installable PWA) to monitor and control the schedule.
 
-## ✨ Features
+## Tech stack
 
-- Modular email sending with `generateEmailOptions` and `sendEmail` functions for better maintainability.
-- Sends personalized emails with motivational quotes.
-- HTML-based email template.
-- Scheduled with `node-cron` (can be customized).
-- Avoids email threading using custom message headers.
-- Built with Node.js, Express, and Nodemailer.
-- Lightweight and deployable (supports platforms like Heroku).
-- Unsubscribe option in emails with a `/unsubscribe` endpoint.
+| Layer | Choice |
+|---|---|
+| Runtime | Node.js, Express 4 |
+| Database | PostgreSQL via Knex (query builder + migrations) |
+| Cache / ephemeral store | Redis (ioredis) — used for short-lived admin auth keys |
+| Email | Nodemailer (SMTP) + MJML templates |
+| Scheduling | node-cron |
+| Frontend | Plain HTML/CSS/JS, PWA (service worker + manifest) |
+| Logging | Winston + winston-daily-rotate-file |
+| Testing | Jest |
+| Hosting | Render |
 
----
+## Project structure
 
-## 🚀 Getting Started
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for request-flow diagrams, module
+responsibility boundaries, and known design tradeoffs.
 
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/your-username/morning-routine-sender.git
-cd morning-routine-sender
+```
+.
+├── index.js                  # Composition root: middleware, router mounts, server start/shutdown
+├── knexfile.js                # Knex/Postgres connection config
+├── db/
+│   ├── knex.js                 # Knex instance
+│   ├── migrations/             # Schema history
+│   └── seeds/
+├── routes/                   # Path → controller wiring only, no logic
+│   ├── admin.routes.js         # /read-db, /admin/*
+│   ├── auth.routes.js          # /generate-admin-key, /verify-admin-key, /secret-jobs-scheduler
+│   ├── email.routes.js         # /send-test-email, /send-bulk-now, /unsubscribe, /scheduled-jobs
+│   └── pages.routes.js         # /health, /offline, /manifest.json, /sw.js, /user-dashboard, /
+├── controllers/               # Actual route logic, one file per route group
+├── config/
+│   ├── email-config.js         # Builds/validates the Nodemailer transporter
+│   ├── mailTransporter.js      # Lazy-singleton transporter + graceful-shutdown close
+│   ├── redisClient.js          # Shared Redis connection
+│   └── env.js                  # Startup env check (warns if required vars are missing)
+├── middleware/
+│   ├── setApiBase.js
+│   └── rateLimiters.js         # Shared express-rate-limit instance
+├── email-core/
+│   ├── emailScheduler.js       # node-cron jobs — the live scheduling system
+│   ├── emailService.js         # Low-level "send one email" helper
+│   ├── emailJobs.js            # Job-run wrapper + admin failure alerts
+│   └── emailTracker.js         # Postgres-backed send/failure/job-run tracking
+├── email-templates/
+│   └── email-template.mjml     # Email layout (MJML → HTML)
+├── helper/                    # Shared utilities (quote cache, cleanup, retries, util fns)
+├── admin-renderer/             # Admin dashboard HTML/JS (cookie-gated)
+├── public/                    # User-facing dashboard, PWA assets, landing page
+├── scripts/                   # Standalone scripts (SMTP test, monitor, one-off migration)
+├── __tests__/                 # Jest test suite
+└── logger.js                   # Winston setup
 ```
 
-### 2. Install dependencies
+## How an email gets sent
+
+1. `index.js` boots and calls `emailScheduler.scheduleAllJobs()`.
+2. `emailScheduler.js`'s node-cron jobs fire on schedule and call the send functions.
+3. A transporter is pulled from `config/mailTransporter.js`, and the MJML template in `email-templates/` is compiled with quote/routine data from `helper/shared-data.js`.
+4. Nodemailer sends it; the result is recorded via `email-core/emailTracker.js` into Postgres (`email_tracker` / `job_last_run` tables).
+
+Manual trigger paths (`/send-test-email`, `/send-bulk-now`) call the same underlying functions directly, bypassing cron.
+
+## Admin auth flow
+
+Rather than persistent sessions, the app uses short-lived Redis-backed one-time keys:
+
+1. `GET /generate-admin-key` (requires `ADMIN_KEY`) → generates a key, stores it in Redis with a 5-minute TTL.
+2. That key is passed to `POST /verify-admin-key` (sets an `mrn_role=admin` cookie) or `POST /secret-jobs-scheduler` (start/stop cron jobs) — both check Redis, then delete the key (one-time use).
+3. `/admin-dashboard` checks for the `mrn_role=admin` cookie before serving the dashboard.
+
+## API endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/` | Landing page / role-based redirect |
+| GET | `/health` | Health check |
+| GET | `/admin-dashboard` | Admin dashboard (cookie-gated) |
+| GET | `/user-dashboard` | User dashboard |
+| GET | `/offline` | Offline fallback page (PWA) |
+| GET | `/manifest.json`, `/sw.js` | PWA assets |
+| GET | `/generate-admin-key` | Issue a one-time admin key |
+| POST | `/verify-admin-key` | Exchange a key for an admin session cookie |
+| POST | `/secret-jobs-scheduler?action=start\|stop` | Start/stop cron jobs |
+| POST | `/send-test-email` | Send a single test email |
+| POST | `/send-bulk-now` | Trigger a bulk send immediately |
+| GET | `/unsubscribe` | Unsubscribe a user |
+| GET | `/scheduled-jobs` | Status of registered cron jobs |
+| GET | `/read-db` | Raw DB read (admin) |
+| POST | `/admin/cleanup-database` | Manual retention cleanup |
+| GET | `/admin/database-stats` | DB stats |
+| POST | `/admin/cleanup-logs` | Delete old log files |
+
+## Getting started
 
 ```bash
 npm install
+cp .env.example .env      # fill in real values — see comments in the file for what each var does
+npm run db:migrate        # creates email_tracker and job_last_run tables
+npm run start_nodemon_server
 ```
 
-### Dependencies
+Then: `GET /generate-admin-key` (with `ADMIN_KEY` header) → `POST /verify-admin-key` → visit `/admin-dashboard`.
 
-- API rate limiting with `express-rate-limit` for security.
-- Structured logging with `winston` for debugging and monitoring.
-  ## 📜 Logging
-- Logs are saved to `error.log` (errors only) and `combined.log` (all logs) in the project root.
-- In development, logs also appear in the console.
-- Uses `winston` for structured, JSON-formatted logging.
-- **Note**: Log files (`error.log`, `combined.log`) are excluded from version control via `.gitignore`.
+## Scripts
 
-### 3. Setup Environment Variables
+| Command | Purpose |
+|---|---|
+| `npm run start_server` | Start the server (`node index.js`) |
+| `npm run start_nodemon_server` | Start with auto-restart on change |
+| `npm test` | Run the Jest test suite |
+| `npm run test:watch` | Jest in watch mode |
+| `npm run test:smtp` | Standalone SMTP connectivity check |
+| `npm run db:migrate` / `db:rollback` / `db:status` | Knex migration commands |
+| `npm run db:seed` | Run seed files |
 
-Create a `.env` file by copying the example:
+## Deployment (Render)
 
-```bash
-cp .env.example .env
-```
+The app is deployed on Render as a web service. Start command runs the migration then the server; see `Procfile` / your Render dashboard Start Command setting for the exact invocation used in production.
 
-Edit `.env` with your values:
+## Known gaps
 
-```env
-PORT=3000
-FROM_USER=your@email.com
-TO_USER=recipient@email.com
-EMAIL_PASS=your-app-password
-EMAIL_SERVICE=gmail
-```
+A handful of things are documented but not yet wired up, or wired inconsistently — flagged with comments at the relevant file (e.g. `.env.example`, `helper/read-db.js`) rather than silently fixed, since some are deliberate decisions rather than bugs. Worth a read through those comments before assuming a var or file does what its name suggests.
 
----
+## License
 
-## 🛠 Available Scripts
-
-### Start the app
-
-```bash
-node index.js
-```
-
-### Development with Nodemon
-
-```bash
-npm install -g nodemon
-nodemon index.js
-```
-
----
-
-## 📨 Email System
-
-The app uses `nodemailer` to send HTML-based emails that include a **random motivational quote**. Key aspects:
-
-- Quotes are cached to avoid duplication.
-- Headers like `Message-ID` and `If-Modified-Since` are dynamically set to prevent email threading.
-- Email content is generated from `email-template.html`.
-
-### Example Email Subject:
-
-```
-Your Morning Routine: "Be yourself; everyone else is already taken." - 9:15:03 AM
-```
-
----
-
-## 🌐 API Endpoints
-
-| Endpoint        | Description                                                                                       |
-| --------------- | ------------------------------------------------------------------------------------------------- |
-| `/`             | Homepage with links to send email, health check                                                   |
-| `/send-email`   | Triggers the email sending manually                                                               |
-| `/health-check` | Returns basic health status                                                                       |
-| `/unsubscribe`  | Handles unsubscribe requests with an email query parameter                                        |
-| `/send-email`   | Triggers the email job and returns a JSON response with sent, skipped, failed, and invalid emails |
-
-## 📩 Response Format
-
-The `/send-email` endpoint returns a JSON response:
-
-```json
-{
-  "message": "Email job completed",
-  "results": {
-    "sent": ["email1@example.com"],
-    "skipped": ["email2@example.com"],
-    "failed": [{ "email": "email3@example.com", "error": "Error message" }],
-    "invalid": ["invalid@"]
-  }
-}
-
----
-
-## 📁 Project Structure
-
-.
-├── config/
-│ └── email-config.js # SMTP config
-├── helper/
-│ ├── shared-data.js # Quote cache, utilities
-│ └── util.js # Random message ID
-├── email-html-template/
-│ └── email-template.html # Email layout
-├── scheduled-jobs/
-│ └── email-jobs.js # Main email sending logic
-├── index.js # Entry point (Express server)
-├── .env.example # Environment variable sample
-├── Procfile # Heroku deployment file
-
-```
-
----
-
-## 🧪 Deployment
-
-You can deploy this app easily to **Heroku**, **Render**, or **any Node.js-compatible platform**.
-
-For Heroku:
-
-```bash
-heroku create
-git push heroku main
-heroku config:set FROM_USER=...
-heroku config:set TO_USER=...
-# ...other env variables
-```
-
----
-
-## Contributing
-
-- Commit messages should follow the Conventional Commits format: `<type>(<scope>): <description>`.
-- Example: `fix(api): return detailed JSON response for /send-email`.
-- Include a longer description for complex changes.
-
-## 📄 License
-
-MIT © Priyanshu  
-_“Eureka! Daily inspiration made simple.”_
-
----
-
-## 🧠 Credits
-
-Built with 💡 by [Priyanshu](https://priyanshu-eureka.netlify.app/)
+MIT © Priyanshu — [priyanshu-eureka.netlify.app](https://priyanshu-eureka.netlify.app/)
