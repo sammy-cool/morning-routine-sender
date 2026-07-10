@@ -93,15 +93,27 @@ DI framework needed for a project this size).
   used to be dead code. `REDIS_LEAP_URL` (the old Leapcell-era var name) is
   still checked as a fallback if `REDIS_URL` isn't set, with a warning —
   remove that fallback once the env var is renamed on Render.
-- **`helper/read-db.js`** connects directly via `pg` using `DATABASE_URL`,
-  independent of the shared Knex instance in `db/knex.js`. Two DB access
-  paths, one connection pool config. Same category as above — a
-  consolidation candidate, not touched here.
+- **~~`helper/read-db.js` used a separate DB connection~~ — resolved.**
+  Now reuses the shared Knex instance from `db/knex.js` instead of its own
+  `pg.Client` (which was pointed at a dead `DATABASE_URL` from before the
+  Render Postgres migration).
 - **node-cron over BullMQ**: this project used to have a parallel BullMQ-based
   queue system (removed in the dead-code cleanup pass). node-cron is what's
   actually live. If job volume grows to the point where retries, backoff,
   or multiple workers matter, BullMQ is the natural next step — but
   re-introduce it deliberately, not as leftover half-wired code.
+- **Content-Security-Policy uses `'unsafe-inline'`** for `script-src` and
+  `style-src`. An audit of `public/`/`admin-renderer/` found 30+ inline
+  `onclick`/`onchange` handlers (mostly `admin-dashboard.html`) plus inline
+  `<script>`/`<style>` blocks. A strict CSP without `'unsafe-inline'` would
+  break these today. This CSP still meaningfully restricts which external
+  origins can be loaded from (`cdn.jsdelivr.net`, Google Fonts, and
+  `cdnjs.cloudflare.com` are the only allowlisted external sources — all
+  verified against actual usage, not guessed) and blocks clickjacking via
+  `frame-ancestors`, but it does not defend against inline-script-based
+  XSS specifically. Removing `'unsafe-inline'` would mean converting every
+  inline handler to `addEventListener()` across 6 HTML files — a real,
+  separate project if tightened further.
 
 ## Testing strategy
 

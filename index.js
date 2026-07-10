@@ -16,15 +16,50 @@ const app = express();
 // exact situation when trust proxy isn't set behind a detected proxy).
 app.set("trust proxy", 1);
 
-// Adds baseline security headers (X-Frame-Options, HSTS, noSniff, etc.).
-// Was already a dependency in package.json but never actually applied.
-// CSP is explicitly disabled here: Helmet's default Content-Security-Policy
-// (default-src 'self') blocks inline scripts/styles and external CDN
-// resources unless allowlisted, and public/ + admin-renderer/ haven't been
-// audited for what they actually load. Enabling it blind risks silently
-// breaking the dashboard pages. Turn it on deliberately once that audit
-// happens -- see ARCHITECTURE.md.
-app.use(helmet({ contentSecurityPolicy: false }));
+// Adds baseline security headers (X-Frame-Options, HSTS, noSniff, etc.),
+// plus a Content-Security-Policy built from an actual audit of
+// public/ and admin-renderer/ (see ARCHITECTURE.md):
+//   - script-src/style-src need 'unsafe-inline': the frontend relies on
+//     30+ inline onclick/onchange handlers (mostly admin-dashboard.html)
+//     plus inline <script>/<style> blocks. Removing 'unsafe-inline' would
+//     require converting every inline handler to addEventListener() across
+//     6 HTML files -- real code changes, a separate deliberate project,
+//     not done here. This CSP is real protection against loading
+//     resources from unlisted external origins and clickjacking, just not
+//     a defense against inline-script-based XSS specifically.
+//   - cdn.jsdelivr.net: the toast-notification library's <script src>
+//   - fonts.googleapis.com / fonts.gstatic.com: Google Fonts
+//   - cdnjs.cloudflare.com: Font Awesome (some pages use this CDN, others
+//     the local public/vendor/fontawesome copy -- inconsistent, not
+//     addressed here)
+//   - connect-src 'self' only: every fetch() in the codebase is same-origin
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+          "https://cdnjs.cloudflare.com",
+        ],
+        fontSrc: [
+          "'self'",
+          "https://fonts.gstatic.com",
+          "https://cdnjs.cloudflare.com",
+          "data:",
+        ],
+        imgSrc: ["'self'"],
+        connectSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        frameAncestors: ["'self'"],
+      },
+    },
+  }),
+);
 
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
