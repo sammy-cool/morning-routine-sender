@@ -2,7 +2,30 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const app = express();
+
+// Render sits in front of this app as a single reverse proxy hop. Setting
+// this to 1 (rather than `true`, which trusts every hop) means Express
+// only trusts X-Forwarded-* headers from that one hop -- the precise
+// setting recommended by Express's own proxy docs for this topology.
+// Fixes: req.ip previously returned Render's internal proxy IP for every
+// visitor, which silently broke the allowedIPs check in
+// auth.controller.js and made express-rate-limit apply its limit
+// globally instead of per-client (it logs a ValidationError about this
+// exact situation when trust proxy isn't set behind a detected proxy).
+app.set("trust proxy", 1);
+
+// Adds baseline security headers (X-Frame-Options, HSTS, noSniff, etc.).
+// Was already a dependency in package.json but never actually applied.
+// CSP is explicitly disabled here: Helmet's default Content-Security-Policy
+// (default-src 'self') blocks inline scripts/styles and external CDN
+// resources unless allowlisted, and public/ + admin-renderer/ haven't been
+// audited for what they actually load. Enabling it blind risks silently
+// breaking the dashboard pages. Turn it on deliberately once that audit
+// happens -- see ARCHITECTURE.md.
+app.use(helmet({ contentSecurityPolicy: false }));
+
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 
@@ -34,8 +57,6 @@ validateEnv();
 // };
 
 // app.use(cors(corsOptions));
-
-// app.enable("trust proxy");
 
 app.disable("etag");
 app.use((req, res, next) => {
