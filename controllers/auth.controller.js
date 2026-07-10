@@ -9,7 +9,15 @@ const KEY_EXPIRY_SECONDS = 300; // 5 minutes
 // placeholder that was never replaced, so this allowlist only ever matches
 // localhost. Flagging again here since it moved, but not changing behavior
 // in this commit -- that's a decision for you to make deliberately.
-const allowedIPs = new Set(["127.0.0.1", "::1", "YOUR_SERVER_IP"]);
+// Only enforced when NODE_ENV === "development" (see below) -- this is a
+// local-testing guard, not a production security boundary. Production
+// protection for this route is the ADMIN_KEY + one-time Redis key flow
+// above it, not this IP check. "YOUR_SERVER_IP" was a never-filled-in
+// placeholder that did nothing (this check doesn't even run in prod);
+// removed rather than guessed at. If IP-restriction should matter in
+// production too, that's a deliberate follow-up: drop the NODE_ENV guard
+// below and add your actual trusted IP(s) here.
+const allowedIPs = new Set(["127.0.0.1", "::1"]);
 
 // GET /generate-admin-key (protected route)
 async function generateAdminKey(req, res) {
