@@ -86,12 +86,13 @@ DI framework needed for a project this size).
 
 ## Known design tradeoffs (not bugs — deliberate or pre-existing decisions)
 
-- **`config/redis-config.js` vs `config/redisClient.js`**: two separate
-  ways of building a Redis connection exist in the codebase. `redisClient.js`
-  is what the live app actually uses (auth flow). `redis-config.js` predates
-  it and isn't wired into any live route today. Worth consolidating in a
-  future pass, but that's a decision about which config shape to standardize
-  on — not something to silently merge.
+- **~~`config/redis-config.js` vs `config/redisClient.js`~~ — resolved.**
+  Consolidated into one `config/redisClient.js`: kept the single-URL
+  connection style (right choice for a managed provider like Render Redis),
+  absorbed `USE_MOCK_REDIS` support and retry backoff from the file that
+  used to be dead code. `REDIS_LEAP_URL` (the old Leapcell-era var name) is
+  still checked as a fallback if `REDIS_URL` isn't set, with a warning —
+  remove that fallback once the env var is renamed on Render.
 - **`helper/read-db.js`** connects directly via `pg` using `DATABASE_URL`,
   independent of the shared Knex instance in `db/knex.js`. Two DB access
   paths, one connection pool config. Same category as above — a
