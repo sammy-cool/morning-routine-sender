@@ -314,6 +314,25 @@
           </button>
           <button id="submitBtn" class="btn">Submit</button>
         </div>
+
+        <p class="small" style="margin-top: 10px">
+          <a href="#" id="toggleGenerate">Are you the admin? Generate a key instead</a>
+        </p>
+
+        <div id="generateSection" style="display: none; margin-top: 8px">
+          <label for="adminSecret">Admin secret</label>
+          <input
+            id="adminSecret"
+            type="password"
+            autocomplete="off"
+            placeholder="Enter your ADMIN_KEY"
+          />
+          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px">
+            <button id="generateBtn" class="btn">Generate &amp; continue</button>
+          </div>
+          <p id="generateStatus" class="small" aria-live="polite"></p>
+        </div>
+
         <p class="small">
           If you are not an admin, close this to continue to the user view.
         </p>
