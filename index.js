@@ -56,6 +56,13 @@ app.use(
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         frameAncestors: ["'self'"],
+        // Helmet defaults this to 'none' SEPARATELY from script-src -- it
+        // does not inherit 'unsafe-inline' from script-src above. This is
+        // specifically what governs onclick="..."/onchange="..." attributes
+        // (admin-dashboard.html has 30+ of these). Missed this on the first
+        // pass -- the local smoke test only hit the landing page, not the
+        // admin dashboard where these actually live.
+        scriptSrcAttr: ["'unsafe-inline'"],
       },
     },
   }),
