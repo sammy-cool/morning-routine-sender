@@ -173,7 +173,7 @@ async function sendRoutineEmail(
 async function sendBulkEmails(adminSkip, appLocals) {
   logger.info("🚀 Starting bulk email send...");
 
-  const users = sharedData.getUsers();
+  const users = await sharedData.getUsers();
   let successCount = 0;
   let failureCount = 0;
   let skippedCount = 0;
@@ -203,11 +203,11 @@ async function sendBulkEmails(adminSkip, appLocals) {
 /**
  * Schedule recurring jobs for all users
  */
-function scheduleAllJobs() {
+async function scheduleAllJobs() {
   // Stop any existing jobs
   stopAllJobs();
 
-  const users = sharedData.getUsers();
+  const users = await sharedData.getUsers();
 
   logger.info("📅 Scheduling cron jobs for all users", {
     userCount: users.length,
