@@ -947,6 +947,112 @@
         color: var(--text-secondary);
       }
 
+      /* Subscribers modal -- reuses .settings-header/.settings-title/
+         .settings-close as-is (generic layout, not settings-specific
+         despite the name), but needs its own wider panel since it holds
+         a table instead of a settings list. */
+      .subscribers-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.3s;
+      }
+
+      .subscribers-modal.active {
+        display: flex;
+      }
+
+      .subscribers-panel {
+        background: var(--bg-primary);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-xl);
+        max-width: 720px;
+        width: 92%;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .subscriber-add-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+        align-items: flex-end;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .subscriber-add-form .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .subscriber-add-form label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+
+      .subscriber-add-form input {
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+      }
+
+      .subscriber-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .subscriber-row.paused {
+        opacity: 0.6;
+      }
+
+      .subscriber-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .subscriber-email {
+        font-weight: 600;
+      }
+
+      .subscriber-meta {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+
+      .subscriber-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .subscriber-actions .btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+      }
+
       .toggle-switch {
         position: relative;
         width: 48px;
@@ -1228,6 +1334,21 @@
         </div>
 
         <div class="actions-grid">
+          <!-- Subscribers -->
+          <div class="action-card">
+            <div class="action-card-header">
+              <i class="fas fa-users" style="color: var(--primary)"></i>
+              <h3 class="action-card-title">Subscribers</h3>
+            </div>
+            <p class="action-card-desc">
+              View, add, pause, or remove subscribers who receive routine emails
+            </p>
+            <button class="btn btn-primary" onclick="openSubscribers()">
+              <i class="fas fa-users-cog"></i>
+              <span>Manage Subscribers</span>
+            </button>
+          </div>
+
           <!-- Email Management -->
           <div class="action-card">
             <div class="action-card-header">
@@ -1530,6 +1651,44 @@
               <option value="300">Every 5 min</option>
             </select>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscribers Modal -->
+    <div class="subscribers-modal" id="subscribersModal">
+      <div class="subscribers-panel">
+        <div class="settings-header">
+          <h2 class="settings-title">
+            <i class="fas fa-users"></i>
+            Subscribers
+          </h2>
+          <button class="settings-close" onclick="closeSubscribers()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form class="subscriber-add-form" onsubmit="return submitAddSubscriber(event)">
+          <div class="form-field">
+            <label for="newSubEmail">Email</label>
+            <input type="email" id="newSubEmail" placeholder="name@example.com" required />
+          </div>
+          <div class="form-field">
+            <label for="newSubCron">Cron pattern</label>
+            <input type="text" id="newSubCron" placeholder="0 8 * * *" />
+          </div>
+          <div class="form-field">
+            <label for="newSubTz">Timezone</label>
+            <input type="text" id="newSubTz" placeholder="Asia/Kolkata" />
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            <span>Add</span>
+          </button>
+        </form>
+
+        <div id="subscribersList">
+          <p class="settings-item-desc">Loading subscribers...</p>
         </div>
       </div>
     </div>
@@ -2047,6 +2206,160 @@
           ToastManager.error("Failed to load database stats");
           ActivityLogger.log("Failed to load database stats", "error");
         }
+      }
+
+      /* ==================== Subscribers ==================== */
+      function openSubscribers() {
+        document.getElementById("subscribersModal").classList.add("active");
+        loadSubscribers();
+        ActivityLogger.log("Subscribers panel opened");
+      }
+
+      function closeSubscribers() {
+        document.getElementById("subscribersModal").classList.remove("active");
+      }
+
+      async function loadSubscribers() {
+        const listEl = document.getElementById("subscribersList");
+        listEl.innerHTML =
+          '<p class="settings-item-desc">Loading subscribers...</p>';
+
+        const result = await apiCall("/admin/subscribers");
+
+        if (result.success && result.data) {
+          renderSubscribersList(result.data.subscribers || []);
+        } else {
+          const message =
+            (result.data && result.data.error) || "Failed to load subscribers";
+          listEl.innerHTML = `<p class="settings-item-desc">❌ ${message}</p>`;
+          ToastManager.error("Failed to load subscribers");
+          ActivityLogger.log("Failed to load subscribers", "error");
+        }
+      }
+
+      function renderSubscribersList(subscribers) {
+        const listEl = document.getElementById("subscribersList");
+
+        if (subscribers.length === 0) {
+          listEl.innerHTML =
+            '<p class="settings-item-desc">No subscribers yet. Add one above.</p>';
+          return;
+        }
+
+        listEl.innerHTML = subscribers
+          .map((sub) => {
+            const paused = sub.isActive === false;
+            return `
+              <div class="subscriber-row ${paused ? "paused" : ""}">
+                <div class="subscriber-info">
+                  <div class="subscriber-email">${sub.email}</div>
+                  <div class="subscriber-meta">
+                    ${sub.cronPattern || "n/a"} · ${sub.timezone || "n/a"} ·
+                    ${paused ? "Paused" : "Active"}
+                  </div>
+                </div>
+                <div class="subscriber-actions">
+                  <button
+                    class="btn ${paused ? "btn-success" : "btn-warning"}"
+                    onclick="toggleSubscriberActive('${sub.email}', ${paused})"
+                  >
+                    <i class="fas ${paused ? "fa-play" : "fa-pause"}"></i>
+                    <span>${paused ? "Resume" : "Pause"}</span>
+                  </button>
+                  <button
+                    class="btn btn-danger"
+                    onclick="deleteSubscriberConfirm('${sub.email}')"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      async function submitAddSubscriber(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("newSubEmail").value.trim();
+        const cronPattern = document.getElementById("newSubCron").value.trim();
+        const timezone = document.getElementById("newSubTz").value.trim();
+
+        const body = { email };
+        if (cronPattern) body.cronPattern = cronPattern;
+        if (timezone) body.timezone = timezone;
+
+        const result = await apiCall("/admin/subscribers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (result.success) {
+          ToastManager.success(`✅ Added ${email}`);
+          ActivityLogger.log(`Subscriber added: ${email}`, "success");
+          document.getElementById("newSubEmail").value = "";
+          document.getElementById("newSubCron").value = "";
+          document.getElementById("newSubTz").value = "";
+          loadSubscribers();
+        } else {
+          const message =
+            (result.data &&
+              (result.data.error || (result.data.errors || []).join(", "))) ||
+            "Failed to add subscriber";
+          ToastManager.error(`❌ ${message}`);
+          ActivityLogger.log(`Failed to add subscriber: ${message}`, "error");
+        }
+
+        return false;
+      }
+
+      async function toggleSubscriberActive(email, setActive) {
+        const result = await apiCall(
+          `/admin/subscribers/${encodeURIComponent(email)}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ isActive: setActive }),
+          },
+        );
+
+        if (result.success) {
+          ToastManager.success(
+            setActive ? `▶️ Resumed ${email}` : `⏸️ Paused ${email}`,
+          );
+          ActivityLogger.log(
+            `Subscriber ${setActive ? "resumed" : "paused"}: ${email}`,
+          );
+          loadSubscribers();
+        } else {
+          const message =
+            (result.data && result.data.error) || "Failed to update subscriber";
+          ToastManager.error(`❌ ${message}`);
+          ActivityLogger.log(`Failed to update subscriber: ${message}`, "error");
+        }
+      }
+
+      function deleteSubscriberConfirm(email) {
+        ToastManager.confirm(`Remove ${email}? This cannot be undone.`, async () => {
+          const result = await apiCall(
+            `/admin/subscribers/${encodeURIComponent(email)}`,
+            { method: "DELETE" },
+          );
+
+          if (result.success) {
+            ToastManager.success(`🗑️ Removed ${email}`);
+            ActivityLogger.log(`Subscriber removed: ${email}`, "success");
+            loadSubscribers();
+          } else {
+            const message =
+              (result.data && result.data.error) ||
+              "Failed to remove subscriber";
+            ToastManager.error(`❌ ${message}`);
+            ActivityLogger.log(`Failed to remove subscriber: ${message}`, "error");
+          }
+        });
       }
 
       /* ==================== Read Full Database ==================== */
