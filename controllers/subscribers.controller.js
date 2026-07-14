@@ -1,28 +1,7 @@
 const validator = require("validator");
-const cron = require("node-cron");
 const logger = require("../logger");
 const sharedData = require("../helper/shared-data");
-
-const VALID_TEMPLATE_TYPES = ["basic"]; // only one exists in email-templates/ today
-
-function validateSubscriberInput({ email, templateType, cronPattern, timezone }) {
-  const errors = [];
-
-  if (!email || !validator.isEmail(email)) {
-    errors.push("A valid email is required");
-  }
-  if (templateType !== undefined && !VALID_TEMPLATE_TYPES.includes(templateType)) {
-    errors.push(`templateType must be one of: ${VALID_TEMPLATE_TYPES.join(", ")}`);
-  }
-  if (cronPattern !== undefined && !cron.validate(cronPattern)) {
-    errors.push("cronPattern is not a valid cron expression");
-  }
-  if (timezone !== undefined && (typeof timezone !== "string" || !timezone.trim())) {
-    errors.push("timezone must be a non-empty string");
-  }
-
-  return errors;
-}
+const { validateSubscriberInput } = require("../helper/validateSubscriber");
 
 // GET /admin/subscribers -- list everyone, including paused subscribers
 // (the admin UI needs to show and toggle paused ones, not just active).

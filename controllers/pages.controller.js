@@ -57,9 +57,22 @@ function serviceWorker(req, res) {
 }
 
 // GET /user-dashboard
-function userDashboard(req, res) {
+async function userDashboard(req, res) {
+  res.set("Cache-Control", "no-store");
+
+  // Deliberately required here, not at top of file: a top-level import
+  // would pull in config/redisClient.js (a real Redis connection attempt)
+  // on every load of this module, including tests that only exercise
+  // unrelated functions like health() -- breaking the dependency-free
+  // unit test design the rest of __tests__/ relies on.
+  const { getSessionEmail } = require("../middleware/subscriberSession");
+  const email = await getSessionEmail(req);
+  if (!email) {
+    return res.redirect(302, "/");
+  }
+
   const domain = getDomain(req);
-  logger.info("User Dashboard accessed", { domain, ip: req.ip });
+  logger.info("User Dashboard accessed", { domain, ip: req.ip, email });
   let html = fs.readFileSync(
     path.join(ROOT_DIR, "public", "user-dashboard.html"),
     "utf8",

@@ -3,31 +3,221 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User Dashboard</title>
-    <meta name="description" content="User view of Enterprise Dashboard" />
+    <title>Your Morning Routine</title>
+    <meta name="description" content="Manage your Morning Routine Sender subscription" />
     <meta name="robots" content="noindex, nofollow" />
 
     <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="/css/loader.css" />
+
+    <style>
+      /* Same design language as main-index.html (--accent/--brand/.card/
+         .btn/.meta/.small), duplicated here since the two pages don't
+         share a stylesheet -- kept consistent deliberately, not copied
+         by accident. */
+      :root {
+        --bg: #f9fafb;
+        --muted: #6b7280;
+        --accent: #0ea5e9;
+        --maxw: 720px;
+        --radius: 12px;
+        --pad: 18px;
+        --brand: #2563eb;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+      }
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      }
+      header {
+        background: linear-gradient(90deg, #0ea5e980, #0369a180);
+        color: #333;
+        padding: 20px 24px;
+      }
+      .container {
+        max-width: var(--maxw);
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
+        padding: var(--pad);
+        margin-bottom: 20px;
+      }
+      .card h2 {
+        margin-top: 0;
+        font-size: 18px;
+      }
+      .meta {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .small {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: none;
+        background: var(--accent);
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn-secondary {
+        background: #e6e9ee;
+        color: #111;
+      }
+      .btn-warning {
+        background: var(--warning);
+      }
+      .btn-success {
+        background: var(--success);
+      }
+      .btn-danger {
+        background: var(--danger);
+      }
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      input[type="text"] {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #e6e9ee;
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .status-badge.active {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .status-badge.paused {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .history-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 13px;
+      }
+      .history-row:last-child {
+        border-bottom: none;
+      }
+      .history-status {
+        font-weight: 600;
+      }
+      .history-status.success {
+        color: var(--success);
+      }
+      .history-status.failed {
+        color: var(--danger);
+      }
+      #saveStatus,
+      #actionStatus {
+        margin-top: 8px;
+      }
+      footer {
+        padding: 32px 0;
+        color: var(--muted);
+        text-align: center;
+        font-size: 13px;
+      }
+    </style>
   </head>
   <body>
     <header>
-      <h1>Welcome to the User Dashboard</h1>
+      <div class="container" style="display: flex; align-items: center; justify-content: space-between; margin: 0; padding: 0;">
+        <div>
+          <h1 style="margin: 0; font-size: 20px">Your Morning Routine</h1>
+          <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.95">
+            Domain: <strong>__DOMAIN__</strong>
+          </p>
+        </div>
+        <button class="btn btn-secondary" id="logoutBtn">Logout</button>
+      </div>
     </header>
-    <main>
-      <section id="info">
-        <p>Welcome, user! This is your dashboard interface.</p>
-        <p>Domain: <strong>__DOMAIN__</strong></p>
-      </section>
-      <section>
-        <button id="logout">Logout</button>
-      </section>
+
+    <main class="container">
+      <div class="card" id="loadingCard">
+        <p class="meta" style="margin: 0">Loading your subscription...</p>
+      </div>
+
+      <div class="card" id="subscriptionCard" style="display: none">
+        <h2>Your Subscription</h2>
+        <p class="meta" id="subEmail" style="font-size: 14px; color: #111"></p>
+        <p>
+          Status: <span class="status-badge" id="subStatusBadge"></span>
+        </p>
+
+        <form id="preferencesForm">
+          <div class="field-row">
+            <div>
+              <label for="prefCron">Send time (cron pattern)</label>
+              <input type="text" id="prefCron" placeholder="0 8 * * *" />
+            </div>
+            <div>
+              <label for="prefTz">Timezone</label>
+              <input type="text" id="prefTz" placeholder="Asia/Kolkata" />
+            </div>
+          </div>
+          <button type="submit" class="btn" id="savePrefsBtn">Save preferences</button>
+          <p id="saveStatus" class="small" aria-live="polite"></p>
+        </form>
+
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0f0">
+          <button class="btn btn-warning" id="pauseResumeBtn"></button>
+          <p id="actionStatus" class="small" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="card" id="historyCard" style="display: none">
+        <h2>Recent Sends</h2>
+        <div id="historyList"></div>
+      </div>
+
+      <div class="card" id="errorCard" style="display: none">
+        <p class="meta" id="errorMessage" style="margin: 0"></p>
+      </div>
     </main>
-    <script>
-      document.getElementById("logout").onclick = () => {
-        localStorage.removeItem("userRole");
-        globalThis.location.href = "/admin-dashboard";
-      };
-    </script>
+
+    <footer>
+      <small>&copy; Morning Routine Sender</small>
+    </footer>
+
+    <script src="/js/user-dashboard.js"></script>
   </body>
 </html>

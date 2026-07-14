@@ -269,11 +269,38 @@
 
       <section id="userView" style="margin-top: 18px">
         <div class="card">
-          <h3 style="margin-top: 0">User Dashboard</h3>
+          <h3 style="margin-top: 0">Already subscribed?</h3>
           <p class="meta">
-            Simplified user view — you can add custom blocks here or create
-            `/public/user-dashboard` and redirect to it.
+            Enter your email and we'll send you a login link to view your
+            send history, update your preferences, or pause anytime.
           </p>
+          <form
+            id="subscriberLoginForm"
+            style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap"
+          >
+            <input
+              id="subscriberLoginEmail"
+              type="email"
+              placeholder="name@example.com"
+              required
+              style="
+                flex: 1;
+                min-width: 200px;
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--border, #ddd);
+              "
+            />
+            <button type="submit" class="btn" id="subscriberLoginBtn">
+              Send login link
+            </button>
+          </form>
+          <p
+            id="subscriberLoginStatus"
+            class="small"
+            aria-live="polite"
+            style="margin-top: 8px"
+          ></p>
         </div>
       </section>
     </main>
@@ -341,5 +368,6 @@
 
     <script src="/js/skeleton-loader.js"></script>
     <script defer src="/js/landing-page-modal.js"></script>
+    <script defer src="/js/subscriber-login.js"></script>
   </body>
 </html>

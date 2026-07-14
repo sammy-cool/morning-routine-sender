@@ -132,6 +132,7 @@ app.use(require("./routes/pages.routes"));
 
 app.use(require("./routes/admin.routes"));
 app.use(require("./routes/subscribers.routes"));
+app.use(require("./routes/subscriberPortal.routes"));
 
 app.use(require("./routes/email.routes"));
 
