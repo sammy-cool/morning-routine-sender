@@ -1,7 +1,9 @@
 const logger = require("../logger");
+const validator = require("validator");
 const emailTracker = require("../email-core/emailTracker");
 const emailScheduler = require("../email-core/emailScheduler");
-const { unsubscribeUser } = require("../lib/myLib");
+const sharedData = require("../helper/shared-data");
+const { verifyUnsubscribeToken } = require("../helper/unsubscribeToken");
 const { getTransporter } = require("../config/mailTransporter");
 
 // POST /send-test-email
@@ -66,14 +68,70 @@ async function sendTestEmail(req, res) {
   }
 }
 
-// GET /unsubscribe
-function unsubscribe(req, res) {
-  logger.info("Unsubscribing user", {
-    email: req.query.email || "Hurray 🎉 User Unsubscribed",
-  });
-  res.json(
-    unsubscribeUser(req.query.email || "unknown@example.com", req.app.locals),
-  );
+// GET /unsubscribe?email=...&token=...
+//
+// Previously called unsubscribeUser() from lib/myLib.js, which invoked a
+// browser-DOM toast library from server-side code and never touched the
+// database at all -- clicking "unsubscribe" did nothing except return a
+// fake success string. Rewritten to actually update the subscriber's
+// row, with a signed per-email token (see helper/unsubscribeToken.js) so
+// this can't be used to unsubscribe someone else just by knowing their
+// email address.
+async function unsubscribe(req, res) {
+  const email = (req.query.email || "").trim().toLowerCase();
+  const token = req.query.token;
+
+  function renderPage(title, message) {
+    res.send(`<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" />
+<title>${title}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #f9fafb; margin: 0; display: flex; min-height: 100vh;
+    align-items: center; justify-content: center; }
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 6px 20px rgba(2,6,23,.08);
+    padding: 28px; max-width: 420px; text-align: center; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  p { color: #6b7280; font-size: 14px; }
+</style></head>
+<body><div class="card"><h1>${title}</h1><p>${message}</p></div></body></html>`);
+  }
+
+  if (!email || !validator.isEmail(email)) {
+    return renderPage("Invalid request", "That unsubscribe link looks malformed.");
+  }
+
+  if (!verifyUnsubscribeToken(email, token)) {
+    logger.warn("Rejected unsubscribe with invalid/missing token", { email });
+    return renderPage(
+      "Link expired or invalid",
+      "This unsubscribe link isn't valid. If you're trying to stop receiving emails, reply to any of our emails and we'll take care of it.",
+    );
+  }
+
+  try {
+    const updated = await sharedData.setUserActive(email, false);
+    logger.info("Subscriber unsubscribed", { email });
+
+    if (!updated) {
+      return renderPage(
+        "Already unsubscribed",
+        `${email} isn't currently subscribed, or was already removed.`,
+      );
+    }
+
+    return renderPage(
+      "You're unsubscribed",
+      `${email} won't receive any more routine emails. Changed your mind? Just subscribe again anytime.`,
+    );
+  } catch (error) {
+    logger.error("Unsubscribe failed", { error: error.message, email });
+    return renderPage(
+      "Something went wrong",
+      "We couldn't process this right now -- please try again shortly.",
+    );
+  }
 }
 
 // GET /scheduled-jobs

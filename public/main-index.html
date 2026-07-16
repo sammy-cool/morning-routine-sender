@@ -267,6 +267,44 @@
         </div>
       </section>
 
+      <section id="signupView" style="margin-top: 18px">
+        <div class="card">
+          <h3 style="margin-top: 0">New here?</h3>
+          <p class="meta">
+            Subscribe to get a daily morning routine email. We'll send a
+            confirmation link first -- you won't be subscribed until you
+            click it.
+          </p>
+          <form
+            id="subscriberSignupForm"
+            style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap"
+          >
+            <input
+              id="subscriberSignupEmail"
+              type="email"
+              placeholder="name@example.com"
+              required
+              style="
+                flex: 1;
+                min-width: 200px;
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--border, #ddd);
+              "
+            />
+            <button type="submit" class="btn" id="subscriberSignupBtn">
+              Subscribe
+            </button>
+          </form>
+          <p
+            id="subscriberSignupStatus"
+            class="small"
+            aria-live="polite"
+            style="margin-top: 8px"
+          ></p>
+        </div>
+      </section>
+
       <section id="userView" style="margin-top: 18px">
         <div class="card">
           <h3 style="margin-top: 0">Already subscribed?</h3>
@@ -369,5 +407,6 @@
     <script src="/js/skeleton-loader.js"></script>
     <script defer src="/js/landing-page-modal.js"></script>
     <script defer src="/js/subscriber-login.js"></script>
+    <script defer src="/js/subscriber-signup.js"></script>
   </body>
 </html>
