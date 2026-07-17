@@ -141,116 +141,131 @@ module.exports = {
 
 // helper/shared-data.js
 require("dotenv").config();
+const db = require("../db/knex");
+const logger = require("../logger");
 
 /**
- * Shared data for users and their routine preferences
- * In production, this should come from a database
+ * Subscriber management, backed by the `subscribers` table
+ * (see db/migrations/20260711172620_create_subscribers_table.js).
+ *
+ * Previously this was a hardcoded array of real email addresses committed
+ * directly to source control (a real exposure, given this repo is public).
+ * addUser/removeUser/updateUser existed before too, but only mutated an
+ * in-memory array -- never actually called from anywhere. This replaces
+ * all five with DB-backed versions, same function names so callers
+ * (emailScheduler.js) only need `await` added, not a rewrite.
+ *
+ * getUsers() is now async -- this is a real, necessary signature change
+ * from the in-memory version. Every call site was checked and updated.
  */
-const USERS = [
-  {
-    email: process.env.TEST_EMAIL || "test@example.com",
-    templateType: "basic",
-    cronPattern: "0 8 * * *", // 8 AM daily
-    timezone: "Asia/Kolkata",
-    isActive: true,
-  },
-  // Add more test users if needed
-  {
-    email: process.env.TEST_EMAIL_2 || "test2@example.com",
-    templateType: "basic",
-    cronPattern: "30 7 * * *", // 7:30 AM daily
-    timezone: "Asia/Kolkata",
-    isActive: true,
-  },
-  {
-    email: "lordsmobile.007ishq@gmail.com",
-    templateType: "basic",
-    cronPattern: "30 7 * * *",
-    timezone: "Asia/Kolkata",
-    isActive: true,
-  },
-  {
-    email: "lordsmobile.999ishq@gmail.com",
-    templateType: "basic",
-    cronPattern: "0 7 * * *",
-    timezone: "Asia/Kolkata",
-    isActive: true,
-  },
-  {
-    email: "ishqyt007@gmail.com",
-    templateType: "basic",
-    cronPattern: "30 6 * * *",
-    timezone: "Asia/Kolkata",
-    isActive: true,
-  },
-];
 
 /**
- * Get all active users
- * @returns {Array} Array of user objects
+ * Get all active subscribers
+ * @returns {Promise<Array>} Array of subscriber objects
  */
-function getUsers() {
-  const activeUsers = USERS.filter((user) => user.isActive !== false);
-  console.log(`📋 Found ${activeUsers.length} active users in shared data`);
-  return activeUsers;
+async function getUsers() {
+  const rows = await db("subscribers")
+    .where("is_active", true)
+    .select("email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive");
+  logger.info(`📋 Found ${rows.length} active subscribers`);
+  return rows;
 }
 
 /**
- * Get user by email
- * @param {string} email - User email
- * @returns {object|null} User object or null
+ * Get subscriber by email
+ * @param {string} email
+ * @returns {Promise<object|null>}
  */
-function getUserByEmail(email) {
-  return USERS.find((user) => user.email === email) || null;
+async function getUserByEmail(email) {
+  const row = await db("subscribers")
+    .where("email", email)
+    .select("email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive")
+    .first();
+  return row || null;
 }
 
 /**
- * Add new user (in-memory for now)
- * @param {object} user - User object
+ * Add a new subscriber
+ * @param {object} user - { email, templateType, cronPattern, timezone }
+ * @returns {Promise<{created: boolean, email: string}>}
  */
-function addUser(user) {
-  const userExists = USERS.find(
-    (u) => u.email.toLowerCase() === user.email.toLowerCase()
-  );
-
-  if (userExists) {
-    console.log(`⚠️  User already exists: ${user.email}`);
-    return;
+async function addUser(user) {
+  const existing = await getUserByEmail(user.email);
+  if (existing) {
+    logger.warn(`⚠️  Subscriber already exists: ${user.email}`);
+    return { created: false, email: user.email };
   }
 
-  USERS.push({
+  await db("subscribers").insert({
     email: user.email,
-    templateType: user.templateType || "basic",
-    cronPattern: user.cronPattern || "0 8 * * *",
+    template_type: user.templateType || "basic",
+    cron_pattern: user.cronPattern || "0 8 * * *",
     timezone: user.timezone || "Asia/Kolkata",
-    isActive: true,
+    is_active: true,
   });
-  console.log(`✅ User added: ${user.email}`);
+  logger.info(`✅ Subscriber added: ${user.email}`);
+  return { created: true, email: user.email };
 }
 
 /**
- * Remove user
- * @param {string} email - User email
+ * Permanently remove a subscriber
+ * @param {string} email
+ * @returns {Promise<boolean>} true if a row was deleted
  */
-function removeUser(email) {
-  const index = USERS.findIndex((u) => u.email === email);
-  if (index > -1) {
-    USERS.splice(index, 1);
-    console.log(`🗑️  User removed: ${email}`);
+async function removeUser(email) {
+  const deleted = await db("subscribers").where("email", email).del();
+  if (deleted) {
+    logger.info(`🗑️  Subscriber removed: ${email}`);
   }
+  return deleted > 0;
 }
 
 /**
- * Update user preferences
- * @param {string} email - User email
- * @param {object} updates - Updates to apply
+ * Update subscriber preferences (template, cron pattern, timezone).
+ * For pausing/resuming, use setUserActive() instead -- kept separate so
+ * the intent (pause vs. edit) is explicit at the call site.
+ * @param {string} email
+ * @param {object} updates - any of { templateType, cronPattern, timezone }
+ * @returns {Promise<boolean>} true if a row was updated
  */
-function updateUser(email, updates) {
-  const user = USERS.find((u) => u.email === email);
-  if (user) {
-    Object.assign(user, updates);
-    console.log(`✏️  User updated: ${email}`);
+async function updateUser(email, updates) {
+  const patch = { updated_at: db.fn.now() };
+  if (updates.templateType !== undefined) patch.template_type = updates.templateType;
+  if (updates.cronPattern !== undefined) patch.cron_pattern = updates.cronPattern;
+  if (updates.timezone !== undefined) patch.timezone = updates.timezone;
+
+  const updated = await db("subscribers").where("email", email).update(patch);
+  if (updated) {
+    logger.info(`✏️  Subscriber updated: ${email}`);
   }
+  return updated > 0;
+}
+
+/**
+ * Pause or resume a subscriber without deleting their record.
+ * @param {string} email
+ * @param {boolean} isActive
+ * @returns {Promise<boolean>} true if a row was updated
+ */
+async function setUserActive(email, isActive) {
+  const updated = await db("subscribers")
+    .where("email", email)
+    .update({ is_active: isActive, updated_at: db.fn.now() });
+  if (updated) {
+    logger.info(`${isActive ? "▶️  Resumed" : "⏸️  Paused"} subscriber: ${email}`);
+  }
+  return updated > 0;
+}
+
+/**
+ * Get every subscriber regardless of active status -- for the admin UI,
+ * which needs to show paused subscribers too, not just active ones.
+ * @returns {Promise<Array>}
+ */
+async function getAllUsers() {
+  return db("subscribers")
+    .select("id", "email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive", "created_at as createdAt")
+    .orderBy("created_at", "desc");
 }
 
 module.exports = {
@@ -259,5 +274,7 @@ module.exports = {
   addUser,
   removeUser,
   updateUser,
-  USERS, // Export for direct access if needed
+  setUserActive,
+  getAllUsers,
 };
+

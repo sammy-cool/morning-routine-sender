@@ -7,6 +7,7 @@ const crypto = require("node:crypto");
 
 const logger = require("../logger");
 const { dailyDevNews, todayUTCYYYYMMDD } = require("../helper/util");
+const { generateUnsubscribeToken } = require("../helper/unsubscribeToken");
 
 const mjmlTemplatePath = path.join(
   __dirname,
@@ -42,7 +43,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       trendingNews,
       unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(
         userData.email
-      )}`,
+      )}&token=${generateUnsubscribeToken(userData.email)}`,
     };
 
     const renderedMjml = template(data);

@@ -1,0 +1,125 @@
+# Architecture
+
+This document goes one level deeper than `README.md`'s structure table — it
+covers *why* the code is organized this way, how requests actually flow
+through it, and design decisions/tradeoffs worth knowing before you change
+something.
+
+## Layering
+
+```
+index.js  (composition root)
+   │
+   ├── middleware/        cross-cutting concerns (rate limiting, request context)
+   ├── routes/             path → controller wiring, no logic
+   ├── controllers/        the actual logic for each route
+   ├── config/              shared singletons (DB, Redis, SMTP transporter, env check)
+   └── email-core/         domain logic: scheduling, sending, tracking
+```
+
+The rule of thumb: **routes know paths, controllers know logic, config
+knows connections.** If you're adding a new endpoint, you're touching
+`routes/*.routes.js` (one line) and `controllers/*.controller.js` (the
+actual work) — `index.js` itself should rarely need to change.
+
+This split follows Express's own guidance to keep route declaration
+separate from route logic once an app grows past a handful of endpoints —
+`index.js` was 576 lines with all 18 routes inline before this cleanup; it's
+122 lines now.
+
+## Request flow: a scheduled email send
+
+```
+emailScheduler.js (node-cron fires)
+        │
+        ▼
+config/mailTransporter.js  ──fetches──▶  config/email-config.js (builds/validates SMTP transporter)
+        │
+        ▼
+email-core/emailService.js  (compiles email-templates/*.mjml with data from helper/shared-data.js)
+        │
+        ▼
+Nodemailer sends
+        │
+        ▼
+email-core/emailTracker.js  (records result → Postgres: email_tracker / job_last_run tables)
+```
+
+The manual trigger routes (`POST /send-test-email`, `POST /send-bulk-now`,
+in `controllers/email.controller.js`) call into this same chain starting
+from `emailService`/`emailScheduler` directly — cron and manual triggers
+are two entry points into one pipeline, not two separate implementations.
+
+## Request flow: admin authentication
+
+No sessions — short-lived, one-time Redis keys instead:
+
+```
+GET /generate-admin-key  (requires ADMIN_KEY header/query)
+        │  generates random key, stores in Redis with 5-min TTL
+        ▼
+POST /verify-admin-key  OR  POST /secret-jobs-scheduler
+        │  looks up key in Redis, deletes it immediately (one-time use)
+        ▼
+verify-admin-key → sets mrn_role=admin cookie
+secret-jobs-scheduler → starts/stops cron jobs directly
+```
+
+`GET /admin-dashboard` and the `/` root route both check the `mrn_role`
+cookie before deciding what to serve — see `controllers/pages.controller.js`.
+
+## Shared singletons, and why they're separate modules
+
+Three pieces of app-wide state used to live as module-scoped variables
+directly inside `index.js`, which made them inaccessible once routes moved
+into their own files. Each now has one home:
+
+| State | Lives in | Used by |
+|---|---|---|
+| Redis connection | `config/redisClient.js` | `controllers/auth.controller.js` |
+| SMTP transporter (lazy singleton) | `config/mailTransporter.js` | `controllers/email.controller.js`, `index.js` (graceful shutdown) |
+| Rate limiter | `middleware/rateLimiters.js` | `admin.routes.js`, `email.routes.js` |
+
+Each is created once, on first `require()`, and reused everywhere it's
+imported (Node's module cache makes this a natural singleton — no extra
+DI framework needed for a project this size).
+
+## Known design tradeoffs (not bugs — deliberate or pre-existing decisions)
+
+- **~~`config/redis-config.js` vs `config/redisClient.js`~~ — resolved.**
+  Consolidated into one `config/redisClient.js`: kept the single-URL
+  connection style (right choice for a managed provider like Render Redis),
+  absorbed `USE_MOCK_REDIS` support and retry backoff from the file that
+  used to be dead code. `REDIS_LEAP_URL` (the old Leapcell-era var name) is
+  still checked as a fallback if `REDIS_URL` isn't set, with a warning —
+  remove that fallback once the env var is renamed on Render.
+- **~~`helper/read-db.js` used a separate DB connection~~ — resolved.**
+  Now reuses the shared Knex instance from `db/knex.js` instead of its own
+  `pg.Client` (which was pointed at a dead `DATABASE_URL` from before the
+  Render Postgres migration).
+- **node-cron over BullMQ**: this project used to have a parallel BullMQ-based
+  queue system (removed in the dead-code cleanup pass). node-cron is what's
+  actually live. If job volume grows to the point where retries, backoff,
+  or multiple workers matter, BullMQ is the natural next step — but
+  re-introduce it deliberately, not as leftover half-wired code.
+- **Content-Security-Policy uses `'unsafe-inline'`** for `script-src` and
+  `style-src`. An audit of `public/`/`admin-renderer/` found 30+ inline
+  `onclick`/`onchange` handlers (mostly `admin-dashboard.html`) plus inline
+  `<script>`/`<style>` blocks. A strict CSP without `'unsafe-inline'` would
+  break these today. This CSP still meaningfully restricts which external
+  origins can be loaded from (`cdn.jsdelivr.net`, Google Fonts, and
+  `cdnjs.cloudflare.com` are the only allowlisted external sources — all
+  verified against actual usage, not guessed) and blocks clickjacking via
+  `frame-ancestors`, but it does not defend against inline-script-based
+  XSS specifically. Removing `'unsafe-inline'` would mean converting every
+  inline handler to `addEventListener()` across 6 HTML files — a real,
+  separate project if tightened further.
+
+## Testing strategy
+
+`__tests__/` currently covers pure functions and mock-based controller unit
+tests only (`helper/util.js`, `pages.controller.js`'s `/health`) —
+no live DB/Redis/SMTP connections required, so the suite is fast and
+deterministic. Testing routes that touch Postgres/Redis/SMTP needs a
+mocking strategy decision (test DB vs. `ioredis-mock` vs. full stubs) before
+expanding coverage there.

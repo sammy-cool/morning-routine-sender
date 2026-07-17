@@ -13,14 +13,13 @@
     "db:status": "knex migrate:status",
     "seed:make-users": "knex seed:make users",
     "db:migrate-json": "node scripts/migrate-json-to-db.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "db:migrate-users": "node scripts/migrate-users-to-db.js",
+    "test": "jest --forceExit",
+    "test:watch": "jest --watch"
   },
   "license": "ISC",
   "dependencies": {
-    "@bull-board/api": "^6.13.0",
-    "@bull-board/express": "^6.13.0",
     "axios": "^1.13.5",
-    "bullmq": "^5.61.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -36,7 +35,6 @@
     "mjml": "^5.0.1",
     "node-cron": "^4.5.0",
     "nodemailer": "^9.0.1",
-    "nodemon": "^3.1.4",
     "pg": "^8.16.3",
     "pg-query-stream": "^4.10.3",
     "sqlite3": "^6.0.1",
@@ -46,7 +44,11 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "@types/ioredis": "^4.28.10"
+    "@types/ioredis": "^4.28.10",
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.4",
+    "pg-mem": "^3.0.14",
+    "supertest": "^7.2.2"
   },
   "keywords": [
     "email",

@@ -267,13 +267,78 @@
         </div>
       </section>
 
+      <section id="signupView" style="margin-top: 18px">
+        <div class="card">
+          <h3 style="margin-top: 0">New here?</h3>
+          <p class="meta">
+            Subscribe to get a daily morning routine email. We'll send a
+            confirmation link first -- you won't be subscribed until you
+            click it.
+          </p>
+          <form
+            id="subscriberSignupForm"
+            style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap"
+          >
+            <input
+              id="subscriberSignupEmail"
+              type="email"
+              placeholder="name@example.com"
+              required
+              style="
+                flex: 1;
+                min-width: 200px;
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--border, #ddd);
+              "
+            />
+            <button type="submit" class="btn" id="subscriberSignupBtn">
+              Subscribe
+            </button>
+          </form>
+          <p
+            id="subscriberSignupStatus"
+            class="small"
+            aria-live="polite"
+            style="margin-top: 8px"
+          ></p>
+        </div>
+      </section>
+
       <section id="userView" style="margin-top: 18px">
         <div class="card">
-          <h3 style="margin-top: 0">User Dashboard</h3>
+          <h3 style="margin-top: 0">Already subscribed?</h3>
           <p class="meta">
-            Simplified user view — you can add custom blocks here or create
-            `/public/user-dashboard` and redirect to it.
+            Enter your email and we'll send you a login link to view your
+            send history, update your preferences, or pause anytime.
           </p>
+          <form
+            id="subscriberLoginForm"
+            style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap"
+          >
+            <input
+              id="subscriberLoginEmail"
+              type="email"
+              placeholder="name@example.com"
+              required
+              style="
+                flex: 1;
+                min-width: 200px;
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--border, #ddd);
+              "
+            />
+            <button type="submit" class="btn" id="subscriberLoginBtn">
+              Send login link
+            </button>
+          </form>
+          <p
+            id="subscriberLoginStatus"
+            class="small"
+            aria-live="polite"
+            style="margin-top: 8px"
+          ></p>
         </div>
       </section>
     </main>
@@ -314,6 +379,25 @@
           </button>
           <button id="submitBtn" class="btn">Submit</button>
         </div>
+
+        <p class="small" style="margin-top: 10px">
+          <a href="#" id="toggleGenerate">Are you the admin? Generate a key instead</a>
+        </p>
+
+        <div id="generateSection" style="display: none; margin-top: 8px">
+          <label for="adminSecret">Admin secret</label>
+          <input
+            id="adminSecret"
+            type="password"
+            autocomplete="off"
+            placeholder="Enter your ADMIN_KEY"
+          />
+          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px">
+            <button id="generateBtn" class="btn">Generate &amp; continue</button>
+          </div>
+          <p id="generateStatus" class="small" aria-live="polite"></p>
+        </div>
+
         <p class="small">
           If you are not an admin, close this to continue to the user view.
         </p>
@@ -322,5 +406,7 @@
 
     <script src="/js/skeleton-loader.js"></script>
     <script defer src="/js/landing-page-modal.js"></script>
+    <script defer src="/js/subscriber-login.js"></script>
+    <script defer src="/js/subscriber-signup.js"></script>
   </body>
 </html>
