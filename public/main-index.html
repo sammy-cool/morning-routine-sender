@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -6,10 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="stylesheet" href="/css/loader.css" />
 
-    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Primary SEO -->
     <title>Morning Routine Sender — Landing Page</title>
     <meta
       name="description"
@@ -22,7 +20,6 @@
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="__DOMAIN__/" />
 
-    <!-- Open Graph -->
     <meta property="og:title" content="Morning Routine Sender — Landing Page" />
     <meta
       property="og:description"
@@ -35,7 +32,6 @@
       content="__DOMAIN__/assets/screenshot-desktop.png"
     />
 
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
@@ -46,7 +42,6 @@
       content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
     />
 
-    <!-- JSON-LD structured data (Organization + WebSite) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -57,7 +52,6 @@
       }
     </script>
 
-    <!-- Preconnect / performance -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="icon" href="/favicon.ico" />
 
@@ -75,8 +69,13 @@
       body {
         height: 100%;
         margin: 0;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto,
-          "Helvetica Neue", Arial;
+        font-family:
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          "Helvetica Neue",
+          Arial;
       }
       header {
         background: linear-gradient(90deg, #0ea5e980, #0369a180);
@@ -209,7 +208,6 @@
       </div>
     </div>
 
-    <!-- Main Page -->
     <header id="mainRootHeader">
       <div class="container">
         <h1 style="margin: 0; font-size: 20px">Morning Routine Sender</h1>
@@ -245,7 +243,6 @@
         </div>
       </section>
 
-      <!-- info cards -->
       <section
         style="
           display: grid;
@@ -272,13 +269,25 @@
           <h3 style="margin-top: 0">New here?</h3>
           <p class="meta">
             Subscribe to get a daily morning routine email. We'll send a
-            confirmation link first -- you won't be subscribed until you
-            click it.
+            confirmation link first -- you won't be subscribed until you click
+            it.
           </p>
           <form
             id="subscriberSignupForm"
             style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap"
           >
+            <!-- Honeypot: real users never see or fill this in (positioned
+                 off-screen, not display:none -- some bots skip fields hidden
+                 that way). Left as plain HTML/CSS rather than adding a CAPTCHA
+                 service and its API keys for a small personal project. -->
+            <input
+              type="text"
+              name="website"
+              tabindex="-1"
+              autocomplete="off"
+              aria-hidden="true"
+              style="position: absolute; left: -9999px; width: 1px; height: 1px"
+            />
             <input
               id="subscriberSignupEmail"
               type="email"
@@ -309,13 +318,21 @@
         <div class="card">
           <h3 style="margin-top: 0">Already subscribed?</h3>
           <p class="meta">
-            Enter your email and we'll send you a login link to view your
-            send history, update your preferences, or pause anytime.
+            Enter your email and we'll send you a login link to view your send
+            history, update your preferences, or pause anytime.
           </p>
           <form
             id="subscriberLoginForm"
             style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap"
           >
+            <input
+              type="text"
+              name="website"
+              tabindex="-1"
+              autocomplete="off"
+              aria-hidden="true"
+              style="position: absolute; left: -9999px; width: 1px; height: 1px"
+            />
             <input
               id="subscriberLoginEmail"
               type="email"
@@ -381,7 +398,9 @@
         </div>
 
         <p class="small" style="margin-top: 10px">
-          <a href="#" id="toggleGenerate">Are you the admin? Generate a key instead</a>
+          <a href="#" id="toggleGenerate"
+            >Are you the admin? Generate a key instead</a
+          >
         </p>
 
         <div id="generateSection" style="display: none; margin-top: 8px">
@@ -392,8 +411,17 @@
             autocomplete="off"
             placeholder="Enter your ADMIN_KEY"
           />
-          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px">
-            <button id="generateBtn" class="btn">Generate &amp; continue</button>
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              justify-content: flex-end;
+              margin-top: 8px;
+            "
+          >
+            <button id="generateBtn" class="btn">
+              Generate &amp; continue
+            </button>
           </div>
           <p id="generateStatus" class="small" aria-live="polite"></p>
         </div>

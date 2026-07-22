@@ -20,15 +20,15 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const resp = await fetch("/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({
+            email,
+            website: form.website ? form.website.value : "",
+          }),
         });
         const data = await resp.json();
-        // The server deliberately always returns the same generic message
-        // regardless of whether the email is actually subscribed, so
-        // nobody can use this form to check which addresses exist --
-        // showing it verbatim here is correct, not incomplete.
         status.textContent =
-          data.message || "If that email is subscribed, a login link has been sent.";
+          data.message ||
+          "If that email is subscribed, a login link has been sent.";
         emailInput.value = "";
       } catch (err) {
         console.error(err);
