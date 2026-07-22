@@ -3,9 +3,23 @@ const router = express.Router();
 
 const { requireAdmin } = require("../middleware/requireAdmin");
 const subscribersController = require("../controllers/subscribers.controller");
+const subscriberStatsController = require("../controllers/subscriberStats.controller");
 
-router.get("/admin/subscribers", requireAdmin, subscribersController.listSubscribers);
-router.post("/admin/subscribers", requireAdmin, subscribersController.addSubscriber);
+router.get(
+  "/admin/subscribers/stats",
+  requireAdmin,
+  subscriberStatsController.getSubscriberStats,
+);
+router.get(
+  "/admin/subscribers",
+  requireAdmin,
+  subscribersController.listSubscribers,
+);
+router.post(
+  "/admin/subscribers",
+  requireAdmin,
+  subscribersController.addSubscriber,
+);
 router.patch(
   "/admin/subscribers/:email",
   requireAdmin,

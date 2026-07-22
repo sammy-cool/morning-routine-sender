@@ -1,11 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-    <!-- SEO Meta Tags -->
     <meta
       name="description"
       content="Morning Routine Email Sender - Professional admin dashboard with automated scheduling, analytics, and real-time monitoring"
@@ -37,8 +36,6 @@
 
     <title>Morning Routine Sender - Professional Dashboard</title>
 
-    <!-- Favicon -->
-    <!-- Icons -->
     <link
       rel="icon"
       type="image/png"
@@ -48,12 +45,9 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png" />
 
-    <!-- Performance: Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <!-- <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" /> -->
 
-    <!-- Fonts -->
     <link
       rel="preload"
       as="style"
@@ -64,14 +58,8 @@
       rel="stylesheet"
     />
 
-    <!-- Icons -->
-    <!-- <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    /> -->
     <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
 
-    <!--Personal Toast Library https://www.npmjs.com/package/customizable-toast-notification -->
     <script
       src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.0/dist/index.umd.js"
       defer
@@ -88,7 +76,7 @@
           if (!navigator.onLine) {
             // Immediately destroy admin session
             fetch("/logout", { method: "POST", credentials: "include" }).catch(
-              () => {}
+              () => {},
             );
             globalThis.location.replace("/offline");
           }
@@ -143,14 +131,91 @@
           });
           ActivityLogger.log(
             `Email analytics updated (last ${range}d)`,
-            "info"
+            "info",
           );
         } catch (err) {
           ActivityLogger.log(
             `Could not load email stats (offline?): ${err}`,
-            "warning"
+            "warning",
           );
           ToastManager.error("Could not load email stats (offline?)");
+        }
+        ctx.parentElement.classList.remove("skeleton");
+      }
+
+      // Scoped to just this chart's own filter buttons (not
+      // document-wide like setChartRange, which also has a pending TODO
+      // and doesn't actually refetch on click) -- toggles which button
+      // looks active, then calls the real refetch.
+      function setSubscriberGrowthRange(button, days) {
+        const container = button.closest(".chart-filters");
+        for (const btn of container.querySelectorAll(".filter-btn")) {
+          btn.classList.remove("active");
+        }
+        button.classList.add("active");
+        renderSubscriberGrowth(days);
+      }
+
+      // 👥 Subscriber Growth Chart -- uses apiCall() + GET /admin/subscribers/stats
+      // rather than AnalyticsHandler (that helper is specific to email-send
+      // analytics; subscriber counts are a different data source).
+      async function renderSubscriberGrowth(days = 30) {
+        const ctx = document.getElementById("subscriberGrowthChart");
+        if (!ctx || typeof Chart === "undefined") return;
+
+        ctx.parentElement.classList.add("skeleton");
+
+        try {
+          const result = await apiCall(`/admin/subscribers/stats?days=${days}`);
+          if (!result.success || !result.data) {
+            throw new Error(
+              (result.data && result.data.error) || "Request failed",
+            );
+          }
+
+          const stats = result.data;
+          const summaryEl = document.getElementById("subscriberStatsSummary");
+          if (summaryEl) {
+            summaryEl.textContent = `${stats.total} total · ${stats.active} active · ${stats.paused} paused`;
+          }
+
+          const labels = (stats.growth || []).map((d) => d.date);
+          const data = (stats.growth || []).map((d) => d.count);
+
+          if (globalThis.subscriberGrowthChart) {
+            globalThis.subscriberGrowthChart.destroy();
+          }
+          globalThis.subscriberGrowthChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "New subscribers",
+                  data: data,
+                  borderColor: "#10b981",
+                  backgroundColor: "rgba(16,185,129,0.12)",
+                  tension: 0.33,
+                  fill: true,
+                },
+              ],
+            },
+            options: {
+              plugins: { legend: { display: false } },
+              responsive: true,
+              scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+            },
+          });
+          ActivityLogger.log(
+            `Subscriber growth updated (last ${days}d)`,
+            "info",
+          );
+        } catch (err) {
+          ActivityLogger.log(
+            `Could not load subscriber stats: ${err}`,
+            "warning",
+          );
+          ToastManager.error("Could not load subscriber stats");
         }
         ctx.parentElement.classList.remove("skeleton");
       }
@@ -189,7 +254,7 @@
         } catch (err) {
           ActivityLogger.log(
             `Could not load template stats (offline?): ${err}`,
-            "warning"
+            "warning",
           );
           ToastManager.error("Could not load template stats (offline?)");
         }
@@ -211,6 +276,7 @@
       globalThis.addEventListener("DOMContentLoaded", () => {
         renderEmailTrends(7);
         renderTemplateUsage();
+        renderSubscriberGrowth(30);
       });
 
       // Theme
@@ -347,12 +413,17 @@
       }
 
       body {
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
         background: var(--bg-secondary);
         color: var(--text-primary);
         line-height: 1.6;
         overflow-x: hidden;
-        transition: background-color var(--transition-normal),
+        transition:
+          background-color var(--transition-normal),
           color var(--transition-normal);
       }
 
@@ -621,7 +692,9 @@
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.3);
         transform: translate(-50%, -50%);
-        transition: width var(--transition-slow), height var(--transition-slow);
+        transition:
+          width var(--transition-slow),
+          height var(--transition-slow);
       }
 
       .btn:hover::before {
@@ -1227,7 +1300,6 @@
   </head>
 
   <body>
-    <!-- Top Bar -->
     <nav class="topbar">
       <div class="topbar-left">
         <div class="topbar-logo">
@@ -1241,7 +1313,6 @@
           <span id="systemStatus">Online</span>
         </div>
 
-        <!-- Settings Button -->
         <button
           class="theme-toggle"
           onclick="openSettings()"
@@ -1266,9 +1337,7 @@
       </div>
     </nav>
 
-    <!-- Main Container -->
     <main class="main-container">
-      <!-- Stats Section -->
       <section>
         <div class="section-header">
           <h2 class="section-title">
@@ -1324,7 +1393,6 @@
         </div>
       </section>
 
-      <!-- Actions Section -->
       <section>
         <div class="section-header">
           <h2 class="section-title">
@@ -1334,7 +1402,6 @@
         </div>
 
         <div class="actions-grid">
-          <!-- Subscribers -->
           <div class="action-card">
             <div class="action-card-header">
               <i class="fas fa-users" style="color: var(--primary)"></i>
@@ -1349,7 +1416,6 @@
             </button>
           </div>
 
-          <!-- Email Management -->
           <div class="action-card">
             <div class="action-card-header">
               <i class="fas fa-envelope" style="color: var(--primary)"></i>
@@ -1369,7 +1435,6 @@
             </button>
           </div>
 
-          <!-- Scheduling -->
           <div class="action-card">
             <div class="action-card-header">
               <i class="fas fa-calendar-alt" style="color: var(--info)"></i>
@@ -1388,7 +1453,6 @@
             </button>
           </div>
 
-          <!-- Database -->
           <div class="action-card">
             <div class="action-card-header">
               <i class="fas fa-database" style="color: var(--warning)"></i>
@@ -1411,7 +1475,6 @@
             </button>
           </div>
 
-          <!-- System -->
           <div class="action-card">
             <div class="action-card-header">
               <i class="fas fa-cog" style="color: var(--success)"></i>
@@ -1430,7 +1493,6 @@
             </button>
           </div>
 
-          <!-- Templates -->
           <div class="action-card">
             <div class="action-card-header">
               <i class="fas fa-file-code" style="color: var(--secondary)"></i>
@@ -1449,7 +1511,6 @@
             </button>
           </div>
 
-          <!-- Quick Links -->
           <div class="action-card">
             <div class="action-card-header">
               <i
@@ -1473,7 +1534,6 @@
         </div>
       </section>
 
-      <!-- Analytics Section -->
       <section class="analytics-section">
         <div class="section-header">
           <h2 class="section-title">
@@ -1506,9 +1566,42 @@
           </div>
           <canvas id="templateUsageChart" height="80"></canvas>
         </div>
+
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3 class="chart-title">
+              Subscriber Growth
+              <span
+                id="subscriberStatsSummary"
+                class="small"
+                style="font-weight: normal; margin-left: 8px"
+              ></span>
+            </h3>
+            <div class="chart-filters">
+              <button
+                class="filter-btn active"
+                onclick="setSubscriberGrowthRange(this, 30)"
+              >
+                30 Days
+              </button>
+              <button
+                class="filter-btn"
+                onclick="setSubscriberGrowthRange(this, 90)"
+              >
+                90 Days
+              </button>
+              <button
+                class="filter-btn"
+                onclick="setSubscriberGrowthRange(this, 365)"
+              >
+                1 Year
+              </button>
+            </div>
+          </div>
+          <canvas id="subscriberGrowthChart" height="80"></canvas>
+        </div>
       </section>
 
-      <!-- Footer -->
       <footer class="footer">
         <p>
           Built with
@@ -1531,7 +1624,6 @@
       </footer>
     </main>
 
-    <!-- Settings Modal -->
     <div class="settings-modal" id="settingsModal">
       <div class="settings-panel">
         <div class="settings-header">
@@ -1655,7 +1747,6 @@
       </div>
     </div>
 
-    <!-- Subscribers Modal -->
     <div class="subscribers-modal" id="subscribersModal">
       <div class="subscribers-panel">
         <div class="settings-header">
@@ -1668,10 +1759,18 @@
           </button>
         </div>
 
-        <form class="subscriber-add-form" onsubmit="return submitAddSubscriber(event)">
+        <form
+          class="subscriber-add-form"
+          onsubmit="return submitAddSubscriber(event);"
+        >
           <div class="form-field">
             <label for="newSubEmail">Email</label>
-            <input type="email" id="newSubEmail" placeholder="name@example.com" required />
+            <input
+              type="email"
+              id="newSubEmail"
+              placeholder="name@example.com"
+              required
+            />
           </div>
           <div class="form-field">
             <label for="newSubCron">Cron pattern</label>
@@ -1693,7 +1792,6 @@
       </div>
     </div>
 
-    <!-- PWA Install Prompt -->
     <div class="install-prompt" id="installPrompt">
       <div class="install-prompt-header">
         <i class="fas fa-download"></i>
@@ -1715,7 +1813,6 @@
       </div>
     </div>
 
-    <!-- Activity Sidebar -->
     <aside class="activity-sidebar" id="activitySidebar">
       <div class="activity-header">
         <h3 class="activity-title">Activity Log</h3>
@@ -1731,7 +1828,6 @@
       </div>
     </aside>
 
-    <!-- FAB -->
     <button class="fab" onclick="sendTestEmail()" aria-label="Quick send email">
       <i class="fas fa-envelope"></i>
     </button>
@@ -1880,7 +1976,7 @@
         ActivityLogger.log(`Theme changed to ${newTheme} mode`);
         ToastManager.info(
           `${newTheme === "dark" ? "🌙" : "☀️"} ${newTheme} mode activated`,
-          { position: "top-center" }
+          { position: "top-center" },
         );
       }
 
@@ -2023,12 +2119,12 @@
                     ToastManager.info("Stats refreshed");
                   },
                 },
-              }
+              },
             );
 
             ActivityLogger.log(
               `Bulk emails sent: ${successCount} succeeded, ${failureCount} failed`,
-              "success"
+              "success",
             );
           } else {
             ToastManager.error("❌ Bulk send failed", {
@@ -2085,7 +2181,7 @@
                 });
                 ActivityLogger.log(
                   `Database cleanup completed: ${deleted} records deleted`,
-                  "success"
+                  "success",
                 );
                 await loadDashboardStats();
               } else {
@@ -2157,7 +2253,7 @@
                 const mode =
                   result.data.mode || result.data.emailProvider || "production";
                 alert(
-                  `System Status: ${status}\nTimestamp: ${result.data.timestamp}\nMode: ${mode}`
+                  `System Status: ${status}\nTimestamp: ${result.data.timestamp}\nMode: ${mode}`,
                 );
               },
             },
@@ -2337,29 +2433,38 @@
           const message =
             (result.data && result.data.error) || "Failed to update subscriber";
           ToastManager.error(`❌ ${message}`);
-          ActivityLogger.log(`Failed to update subscriber: ${message}`, "error");
+          ActivityLogger.log(
+            `Failed to update subscriber: ${message}`,
+            "error",
+          );
         }
       }
 
       function deleteSubscriberConfirm(email) {
-        ToastManager.confirm(`Remove ${email}? This cannot be undone.`, async () => {
-          const result = await apiCall(
-            `/admin/subscribers/${encodeURIComponent(email)}`,
-            { method: "DELETE" },
-          );
+        ToastManager.confirm(
+          `Remove ${email}? This cannot be undone.`,
+          async () => {
+            const result = await apiCall(
+              `/admin/subscribers/${encodeURIComponent(email)}`,
+              { method: "DELETE" },
+            );
 
-          if (result.success) {
-            ToastManager.success(`🗑️ Removed ${email}`);
-            ActivityLogger.log(`Subscriber removed: ${email}`, "success");
-            loadSubscribers();
-          } else {
-            const message =
-              (result.data && result.data.error) ||
-              "Failed to remove subscriber";
-            ToastManager.error(`❌ ${message}`);
-            ActivityLogger.log(`Failed to remove subscriber: ${message}`, "error");
-          }
-        });
+            if (result.success) {
+              ToastManager.success(`🗑️ Removed ${email}`);
+              ActivityLogger.log(`Subscriber removed: ${email}`, "success");
+              loadSubscribers();
+            } else {
+              const message =
+                (result.data && result.data.error) ||
+                "Failed to remove subscriber";
+              ToastManager.error(`❌ ${message}`);
+              ActivityLogger.log(
+                `Failed to remove subscriber: ${message}`,
+                "error",
+              );
+            }
+          },
+        );
       }
 
       /* ==================== Read Full Database ==================== */
@@ -2422,7 +2527,7 @@
                     label: "customizableToast.noop() All",
                     onClick: () => customizableToast.noop(),
                   },
-                }
+                },
               );
               ActivityLogger.log("Jobs rescheduled", "success");
             },
@@ -2438,7 +2543,7 @@
             onClick: () =>
               window.open(
                 "https://github.com/sammy-cool/morning-routine-sender",
-                "_blank"
+                "_blank",
               ),
           },
         });
@@ -2475,7 +2580,7 @@
       function openDocs() {
         window.open(
           "https://github.com/sammy-cool/morning-routine-sender",
-          "_blank"
+          "_blank",
         );
         ToastManager.info("📚 Opening documentation...");
         ActivityLogger.log("Documentation opened");
@@ -2578,27 +2683,27 @@
       function loadSettingsValues() {
         document.getElementById("themeSetting").value = Settings.get(
           "theme",
-          "light"
+          "light",
         );
         document.getElementById("toastPosition").value = Settings.get(
           "toastPosition",
-          "top-right"
+          "top-right",
         );
         document.getElementById("notificationSound").checked = Settings.get(
           "notificationSound",
-          false
+          false,
         );
         document.getElementById("defaultTemplate").value = Settings.get(
           "defaultTemplate",
-          "default"
+          "default",
         );
         document.getElementById("activityLogDefault").checked = Settings.get(
           "activityLogDefault",
-          false
+          false,
         );
         document.getElementById("autoRefresh").value = Settings.get(
           "autoRefresh",
-          "0"
+          "0",
         );
       }
 
@@ -2633,7 +2738,7 @@
         ToastManager.info(
           value
             ? "Activity log will open by default"
-            : "Activity log will stay closed"
+            : "Activity log will stay closed",
         );
       }
 
@@ -2641,7 +2746,9 @@
         Settings.set("autoRefresh", value);
         setupAutoRefresh();
         ToastManager.info(
-          value === "0" ? "Auto-refresh disabled" : `Refreshing every ${value}s`
+          value === "0"
+            ? "Auto-refresh disabled"
+            : `Refreshing every ${value}s`,
         );
       }
 
@@ -2652,10 +2759,13 @@
 
         const interval = Settings.get("autoRefresh", "0");
         if (interval !== "0" && interval !== 0) {
-          autoRefreshInterval = setInterval(() => {
-            loadDashboardStats();
-            ActivityLogger.log("Stats auto-refreshed");
-          }, Number.parseInt(interval) * 1000);
+          autoRefreshInterval = setInterval(
+            () => {
+              loadDashboardStats();
+              ActivityLogger.log("Stats auto-refreshed");
+            },
+            Number.parseInt(interval) * 1000,
+          );
         }
       }
 
