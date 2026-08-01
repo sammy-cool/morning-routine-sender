@@ -1,7 +1,17 @@
-const db = require("../db/knex");
-
 // GET /admin/subscribers/stats?days=30
 async function getSubscriberStats(req, res) {
+  // Deliberately required here, not at top of file: a top-level import
+  // would make requiring this module (and therefore
+  // routes/subscribers.routes.js, which mounts it) always trigger a real
+  // DB connection attempt via db/knex.js -- including in tests that
+  // require the routes file but never actually call this endpoint (this
+  // broke the pre-existing __tests__/subscribers.controller.test.js,
+  // which requires routes/subscribers.routes.js but never calls the
+  // stats endpoint). Same pattern already used in
+  // controllers/pages.controller.js for the same reason -- see the
+  // comment there.
+  const db = require("../db/knex");
+
   try {
     const days = Math.min(Math.max(Number(req.query.days) || 30, 1), 365);
 
