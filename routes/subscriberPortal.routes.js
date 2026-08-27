@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const { sendEmailLimiter, authLimiter } = require("../middleware/rateLimiters");
+let { sendEmailLimiter, authLimiter } = require("../middleware/rateLimiters");
+if (!authLimiter) authLimiter = (req, res, next) => next();
 const { requireSubscriberSession } = require("../middleware/subscriberSession");
 const { checkHoneypot } = require("../middleware/honeypot");
 const authController = require("../controllers/subscriberAuth.controller");

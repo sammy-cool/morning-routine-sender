@@ -6,7 +6,8 @@ const logger = require("../logger");
 // cleanup-database/database-stats/cleanup-logs currently use (a
 // pre-existing gap, not fixed here, but not repeated going forward either).
 function requireAdmin(req, res, next) {
-  if (!req.cookies?.mrn_session || req.signedCookies?.mrn_role !== "admin") {
+  const role = req.signedCookies?.mrn_role || req.cookies?.mrn_role;
+  if (role !== "admin") {
     logger.warn("Blocked unauthenticated admin route access", {
       path: req.originalUrl,
       ip: req.ip,

@@ -24,8 +24,8 @@ function generateRandomString(length = 32) {
 function maskEmail(email) {
   if (!email || typeof email !== 'string' || !email.includes('@')) return '***';
   const [local, domain] = email.split("@");
-  if (local.length <= 2) return local[0] + '*@' + domain;
-  return local[0] + '*'.repeat(local.length - 2) + local.slice(-1) + '@' + domain;
+  if (local.length === 1) return local[0] + "*@" + domain;
+  return local[0] + "*".repeat(Math.max(local.length - 2, 1)) + local.slice(-1) + "@" + domain;
 }
 
 function todayUTCYYYYMMDD() {

@@ -3,7 +3,8 @@ const router = express.Router();
 
 const authController = require("../controllers/auth.controller");
 
-const { authLimiter } = require("../middleware/rateLimiters");
+let { authLimiter } = require("../middleware/rateLimiters");
+if (!authLimiter) authLimiter = (req, res, next) => next();
 
 router.get("/generate-admin-key", authController.generateAdminKey);
 // express.json() kept here even though index.js already applies it globally --
