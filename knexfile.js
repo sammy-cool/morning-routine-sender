@@ -3,35 +3,52 @@ require("dotenv").config();
 
 const { parse } = require("pg-connection-string");
 
-function buildConnection() {
-  let dbConfig = {};
+function getSsl(host) {
+  if (process.env.DB_SSL === "false") return false;
+  if (process.env.DB_SSL === "true" || process.env.DB_SSL || process.env.NODE_ENV === "production") {
+    if (host && (!host.includes(".") || host === "localhost" || host === "127.0.0.1")) {
+      return false;
+    }
+    return { rejectUnauthorized: false };
+  }
+  return false;
+}
 
-  if (process.env.DATABASE_URL) {
-    dbConfig = parse(process.env.DATABASE_URL);
-  } else {
-    dbConfig = {
-      host: process.env.DB_HOST || process.env.PGHOST,
-      port: process.env.DB_PORT || process.env.PGPORT || 5432,
-      user: process.env.DB_USER || process.env.PGUSER,
-      password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
-      database: process.env.DB_NAME || process.env.PGDATABASE,
+function buildConnection() {
+  if (process.env.DB_HOST) {
+    const host = process.env.DB_HOST;
+    return {
+      host: host,
+      port: parseInt(process.env.DB_PORT, 10) || 5432,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      ssl: getSsl(host),
     };
   }
 
-  const host = dbConfig.host;
-  const isInternal =
-    !host ||
-    !host.includes(".") ||
-    host === "localhost" ||
-    host === "127.0.0.1";
-
-  if (process.env.DB_SSL === "false" || isInternal) {
-    dbConfig.ssl = false;
-  } else {
-    dbConfig.ssl = { rejectUnauthorized: false };
+  if (process.env.DATABASE_URL) {
+    const parsed = parse(process.env.DATABASE_URL);
+    const host = parsed.host;
+    return {
+      host: host,
+      port: parseInt(parsed.port, 10) || 5432,
+      user: parsed.user,
+      password: parsed.password,
+      database: parsed.database,
+      ssl: getSsl(host),
+    };
   }
 
-  return dbConfig;
+  const host = process.env.PGHOST || "127.0.0.1";
+  return {
+    host: host,
+    port: parseInt(process.env.PGPORT, 10) || 5432,
+    user: process.env.PGUSER,
+    password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+    ssl: getSsl(host),
+  };
 }
 
 module.exports = {
