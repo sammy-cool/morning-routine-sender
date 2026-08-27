@@ -18,21 +18,13 @@ async function sendTestEmail(req, res) {
     const apiKey = req.get("x-cron-key") || req.query.key;
     const isKeyValid = expectedKey && safeCompare(apiKey, expectedKey);
 
-    if (
-      email !== process.env.FROM_USER &&
-      !isAdminSession &&
-      !isKeyValid
-    ) {
+    if (!isAdminSession && !isKeyValid) {
       logger.error("Forbidden");
       return res.status(403).json({ error: "Forbidden" });
     }
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
-    }
-
-    if (email === process.env.FROM_USER) {
-      logger.info("⚡ Skipping API key check for ADMIN EMAIL!");
     }
 
     const emailService = require("../email-core/emailService");
