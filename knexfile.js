@@ -10,7 +10,7 @@ module.exports = {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      ssl: { rejectUnauthorized: process.env.DB_SSL },
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : false,
     },
     useNullAsDefault: true,
     migrations: {
@@ -29,7 +29,7 @@ module.exports = {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      ssl: { rejectUnauthorized: process.env.DB_SSL },
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : false,
     },
     useNullAsDefault: true,
     migrations: {

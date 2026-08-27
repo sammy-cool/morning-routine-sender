@@ -28,7 +28,7 @@ const template = handlebars.compile(mjmlSource);
 async function sendRoutineEmail(transporter, appLocals, userData) {
   try {
     const trendingNews = await dailyDevNews();
-    const baseUrl = appLocals.officialDomain;
+    const baseUrl = typeof appLocals === 'string' ? appLocals : (appLocals?.officialDomain || process.env.RENDER_URL || 'http://localhost:2900');
     const dayNumber = todayUTCYYYYMMDD().split("-").at(-1);
     const templateYear = todayUTCYYYYMMDD().split("-").at(0);
 
@@ -60,11 +60,6 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
 
     // Send email
     try {
-      await transporter.verify();
-      logger.info(
-        `✅ Transporter verified successfully for email to %s,
-        ${userData.email}`
-      );
       const messageRef = crypto.randomBytes(8).toString("hex");
 
       const info = await transporter.sendMail({
@@ -75,7 +70,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
         html,
         text,
         headers: {
-          "X-App-Origin": appLocals,
+          "X-App-Origin": typeof appLocals === 'string' ? appLocals : (appLocals?.officialDomain || 'morning-routine-sender'),
           "Message-ID": `<${crypto.randomUUID()}@morningroutine.app>`,
           "X-Trace-ID": `${crypto.randomBytes(6).toString("hex")}`,
           "X-Service": "morning-routine-sender",
