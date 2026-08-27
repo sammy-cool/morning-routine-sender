@@ -14,7 +14,7 @@ class EmailTracker {
         sent_at: new Date(),
         status: "success",
         message_id: messageId,
-        metadata: JSON.stringify(metadata),
+        metadata: metadata || {},
         retry_count: 0,
       });
       logger.info("Email send recorded", {
