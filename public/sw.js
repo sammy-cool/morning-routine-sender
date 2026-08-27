@@ -16,7 +16,7 @@ const STATIC_ASSETS = [
   "/js/analytics-handler.js",
 
   // SELF-HOSTED or PINNED ONLY
-  // "/js/customizable-toast-notification.js",
+  "/js/npm-mod/customizable-toast-notification.js",
   "https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.0/dist/index.umd.js",
   "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap",
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
@@ -129,14 +129,21 @@ self.addEventListener("fetch", (event) => {
       caches.match(req).then((cached) => {
         if (cached) return cached;
 
-        return fetch(req).then((res) => {
-          const type = res.headers.get("content-type") || "";
-          if (!type.includes("text/html")) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-          }
-          return res;
-        });
+        return fetch(req)
+          .then((res) => {
+            const type = res.headers.get("content-type") || "";
+            if (!type.includes("text/html") && res.ok) {
+              const clone = res.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+            }
+            return res;
+          })
+          .catch((fetchErr) => {
+            if (req.mode === "navigate") {
+              return caches.match("/offline");
+            }
+            return new Response("", { status: 408, statusText: "Offline or Blocked" });
+          });
       })
     );
   }
