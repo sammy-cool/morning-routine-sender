@@ -2,8 +2,8 @@ const validator = require("validator");
 
 const logger = require("../logger");
 const { createTransporter } = require("../config/email-config");
-// const { shouldSendEmail, updateTracker } = require("./emailTracker");
-const { sendEmailFn } = require("./emailService");
+const { wasEmailSentToday, updateTracker } = require("./emailTracker");
+const { sendRoutineEmail } = require("./emailService");
 
 // Email Configuration
 const transporter = createTransporter();
@@ -52,14 +52,14 @@ async function runEmailJob() {
       continue;
     }
 
-    if (!shouldSendEmail(email, type)) {
+    if (await wasEmailSentToday(email, type)) {
       logger.info(`Skipped: ${type} already sent successfully to ${email}`);
       results.skipped.push(email);
       continue;
     }
 
     try {
-      await sendEmailFn(email);
+      await sendRoutineEmail(transporter, {}, { email, templateType: type });
       // updateTracker(email, type, "success");
       results.sent.push({ email, success: `${type}_success` });
       logger.info(`✅ Email sent to ${email}`);
