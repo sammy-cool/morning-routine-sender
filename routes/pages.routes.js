@@ -15,6 +15,7 @@ router.get("/offline", pagesController.offline);
 router.get("/manifest.json", pagesController.manifest);
 router.get("/sw.js", pagesController.serviceWorker);
 router.get("/user-dashboard", pagesController.userDashboard);
+router.get("/dashboard", pagesController.userDashboard);
 router.get("/", pagesController.root);
 
 module.exports = router;

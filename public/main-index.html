@@ -1,285 +1,531 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="stylesheet" href="/css/loader.css" />
-
     <link rel="manifest" href="/manifest.json" />
 
-    <title>Morning Routine Sender — Landing Page</title>
+    <title>Morning Routine Sender • Start Every Day Inspired</title>
     <meta
       name="description"
-      content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
+      content="Automated, thoughtful morning routine emails tailored to your timezone. Curated wisdom, deep-work focus, and actionable morning rituals."
     />
     <meta
       name="keywords"
-      content="email automation, scheduled emails, analytics, admin dashboard, monitoring, morning routine"
+      content="email automation, morning routine, daily habits, deep work, productivity, self improvement, newsletter"
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="__DOMAIN__/" />
+    <meta name="theme-color" content="#090d16" />
 
-    <meta property="og:title" content="Morning Routine Sender — Landing Page" />
+    <meta property="og:title" content="Morning Routine Sender • Start Every Day Inspired" />
     <meta
       property="og:description"
-      content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
+      content="Automated, thoughtful morning routine emails tailored to your timezone. Curated wisdom, deep-work focus, and actionable morning rituals."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="__DOMAIN__/" />
-    <meta
-      property="og:image"
-      content="__DOMAIN__/assets/screenshot-desktop.png"
-    />
+    <meta property="og:image" content="__DOMAIN__/assets/screenshot-desktop.png" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Morning Routine Sender — Landing Page"
-    />
-    <meta
-      name="twitter:description"
-      content="Morning Routine Sender — scheduling, analytics and monitoring. Secure dashboard for admins and simplified user view."
-    />
-
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Morning Routine Sender",
-        "url": "__DOMAIN__/",
-        "description": "Automated email scheduling, analytics, and monitoring for morning routines."
-      }
-    </script>
-
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="icon" href="/favicon.ico" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous"
+    />
+
+    <!-- Toast Notification CDN -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
+      defer
+      crossorigin="anonymous"
+    ></script>
 
     <style>
       :root {
-        --bg: #f9fafb;
-        --muted: #6b7280;
-        --accent: #0ea5e9;
-        --maxw: 1100px;
-        --radius: 12px;
-        --pad: 18px;
-        --brand: #2563eb;
+        --bg-main: #07090e;
+        --bg-surface: rgba(15, 23, 42, 0.65);
+        --bg-surface-elevated: rgba(30, 41, 59, 0.7);
+        --bg-card: rgba(17, 24, 39, 0.75);
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --border-hover: rgba(99, 102, 241, 0.4);
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.35);
+        --primary-hover: #4f46e5;
+        --accent-cyan: #06b6d4;
+        --accent-emerald: #10b981;
+        --accent-amber: #f59e0b;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --text-subtle: #64748b;
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 22px;
+        --shadow-glow: 0 0 25px -5px var(--primary-glow);
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      html,
-      body {
-        height: 100%;
+
+      * {
+        box-sizing: border-box;
         margin: 0;
-        font-family:
-          system-ui,
-          -apple-system,
-          Segoe UI,
-          Roboto,
-          "Helvetica Neue",
-          Arial;
+        padding: 0;
+        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
-      header {
-        background: linear-gradient(90deg, #0ea5e980, #0369a180);
-        color: #333333;
-        padding: 20px 24px;
-      }
-      .container {
-        max-width: var(--maxw);
-        margin: 24px auto;
-        padding: 0 16px;
-      }
-      .hero {
+
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        min-height: 100vh;
         display: flex;
-        gap: 24px;
-        align-items: center;
+        flex-direction: column;
+        background-image: 
+          radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.14) 0px, transparent 50%),
+          radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
+          radial-gradient(at 50% 100%, rgba(244, 63, 94, 0.06) 0px, transparent 50%);
+        background-attachment: fixed;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        width: 100%;
+      }
+
+      /* Top Navbar */
+      header.navbar {
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border-subtle);
+        background: rgba(11, 15, 25, 0.7);
+        backdrop-filter: blur(20px);
+        position: sticky;
+        top: 0;
+        z-index: 40;
+      }
+
+      .nav-wrap {
+        display: flex;
         justify-content: space-between;
-        margin: 24px 0;
+        align-items: center;
       }
-      .card {
-        background: #fff;
-        border-radius: var(--radius);
-        box-shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
-        padding: var(--pad);
+
+      .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
       }
-      .placeholder {
-        height: 420px;
-        border: 2px dashed #e6e9ee;
-        border-radius: 10px;
+
+      .brand-icon {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+        border-radius: var(--radius-md);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--muted);
+        font-size: 18px;
+        color: #fff;
+        box-shadow: 0 4px 14px var(--primary-glow);
       }
-      footer {
-        padding: 32px 0;
-        color: var(--muted);
-        text-align: center;
-        font-size: 13px;
+
+      .brand-name {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        color: #fff;
       }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      /* Buttons */
       .btn {
-        display: inline-block;
-        padding: 10px 14px;
-        border-radius: 8px;
-        border: none;
-        background: var(--accent);
-        color: white;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        border: 1px solid transparent;
         text-decoration: none;
       }
-      #mainRoot,
-      #mainRootHeader,
-      #mainRootFooter {
-        display: none;
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: #fff;
+        box-shadow: 0 4px 14px var(--primary-glow);
       }
-      /* modal */
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+      }
+
+      .btn-glass {
+        background: var(--bg-surface-elevated);
+        border-color: var(--border-subtle);
+        color: var(--text-main);
+        backdrop-filter: blur(12px);
+      }
+      .btn-glass:hover {
+        background: rgba(51, 65, 85, 0.8);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      /* Hero Section */
+      .hero-section {
+        padding: 70px 0 50px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .hero-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: rgba(99, 102, 241, 0.12);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 30px;
+        color: #a5b4fc;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .hero-title {
+        font-size: 48px;
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        line-height: 1.15;
+        max-width: 800px;
+        background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .hero-subtitle {
+        font-size: 17px;
+        color: var(--text-muted);
+        max-width: 600px;
+        line-height: 1.6;
+      }
+
+      /* Action Dual Grid (Subscribe & Magic Login) */
+      .portal-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+        margin: 30px 0 60px;
+      }
+
+      .portal-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .portal-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+      }
+
+      .portal-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+      }
+
+      .portal-title {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+
+      .portal-desc {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      .portal-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: auto;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .input-text {
+        flex: 1;
+        min-width: 220px;
+        background: rgba(10, 15, 29, 0.8);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 12px 16px;
+        color: #fff;
+        font-size: 14px;
+        outline: none;
+        transition: var(--transition);
+      }
+
+      .input-text:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 15px -3px var(--primary-glow);
+      }
+
+      .form-status {
+        font-size: 13px;
+        font-weight: 600;
+        min-height: 20px;
+      }
+
+      /* Features Showcase */
+      .features-section {
+        margin-bottom: 70px;
+      }
+
+      .features-header {
+        text-align: center;
+        margin-bottom: 36px;
+      }
+
+      .features-header h3 {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+      }
+
+      .feature-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .feature-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--accent-cyan);
+      }
+
+      .feature-title {
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .feature-desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      /* Footer */
+      footer.footer {
+        margin-top: auto;
+        padding: 30px 0;
+        border-top: 1px solid var(--border-subtle);
+        background: rgba(11, 15, 25, 0.5);
+      }
+
+      .footer-wrap {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 13px;
+        color: var(--text-subtle);
+      }
+
+      /* Modals */
       .modal-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(2, 6, 23, 0.5);
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(10px);
         display: none;
         align-items: center;
         justify-content: center;
-        z-index: 9999;
-        visibility: hidden;
+        z-index: 100;
+        padding: 20px;
         opacity: 0;
-        transition: all 0.18s;
+        transition: opacity 0.2s ease;
       }
+
       .modal-backdrop.open {
-        visibility: visible;
+        display: flex;
         opacity: 1;
       }
+
       .modal {
-        width: 520px;
-        max-width: 94%;
-        background: #fff;
-        border-radius: 12px;
-        padding: 22px;
-        box-shadow: 0 12px 36px rgba(2, 6, 23, 0.18);
-      }
-      label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-      }
-      input[type="password"] {
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
         width: 100%;
-        padding: 12px 0px;
-        border-radius: 8px;
-        border: 1px solid #e6e9ee;
-        margin-bottom: 12px;
-        font-size: 15px;
+        max-width: 480px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        transform: scale(0.95);
+        transition: transform 0.2s ease;
       }
+
+      .modal-backdrop.open .modal {
+        transform: scale(1);
+      }
+
+      .modal h2 {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
       .meta {
         font-size: 13px;
-        color: var(--muted);
-        margin-bottom: 12px;
+        color: var(--text-muted);
+        line-height: 1.4;
       }
+
       .small {
-        text-align: center;
-        color: var(--muted);
-        font-size: 13px;
-        margin-top: 12px;
+        font-size: 12px;
+        color: var(--text-subtle);
+      }
+
+      .small a {
+        color: #818cf8;
+        text-decoration: none;
+      }
+      .small a:hover {
+        text-decoration: underline;
+      }
+
+      #mainRoot, #mainRootHeader, #mainRootFooter {
+        display: none;
       }
     </style>
   </head>
-  <body>
-    <div class="off-load-page" id="offPageLoader">
-      <div class="loader-container">
-        <div class="loader" id="loader">
-          <div class="logo-ring"></div>
-          <div class="logo" id="logoBox">
-            <img src="/assets/mrn-brand-ico.png" alt="MRN Logo" />
-          </div>
-        </div>
-      </div>
 
-      <div class="skeleton-container" id="skeletonContainer">
-        <div class="logo-skeleton">
-          <img src="/assets/mrn-brand-ico.png" alt="MRN Logo" />
-          <span>Enterprise Dashboard</span>
-        </div>
-        <div class="skeleton-wrapper">
+  <body>
+    <!-- Initial Skeleton Loader -->
+    <div id="loaderRoot" class="loader-overlay">
+      <div class="loader-card">
+        <div class="loader-spinner"></div>
+        <div class="skeleton-wrap">
           <div class="skeleton header"></div>
           <div class="skeleton box"></div>
           <div class="skeleton"></div>
           <div class="skeleton"></div>
           <div class="skeleton"></div>
-          <div class="skeleton"></div>
         </div>
-        <div class="footer">Loading secure workspace...</div>
+        <div class="footer">Loading workspace…</div>
       </div>
     </div>
 
-    <header id="mainRootHeader">
-      <div class="container">
-        <h1 style="margin: 0; font-size: 20px">Morning Routine Sender</h1>
-        <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.95">
-          Enterprise dashboard — secure access required for admin features
-        </p>
+    <!-- Header Navbar -->
+    <header class="navbar" id="mainRootHeader">
+      <div class="container nav-wrap">
+        <a href="/" class="brand-logo">
+          <div class="brand-icon"><i class="fas fa-sun"></i></div>
+          <span class="brand-name">Morning Routine</span>
+        </a>
+
+        <div class="nav-links">
+          <a class="btn btn-glass" href="#" id="openModalBtn">
+            <i class="fas fa-key"></i> Admin Access
+          </a>
+          <a class="btn btn-primary" href="#signupView">
+            <i class="fas fa-paper-plane"></i> Subscribe Free
+          </a>
+        </div>
       </div>
     </header>
 
+    <!-- Main Workspace -->
     <main class="container" id="mainRoot">
-      <section class="hero">
-        <div style="flex: 1">
-          <h2 style="margin: 0 0 8px">
-            Deliver predictable morning emails — insight-first
-          </h2>
-          <p style="margin: 0 0 12px; color: var(--muted)">
-            View scheduling health, recent sends, and recipient engagement.
-            Admin features behind a secure key.
-          </p>
-          <div style="display: flex; gap: 12px">
-            <a class="btn" href="#" id="openModalBtn"
-              >Identify (admin / user)</a
-            >
-            <a class="btn" href="/unsubscribe?email=" style="background: #111"
-              >Unsubscribe (test)</a
-            >
-          </div>
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-pill">
+          <i class="fas fa-sparkles"></i>
+          <span>Automated Daily Rituals • Powered by SMTP Engine</span>
         </div>
-        <div style="width: 420px">
-          <div class="card placeholder">
-            <div>Live dashboard preview</div>
-          </div>
-        </div>
+        <h1 class="hero-title">Start Every Single Morning Inspired &amp; Aligned</h1>
+        <p class="hero-subtitle">
+          Receive curated morning routines, deep work reflections, and tailored wisdom delivered right when you wake up in your local timezone.
+        </p>
       </section>
 
-      <section
-        style="
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-          gap: 16px;
-        "
-      >
-        <div class="card">
-          <h3 style="margin-top: 0">Scheduling</h3>
-          <p class="meta">Cron jobs status, next run times, last runs</p>
-        </div>
-        <div class="card">
-          <h3 style="margin-top: 0">Analytics</h3>
-          <p class="meta">Open rates, delivery stats, bounced messages</p>
-        </div>
-        <div class="card">
-          <h3 style="margin-top: 0">Monitoring</h3>
-          <p class="meta">Errors, retries, alerts</p>
-        </div>
-      </section>
+      <!-- Portals Grid: Signup + Subscriber Login -->
+      <section class="portal-grid">
+        <!-- New Subscriber Signup Card -->
+        <div class="portal-card" id="signupView">
+          <div class="portal-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <div>
+            <h2 class="portal-title">Join Daily Routine</h2>
+            <p class="portal-desc">
+              Get an inspiring morning routine email daily. We send a quick confirmation link to verify your inbox.
+            </p>
+          </div>
 
-      <section id="signupView" style="margin-top: 18px">
-        <div class="card">
-          <h3 style="margin-top: 0">New here?</h3>
-          <p class="meta">
-            Subscribe to get a daily morning routine email. We'll send a
-            confirmation link first -- you won't be subscribed until you click
-            it.
-          </p>
-          <form
-            id="subscriberSignupForm"
-            style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap"
-          >
-            <!-- Honeypot: real users never see or fill this in (positioned
-                 off-screen, not display:none -- some bots skip fields hidden
-                 that way). Left as plain HTML/CSS rather than adding a CAPTCHA
-                 service and its API keys for a small personal project. -->
+          <form id="subscriberSignupForm" class="portal-form">
             <input
               type="text"
               name="website"
@@ -288,43 +534,35 @@
               aria-hidden="true"
               style="position: absolute; left: -9999px; width: 1px; height: 1px"
             />
-            <input
-              id="subscriberSignupEmail"
-              type="email"
-              placeholder="name@example.com"
-              required
-              style="
-                flex: 1;
-                min-width: 200px;
-                padding: 10px 12px;
-                border-radius: 8px;
-                border: 1px solid var(--border, #ddd);
-              "
-            />
-            <button type="submit" class="btn" id="subscriberSignupBtn">
-              Subscribe
-            </button>
+            <div class="input-group">
+              <input
+                id="subscriberSignupEmail"
+                type="email"
+                class="input-text"
+                placeholder="your.email@example.com"
+                required
+              />
+              <button type="submit" class="btn btn-primary" id="subscriberSignupBtn">
+                <i class="fas fa-paper-plane"></i> Subscribe
+              </button>
+            </div>
+            <p id="subscriberSignupStatus" class="form-status" style="color: #34d399;"></p>
           </form>
-          <p
-            id="subscriberSignupStatus"
-            class="small"
-            aria-live="polite"
-            style="margin-top: 8px"
-          ></p>
         </div>
-      </section>
 
-      <section id="userView" style="margin-top: 18px">
-        <div class="card">
-          <h3 style="margin-top: 0">Already subscribed?</h3>
-          <p class="meta">
-            Enter your email and we'll send you a login link to view your send
-            history, update your preferences, or pause anytime.
-          </p>
-          <form
-            id="subscriberLoginForm"
-            style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap"
-          >
+        <!-- Existing Subscriber Magic Link Login -->
+        <div class="portal-card" id="userView">
+          <div class="portal-icon" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee;">
+            <i class="fas fa-magic"></i>
+          </div>
+          <div>
+            <h2 class="portal-title">Subscriber Portal</h2>
+            <p class="portal-desc">
+              Already subscribed? Enter your email to receive an instant magic login link to manage send times or pause anytime.
+            </p>
+          </div>
+
+          <form id="subscriberLoginForm" class="portal-form">
             <input
               type="text"
               name="website"
@@ -333,39 +571,65 @@
               aria-hidden="true"
               style="position: absolute; left: -9999px; width: 1px; height: 1px"
             />
-            <input
-              id="subscriberLoginEmail"
-              type="email"
-              placeholder="name@example.com"
-              required
-              style="
-                flex: 1;
-                min-width: 200px;
-                padding: 10px 12px;
-                border-radius: 8px;
-                border: 1px solid var(--border, #ddd);
-              "
-            />
-            <button type="submit" class="btn" id="subscriberLoginBtn">
-              Send login link
-            </button>
+            <div class="input-group">
+              <input
+                id="subscriberLoginEmail"
+                type="email"
+                class="input-text"
+                placeholder="your.email@example.com"
+                required
+              />
+              <button type="submit" class="btn btn-glass" id="subscriberLoginBtn">
+                <i class="fas fa-sign-in-alt"></i> Login Link
+              </button>
+            </div>
+            <p id="subscriberLoginStatus" class="form-status" style="color: #60a5fa;"></p>
           </form>
-          <p
-            id="subscriberLoginStatus"
-            class="small"
-            aria-live="polite"
-            style="margin-top: 8px"
-          ></p>
+        </div>
+      </section>
+
+      <!-- Features Showcase Section -->
+      <section class="features-section">
+        <div class="features-header">
+          <h3>Engineered for Precision &amp; Clarity</h3>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-clock"></i></div>
+            <div class="feature-title">Timezone Aware</div>
+            <div class="feature-desc">Automated cron scheduling ensures your routine lands exactly when you wake up.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-brain"></i></div>
+            <div class="feature-title">Tailored Themes</div>
+            <div class="feature-desc">Choose from Deep Work, Continuous Learning, Career Growth, or Mindfulness.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="feature-title">Privacy First</div>
+            <div class="feature-desc">Zero tracking pixels, easy 1-click unsubscribe, and instant preference control.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+            <div class="feature-title">High Reliability</div>
+            <div class="feature-desc">Enterprise-grade Redis queuing and automated health telemetry for 99.9% uptime.</div>
+          </div>
         </div>
       </section>
     </main>
 
-    <footer id="mainRootFooter">
-      <div class="container">
-        <small>&copy; Morning Routine Sender</small>
+    <!-- Footer -->
+    <footer class="footer" id="mainRootFooter">
+      <div class="container footer-wrap">
+        <div>&copy; Morning Routine Sender • All rights reserved.</div>
+        <div style="display: flex; gap: 16px;">
+          <a href="/unsubscribe?email=" style="color: var(--text-subtle); text-decoration: none;">Unsubscribe</a>
+          <a href="#" onclick="document.getElementById('openModalBtn').click(); return false;" style="color: var(--text-subtle); text-decoration: none;">Admin Access</a>
+        </div>
       </div>
     </footer>
 
+    <!-- Admin Access Modal -->
     <div
       id="keyModal"
       class="modal-backdrop"
@@ -374,61 +638,46 @@
       aria-hidden="true"
     >
       <div class="modal" role="document" aria-labelledby="modalTitle">
-        <h2 id="modalTitle">Enter access key</h2>
+        <h2 id="modalTitle">Admin Access</h2>
         <p class="meta">
-          Admins: enter the one-time key generated via the admin tool. Keys are
-          one-time-use and expire quickly.
+          Enter your admin master key or one-time access key to open the Admin Command Center.
         </p>
-        <label for="adminKey">Access key</label>
+
+        <label for="adminKey" style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Access Key</label>
         <input
           id="adminKey"
           type="password"
+          class="input-text"
           autocomplete="one-time-code"
-          placeholder="Enter admin key (one-time)"
+          placeholder="Enter ADMIN_KEY or generated key"
         />
-        <div style="display: flex; gap: 8px; justify-content: flex-end">
-          <button
-            id="cancelBtn"
-            class="btn"
-            style="background: #e6e9ee; color: #111"
-          >
-            Cancel
-          </button>
-          <button id="submitBtn" class="btn">Submit</button>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px;">
+          <button id="cancelBtn" class="btn btn-glass">Cancel</button>
+          <button id="submitBtn" class="btn btn-primary">Login to Admin</button>
         </div>
 
-        <p class="small" style="margin-top: 10px">
-          <a href="#" id="toggleGenerate"
-            >Are you the admin? Generate a key instead</a
-          >
+        <p class="small" style="margin-top: 8px;">
+          <a href="#" id="toggleGenerate">Are you the admin? Generate a key instead</a>
         </p>
 
-        <div id="generateSection" style="display: none; margin-top: 8px">
-          <label for="adminSecret">Admin secret</label>
+        <div id="generateSection" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+          <label for="adminSecret" style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Admin Master Secret</label>
           <input
             id="adminSecret"
             type="password"
+            class="input-text"
             autocomplete="off"
-            placeholder="Enter your ADMIN_KEY"
+            placeholder="Enter ADMIN_KEY"
+            style="margin-top: 6px;"
           />
-          <div
-            style="
-              display: flex;
-              gap: 8px;
-              justify-content: flex-end;
-              margin-top: 8px;
-            "
-          >
-            <button id="generateBtn" class="btn">
-              Generate &amp; continue
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button id="generateBtn" class="btn btn-primary">
+              Generate &amp; Continue
             </button>
           </div>
-          <p id="generateStatus" class="small" aria-live="polite"></p>
+          <p id="generateStatus" class="small" aria-live="polite" style="margin-top: 6px; color: #818cf8;"></p>
         </div>
-
-        <p class="small">
-          If you are not an admin, close this to continue to the user view.
-        </p>
       </div>
     </div>
 

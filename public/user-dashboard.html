@@ -1,221 +1,385 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your Morning Routine</title>
-    <meta name="description" content="Manage your Morning Routine Sender subscription" />
+    <title>Your Morning Routine • Subscriber Dashboard</title>
+    <meta name="description" content="Manage your Morning Routine Sender subscription, preferences, and delivery logs." />
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#090d16" />
 
     <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="/css/loader.css" />
 
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous"
+    />
+
+    <!-- Toast Notification CDN -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
+      defer
+      crossorigin="anonymous"
+    ></script>
+
     <style>
-      /* Same design language as main-index.html (--accent/--brand/.card/
-         .btn/.meta/.small), duplicated here since the two pages don't
-         share a stylesheet -- kept consistent deliberately, not copied
-         by accident. */
       :root {
-        --bg: #f9fafb;
-        --muted: #6b7280;
-        --accent: #0ea5e9;
-        --maxw: 720px;
-        --radius: 12px;
-        --pad: 18px;
-        --brand: #2563eb;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
+        --bg-main: #07090e;
+        --bg-surface: rgba(15, 23, 42, 0.65);
+        --bg-surface-elevated: rgba(30, 41, 59, 0.7);
+        --bg-card: rgba(17, 24, 39, 0.75);
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --border-hover: rgba(99, 102, 241, 0.4);
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.35);
+        --primary-hover: #4f46e5;
+        --accent-cyan: #06b6d4;
+        --accent-emerald: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #f43f5e;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --text-subtle: #64748b;
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+        --shadow-glow: 0 0 25px -5px var(--primary-glow);
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      html, body {
-        height: 100%;
-        margin: 0;
-        background: var(--bg);
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-      }
-      header {
-        background: linear-gradient(90deg, #0ea5e980, #0369a180);
-        color: #333;
-        padding: 20px 24px;
-      }
-      .container {
-        max-width: var(--maxw);
-        margin: 24px auto;
-        padding: 0 16px;
-      }
-      .card {
-        background: #fff;
-        border-radius: var(--radius);
-        box-shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
-        padding: var(--pad);
-        margin-bottom: 20px;
-      }
-      .card h2 {
-        margin-top: 0;
-        font-size: 18px;
-      }
-      .meta {
-        font-size: 13px;
-        color: var(--muted);
-        margin-bottom: 12px;
-      }
-      .small {
-        color: var(--muted);
-        font-size: 13px;
-      }
-      .btn {
-        display: inline-block;
-        padding: 10px 14px;
-        border-radius: 8px;
-        border: none;
-        background: var(--accent);
-        color: white;
-        text-decoration: none;
-        cursor: pointer;
-        font-size: 14px;
-      }
-      .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-      .btn-secondary {
-        background: #e6e9ee;
-        color: #111;
-      }
-      .btn-warning {
-        background: var(--warning);
-      }
-      .btn-success {
-        background: var(--success);
-      }
-      .btn-danger {
-        background: var(--danger);
-      }
-      label {
-        display: block;
-        margin-bottom: 6px;
-        font-weight: 600;
-        font-size: 13px;
-      }
-      input[type="text"] {
-        width: 100%;
+
+      * {
         box-sizing: border-box;
-        padding: 10px 12px;
-        border-radius: 8px;
-        border: 1px solid #e6e9ee;
-        margin-bottom: 12px;
-        font-size: 14px;
+        margin: 0;
+        padding: 0;
+        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
+
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-image: 
+          radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+          radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
+          radial-gradient(at 50% 100%, rgba(244, 63, 94, 0.06) 0px, transparent 50%);
+        background-attachment: fixed;
+      }
+
+      .container {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0 20px;
+        width: 100%;
+      }
+
+      /* Navbar */
+      header.navbar {
+        padding: 18px 0;
+        border-bottom: 1px solid var(--border-subtle);
+        background: rgba(11, 15, 25, 0.7);
+        backdrop-filter: blur(20px);
+        position: sticky;
+        top: 0;
+        z-index: 40;
+      }
+
+      .nav-wrap {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+      }
+
+      .brand-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #fff;
+      }
+
+      .brand-name {
+        font-size: 17px;
+        font-weight: 800;
+        color: #fff;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        border: 1px solid transparent;
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: #fff;
+        box-shadow: 0 4px 14px var(--primary-glow);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+      }
+
+      .btn-glass, .btn-secondary {
+        background: var(--bg-surface-elevated);
+        border-color: var(--border-subtle);
+        color: var(--text-main);
+        backdrop-filter: blur(12px);
+      }
+      .btn-glass:hover, .btn-secondary:hover {
+        background: rgba(51, 65, 85, 0.8);
+        color: #fff;
+      }
+
+      .btn-warning {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.3);
+      }
+      .btn-warning:hover {
+        background: rgba(245, 158, 11, 0.25);
+        color: #fff;
+      }
+
+      .btn-success {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border-color: rgba(16, 185, 129, 0.3);
+      }
+      .btn-success:hover {
+        background: rgba(16, 185, 129, 0.25);
+        color: #fff;
+      }
+
+      /* Main Cards */
+      main.main-content {
+        margin: 32px auto 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        transition: var(--transition);
+      }
+
+      .card h2 {
+        font-size: 18px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .status-badge.active {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .status-badge.paused {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
       .field-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 16px;
       }
-      .status-badge {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 999px;
-        font-size: 12px;
+
+      @media (max-width: 640px) {
+        .field-row { grid-template-columns: 1fr; }
+      }
+
+      label {
+        font-size: 13px;
         font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        display: block;
       }
-      .status-badge.active {
-        background: #d1fae5;
-        color: #065f46;
+
+      input[type="text"] {
+        width: 100%;
+        background: rgba(10, 15, 29, 0.8);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 12px 14px;
+        color: #fff;
+        font-size: 14px;
+        outline: none;
+        transition: var(--transition);
       }
-      .status-badge.paused {
-        background: #fef3c7;
-        color: #92400e;
+
+      input[type="text"]:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 15px -3px var(--primary-glow);
       }
+
       .history-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid #f0f0f0;
+        padding: 12px 14px;
+        border-radius: var(--radius-md);
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid var(--border-subtle);
+        margin-bottom: 8px;
         font-size: 13px;
       }
-      .history-row:last-child {
-        border-bottom: none;
+
+      .history-status.success { color: #34d399; font-weight: 600; }
+      .history-status.failed { color: #fb7185; font-weight: 600; }
+
+      .meta {
+        font-size: 13px;
+        color: var(--text-muted);
       }
-      .history-status {
-        font-weight: 600;
+
+      .small {
+        font-size: 12px;
+        color: var(--text-subtle);
       }
-      .history-status.success {
-        color: var(--success);
-      }
-      .history-status.failed {
-        color: var(--danger);
-      }
-      #saveStatus,
-      #actionStatus {
-        margin-top: 8px;
-      }
+
       footer {
-        padding: 32px 0;
-        color: var(--muted);
+        margin-top: auto;
+        padding: 24px 0;
+        border-top: 1px solid var(--border-subtle);
         text-align: center;
         font-size: 13px;
+        color: var(--text-subtle);
       }
     </style>
   </head>
   <body>
-    <header>
-      <div class="container" style="display: flex; align-items: center; justify-content: space-between; margin: 0; padding: 0;">
-        <div>
-          <h1 style="margin: 0; font-size: 20px">Your Morning Routine</h1>
-          <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.95">
-            Domain: <strong>__DOMAIN__</strong>
-          </p>
+    <header class="navbar">
+      <div class="container nav-wrap">
+        <div class="brand-logo">
+          <div class="brand-icon"><i class="fas fa-sun"></i></div>
+          <div>
+            <div class="brand-name">Your Morning Routine</div>
+            <div style="font-size: 11px; color: var(--text-subtle);">Domain: __DOMAIN__</div>
+          </div>
         </div>
-        <button class="btn btn-secondary" id="logoutBtn">Logout</button>
+        <button class="btn btn-secondary" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
       </div>
     </header>
 
-    <main class="container">
+    <main class="container main-content">
       <div class="card" id="loadingCard">
-        <p class="meta" style="margin: 0">Loading your subscription...</p>
+        <p class="meta" style="margin: 0">
+          <i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading your subscription details…
+        </p>
       </div>
 
       <div class="card" id="subscriptionCard" style="display: none">
-        <h2>Your Subscription</h2>
-        <p class="meta" id="subEmail" style="font-size: 14px; color: #111"></p>
-        <p>
-          Status: <span class="status-badge" id="subStatusBadge"></span>
-        </p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2><i class="fas fa-user-circle" style="color: var(--primary);"></i> Subscription Preferences</h2>
+            <p class="meta" id="subEmail" style="font-size: 15px; color: #fff; font-weight: 600; margin-top: 4px;"></p>
+          </div>
+          <div>
+            <span class="status-badge" id="subStatusBadge"></span>
+          </div>
+        </div>
 
-        <form id="preferencesForm">
+        <form id="preferencesForm" style="margin-top: 8px;">
           <div class="field-row">
             <div>
-              <label for="prefCron">Send time (cron pattern)</label>
+              <label for="prefCron">Daily Send Time (Cron Schedule)</label>
               <input type="text" id="prefCron" placeholder="0 8 * * *" />
+              <div class="small" style="margin-top: 4px;">Default: <code>0 8 * * *</code> (8:00 AM)</div>
             </div>
             <div>
               <label for="prefTz">Timezone</label>
               <input type="text" id="prefTz" placeholder="Asia/Kolkata" />
+              <div class="small" style="margin-top: 4px;">e.g. <code>America/New_York</code> or <code>Asia/Kolkata</code></div>
             </div>
           </div>
-          <button type="submit" class="btn" id="savePrefsBtn">Save preferences</button>
-          <p id="saveStatus" class="small" aria-live="polite"></p>
+          <div style="margin-top: 16px;">
+            <button type="submit" class="btn btn-primary" id="savePrefsBtn">
+              <i class="fas fa-save"></i> Save Preferences
+            </button>
+            <p id="saveStatus" class="small" aria-live="polite" style="margin-top: 8px; color: #34d399;"></p>
+          </div>
         </form>
 
-        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0f0">
+        <div style="margin-top: 16px; padding-top: 18px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">Routine Status</div>
+            <div class="small">Pause emails temporarily without deleting your account.</div>
+          </div>
           <button class="btn btn-warning" id="pauseResumeBtn"></button>
-          <p id="actionStatus" class="small" aria-live="polite"></p>
         </div>
+        <p id="actionStatus" class="small" aria-live="polite" style="color: #60a5fa;"></p>
       </div>
 
       <div class="card" id="historyCard" style="display: none">
-        <h2>Recent Sends</h2>
+        <h2><i class="fas fa-history" style="color: var(--accent-cyan);"></i> Recent Dispatch History</h2>
         <div id="historyList"></div>
       </div>
 
       <div class="card" id="errorCard" style="display: none">
-        <p class="meta" id="errorMessage" style="margin: 0"></p>
+        <p class="meta" id="errorMessage" style="margin: 0; color: #fb7185;"></p>
       </div>
     </main>
 
     <footer>
-      <small>&copy; Morning Routine Sender</small>
+      <small>&copy; Morning Routine Sender • All rights reserved.</small>
     </footer>
 
     <script src="/js/user-dashboard.js"></script>
