@@ -95,7 +95,7 @@ function setRoleCookie(res, role) {
   res.cookie("mrn_role", role, {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    sameSite: "lax",
     path: "/",
     maxAge: 5 * 60 * 1000,
   });

@@ -75,7 +75,7 @@ async function verifyAdminKey(req, res) {
     res.cookie("mrn_role", "admin", {
       httpOnly: true,
       secure: isProd, // true on production
-      sameSite: isProd ? "none" : "lax",
+      sameSite: "lax",
       path: "/", // required
       maxAge: 5 * 60 * 1000,
       signed: true,
