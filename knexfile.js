@@ -1,62 +1,38 @@
 // knexfile.js
 require("dotenv").config();
 
-function getSslConfig(host, connectionString) {
-  if (process.env.DB_SSL === "false") return false;
+const { parse } = require("pg-connection-string");
 
-  let targetHost = host;
-  if (!targetHost && connectionString) {
-    try {
-      const parsed = new URL(connectionString);
-      targetHost = parsed.hostname;
-    } catch (e) {
-      const match = connectionString.match(/@([^:/]+)/);
-      if (match) targetHost = match[1];
-    }
-  }
+function buildConnection() {
+  let dbConfig = {};
 
-  // Single-label hostnames without dots (like Render internal dpg-xxxx-a, localhost, etc.)
-  // do not support SSL on private networks.
-  const isInternal =
-    !targetHost ||
-    !targetHost.includes(".") ||
-    targetHost === "localhost" ||
-    targetHost === "127.0.0.1";
-
-  if (isInternal) {
-    return false;
-  }
-
-  if (process.env.DB_SSL === "true" || process.env.NODE_ENV === "production") {
-    return { rejectUnauthorized: false };
-  }
-
-  return false;
-}
-
-const getConnection = () => {
   if (process.env.DATABASE_URL) {
-    return {
-      connectionString: process.env.DATABASE_URL,
-      ssl: getSslConfig(null, process.env.DATABASE_URL),
+    dbConfig = parse(process.env.DATABASE_URL);
+  } else {
+    dbConfig = {
+      host: process.env.DB_HOST || process.env.PGHOST,
+      port: process.env.DB_PORT || process.env.PGPORT || 5432,
+      user: process.env.DB_USER || process.env.PGUSER,
+      password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
+      database: process.env.DB_NAME || process.env.PGDATABASE,
     };
   }
 
-  const host = process.env.DB_HOST || process.env.PGHOST;
-  const user = process.env.DB_USER || process.env.PGUSER;
-  const password = process.env.DB_PASSWORD || process.env.PGPASSWORD;
-  const database = process.env.DB_NAME || process.env.PGDATABASE;
-  const port = process.env.DB_PORT || process.env.PGPORT || 5432;
+  const host = dbConfig.host;
+  const isInternal =
+    !host ||
+    !host.includes(".") ||
+    host === "localhost" ||
+    host === "127.0.0.1";
 
-  return {
-    host,
-    port,
-    user,
-    password,
-    database,
-    ssl: getSslConfig(host, null),
-  };
-};
+  if (process.env.DB_SSL === "false" || isInternal) {
+    dbConfig.ssl = false;
+  } else {
+    dbConfig.ssl = { rejectUnauthorized: false };
+  }
+
+  return dbConfig;
+}
 
 module.exports = {
   test: {
@@ -68,7 +44,7 @@ module.exports = {
   },
   development: {
     client: process.env.DB_CLIENT || "pg",
-    connection: getConnection(),
+    connection: buildConnection(),
     useNullAsDefault: true,
     migrations: {
       directory: "./db/migrations",
@@ -85,7 +61,7 @@ module.exports = {
 
   production: {
     client: process.env.DB_CLIENT || "pg",
-    connection: getConnection(),
+    connection: buildConnection(),
     useNullAsDefault: true,
     migrations: {
       directory: "./db/migrations",
