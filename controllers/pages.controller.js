@@ -24,7 +24,8 @@ function getDomain(req, res) {
 // GET /admin-dashboard
 function adminDashboard(req, res) {
   res.set("Cache-Control", "no-store");
-  if (req.cookies?.mrn_role !== "admin") {
+  const role = req.signedCookies?.mrn_role || req.cookies?.mrn_role;
+  if (role !== "admin") {
     return res.redirect(302, "/");
   }
 
@@ -97,10 +98,11 @@ function root(req, res) {
   const domain = getDomain(req, res);
 
   try {
-    if (req.cookies?.mrn_role === "admin") {
+    const role = req.signedCookies?.mrn_role || req.cookies?.mrn_role;
+    if (role === "admin") {
       logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
       return res.redirect("/admin-dashboard");
-    } else if (req.cookies?.mrn_role === "user") {
+    } else if (role === "user") {
       logger.info("User Dashboard accessed", { domain, ip: req.ip });
       return res.redirect("/user-dashboard");
     } else {

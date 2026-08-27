@@ -59,28 +59,39 @@ async function verifyAdminKey(req, res) {
     const key = req.body?.key ? String(req.body.key).trim() : null;
     if (!key) return res.status(400).json({ error: "Missing key" });
 
-    const keyExists = await redis.get(`admin_key:${key}`);
-    if (!keyExists) {
-      // not an admin key — return 200 but role user (keeping UX simple)
+    const expectedKey = process.env.ADMIN_KEY;
+    const isMasterAdminKey = expectedKey && safeCompare(key, expectedKey);
+
+    let isOneTimeKeyValid = false;
+    if (!isMasterAdminKey) {
+      try {
+        const keyExists = await redis.get(`admin_key:${key}`);
+        if (keyExists) {
+          isOneTimeKeyValid = true;
+          await redis.del(`admin_key:${key}`);
+        }
+      } catch (redisErr) {
+        logger.warn("Redis lookup failed during admin key verify", { error: redisErr.message });
+      }
+    }
+
+    if (!isMasterAdminKey && !isOneTimeKeyValid) {
       return res.status(200).json({ role: "user" });
     }
 
-    // valid one-time key -> delete it (one-time use)
-    await redis.del(`admin_key:${key}`);
-
-    // Optional: set short-lived secure cookie so admin view is accessible for a few minutes
-    // NOTE: set 'secure: true' in production (HTTPS)
     const isProd = process.env.NODE_ENV === "production";
+    const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
     res.cookie("mrn_role", "admin", {
       httpOnly: true,
-      secure: isProd, // true on production
+      secure: isProd,
       sameSite: "lax",
-      path: "/", // required
-      maxAge: 5 * 60 * 1000,
+      path: "/",
+      maxAge: SESSION_DURATION,
       signed: true,
     });
 
+    logger.info("Admin authenticated successfully, session created");
     return res.json({ role: "admin" });
   } catch (err) {
     logger.error("verify-admin-key error", { error: err.message || err });

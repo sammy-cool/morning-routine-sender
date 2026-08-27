@@ -166,6 +166,17 @@ app.use(require("./routes/subscriberPortal.routes"));
 
 app.use(require("./routes/email.routes"));
 
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  logger.error("Unhandled Application Error", { error: err.message, stack: err.stack });
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
 // Start server
 const server = app.listen(PORT, () => {
   logger.info(
@@ -230,3 +241,5 @@ process.on("uncaughtException", (error) => {
 process.on("unhandledRejection", (reason) => {
   logger.error("Unhandled rejection (non-fatal)", { reason });
 });
+
+module.exports = app;
