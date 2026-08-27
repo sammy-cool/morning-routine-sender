@@ -49,7 +49,11 @@ async function getSubscriberStats(req, res) {
       growth,
     });
   } catch (error) {
-    console.error("Failed to load subscriber stats:", error.message);
+    const logger = require("../logger");
+    logger.error("Failed to load subscriber stats", {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ error: "Failed to load subscriber stats" });
   }
 }

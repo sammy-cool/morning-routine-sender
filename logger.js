@@ -3,57 +3,106 @@ const winston = require("winston");
 const DailyRotateFile = require("winston-daily-rotate-file");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 const util = require("util");
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, "logs");
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
-  console.log("✅ Logs directory created");
 }
 
-// Safe JSON stringify that handles circular references
+// Safe JSON stringify that handles circular references and functions
 function safeStringify(obj, indent = 2) {
-  let cache = [];
-  const retVal = JSON.stringify(
+  const seen = new WeakSet();
+  return JSON.stringify(
     obj,
-    (key, value) =>
-      typeof value === "object" && value !== null
-        ? cache.includes(value)
-          ? "[Circular]"
-          : cache.push(value) && value
-        : value,
+    (key, value) => {
+      if (typeof value === "function") return `[Function: ${value.name || "anonymous"}]`;
+      if (typeof value === "bigint") return value.toString();
+      if (typeof value === "object" && value !== null) {
+        if (seen.has(value)) return "[Circular]";
+        seen.add(value);
+        if (value instanceof Error) {
+          return {
+            name: value.name,
+            message: value.message,
+            stack: value.stack,
+            code: value.code,
+            status: value.status || value.statusCode,
+          };
+        }
+      }
+      return value;
+    },
     indent
   );
-  cache = null;
-  return retVal;
 }
 
-// Custom format for console output
+// Custom Error Formatter: recursively unwraps Error objects in info and metadata
+const enumerateErrorFormat = winston.format((info) => {
+  if (info instanceof Error) {
+    Object.assign(info, {
+      message: info.message,
+      stack: info.stack,
+      name: info.name,
+      code: info.code,
+    });
+  }
+
+  // Deep inspect metadata properties for nested Error instances
+  for (const key of Object.keys(info)) {
+    if (info[key] instanceof Error) {
+      info[key] = {
+        name: info[key].name,
+        message: info[key].message,
+        stack: info[key].stack,
+        code: info[key].code,
+        syscall: info[key].syscall,
+        errno: info[key].errno,
+        status: info[key].status || info[key].statusCode,
+      };
+    }
+  }
+
+  return info;
+});
+
+// Custom Format for Human-Readable, Highly-Actionable Console Logs
 const consoleFormat = winston.format.combine(
+  enumerateErrorFormat(),
   winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   winston.format.colorize(),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
+  winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
+    // Filter out standard default metadata for cleaner console output
+    const cleanMeta = { ...meta };
+    delete cleanMeta.service;
+    delete cleanMeta.environment;
+    delete cleanMeta.pid;
+    delete cleanMeta.hostname;
+
     let metaStr = "";
-    if (Object.keys(meta).length > 0) {
+    if (Object.keys(cleanMeta).length > 0) {
       try {
-        metaStr = safeStringify(meta, 2);
+        metaStr = "\n  " + safeStringify(cleanMeta, 2).replace(/\n/g, "\n  ");
       } catch (e) {
-        metaStr = util.inspect(meta, {
-          depth: 3,
-          colors: true,
-          compact: false,
-        });
+        metaStr = "\n  " + util.inspect(cleanMeta, { depth: 3, colors: true });
       }
     }
-    return `[${timestamp}] ${level}: ${message} ${metaStr}`;
+
+    let stackStr = "";
+    if (stack) {
+      stackStr = `\n  ${stack.replace(/\n/g, "\n  ")}`;
+    }
+
+    return `[${timestamp}] ${level}: ${message}${metaStr}${stackStr}`;
   })
 );
 
-// JSON format for file output
+// Structured JSON Format for File Logs (for analysis & alerting)
 const fileFormat = winston.format.combine(
-  winston.format.timestamp(),
-  winston.format.errors({ stack: true }),
+  enumerateErrorFormat(),
+  winston.format.timestamp({ format: "YYYY-MM-DDTHH:mm:ss.SSSZ" }),
   winston.format.json({
     replacer: (key, value) => {
       if (typeof value === "object" && value !== null) {
@@ -69,56 +118,56 @@ const fileFormat = winston.format.combine(
   })
 );
 
-// Daily rotate transport for all logs (kept for 3 days)
+// Daily rotate transport for all logs (3-day retention)
 const dailyRotateTransport = new DailyRotateFile({
   filename: path.join(logsDir, "app-%DATE%.log"),
   datePattern: "YYYY-MM-DD",
-  maxFiles: "3d", // Keep logs for 3 days
-  maxSize: "20m", // Max 20MB per file
-  format: fileFormat,
-  zippedArchive: true, // Compress old logs
-});
-
-// Daily rotate transport for errors (kept for 7 days)
-const errorRotateTransport = new DailyRotateFile({
-  filename: path.join(logsDir, "error-%DATE%.log"),
-  datePattern: "YYYY-MM-DD",
-  level: "error",
-  maxFiles: "7d", // Keep error logs for 7 days
+  maxFiles: "3d",
   maxSize: "20m",
   format: fileFormat,
   zippedArchive: true,
 });
 
-// Create logger
+// Daily rotate transport for errors (7-day retention)
+const errorRotateTransport = new DailyRotateFile({
+  filename: path.join(logsDir, "error-%DATE%.log"),
+  datePattern: "YYYY-MM-DD",
+  level: "error",
+  maxFiles: "7d",
+  maxSize: "20m",
+  format: fileFormat,
+  zippedArchive: true,
+});
+
+// Create Master Logger
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || "info",
-  defaultMeta: { service: "morning-routine-sender" },
+  defaultMeta: {
+    service: "morning-routine-sender",
+    environment: process.env.NODE_ENV || "development",
+    pid: process.pid,
+    hostname: os.hostname(),
+  },
   exitOnError: false,
   transports: [
-    // Console output (human-readable)
     new winston.transports.Console({
       format: consoleFormat,
     }),
-
-    // Daily rotating file - all logs
     dailyRotateTransport,
-
-    // Daily rotating file - errors only
     errorRotateTransport,
   ],
 });
 
-// Listen to rotation events
+// Rotate Events
 dailyRotateTransport.on("rotate", (oldFilename, newFilename) => {
-  console.log("📋 Log file rotated:", { oldFilename, newFilename });
+  logger.info("📋 Log file rotated", { oldFilename, newFilename });
 });
 
 dailyRotateTransport.on("logRemoved", (removedFilename) => {
-  console.log("🗑️  Old log file removed:", removedFilename);
+  logger.info("🗑️  Old log file removed", { removedFilename });
 });
 
-// Log unhandled errors
+// Unhandled Exceptions & Rejections Handlers
 logger.exceptions.handle(
   new DailyRotateFile({
     filename: path.join(logsDir, "exceptions-%DATE%.log"),
@@ -136,5 +185,41 @@ logger.rejections.handle(
     format: fileFormat,
   })
 );
+
+/**
+ * Express Request Logger Middleware
+ * Captures Method, Path, Status Code, Duration, IP, and User-Agent
+ */
+logger.requestLogger = function (req, res, next) {
+  const start = Date.now();
+  const originalEnd = res.end;
+
+  res.end = function (...args) {
+    const duration = Date.now() - start;
+    const statusCode = res.statusCode;
+
+    // Filter out static health checks or assets if desired, or log everything
+    const logData = {
+      method: req.method,
+      url: req.originalUrl || req.url,
+      statusCode,
+      durationMs: duration,
+      ip: req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+      userAgent: req.get("user-agent") || "unknown",
+    };
+
+    if (statusCode >= 500) {
+      logger.error(`HTTP ${req.method} ${req.originalUrl} ${statusCode} [${duration}ms]`, logData);
+    } else if (statusCode >= 400) {
+      logger.warn(`HTTP ${req.method} ${req.originalUrl} ${statusCode} [${duration}ms]`, logData);
+    } else {
+      logger.info(`HTTP ${req.method} ${req.originalUrl} ${statusCode} [${duration}ms]`, logData);
+    }
+
+    originalEnd.apply(res, args);
+  };
+
+  next();
+};
 
 module.exports = logger;

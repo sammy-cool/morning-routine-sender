@@ -49,9 +49,11 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     };
 
     const renderedMjml = template(data);
-    const { html, errors } = mjml2html(renderedMjml, {
+    const mjmlResult = await mjml2html(renderedMjml, {
       validationLevel: "strict",
     });
+    const html = mjmlResult?.html || "";
+    const errors = mjmlResult?.errors || [];
 
     if (errors && errors.length) {
       logger.error("MJML Errors:", errors);
