@@ -39,7 +39,7 @@ async function createSession(res, email) {
   res.cookie("mrn_session", token, {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    sameSite: "lax",
     path: "/",
     maxAge: SESSION_TTL_SECONDS * 1000,
   });
