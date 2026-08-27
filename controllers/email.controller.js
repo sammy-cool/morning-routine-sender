@@ -5,6 +5,7 @@ const emailScheduler = require("../email-core/emailScheduler");
 const sharedData = require("../helper/shared-data");
 const { verifyUnsubscribeToken } = require("../helper/unsubscribeToken");
 const { getTransporter } = require("../config/mailTransporter");
+const { safeCompare } = require("../helper/util");
 
 // POST /send-test-email
 async function sendTestEmail(req, res) {
@@ -15,7 +16,7 @@ async function sendTestEmail(req, res) {
     const expectedKey = process.env.CRON_API_KEY;
     if (
       email !== process.env.FROM_USER &&
-      (!expectedKey || req.query.key !== expectedKey)
+      (!expectedKey || !safeCompare(req.query.key, expectedKey))
     ) {
       logger.error("Forbidden");
       return res.status(403).json({ error: "Forbidden" });
@@ -147,7 +148,7 @@ function scheduledJobs(req, res) {
 // POST /send-bulk-now
 async function sendBulkNow(req, res) {
   const expectedKey = process.env.CRON_API_KEY;
-  if (!expectedKey || req.query.key !== expectedKey) {
+  if (!expectedKey || !safeCompare(req.query.key, expectedKey)) {
     logger.error("Forbidden");
     return res.status(403).json({ error: "Forbidden" });
   }

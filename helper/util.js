@@ -1,6 +1,12 @@
 const crypto = require("node:crypto");
 const logger = require("../logger");
 
+function safeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
 function generateRandomMessageID() {
   const timestamp = Date.now().toString();
   const randomString = generateRandomString(10);
@@ -11,24 +17,15 @@ function generateRandomMessageID() {
   return hash.slice(0, 20);
 }
 
-function generateRandomString(length) {
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let randomString = "";
-
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    randomString += characters.charAt(randomIndex);
-  }
-
-  return randomString;
+function generateRandomString(length = 32) {
+  return crypto.randomBytes(length).toString('hex').slice(0, length);
 }
 
 function maskEmail(email) {
+  if (!email || typeof email !== 'string' || !email.includes('@')) return '***';
   const [local, domain] = email.split("@");
-  const maskedLocal =
-    local[0] + "*".repeat(Math.max(local.length - 2, 1)) + local.slice(-1);
-  return `${maskedLocal}@${domain}`;
+  if (local.length <= 2) return local[0] + '*@' + domain;
+  return local[0] + '*'.repeat(local.length - 2) + local.slice(-1) + '@' + domain;
 }
 
 function todayUTCYYYYMMDD() {
@@ -58,6 +55,7 @@ async function dailyDevNews() {
       `https://api.thenewsapi.com/v1/news/all?${query}`,
       {
         method: "GET",
+        signal: AbortSignal.timeout(10000)
       }
     );
 
@@ -109,4 +107,5 @@ module.exports = {
   maskEmail,
   todayUTCYYYYMMDD,
   dailyDevNews,
+  safeCompare,
 };
