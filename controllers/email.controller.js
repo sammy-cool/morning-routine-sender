@@ -13,10 +13,15 @@ async function sendTestEmail(req, res) {
     const { email } = req.body;
     let templateType = req.body.templateType || "basic";
 
+    const isAdminSession = req.cookies?.mrn_session && req.signedCookies?.mrn_role === "admin";
     const expectedKey = process.env.CRON_API_KEY;
+    const apiKey = req.get("x-cron-key") || req.query.key;
+    const isKeyValid = expectedKey && safeCompare(apiKey, expectedKey);
+
     if (
       email !== process.env.FROM_USER &&
-      (!expectedKey || !safeCompare(req.get("x-cron-key") || req.query.key, expectedKey))
+      !isAdminSession &&
+      !isKeyValid
     ) {
       logger.error("Forbidden");
       return res.status(403).json({ error: "Forbidden" });
@@ -147,9 +152,12 @@ function scheduledJobs(req, res) {
 
 // POST /send-bulk-now
 async function sendBulkNow(req, res) {
+  const isAdminSession = req.cookies?.mrn_session && req.signedCookies?.mrn_role === "admin";
   const expectedKey = process.env.CRON_API_KEY;
   const apiKey = req.get("x-cron-key") || req.query.key;
-  if (!expectedKey || !safeCompare(apiKey, expectedKey)) {
+  const isKeyValid = expectedKey && safeCompare(apiKey, expectedKey);
+
+  if (!isAdminSession && !isKeyValid) {
     logger.error("Forbidden");
     return res.status(403).json({ error: "Forbidden" });
   }
