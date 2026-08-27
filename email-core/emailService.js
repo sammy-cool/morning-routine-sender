@@ -1,58 +1,73 @@
-// email-core/emailService.js
-const fs = require("node:fs");
-const path = require("node:path");
-const mjml2html = require("mjml");
+// emailService.js
 const handlebars = require("handlebars");
+const mjml2html = require("mjml");
+const fs = require("fs");
+const path = require("path");
 const crypto = require("node:crypto");
-
 const logger = require("../logger");
 const sharedData = require("../helper/shared-data");
-const { dailyDevNews, todayUTCYYYYMMDD } = require("../helper/util");
-const { generateUnsubscribeToken } = require("../helper/unsubscribeToken");
+const { dailyDevNews } = require("../helper/util");
+const { generateUnsubscribeToken, generateActionToken } = require("../helper/unsubscribeToken");
 
+// Load MJML template
 const mjmlTemplatePath = path.join(
   __dirname,
   "..",
   "email-templates",
   "email-template.mjml"
 );
-const mjmlSource = fs.readFileSync(mjmlTemplatePath, "utf-8");
+const mjmlSource = fs.readFileSync(mjmlTemplatePath, "utf8");
 const template = handlebars.compile(mjmlSource);
 
 /**
  * Send routine email
  * @param {Transporter} transporter - Nodemailer transporter
- * @param {Object} userData - user details {name, email, dayNumber, dailyTip, ctaUrl}
+ * @param {Object} userData - user details {name, email, dayNumber, dailyTip, routineTrack, streakCount}
  * @param {Object} appLocals - app.locals object from Express for apiBase etc.
- * @param {string} templateType - Template type
  */
 async function sendRoutineEmail(transporter, appLocals, userData) {
   try {
     const trendingNews = await dailyDevNews();
-    const baseUrl = typeof appLocals === 'string' ? appLocals : (appLocals?.officialDomain || process.env.RENDER_URL || 'http://localhost:2900');
-    const userTimezone = userData.timezone || 'UTC';
+    const baseUrl =
+      typeof appLocals === "string"
+        ? appLocals
+        : appLocals?.officialDomain || process.env.RENDER_URL || "http://localhost:2900";
+    const userTimezone = userData.timezone || "UTC";
     const now = new Date();
-    const dayNumber = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, day: '2-digit' }).format(now);
-    const templateYear = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, year: 'numeric' }).format(now);
+    const dayNumber = new Intl.DateTimeFormat("en-US", {
+      timeZone: userTimezone,
+      day: "2-digit",
+    }).format(now);
+    const templateYear = new Intl.DateTimeFormat("en-US", {
+      timeZone: userTimezone,
+      year: "numeric",
+    }).format(now);
 
-    let dailyQuote = "The secret of your future is hidden in your daily routine.";
-    try {
-      dailyQuote = await sharedData.getNewRandomQuote();
-    } catch {
-      dailyQuote = "The secret of your future is hidden in your daily routine.";
-    }
+    const trackKey = userData.routineTrack || userData.templateType || "deep-work";
+    const trackInfo = sharedData.getTrackContent(trackKey);
 
-    let dailyTip = userData.dailyTip || "Dedicate the first 30 minutes of your morning to your highest-impact priority.";
+    const userStreak = Number(userData.streakCount) || 0;
+    const streakBadge = userStreak > 0 ? `${userStreak}-Day Streak` : "Day 1 Streak";
+    const trackBadge = trackInfo.badge;
+
+    const dailyQuote = userData.dailyQuote || trackInfo.quote;
+    const dailyTip = userData.dailyTip || trackInfo.ritual;
+
+    const checkinToken = generateActionToken(userData.email, "checkin");
+    const routineToken = generateActionToken(userData.email, "routine");
 
     const data = {
       logoUrl: process.env.LOGO_URL || `${baseUrl}/assets/logo.png`,
-      userName: userData.name || (userData.email ? userData.email.split('@')[0] : "Subscriber"),
+      userName: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
       dayNumber: dayNumber,
       year: templateYear,
+      streakBadge: streakBadge,
+      trackBadge: trackBadge,
       dailyQuote: dailyQuote,
       dailyTip: dailyTip,
-      ctaUrl: `${baseUrl}`,
-      ctaText: "View Your Routine",
+      ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}`,
+      ctaText: "⚡ Open Interactive Routine & Focus Timer",
+      checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}`,
       preferencesUrl: `${baseUrl}/user-dashboard`,
       trendingNews,
       unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(
@@ -72,7 +87,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       throw new Error("Email template rendering error");
     }
 
-    const text = `Good morning ${data.userName},\n\nQuote: "${data.dailyQuote}"\n\nToday's Ritual: ${data.dailyTip}\n\nVisit: ${data.ctaUrl}\nPreferences: ${data.preferencesUrl}\nUnsubscribe: ${data.unsubscribeUrl}`;
+    const text = `Good morning ${data.userName},\n\n[${trackInfo.badge} • 🔥 ${streakBadge}]\n\nQuote: "${data.dailyQuote}"\n\nToday's Focus Ritual: ${data.dailyTip}\n\n⚡ Open Live Routine & Timer: ${data.ctaUrl}\n🔥 1-Click Streak Check-in: ${data.checkinUrl}\nManage Preferences: ${data.preferencesUrl}\nUnsubscribe: ${data.unsubscribeUrl}`;
 
     // Send email
     try {
@@ -86,12 +101,15 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
         html,
         text,
         headers: {
-          "X-App-Origin": typeof appLocals === 'string' ? appLocals : (appLocals?.officialDomain || 'morning-routine-sender'),
+          "X-App-Origin":
+            typeof appLocals === "string"
+              ? appLocals
+              : appLocals?.officialDomain || "morning-routine-sender",
           "Message-ID": `<${crypto.randomUUID()}@morningroutine.app>`,
           "X-Trace-ID": `${crypto.randomBytes(6).toString("hex")}`,
           "X-Service": "morning-routine-sender",
           "X-Campaign": "daily-routine",
-          "X-Template-Type": userData.templateType,
+          "X-Template-Type": trackKey,
           "X-Job-Type": "routine-email",
           "X-Message-Ref": messageRef,
           "List-Unsubscribe": `<${data.unsubscribeUrl}>`,
@@ -115,13 +133,14 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       throw error;
     }
   } catch (error) {
-    logger.error("Failed to send email:", {
-      error: error.message,
+    logger.error("Email service error:", {
+      error: error.message || error,
       email: userData.email,
-      templateType: userData.templateType,
     });
     throw error;
   }
 }
 
-module.exports = { sendRoutineEmail };
+module.exports = {
+  sendRoutineEmail,
+};

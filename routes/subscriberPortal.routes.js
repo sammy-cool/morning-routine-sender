@@ -8,6 +8,7 @@ const { checkHoneypot } = require("../middleware/honeypot");
 const authController = require("../controllers/subscriberAuth.controller");
 const signupController = require("../controllers/signup.controller");
 const meController = require("../controllers/me.controller");
+const routineController = require("../controllers/routine.controller");
 
 // Honeypot runs BEFORE the rate limiter and the controller -- a caught
 // bot never even touches the real rate-limit counter or triggers a real
@@ -33,6 +34,10 @@ router.post(
   signupController.requestSignup,
 );
 router.get("/confirm-subscription", authLimiter, signupController.confirmSignup);
+
+// 1-Click Habit Streak Check-in & Live Interactive Routine View
+router.get("/checkin", routineController.checkin);
+router.get("/routine", routineController.liveRoutine);
 
 router.get("/me", requireSubscriberSession, meController.getMe);
 router.get("/me/history", requireSubscriberSession, meController.getMyHistory);
