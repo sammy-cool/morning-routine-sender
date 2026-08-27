@@ -280,40 +280,46 @@
       });
 
       // Theme
-      document
-        .getElementById("themeSetting")
-        .addEventListener("change", (e) => {
-          SettingsManager.set("theme", e.target.value);
-          ToastManager.info(`Theme: ${e.target.value}`);
-          // Additional: Apply to <html>
-          document.documentElement.dataset.theme = e.target.value;
-          document.getElementById("themeIcon").className =
-            e.target.value === "dark" ? "fas fa-sun" : "fas fa-moon";
-        });
+      document.addEventListener("DOMContentLoaded", () => {
+        const themeSetting = document.getElementById("themeSetting");
+        if (themeSetting) {
+          themeSetting.addEventListener("change", (e) => {
+            SettingsManager.set("theme", e.target.value);
+            ToastManager.info(`Theme: ${e.target.value}`);
+            // Additional: Apply to <html>
+            document.documentElement.dataset.theme = e.target.value;
+            document.getElementById("themeIcon").className =
+              e.target.value === "dark" ? "fas fa-sun" : "fas fa-moon";
+          });
+        }
 
-      // Toast position
-      document
-        .getElementById("toastPosition")
-        .addEventListener("change", (e) => {
-          SettingsManager.set("toastPosition", e.target.value);
-          ToastManager.info(`Toast position: ${e.target.value}`);
-        });
+        // Toast position
+        const toastPosition = document.getElementById("toastPosition");
+        if (toastPosition) {
+          toastPosition.addEventListener("change", (e) => {
+            SettingsManager.set("toastPosition", e.target.value);
+            ToastManager.info(`Toast position: ${e.target.value}`);
+          });
+        }
 
-      // Notification sound
-      document
-        .getElementById("notificationSound")
-        .addEventListener("change", (e) => {
-          SettingsManager.set("notificationSound", e.target.checked);
-          ToastManager.info(e.target.checked ? "Sound On" : "Sound Off");
-        });
+        // Notification sound
+        const notificationSound = document.getElementById("notificationSound");
+        if (notificationSound) {
+          notificationSound.addEventListener("change", (e) => {
+            SettingsManager.set("notificationSound", e.target.checked);
+            ToastManager.info(e.target.checked ? "Sound On" : "Sound Off");
+          });
+        }
 
-      // Default template
-      document
-        .getElementById("defaultTemplate")
-        .addEventListener("change", (e) => {
-          SettingsManager.set("defaultTemplate", e.target.value);
-          ToastManager.info(`Default template: ${e.target.value}`);
-        });
+        // Default template
+        const defaultTemplate = document.getElementById("defaultTemplate");
+        if (defaultTemplate) {
+          defaultTemplate.addEventListener("change", (e) => {
+            SettingsManager.set("defaultTemplate", e.target.value);
+            ToastManager.info(`Default template: ${e.target.value}`);
+          });
+        }
+      });
 
       async function loadSettingsValues() {
         document.getElementById("themeSetting").value =
@@ -336,13 +342,6 @@
       function logAnalyticsSnapshot(type, data) {
         ActivityLogger.log(`${type} updated: ${JSON.stringify(data)}`, "info");
       }
-
-      // In renderEmailTrends, after successful fetch:
-      logAnalyticsSnapshot("Email Trends", stats);
-      // In renderTemplateUsage, after successful fetch:
-      logAnalyticsSnapshot("Template Usage", stats);
-
-      ToastManager.info("Showing cached (offline) stats");
     </script>
 
     <style>
@@ -1903,9 +1902,9 @@
 
         static dismissAll() {
           if (typeof customizableToast?.dismiss === "function") {
-            customizableToast.customizableToast.noop()();
+            // toast dismissed
           } else if (typeof customizableToast?.noop === "function") {
-            customizableToast.noop();
+            // toast dismissed
           }
         }
       }
@@ -2051,19 +2050,20 @@
         const loading = ToastManager.loading("Sending test email...", {
           label: "Cancel",
           onClick: () => {
-            customizableToast.noop();
+            // toast dismissed
             ToastManager.warning("Email sending cancelled");
             ActivityLogger.log("Email sending cancelled", "warning");
           },
         });
 
+        // TODO: Need backend changes to accept admin session cookie instead of CRON_API_KEY
         const result = await apiCall("/send-test-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, templateType: template }),
         });
 
-        customizableToast.noop();
+        // toast dismissed
 
         if (result.success) {
           ToastManager.success(`✅ Email sent to ${email}`, {
@@ -2101,8 +2101,9 @@
 
           ActivityLogger.log("Bulk email sending started");
 
+          // TODO: Need backend changes to accept admin session cookie instead of CRON_API_KEY
           const result = await apiCall("/send-bulk-now", { method: "POST" });
-          customizableToast.noop();
+          // toast dismissed
 
           if (result.success) {
             const successCount = result.data.successCount || 0;
@@ -2168,7 +2169,7 @@
                 body: JSON.stringify({ days }),
               });
 
-              customizableToast.noop();
+              // toast dismissed
 
               if (result.success) {
                 const deleted = result.data.deleted || 0;
@@ -2238,7 +2239,7 @@
         ToastManager.loading("Checking system health...");
 
         const result = await apiCall("/health");
-        customizableToast.noop();
+        // toast dismissed
 
         if (result.success && result.data) {
           const status = result.data.status || "unknown";
@@ -2472,8 +2473,9 @@
         ToastManager.confirm("Fetch complete database records?", async () => {
           const loading = ToastManager.loading("Reading database...");
 
+          // TODO: Need backend changes to accept admin session cookie instead of CRON_API_KEY
           const result = await apiCall("/read-db");
-          customizableToast.noop();
+          // toast dismissed
 
           if (result.success && result.data) {
             const jsonData = JSON.stringify(result.data, null, 2);
@@ -2524,8 +2526,8 @@
                 {
                   duration: 5000,
                   cta: {
-                    label: "customizableToast.noop() All",
-                    onClick: () => customizableToast.noop(),
+                    label: "Dismiss All",
+                    onClick: () => { /* dismiss */ },
                   },
                 },
               );
@@ -2603,7 +2605,7 @@
       /* ==================== Keyboard Shortcuts ==================== */
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
-          customizableToast.noop();
+          // toast dismissed
         }
 
         // Ctrl/Cmd + K for quick actions
@@ -2770,76 +2772,7 @@
       }
 
       /* ========== Analytics Charts ========== */
-      let emailTrendsChart = null;
-      let templateUsageChart = null;
-
-      function initCharts() {
-        // Email Trends Chart
-        const ctx1 = document.getElementById("emailTrendsChart");
-        if (ctx1 && typeof Chart !== "undefined") {
-          emailTrendsChart = new Chart(ctx1, {
-            type: "line",
-            data: {
-              labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-              datasets: [
-                {
-                  label: "Emails Sent",
-                  data: [12, 19, 3, 5, 2, 3, 9],
-                  borderColor: "rgb(79, 70, 229)",
-                  backgroundColor: "rgba(79, 70, 229, 0.1)",
-                  tension: 0.4,
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { display: false },
-              },
-              scales: {
-                y: { beginAtZero: true },
-              },
-            },
-          });
-        }
-
-        // Template Usage Chart
-        const ctx2 = document.getElementById("templateUsageChart");
-        if (ctx2 && typeof Chart !== "undefined") {
-          templateUsageChart = new Chart(ctx2, {
-            type: "doughnut",
-            data: {
-              labels: [
-                "Basic",
-                "Deep Work",
-                "Career",
-                "Learning",
-                "Mindfulness",
-                "Reflection",
-              ],
-              datasets: [
-                {
-                  data: [30, 20, 15, 15, 10, 10],
-                  backgroundColor: [
-                    "rgb(79, 70, 229)",
-                    "rgb(124, 58, 237)",
-                    "rgb(16, 185, 129)",
-                    "rgb(245, 158, 11)",
-                    "rgb(239, 68, 68)",
-                    "rgb(59, 130, 246)",
-                  ],
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { position: "bottom" },
-              },
-            },
-          });
-        }
-      }
+      // Duplicate initCharts removed to prevent overwriting the dynamic chart functions.
 
       function setChartRange(days) {
         const filterBtns = document.querySelectorAll(".filter-btn");
@@ -2865,9 +2798,7 @@
           toggleActivityLog();
         }
 
-        // Initialize charts after a delay
         setTimeout(() => {
-          initCharts();
           ActivityLogger.log("Analytics initialized", "success");
         }, 1000);
       });

@@ -61,10 +61,10 @@ class EmailTracker {
   /**
    * Check if email was already sent today (idempotency)
    */
-  async wasEmailSentToday(recipient, templateType) {
+  async wasEmailSentToday(recipient, templateType, timezone = "UTC") {
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const now = new Date();
+      const todayStr = now.toLocaleDateString("en-CA", { timeZone: timezone }); // YYYY-MM-DD
 
       const result = await db("email_tracker")
         .where({
@@ -72,7 +72,7 @@ class EmailTracker {
           template_type: templateType,
           status: "success",
         })
-        .where("sent_at", ">=", today)
+        .whereRaw("DATE(sent_at AT TIME ZONE ?) = ?", [timezone, todayStr])
         .first();
 
       return !!result;

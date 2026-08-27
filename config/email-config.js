@@ -1,6 +1,7 @@
 // config/email-config.js
 const nodemailer = require("nodemailer");
 require("dotenv").config();
+const logger = require("../logger");
 
 /**
  * Validates required SMTP environment variables
@@ -87,19 +88,19 @@ function createTransporter() {
   if (process.env.SMTP_VERIFY_ON_STARTUP !== "false") {
     transporter.verify((error, success) => {
       if (error) {
-        console.error("❌ SMTP configuration error:", error.message);
-        console.error("Please verify your SMTP settings in .env file");
+        logger.error("❌ SMTP configuration error:", error.message);
+        logger.error("Please verify your SMTP settings in .env file");
         // In production, you might want to exit process here
         if (process.env.NODE_ENV === "production") {
-          console.log(
+          logger.info(
             "⚠️  App will start but emails may fail. Consider using API instead."
           );
         }
       } else {
-        console.log("✅ SMTP transporter is ready to send emails");
-        console.log(`   Host: ${config.host}:${config.port}`);
-        console.log(`   Secure: ${config.secure}`);
-        console.log(`   Pool: ${config.pool ? "enabled" : "disabled"}`);
+        logger.info("✅ SMTP transporter is ready to send emails");
+        logger.info(`   Host: ${config.host}:${config.port}`);
+        logger.info(`   Secure: ${config.secure}`);
+        logger.info(`   Pool: ${config.pool ? "enabled" : "disabled"}`);
       }
     });
   }
@@ -117,7 +118,7 @@ async function closeTransporter(transporter) {
   if (transporter?.close) {
     return new Promise((resolve, reject) => {
       transporter.close();
-      console.log("📪 SMTP transporter closed");
+      logger.info("📪 SMTP transporter closed");
       resolve();
     });
   }

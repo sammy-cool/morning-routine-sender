@@ -94,6 +94,7 @@ const errorRotateTransport = new DailyRotateFile({
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || "info",
   defaultMeta: { service: "morning-routine-sender" },
+  exitOnError: false,
   transports: [
     // Console output (human-readable)
     new winston.transports.Console({

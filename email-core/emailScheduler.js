@@ -232,7 +232,7 @@ async function scheduleAllJobs() {
         async () => {
           logger.info("⏰ Cron job triggered", {
             email: user.email,
-            templateType: "basic",
+            templateType: user.templateType || "basic",
             time: new Date().toISOString(),
           });
 

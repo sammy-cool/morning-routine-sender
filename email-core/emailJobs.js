@@ -17,8 +17,8 @@ async function alertAdmin(failedRecipients, type) {
 
   try {
     await transporter.sendMail({
-      from: `Server! ${process.env.FROM_USER}`,
-      to: `Admin! ${adminEmail}`,
+      from: `"Server Alert" <${process.env.FROM_USER}>`,
+      to: adminEmail,
       subject: `Alert: Failed ${type} emails`,
       text: message,
     });

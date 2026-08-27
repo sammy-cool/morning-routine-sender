@@ -5,8 +5,12 @@ const { safeCompare } = require("../helper/util");
 
 // GET /read-db
 async function readDb(req, res) {
+  const isAdminSession = req.cookies?.mrn_session && req.signedCookies?.mrn_role === "admin";
   const expectedKey = process.env.CRON_API_KEY;
-  if (!expectedKey || !safeCompare(req.query.key, expectedKey)) {
+  const apiKey = req.get("x-cron-key") || req.query.key;
+  const isKeyValid = expectedKey && safeCompare(apiKey, expectedKey);
+
+  if (!isAdminSession && !isKeyValid) {
     logger.error("Forbidden");
     return res.status(403).json({ error: "Forbidden" });
   }

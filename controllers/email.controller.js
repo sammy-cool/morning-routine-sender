@@ -13,21 +13,18 @@ async function sendTestEmail(req, res) {
     const { email } = req.body;
     let templateType = req.body.templateType || "basic";
 
+    const isAdminSession = req.cookies?.mrn_session && req.signedCookies?.mrn_role === "admin";
     const expectedKey = process.env.CRON_API_KEY;
-    if (
-      email !== process.env.FROM_USER &&
-      (!expectedKey || !safeCompare(req.query.key, expectedKey))
-    ) {
+    const apiKey = req.get("x-cron-key") || req.query.key;
+    const isKeyValid = expectedKey && safeCompare(apiKey, expectedKey);
+
+    if (!isAdminSession && !isKeyValid) {
       logger.error("Forbidden");
       return res.status(403).json({ error: "Forbidden" });
     }
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
-    }
-
-    if (email === process.env.FROM_USER) {
-      logger.info("⚡ Skipping API key check for ADMIN EMAIL!");
     }
 
     const emailService = require("../email-core/emailService");
@@ -147,8 +144,12 @@ function scheduledJobs(req, res) {
 
 // POST /send-bulk-now
 async function sendBulkNow(req, res) {
+  const isAdminSession = req.cookies?.mrn_session && req.signedCookies?.mrn_role === "admin";
   const expectedKey = process.env.CRON_API_KEY;
-  if (!expectedKey || !safeCompare(req.query.key, expectedKey)) {
+  const apiKey = req.get("x-cron-key") || req.query.key;
+  const isKeyValid = expectedKey && safeCompare(apiKey, expectedKey);
+
+  if (!isAdminSession && !isKeyValid) {
     logger.error("Forbidden");
     return res.status(403).json({ error: "Forbidden" });
   }

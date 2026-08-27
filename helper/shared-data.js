@@ -169,6 +169,7 @@ async function getUsers() {
  * @returns {Promise<object|null>}
  */
 async function getUserByEmail(email) {
+  email = email?.toLowerCase().trim();
   const row = await db("subscribers")
     .where("email", email)
     .select("email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive")
@@ -204,6 +205,7 @@ async function addUser(user) {
  * @returns {Promise<boolean>} true if a row was deleted
  */
 async function removeUser(email) {
+  email = email?.toLowerCase().trim();
   const deleted = await db("subscribers").where("email", email).del();
   if (deleted) {
     logger.info(`🗑️  Subscriber removed: ${email}`);
@@ -220,6 +222,7 @@ async function removeUser(email) {
  * @returns {Promise<boolean>} true if a row was updated
  */
 async function updateUser(email, updates) {
+  email = email?.toLowerCase().trim();
   const patch = { updated_at: db.fn.now() };
   if (updates.templateType !== undefined) patch.template_type = updates.templateType;
   if (updates.cronPattern !== undefined) patch.cron_pattern = updates.cronPattern;
@@ -239,6 +242,7 @@ async function updateUser(email, updates) {
  * @returns {Promise<boolean>} true if a row was updated
  */
 async function setUserActive(email, isActive) {
+  email = email?.toLowerCase().trim();
   const updated = await db("subscribers")
     .where("email", email)
     .update({ is_active: isActive, updated_at: db.fn.now() });
