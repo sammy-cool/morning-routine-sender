@@ -110,7 +110,19 @@ app.use((req, res, next) => {
   res.set("Expires", "0");
   next();
 });
-app.use(cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:2900'];
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(setApiBase);
 app.use(cookieParser(process.env.ADMIN_KEY || 'dev-secret'));
