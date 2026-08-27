@@ -13,6 +13,16 @@ jest.mock("../helper/shared-data", () => ({
   getUserByEmail: jest.fn(),
   updateUser: jest.fn(),
   setUserActive: jest.fn(),
+  recordCheckin: jest.fn(),
+  getTrackContent: jest.fn().mockReturnValue({
+    track: "deep-work",
+    name: "Deep Work & Builder",
+    badge: "⚡ Deep Work & Builder",
+    tagline: "High-focus engineering rituals",
+    ritual: "Select your #1 most critical deliverable.",
+    quote: "Deep work is the ability to focus. - Cal Newport",
+    checklist: ["Hydrate (500ml)", "Silence Notifications"]
+  }),
 }));
 jest.mock("../email-core/emailTracker", () => ({
   getHistory: jest.fn(),
@@ -298,6 +308,56 @@ describe("subscriber portal", () => {
 
       const afterLogout = await agent.get("/me");
       expect(afterLogout.status).toBe(401);
+    });
+  });
+
+  describe("GET /checkin", () => {
+    const { generateActionToken } = require("../helper/unsubscribeToken");
+
+    test("rejects request without email or token", async () => {
+      const res = await request(app).get("/checkin");
+      expect(res.status).toBe(200);
+      expect(res.text).toMatch(/Invalid Check-in Link/i);
+    });
+
+    test("records streak on valid token and renders celebration page", async () => {
+      const email = "streak@example.com";
+      const token = generateActionToken(email, "checkin");
+      sharedData.getUserByEmail.mockResolvedValue({
+        email,
+        streakCount: 3,
+        routineTrack: "deep-work",
+      });
+      sharedData.recordCheckin.mockResolvedValue({
+        success: true,
+        email,
+        streak: 4,
+        alreadyCheckedInToday: false,
+      });
+
+      const res = await request(app).get(`/checkin?email=${encodeURIComponent(email)}&token=${token}`);
+      expect(res.status).toBe(200);
+      expect(res.text).toMatch(/Day 4 Complete/i);
+      expect(sharedData.recordCheckin).toHaveBeenCalledWith(email, undefined);
+    });
+  });
+
+  describe("GET /routine", () => {
+    const { generateActionToken } = require("../helper/unsubscribeToken");
+
+    test("renders interactive routine page for subscriber with token", async () => {
+      const email = "routine@example.com";
+      const token = generateActionToken(email, "routine");
+      sharedData.getUserByEmail.mockResolvedValue({
+        email,
+        streakCount: 5,
+        routineTrack: "deep-work",
+      });
+
+      const res = await request(app).get(`/routine?email=${encodeURIComponent(email)}&token=${token}`);
+      expect(res.status).toBe(200);
+      expect(res.text).toMatch(/Today's Action Ritual/i);
+      expect(res.text).toMatch(/5-Day Streak/i);
     });
   });
 });

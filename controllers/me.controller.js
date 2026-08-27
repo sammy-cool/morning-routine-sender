@@ -31,12 +31,13 @@ async function getMyHistory(req, res) {
   }
 }
 
-// PATCH /me  { templateType?, cronPattern?, timezone?, isActive? }
+// PATCH /me  { templateType?, routineTrack?, cronPattern?, timezone?, isActive? }
 async function updateMe(req, res) {
-  const { templateType, cronPattern, timezone, isActive } = req.body || {};
+  const { templateType, routineTrack, cronPattern, timezone, isActive } = req.body || {};
 
   if (
     templateType === undefined &&
+    routineTrack === undefined &&
     cronPattern === undefined &&
     timezone === undefined &&
     isActive === undefined
@@ -47,7 +48,7 @@ async function updateMe(req, res) {
   // requireEmail: false -- identity here comes from the session
   // (req.subscriberEmail), never from the request body.
   const errors = validateSubscriberInput(
-    { templateType, cronPattern, timezone },
+    { templateType, routineTrack, cronPattern, timezone },
     { requireEmail: false },
   );
   if (errors.length > 0) {
@@ -57,6 +58,7 @@ async function updateMe(req, res) {
   try {
     const updates = {};
     if (templateType !== undefined) updates.templateType = templateType;
+    if (routineTrack !== undefined) updates.routineTrack = routineTrack;
     if (cronPattern !== undefined) updates.cronPattern = cronPattern;
     if (timezone !== undefined) updates.timezone = timezone;
 

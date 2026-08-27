@@ -1,7 +1,7 @@
 <mjml>
   <mj-head>
     <mj-title>Morning Routine • Daily Focus &amp; Inspiration</mj-title>
-    <mj-preview>Your tailored morning routine &amp; daily wisdom is ready</mj-preview>
+    <mj-preview>Your tailored morning routine &amp; habit ritual is ready</mj-preview>
     <mj-attributes>
       <mj-all font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" color="#1e293b" />
       <mj-class name="headline" font-size="28px" font-weight="800" line-height="34px" color="#0f172a" align="center" />
@@ -9,6 +9,7 @@
       <mj-class name="quote" font-size="17px" font-style="italic" line-height="26px" color="#334155" />
       <mj-class name="body-text" font-size="15px" line-height="24px" color="#475569" />
       <mj-class name="btn-primary" background-color="#6366f1" color="#ffffff" font-size="15px" font-weight="700" border-radius="12px" inner-padding="14px 28px" />
+      <mj-class name="btn-streak" background-color="#10b981" color="#ffffff" font-size="14px" font-weight="700" border-radius="10px" inner-padding="12px 22px" />
     </mj-attributes>
     <mj-style inline="inline">
       .brand-badge {
@@ -21,10 +22,22 @@
         font-weight: 700;
         letter-spacing: 0.5px;
         text-transform: uppercase;
+        margin: 0 4px;
+      }
+      .streak-badge {
+        display: inline-block;
+        padding: 4px 14px;
+        background-color: #fef3c7;
+        color: #b45309;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin: 0 4px;
       }
       .card-box {
         background-color: #ffffff;
-        border-radius: 16px;
+        border-radius: 20px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
       }
       .quote-container {
@@ -52,13 +65,14 @@
 
     <!-- Main Card -->
     <mj-wrapper background-color="#ffffff" border-radius="20px" padding="30px 24px" css-class="card-box">
-      <!-- Header / Logo / Badge -->
+      <!-- Header / Logo / Badges -->
       <mj-section padding="0 0 20px 0">
         <mj-column>
           <mj-text align="center">
-            <span class="brand-badge">✨ Day {{dayNumber}} • Daily Routine</span>
+            <span class="brand-badge">{{trackBadge}}</span>
+            <span class="streak-badge">🔥 {{streakBadge}}</span>
           </mj-text>
-          <mj-text mj-class="headline" padding="12px 0 6px 0">
+          <mj-text mj-class="headline" padding="14px 0 6px 0">
             Rise. Focus. Make Today Count.
           </mj-text>
           <mj-text mj-class="subhead" padding="0">
@@ -80,7 +94,7 @@
       </mj-section>
 
       <!-- Actionable Focus Tip -->
-      <mj-section padding="0 0 20px 0">
+      <mj-section padding="0 0 15px 0">
         <mj-column>
           <mj-text font-size="16px" font-weight="700" color="#0f172a" padding="0 0 8px 0">
             🎯 Today's Actionable Ritual
@@ -94,9 +108,21 @@
         </mj-column>
       </mj-section>
 
+      <!-- Habit Streak Check-in Callout -->
+      <mj-section padding="10px 0 20px 0">
+        <mj-column>
+          <mj-text align="center" font-size="13px" color="#64748b" padding="0 0 10px 0">
+            Completed your morning ritual? Log today's progress with 1 click:
+          </mj-text>
+          <mj-button mj-class="btn-streak" href="{{checkinUrl}}" align="center">
+            ⚡ I Completed My Routine (Maintain Streak)
+          </mj-button>
+        </mj-column>
+      </mj-section>
+
       <!-- Trending News Section (Conditional) -->
       {{#if trendingNews}}
-      <mj-section padding="20px 0 10px 0">
+      <mj-section padding="10px 0 10px 0">
         <mj-column>
           <mj-divider border-width="1px" border-color="#f1f5f9" padding="0 0 16px 0" />
           <mj-text font-size="16px" font-weight="700" color="#0f172a" padding="0 0 12px 0">
