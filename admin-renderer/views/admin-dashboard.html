@@ -1,561 +1,385 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-
     <meta
       name="description"
-      content="Morning Routine Email Sender - Professional admin dashboard with automated scheduling, analytics, and real-time monitoring"
+      content="Morning Routine Email Sender - Next-Gen Admin Command Center with automated scheduling, analytics, subscriber management, and real-time monitoring"
     />
-    <meta
-      name="keywords"
-      content="email automation, admin dashboard, morning routine, scheduled emails, analytics"
-    />
-
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="author" content="Priyanshu" />
-    <meta name="theme-color" content="#4f46e5" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="MR Sender" />
+    <meta name="theme-color" content="#090d16" />
+    <title>Morning Routine • Admin Command Center</title>
 
-    <meta
-      property="og:title"
-      content="Morning Routine Sender - Admin Dashboard"
-    />
-    <meta
-      property="og:description"
-      content="Professional email automation dashboard"
-    />
-    <meta property="og:type" content="website" />
-
-    <title>Morning Routine Sender - Professional Dashboard</title>
-
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="64x64"
-      href="/assets/mrn-brand-ico.png"
-    />
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/mrn-brand-ico.png" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-
     <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous"
+    />
 
-    <script src="/js/npm-mod/customizable-toast-notification.js" defer></script>
+    <!-- Toast Notification & Chart.js -->
     <script
       src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
       defer
       crossorigin="anonymous"
     ></script>
-
     <script src="/vendor/js/chart.umd.min.js" defer></script>
-
-    <script src="/js/settings-manager.js" defer></script>
-    <script src="/js/analytics-handler.js" defer></script>
-    <script>
-      (function adminOfflineGuard() {
-        function blockAdminIfOffline() {
-          if (!navigator.onLine) {
-            // Immediately destroy admin session
-            fetch("/logout", { method: "POST", credentials: "include" }).catch(
-              () => {},
-            );
-            globalThis.location.replace("/offline");
-          }
-        }
-
-        // Check immediately
-        blockAdminIfOffline();
-
-        // Monitor connection loss
-        globalThis.addEventListener("offline", blockAdminIfOffline);
-      })();
-    </script>
-
-    <script>
-      // 📊 Email Trends Chart Initialization (7 days by default)
-      async function renderEmailTrends(range = 7) {
-        const ctx = document.getElementById("emailTrendsChart");
-        if (!ctx || typeof Chart === "undefined") return;
-
-        // Loading state
-        ctx.parentElement.classList.add("skeleton");
-
-        try {
-          const stats = await globalThis.AnalyticsHandler.getEmailTrends(range);
-          // Basic expected shape: stats.daily = [{date: '2025-10-25', count: 8}, ...]
-          const labels = (stats.daily || []).map((d) => d.date);
-          const data = (stats.daily || []).map((d) => d.count);
-
-          if (globalThis.emailTrendsChart) {
-            globalThis.emailTrendsChart.destroy();
-          }
-          globalThis.emailTrendsChart = new Chart(ctx, {
-            type: "line",
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  label: "Emails Sent",
-                  data: data,
-                  borderColor: "#4f46e5",
-                  backgroundColor: "rgba(79,70,229,0.12)",
-                  tension: 0.33,
-                  fill: true,
-                },
-              ],
-            },
-            options: {
-              plugins: { legend: { display: false } },
-              responsive: true,
-              scales: { y: { beginAtZero: true } },
-            },
-          });
-          ActivityLogger.log(
-            `Email analytics updated (last ${range}d)`,
-            "info",
-          );
-        } catch (err) {
-          ActivityLogger.log(
-            `Could not load email stats (offline?): ${err}`,
-            "warning",
-          );
-          ToastManager.error("Could not load email stats (offline?)");
-        }
-        ctx.parentElement.classList.remove("skeleton");
-      }
-
-      // Scoped to just this chart's own filter buttons (not
-      // document-wide like setChartRange, which also has a pending TODO
-      // and doesn't actually refetch on click) -- toggles which button
-      // looks active, then calls the real refetch.
-      function setSubscriberGrowthRange(button, days) {
-        const container = button.closest(".chart-filters");
-        for (const btn of container.querySelectorAll(".filter-btn")) {
-          btn.classList.remove("active");
-        }
-        button.classList.add("active");
-        renderSubscriberGrowth(days);
-      }
-
-      // 👥 Subscriber Growth Chart -- uses apiCall() + GET /admin/subscribers/stats
-      // rather than AnalyticsHandler (that helper is specific to email-send
-      // analytics; subscriber counts are a different data source).
-      async function renderSubscriberGrowth(days = 30) {
-        const ctx = document.getElementById("subscriberGrowthChart");
-        if (!ctx || typeof Chart === "undefined") return;
-
-        ctx.parentElement.classList.add("skeleton");
-
-        try {
-          const result = await apiCall(`/admin/subscribers/stats?days=${days}`);
-          if (!result.success || !result.data) {
-            throw new Error(
-              (result.data && result.data.error) || "Request failed",
-            );
-          }
-
-          const stats = result.data;
-          const summaryEl = document.getElementById("subscriberStatsSummary");
-          if (summaryEl) {
-            summaryEl.textContent = `${stats.total} total · ${stats.active} active · ${stats.paused} paused`;
-          }
-
-          const labels = (stats.growth || []).map((d) => d.date);
-          const data = (stats.growth || []).map((d) => d.count);
-
-          if (globalThis.subscriberGrowthChart) {
-            globalThis.subscriberGrowthChart.destroy();
-          }
-          globalThis.subscriberGrowthChart = new Chart(ctx, {
-            type: "line",
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  label: "New subscribers",
-                  data: data,
-                  borderColor: "#10b981",
-                  backgroundColor: "rgba(16,185,129,0.12)",
-                  tension: 0.33,
-                  fill: true,
-                },
-              ],
-            },
-            options: {
-              plugins: { legend: { display: false } },
-              responsive: true,
-              scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
-            },
-          });
-          ActivityLogger.log(
-            `Subscriber growth updated (last ${days}d)`,
-            "info",
-          );
-        } catch (err) {
-          ActivityLogger.log(
-            `Could not load subscriber stats: ${err}`,
-            "warning",
-          );
-          ToastManager.error("Could not load subscriber stats");
-        }
-        ctx.parentElement.classList.remove("skeleton");
-      }
-
-      // 📊 Template Usage Pie/Doughnut
-      async function renderTemplateUsage() {
-        const ctx = document.getElementById("templateUsageChart");
-        if (!ctx || typeof Chart === "undefined") return;
-        ctx.parentElement.classList.add("skeleton");
-        try {
-          const stats = await globalThis.AnalyticsHandler.getTemplatesUsage();
-          // stats = {counts: {'default': 50, ...}}
-          const labels = Object.keys(stats.counts || {});
-          const data = Object.values(stats.counts || {});
-          const bgColors = [
-            "#4f46e5",
-            "#7c3aed",
-            "#10b981",
-            "#f59e0b",
-            "#ef4444",
-            "#3b82f6",
-          ];
-
-          if (globalThis.templateUsageChart) {
-            globalThis.templateUsageChart.destroy();
-          }
-          globalThis.templateUsageChart = new Chart(ctx, {
-            type: "doughnut",
-            data: {
-              labels,
-              datasets: [{ data, backgroundColor: bgColors, hoverOffset: 6 }],
-            },
-            options: { plugins: { legend: { position: "bottom" } } },
-          });
-          ActivityLogger.log("Template usage updated", "info");
-        } catch (err) {
-          ActivityLogger.log(
-            `Could not load template stats (offline?): ${err}`,
-            "warning",
-          );
-          ToastManager.error("Could not load template stats (offline?)");
-        }
-        ctx.parentElement.classList.remove("skeleton");
-      }
-
-      // 📅 Button/Tab bindings for range switching
-      globalThis.setChartRange = function (days) {
-        renderEmailTrends(days);
-        const filterBtns = document.querySelectorAll(".filter-btn");
-        for (const btn of filterBtns) {
-          btn.classList.remove("active");
-        }
-        if (event && event.target) {
-          event.target.classList.add("active");
-        }
-      };
-
-      globalThis.addEventListener("DOMContentLoaded", () => {
-        renderEmailTrends(7);
-        renderTemplateUsage();
-        renderSubscriberGrowth(30);
-      });
-
-      // Theme
-      document.addEventListener("DOMContentLoaded", () => {
-        const themeSetting = document.getElementById("themeSetting");
-        if (themeSetting) {
-          themeSetting.addEventListener("change", (e) => {
-            SettingsManager.set("theme", e.target.value);
-            ToastManager.info(`Theme: ${e.target.value}`);
-            // Additional: Apply to <html>
-            document.documentElement.dataset.theme = e.target.value;
-            document.getElementById("themeIcon").className =
-              e.target.value === "dark" ? "fas fa-sun" : "fas fa-moon";
-          });
-        }
-
-        // Toast position
-        const toastPosition = document.getElementById("toastPosition");
-        if (toastPosition) {
-          toastPosition.addEventListener("change", (e) => {
-            SettingsManager.set("toastPosition", e.target.value);
-            ToastManager.info(`Toast position: ${e.target.value}`);
-          });
-        }
-
-        // Notification sound
-        const notificationSound = document.getElementById("notificationSound");
-        if (notificationSound) {
-          notificationSound.addEventListener("change", (e) => {
-            SettingsManager.set("notificationSound", e.target.checked);
-            ToastManager.info(e.target.checked ? "Sound On" : "Sound Off");
-          });
-        }
-
-        // Default template
-        const defaultTemplate = document.getElementById("defaultTemplate");
-        if (defaultTemplate) {
-          defaultTemplate.addEventListener("change", (e) => {
-            SettingsManager.set("defaultTemplate", e.target.value);
-            ToastManager.info(`Default template: ${e.target.value}`);
-          });
-        }
-      });
-
-      async function loadSettingsValues() {
-        document.getElementById("themeSetting").value =
-          await SettingsManager.get("theme", "light");
-        document.getElementById("toastPosition").value =
-          await SettingsManager.get("toastPosition", "top-right");
-        document.getElementById("notificationSound").checked =
-          await SettingsManager.get("notificationSound", false);
-        document.getElementById("defaultTemplate").value =
-          await SettingsManager.get("defaultTemplate", "default");
-      }
-
-      globalThis.addEventListener("DOMContentLoaded", async () => {
-        const theme = await SettingsManager.get("theme", "light");
-        document.documentElement.dataset.theme = theme;
-        document.getElementById("themeIcon").className =
-          theme === "dark" ? "fas fa-sun" : "fas fa-moon";
-      });
-
-      function logAnalyticsSnapshot(type, data) {
-        ActivityLogger.log(`${type} updated: ${JSON.stringify(data)}`, "info");
-      }
-    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+      defer
+      crossorigin="anonymous"
+    ></script>
 
     <style>
       :root {
-        /* Professional Color Palette */
-        --primary: #4f46e5;
-        --primary-dark: #4338ca;
-        --primary-light: #6366f1;
-        --secondary: #7c3aed;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --info: #3b82f6;
-
-        /* Neutral Colors */
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-
-        /* Light Theme (Default) */
-        --bg-primary: #ffffff;
-        --bg-secondary: var(--gray-50);
-        --text-primary: var(--gray-900);
-        --text-secondary: var(--gray-600);
-        --border-color: var(--gray-200);
-        --shadow: rgba(0, 0, 0, 0.1);
-
-        /* Spacing */
-        --spacing-xs: 4px;
-        --spacing-sm: 8px;
-        --spacing-md: 16px;
-        --spacing-lg: 24px;
-        --spacing-xl: 32px;
-
-        /* Border Radius */
-        --radius-sm: 6px;
-        --radius-md: 10px;
-        --radius-lg: 16px;
-        --radius-xl: 24px;
-
-        /* Transitions */
-        --transition-fast: 150ms;
-        --transition-normal: 250ms;
-        --transition-slow: 350ms;
-      }
-
-      /* Dark Theme */
-      [data-theme="dark"] {
-        --bg-primary: var(--gray-900);
-        --bg-secondary: var(--gray-800);
-        --text-primary: var(--gray-50);
-        --text-secondary: var(--gray-400);
-        --border-color: var(--gray-700);
-        --shadow: rgba(0, 0, 0, 0.3);
+        --bg-main: #07090e;
+        --bg-surface: rgba(15, 23, 42, 0.65);
+        --bg-surface-elevated: rgba(30, 41, 59, 0.7);
+        --bg-card: rgba(17, 24, 39, 0.75);
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --border-hover: rgba(99, 102, 241, 0.4);
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.35);
+        --primary-hover: #4f46e5;
+        --accent-cyan: #06b6d4;
+        --accent-emerald: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #f43f5e;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --text-subtle: #64748b;
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+        --shadow-glow: 0 0 25px -5px var(--primary-glow);
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       * {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
+        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
 
       body {
-        font-family:
-          "Inter",
-          -apple-system,
-          BlinkMacSystemFont,
-          sans-serif;
-        background: var(--bg-secondary);
-        color: var(--text-primary);
-        line-height: 1.6;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
         overflow-x: hidden;
-        transition:
-          background-color var(--transition-normal),
-          color var(--transition-normal);
+        background-image: 
+          radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+          radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
+          radial-gradient(at 50% 100%, rgba(244, 63, 94, 0.06) 0px, transparent 50%);
+        background-attachment: fixed;
       }
 
-      /* Top Bar */
-      .topbar {
-        position: fixed;
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+      ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
+      /* Sidebar */
+      aside.sidebar {
+        width: 280px;
+        background: rgba(11, 15, 25, 0.85);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid var(--border-subtle);
+        padding: 24px 18px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: sticky;
         top: 0;
-        left: 0;
-        right: 0;
-        height: 64px;
-        background: var(--bg-primary);
-        border-bottom: 1px solid var(--border-color);
+        height: 100vh;
+        z-index: 40;
+        transition: var(--transition);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 6px 12px 24px;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+
+      .brand-icon {
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #fff;
+        box-shadow: 0 4px 15px var(--primary-glow);
+      }
+
+      .brand-title {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        background: linear-gradient(to right, #fff, #cbd5e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .brand-badge {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 20px;
+      }
+
+      .nav-group {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .nav-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-subtle);
+        padding: 8px 12px;
+        font-weight: 700;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px;
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: var(--transition);
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+
+      .nav-link i {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+        color: var(--text-subtle);
+        transition: var(--transition);
+      }
+
+      .nav-link:hover, .nav-link.active {
+        color: #fff;
+        background: rgba(99, 102, 241, 0.12);
+        border-color: rgba(99, 102, 241, 0.25);
+      }
+
+      .nav-link:hover i, .nav-link.active i {
+        color: #818cf8;
+      }
+
+      .nav-link.active {
+        box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.25);
+      }
+
+      .sidebar-footer {
+        padding-top: 18px;
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .system-pill {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 var(--spacing-xl);
-        z-index: 1000;
-        box-shadow: 0 2px 8px var(--shadow);
-      }
-
-      .topbar-left {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-      }
-
-      .topbar-logo {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--primary);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-      }
-
-      .topbar-right {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-      }
-
-      .status-indicator {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        padding: var(--spacing-sm) var(--spacing-md);
-        background: var(--bg-secondary);
+        padding: 10px 12px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--border-subtle);
         border-radius: var(--radius-md);
-        font-size: 0.875rem;
-        font-weight: 500;
+        font-size: 12px;
       }
 
-      .status-dot {
+      .pulse-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: var(--success);
+        background-color: var(--accent-emerald);
+        box-shadow: 0 0 10px var(--accent-emerald);
         animation: pulse 2s infinite;
       }
 
       @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.85); }
       }
 
-      .theme-toggle {
-        width: 40px;
-        height: 40px;
-        border-radius: var(--radius-md);
-        border: none;
-        background: var(--bg-secondary);
-        color: var(--text-primary);
-        cursor: pointer;
+      /* Main Content */
+      main.main-content {
+        flex: 1;
+        padding: 32px 40px;
+        max-width: 1600px;
+        margin: 0 auto;
+        width: 100%;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all var(--transition-fast);
+        flex-direction: column;
+        gap: 32px;
       }
 
-      .theme-toggle:hover {
-        background: var(--border-color);
-        transform: scale(1.05);
-      }
-
-      /* Main Container */
-      .main-container {
-        margin-top: 64px;
-        padding: var(--spacing-xl);
-        max-width: 1400px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      /* Section Headers */
-      .section-header {
-        margin-bottom: var(--spacing-lg);
+      /* Top Header */
+      header.topbar {
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
       }
 
-      .section-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary);
+      .header-title-wrap h1 {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+
+      .header-title-wrap p {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .header-actions {
         display: flex;
         align-items: center;
-        gap: var(--spacing-sm);
+        gap: 12px;
       }
 
-      /* Stats Grid */
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        border: 1px solid transparent;
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: #fff;
+        box-shadow: 0 4px 14px var(--primary-glow);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+      }
+
+      .btn-glass {
+        background: var(--bg-surface-elevated);
+        border-color: var(--border-subtle);
+        color: var(--text-main);
+        backdrop-filter: blur(12px);
+      }
+      .btn-glass:hover {
+        background: rgba(51, 65, 85, 0.8);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      .btn-danger {
+        background: rgba(244, 63, 94, 0.15);
+        color: #fb7185;
+        border-color: rgba(244, 63, 94, 0.3);
+      }
+      .btn-danger:hover {
+        background: rgba(244, 63, 94, 0.25);
+        color: #fff;
+      }
+
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: var(--radius-sm);
+      }
+
+      /* Quick Command Trigger */
+      .cmd-trigger {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        padding: 9px 14px;
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+      .cmd-trigger:hover {
+        border-color: var(--border-hover);
+        color: #fff;
+      }
+      .cmd-badge {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 2px 6px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* KPI Stat Grid */
       .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--spacing-lg);
-        margin-bottom: var(--spacing-xl);
+        gap: 20px;
       }
 
       .stat-card {
-        background: var(--bg-primary);
-        padding: var(--spacing-lg);
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
-        border: 1px solid var(--border-color);
-        cursor: pointer;
-        transition: all var(--transition-normal);
+        padding: 22px 24px;
         position: relative;
         overflow: hidden;
+        transition: var(--transition);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
       }
 
       .stat-card::before {
@@ -564,1278 +388,1021 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary), var(--secondary));
-        opacity: 0;
-        transition: opacity var(--transition-normal);
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--stat-accent, var(--primary)), transparent);
+        opacity: 0.8;
       }
 
-      .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px var(--shadow);
-      }
-
-      .stat-card:hover::before {
-        opacity: 1;
-      }
-
-      .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: var(--radius-md);
+      .stat-header {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: var(--spacing-md);
-      }
-
-      .stat-card.primary .stat-icon {
-        background: rgba(79, 70, 229, 0.1);
-        color: var(--primary);
-      }
-
-      .stat-card.success .stat-icon {
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--success);
-      }
-
-      .stat-card.warning .stat-icon {
-        background: rgba(245, 158, 11, 0.1);
-        color: var(--warning);
-      }
-
-      .stat-card.info .stat-icon {
-        background: rgba(59, 130, 246, 0.1);
-        color: var(--info);
-      }
-
-      .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: var(--spacing-xs);
       }
 
       .stat-label {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-      }
-
-      /* Actions Grid */
-      .actions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: var(--spacing-lg);
-        margin-bottom: var(--spacing-xl);
-      }
-
-      .action-card {
-        background: var(--bg-primary);
-        padding: var(--spacing-lg);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--border-color);
-        transition: all var(--transition-normal);
-      }
-
-      .action-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px var(--shadow);
-      }
-
-      .action-card-header {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        margin-bottom: var(--spacing-sm);
-      }
-
-      .action-card-title {
-        font-size: 1.125rem;
+        font-size: 13px;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
-      .action-card-desc {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin-bottom: var(--spacing-md);
-        line-height: 1.5;
-      }
-
-      /* Buttons */
-      .btn {
-        width: 100%;
-        padding: 12px 20px;
-        border: none;
+      .stat-icon-wrap {
+        width: 38px;
+        height: 38px;
         border-radius: var(--radius-md);
-        font-size: 0.9375rem;
-        font-weight: 600;
-        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-fast);
-        position: relative;
-        overflow: hidden;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--stat-accent, var(--primary));
+        font-size: 16px;
       }
 
-      .btn::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        transform: translate(-50%, -50%);
-        transition:
-          width var(--transition-slow),
-          height var(--transition-slow);
+      .stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -1px;
+        margin-top: 14px;
       }
 
-      .btn:hover::before {
-        width: 300px;
-        height: 300px;
-      }
-
-      .btn:focus {
-        outline: 3px solid rgba(79, 70, 229, 0.3);
-        outline-offset: 2px;
-      }
-
-      .btn-primary {
-        background: var(--primary);
-        color: white;
-      }
-
-      .btn-primary:hover {
-        background: var(--primary-dark);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
-      }
-
-      .btn-success {
-        background: var(--success);
-        color: white;
-      }
-
-      .btn-success:hover {
-        background: #059669;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
-      }
-
-      .btn-warning {
-        background: var(--warning);
-        color: white;
-      }
-
-      .btn-warning:hover {
-        background: #d97706;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
-      }
-
-      .btn-danger {
-        background: var(--danger);
-        color: white;
-      }
-
-      .btn-danger:hover {
-        background: #dc2626;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
-      }
-
-      .btn-info {
-        background: var(--info);
-        color: white;
-      }
-
-      .btn-info:hover {
-        background: #2563eb;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
-      }
-
-      .btn-secondary {
-        background: var(--secondary);
-        color: white;
-      }
-
-      .btn-secondary:hover {
-        background: #6d28d9;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(124, 58, 237, 0.3);
-      }
-
-      .btn + .btn {
-        margin-top: var(--spacing-sm);
-      }
-
-      /* Activity Log Sidebar */
-      .activity-sidebar {
-        position: fixed;
-        right: -350px;
-        top: 64px;
-        bottom: 0;
-        width: 350px;
-        background: var(--bg-primary);
-        border-left: 1px solid var(--border-color);
-        padding: var(--spacing-lg);
-        overflow-y: auto;
-        transition: right var(--transition-normal);
-        z-index: 999;
-        box-shadow: -4px 0 12px var(--shadow);
-      }
-
-      .activity-sidebar.open {
-        right: 0;
-      }
-
-      .activity-header {
+      .stat-footer {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: var(--spacing-lg);
-        padding-bottom: var(--spacing-md);
-        border-bottom: 1px solid var(--border-color);
+        gap: 8px;
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--text-subtle);
       }
 
-      .activity-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-      }
-
-      .activity-close {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 1.25rem;
-        color: var(--text-secondary);
-        padding: var(--spacing-xs);
-      }
-
-      .activity-item {
-        padding: var(--spacing-md);
-        border-left: 3px solid var(--primary);
-        background: var(--bg-secondary);
-        border-radius: var(--radius-sm);
-        margin-bottom: var(--spacing-sm);
-        font-size: 0.875rem;
-      }
-
-      .activity-time {
-        color: var(--text-secondary);
-        font-size: 0.75rem;
-        margin-top: var(--spacing-xs);
-      }
-
-      /* FAB */
-      .fab {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        color: white;
-        border: none;
-        cursor: pointer;
-        display: flex;
+      .stat-badge-trend {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
-        transition: all var(--transition-fast);
-        z-index: 998;
+        gap: 4px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+      }
+      .trend-up { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+      .trend-info { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+
+      /* Visual Analytics & Charts */
+      .analytics-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
       }
 
-      .fab:hover {
-        transform: scale(1.1) rotate(15deg);
-        box-shadow: 0 12px 32px rgba(79, 70, 229, 0.6);
+      @media (max-width: 1100px) {
+        .analytics-grid { grid-template-columns: 1fr; }
+        aside.sidebar { display: none; }
+        main.main-content { padding: 20px; }
       }
 
-      /* Footer */
-      .footer {
-        margin-top: var(--spacing-xl);
-        padding: var(--spacing-lg);
-        text-align: center;
-        background: var(--bg-primary);
-        border-top: 1px solid var(--border-color);
+      .card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-      }
-
-      .footer a {
-        color: var(--primary);
-        font-weight: 600;
-        text-decoration: none;
-        transition: color var(--transition-fast);
-      }
-
-      .footer a:hover {
-        color: var(--primary-dark);
-        text-decoration: underline;
-      }
-
-      /* Responsive */
-      @media (max-width: 768px) {
-        .topbar {
-          padding: 0 var(--spacing-md);
-        }
-
-        .topbar-logo {
-          font-size: 1.25rem;
-        }
-
-        .main-container {
-          padding: var(--spacing-md);
-        }
-
-        .stats-grid,
-        .actions-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .activity-sidebar {
-          width: 100%;
-          right: -100%;
-        }
-
-        .fab {
-          bottom: 16px;
-          right: 16px;
-        }
-      }
-
-      /* Loading Animation */
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .loading {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top-color: white;
-        animation: spin 0.8s linear infinite;
-      }
-
-      /* ========== NEW: Settings Panel Styles ========== */
-      .settings-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        animation: fadeIn 0.3s;
-      }
-
-      .settings-modal.active {
+        padding: 24px;
         display: flex;
+        flex-direction: column;
+        gap: 18px;
       }
 
-      .settings-panel {
-        background: var(--bg-primary);
-        border-radius: var(--radius-xl);
-        padding: var(--spacing-xl);
-        max-width: 500px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      }
-
-      .settings-header {
+      .card-header {
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        margin-bottom: var(--spacing-lg);
-        padding-bottom: var(--spacing-md);
-        border-bottom: 1px solid var(--border-color);
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
       }
 
-      .settings-title {
-        font-size: 1.5rem;
+      .card-title {
+        font-size: 17px;
         font-weight: 700;
         display: flex;
         align-items: center;
-        gap: var(--spacing-sm);
+        gap: 10px;
       }
 
-      .settings-close {
-        background: none;
+      .card-title i {
+        color: var(--primary);
+      }
+
+      .range-btn-group {
+        display: flex;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 3px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-subtle);
+      }
+
+      .range-btn {
+        background: transparent;
         border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: var(--text-secondary);
-        padding: var(--spacing-xs);
-      }
-
-      .settings-group {
-        margin-bottom: var(--spacing-lg);
-      }
-
-      .settings-group-title {
-        font-size: 0.875rem;
+        color: var(--text-muted);
+        padding: 4px 10px;
+        font-size: 12px;
         font-weight: 600;
-        text-transform: uppercase;
-        color: var(--text-secondary);
-        margin-bottom: var(--spacing-sm);
-      }
-
-      .settings-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: var(--spacing-md);
-        background: var(--bg-secondary);
-        border-radius: var(--radius-md);
-        margin-bottom: var(--spacing-sm);
-      }
-
-      .settings-item-label {
-        font-weight: 500;
-      }
-
-      .settings-item-desc {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-      }
-
-      /* Subscribers modal -- reuses .settings-header/.settings-title/
-         .settings-close as-is (generic layout, not settings-specific
-         despite the name), but needs its own wider panel since it holds
-         a table instead of a settings list. */
-      .subscribers-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        animation: fadeIn 0.3s;
-      }
-
-      .subscribers-modal.active {
-        display: flex;
-      }
-
-      .subscribers-panel {
-        background: var(--bg-primary);
-        border-radius: var(--radius-xl);
-        padding: var(--spacing-xl);
-        max-width: 720px;
-        width: 92%;
-        max-height: 85vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      }
-
-      .subscriber-add-form {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--spacing-sm);
-        align-items: flex-end;
-        background: var(--bg-secondary);
-        border-radius: var(--radius-md);
-        padding: var(--spacing-md);
-        margin-bottom: var(--spacing-lg);
-      }
-
-      .subscriber-add-form .form-field {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .subscriber-add-form label {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-      }
-
-      .subscriber-add-form input {
-        padding: 8px 10px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border-color);
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        font-size: 0.875rem;
-      }
-
-      .subscriber-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--spacing-sm);
-        padding: var(--spacing-md);
-        background: var(--bg-secondary);
-        border-radius: var(--radius-md);
-        margin-bottom: var(--spacing-sm);
-      }
-
-      .subscriber-row.paused {
-        opacity: 0.6;
-      }
-
-      .subscriber-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-
-      .subscriber-email {
-        font-weight: 600;
-      }
-
-      .subscriber-meta {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-      }
-
-      .subscriber-actions {
-        display: flex;
-        gap: 6px;
-        flex-shrink: 0;
-      }
-
-      .subscriber-actions .btn {
-        padding: 6px 10px;
-        font-size: 0.8rem;
-      }
-
-      .toggle-switch {
-        position: relative;
-        width: 48px;
-        height: 24px;
-      }
-
-      .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-
-      .toggle-slider {
-        position: absolute;
+        border-radius: 6px;
         cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--gray-300);
-        border-radius: 24px;
-        transition: 0.3s;
+        transition: var(--transition);
       }
 
-      .toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-        background: white;
-        border-radius: 50%;
-        transition: 0.3s;
-      }
-
-      input:checked + .toggle-slider {
+      .range-btn.active {
         background: var(--primary);
-      }
-
-      input:checked + .toggle-slider:before {
-        transform: translateX(24px);
-      }
-
-      select {
-        padding: var(--spacing-sm) var(--spacing-md);
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border-color);
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        font-size: 0.875rem;
-        cursor: pointer;
-      }
-
-      /* ========== NEW: Analytics Panel Styles ========== */
-      .analytics-section {
-        margin-top: var(--spacing-xl);
+        color: #fff;
       }
 
       .chart-container {
-        background: var(--bg-primary);
-        padding: var(--spacing-lg);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--border-color);
-        margin-bottom: var(--spacing-lg);
+        position: relative;
+        height: 280px;
+        width: 100%;
       }
 
-      .chart-header {
+      /* Subscribers Command Center Section */
+      .subscribers-control-bar {
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        margin-bottom: var(--spacing-md);
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
       }
 
-      .chart-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-      }
-
-      .chart-filters {
-        display: flex;
-        gap: var(--spacing-sm);
-      }
-
-      .filter-btn {
-        padding: var(--spacing-xs) var(--spacing-md);
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border-color);
-        background: var(--bg-secondary);
-        color: var(--text-primary);
-        font-size: 0.75rem;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .filter-btn.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-      }
-
-      /* ========== NEW: Install Prompt ========== */
-      .install-prompt {
-        position: fixed;
-        bottom: 80px;
-        right: 24px;
-        background: var(--bg-primary);
-        padding: var(--spacing-md);
-        border-radius: var(--radius-lg);
-        box-shadow: 0 8px 24px var(--shadow);
-        border: 1px solid var(--border-color);
-        max-width: 300px;
-        display: none;
-        animation: slideUp 0.3s;
-        z-index: 997;
-      }
-
-      .install-prompt.show {
-        display: block;
-      }
-
-      @keyframes slideUp {
-        from {
-          transform: translateY(20px);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-      .install-prompt-header {
+      .search-filter-wrap {
         display: flex;
         align-items: center;
-        gap: var(--spacing-sm);
-        margin-bottom: var(--spacing-sm);
-        font-weight: 600;
-      }
-
-      .install-prompt-text {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin-bottom: var(--spacing-md);
-      }
-
-      .install-prompt-actions {
-        display: flex;
-        gap: var(--spacing-sm);
-      }
-
-      .install-btn-small {
+        gap: 12px;
         flex: 1;
-        padding: var(--spacing-sm);
-        border-radius: var(--radius-sm);
-        border: none;
-        font-size: 0.875rem;
-        font-weight: 600;
+        max-width: 600px;
+      }
+
+      .search-box {
+        position: relative;
+        flex: 1;
+      }
+
+      .search-box i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-subtle);
+        font-size: 14px;
+      }
+
+      .input-text {
+        width: 100%;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 10px 14px 10px 40px;
+        color: var(--text-main);
+        font-size: 14px;
+        outline: none;
+        transition: var(--transition);
+      }
+      .input-text:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 15px -3px var(--primary-glow);
+      }
+
+      .filter-select {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 10px 14px;
+        color: var(--text-main);
+        font-size: 13px;
+        outline: none;
         cursor: pointer;
       }
 
-      .install-btn-small.primary {
-        background: var(--primary);
-        color: white;
+      /* Modern Data Table */
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
       }
 
-      .install-btn-small.secondary {
-        background: var(--bg-secondary);
-        color: var(--text-primary);
+      table.custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 13px;
+      }
+
+      table.custom-table th {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-subtle);
+        background: rgba(15, 23, 42, 0.4);
+      }
+
+      table.custom-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-subtle);
+        vertical-align: middle;
+      }
+
+      table.custom-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .user-avatar-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(6, 182, 212, 0.3));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        color: #e2e8f0;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+
+      .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+      .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+      .badge-template { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+      .badge-tz { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--text-muted); background: rgba(255, 255, 255, 0.05); }
+
+      .table-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .action-icon-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: var(--transition);
+      }
+      .action-icon-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+      .action-icon-btn.btn-trash:hover {
+        background: rgba(244, 63, 94, 0.2);
+        color: #fb7185;
+        border-color: rgba(244, 63, 94, 0.3);
+      }
+
+      /* Template Studio & Email Testing */
+      .template-studio-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
+      .template-card-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+      }
+
+      .template-pill {
+        padding: 12px;
+        border-radius: var(--radius-md);
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid var(--border-subtle);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+      }
+
+      .template-pill i {
+        font-size: 18px;
+        color: var(--text-subtle);
+        transition: var(--transition);
+      }
+
+      .template-pill span {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .template-pill:hover, .template-pill.selected {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.12);
+      }
+
+      .template-pill.selected i {
+        color: #818cf8;
+      }
+
+      /* Live Activity Feed */
+      .activity-stream {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 360px;
+        overflow-y: auto;
+        padding-right: 6px;
+      }
+
+      .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: var(--radius-md);
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid var(--border-subtle);
+        font-size: 13px;
+      }
+
+      .activity-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      .activity-icon.info { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+      .activity-icon.success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+      .activity-icon.error { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+
+      .activity-body {
+        flex: 1;
+      }
+
+      .activity-time {
+        font-size: 11px;
+        color: var(--text-subtle);
+        margin-top: 4px;
+      }
+
+      /* Modals */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(10px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+        opacity: 1;
+      }
+
+      .modal-dialog {
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 540px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        transform: scale(0.95);
+        transition: transform 0.2s ease;
+      }
+
+      .modal-backdrop.open .modal-dialog {
+        transform: scale(1);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-title {
+        font-size: 19px;
+        font-weight: 700;
+      }
+
+      .close-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 18px;
+        cursor: pointer;
+      }
+      .close-btn:hover { color: #fff; }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      .form-control {
+        width: 100%;
+        background: rgba(10, 15, 29, 0.8);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 11px 14px;
+        color: #fff;
+        font-size: 14px;
+        outline: none;
+        transition: var(--transition);
+      }
+      .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 15px -3px var(--primary-glow);
+      }
+
+      /* Command Palette */
+      .cmd-palette-dialog {
+        max-width: 620px;
+        padding: 16px;
+      }
+
+      .cmd-search-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--border-subtle);
+        padding: 14px 16px;
+        color: #fff;
+        font-size: 16px;
+        outline: none;
+      }
+
+      .cmd-results-list {
+        list-style: none;
+        max-height: 320px;
+        overflow-y: auto;
+        padding: 10px 0;
+      }
+
+      .cmd-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: var(--transition);
+        color: var(--text-muted);
+      }
+
+      .cmd-item:hover, .cmd-item.active {
+        background: rgba(99, 102, 241, 0.15);
+        color: #fff;
       }
     </style>
   </head>
 
   <body>
-    <nav class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-logo">
-          <i class="fas fa-envelope-open-text"></i>
-          <span>Morning Routine</span>
-        </div>
-      </div>
-      <div class="topbar-right">
-        <div class="status-indicator">
-          <span class="status-dot"></span>
-          <span id="systemStatus">Online</span>
-        </div>
-
-        <button
-          class="theme-toggle"
-          onclick="openSettings()"
-          aria-label="Open settings"
-        >
-          <i class="fas fa-cog"></i>
-        </button>
-        <button
-          class="theme-toggle"
-          onclick="toggleTheme()"
-          aria-label="Toggle theme"
-        >
-          <i class="fas fa-moon" id="themeIcon"></i>
-        </button>
-        <button
-          class="theme-toggle"
-          onclick="toggleActivityLog()"
-          aria-label="Toggle activity log"
-        >
-          <i class="fas fa-history"></i>
-        </button>
-      </div>
-    </nav>
-
-    <main class="main-container">
-      <section>
-        <div class="section-header">
-          <h2 class="section-title">
-            <i class="fas fa-chart-line"></i>
-            Dashboard Overview
-          </h2>
-        </div>
-
-        <div class="stats-grid">
-          <div
-            class="stat-card primary"
-            onclick="getStats()"
-            tabindex="0"
-            role="button"
-          >
-            <div class="stat-icon"><i class="fas fa-paper-plane"></i></div>
-            <div class="stat-value" id="totalSent">--</div>
-            <div class="stat-label">Total Emails Sent</div>
+    <!-- Navigation Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-icon">
+            <i class="fas fa-sun"></i>
           </div>
-
-          <div
-            class="stat-card success"
-            onclick="getScheduledJobs()"
-            tabindex="0"
-            role="button"
-          >
-            <div class="stat-icon"><i class="fas fa-clock"></i></div>
-            <div class="stat-value" id="scheduledJobs">--</div>
-            <div class="stat-label">Scheduled Jobs</div>
-          </div>
-
-          <div
-            class="stat-card warning"
-            onclick="getDatabaseStats()"
-            tabindex="0"
-            role="button"
-          >
-            <div class="stat-icon"><i class="fas fa-database"></i></div>
-            <div class="stat-value" id="dbRecords">--</div>
-            <div class="stat-label">Database Records</div>
-          </div>
-
-          <div
-            class="stat-card info"
-            onclick="healthCheck()"
-            tabindex="0"
-            role="button"
-          >
-            <div class="stat-icon"><i class="fas fa-heartbeat"></i></div>
-            <div class="stat-value" id="healthStatus">Healthy</div>
-            <div class="stat-label">System Health</div>
+          <div>
+            <div class="brand-title">Morning Routine</div>
+            <span class="brand-badge">Admin Pro v3.0</span>
           </div>
         </div>
-      </section>
 
-      <section>
-        <div class="section-header">
-          <h2 class="section-title">
-            <i class="fas fa-tasks"></i>
-            Quick Actions
-          </h2>
-        </div>
-
-        <div class="actions-grid">
-          <div class="action-card">
-            <div class="action-card-header">
-              <i class="fas fa-users" style="color: var(--primary)"></i>
-              <h3 class="action-card-title">Subscribers</h3>
-            </div>
-            <p class="action-card-desc">
-              View, add, pause, or remove subscribers who receive routine emails
-            </p>
-            <button class="btn btn-primary" onclick="openSubscribers()">
-              <i class="fas fa-users-cog"></i>
-              <span>Manage Subscribers</span>
-            </button>
-          </div>
-
-          <div class="action-card">
-            <div class="action-card-header">
-              <i class="fas fa-envelope" style="color: var(--primary)"></i>
-              <h3 class="action-card-title">Email Management</h3>
-            </div>
-            <p class="action-card-desc">
-              Send test emails or trigger bulk email sending to all subscribed
-              users
-            </p>
-            <button class="btn btn-primary" onclick="sendTestEmail()">
-              <i class="fas fa-paper-plane"></i>
-              <span>Send Test Email</span>
-            </button>
-            <button class="btn btn-success" onclick="sendBulkEmails()">
-              <i class="fas fa-rocket"></i>
-              <span>Send Bulk Emails</span>
-            </button>
-          </div>
-
-          <div class="action-card">
-            <div class="action-card-header">
-              <i class="fas fa-calendar-alt" style="color: var(--info)"></i>
-              <h3 class="action-card-title">Scheduling</h3>
-            </div>
-            <p class="action-card-desc">
-              View and manage scheduled email jobs with cron patterns
-            </p>
-            <button class="btn btn-info" onclick="viewScheduledJobs()">
-              <i class="fas fa-list"></i>
-              <span>View Scheduled Jobs</span>
-            </button>
-            <button class="btn btn-secondary" onclick="rescheduleJobs()">
-              <i class="fas fa-sync"></i>
-              <span>Reschedule Jobs</span>
-            </button>
-          </div>
-
-          <div class="action-card">
-            <div class="action-card-header">
-              <i class="fas fa-database" style="color: var(--warning)"></i>
-              <h3 class="action-card-title">Database</h3>
-            </div>
-            <p class="action-card-desc">
-              Clean up old records and optimize database performance
-            </p>
-            <button class="btn btn-warning" onclick="cleanupDatabase()">
-              <i class="fas fa-broom"></i>
-              <span>Cleanup Database</span>
-            </button>
-            <button class="btn btn-info" onclick="viewDatabaseStats()">
-              <i class="fas fa-chart-bar"></i>
-              <span>View Statistics</span>
-            </button>
-            <button class="btn btn-secondary" onclick="readDatabase()">
-              <i class="fas fa-eye"></i>
-              <span>Read Full Database</span>
-            </button>
-          </div>
-
-          <div class="action-card">
-            <div class="action-card-header">
-              <i class="fas fa-cog" style="color: var(--success)"></i>
-              <h3 class="action-card-title">System Management</h3>
-            </div>
-            <p class="action-card-desc">
-              Monitor system health, view logs, and check configuration
-            </p>
-            <button class="btn btn-success" onclick="systemHealth()">
-              <i class="fas fa-heartbeat"></i>
-              <span>Health Check</span>
-            </button>
-            <button class="btn btn-danger" onclick="viewLogs()">
-              <i class="fas fa-file-alt"></i>
-              <span>View Logs</span>
-            </button>
-          </div>
-
-          <div class="action-card">
-            <div class="action-card-header">
-              <i class="fas fa-file-code" style="color: var(--secondary)"></i>
-              <h3 class="action-card-title">Email Templates</h3>
-            </div>
-            <p class="action-card-desc">
-              Manage, preview, and test available email templates
-            </p>
-            <button class="btn btn-primary" onclick="viewTemplates()">
-              <i class="fas fa-eye"></i>
-              <span>View Templates</span>
-            </button>
-            <button class="btn btn-secondary" onclick="testTemplate()">
-              <i class="fas fa-flask"></i>
-              <span>Test Template</span>
-            </button>
-          </div>
-
-          <div class="action-card">
-            <div class="action-card-header">
-              <i
-                class="fas fa-external-link-alt"
-                style="color: var(--info)"
-              ></i>
-              <h3 class="action-card-title">Quick Links</h3>
-            </div>
-            <p class="action-card-desc">
-              Access external resources, documentation, and GitHub
-            </p>
-            <button class="btn btn-info" onclick="openWebsite()">
-              <i class="fas fa-globe"></i>
-              <span>Open Website</span>
-            </button>
-            <button class="btn btn-primary" onclick="openDocs()">
-              <i class="fas fa-book"></i>
-              <span>Documentation</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section class="analytics-section">
-        <div class="section-header">
-          <h2 class="section-title">
+        <nav class="nav-group">
+          <div class="nav-label">Navigation</div>
+          <a class="nav-link active" onclick="scrollToSection('section-overview')">
             <i class="fas fa-chart-pie"></i>
-            Analytics & Insights
-          </h2>
-        </div>
-
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3 class="chart-title">Email Trends</h3>
-            <div class="chart-filters">
-              <button class="filter-btn active" onclick="setChartRange(7)">
-                7 Days
-              </button>
-              <button class="filter-btn" onclick="setChartRange(30)">
-                30 Days
-              </button>
-              <button class="filter-btn" onclick="setChartRange(90)">
-                90 Days
-              </button>
-            </div>
-          </div>
-          <canvas id="emailTrendsChart" height="80"></canvas>
-        </div>
-
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3 class="chart-title">Template Usage</h3>
-          </div>
-          <canvas id="templateUsageChart" height="80"></canvas>
-        </div>
-
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3 class="chart-title">
-              Subscriber Growth
-              <span
-                id="subscriberStatsSummary"
-                class="small"
-                style="font-weight: normal; margin-left: 8px"
-              ></span>
-            </h3>
-            <div class="chart-filters">
-              <button
-                class="filter-btn active"
-                onclick="setSubscriberGrowthRange(this, 30)"
-              >
-                30 Days
-              </button>
-              <button
-                class="filter-btn"
-                onclick="setSubscriberGrowthRange(this, 90)"
-              >
-                90 Days
-              </button>
-              <button
-                class="filter-btn"
-                onclick="setSubscriberGrowthRange(this, 365)"
-              >
-                1 Year
-              </button>
-            </div>
-          </div>
-          <canvas id="subscriberGrowthChart" height="80"></canvas>
-        </div>
-      </section>
-
-      <footer class="footer">
-        <p>
-          Built with
-          <i class="fas fa-heart" style="color: var(--danger)"></i> by
-          <a
-            href="https://priyanshu-eureka.netlify.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Priyanshu</a
-          >
-          | Version 2.0.0 |
-          <a
-            href="https://github.com/sammy-cool"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <i class="fab fa-github"></i> GitHub
+            <span>Command Center</span>
           </a>
-        </p>
-      </footer>
-    </main>
-
-    <div class="settings-modal" id="settingsModal">
-      <div class="settings-panel">
-        <div class="settings-header">
-          <h2 class="settings-title">
-            <i class="fas fa-cog"></i>
-            Settings
-          </h2>
-          <button class="settings-close" onclick="closeSettings()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Appearance</div>
-
-          <div class="settings-item">
-            <div>
-              <div class="settings-item-label">Theme</div>
-              <div class="settings-item-desc">
-                Choose your preferred color scheme
-              </div>
-            </div>
-            <select id="themeSetting" onchange="updateThemeSetting(this.value)">
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="auto">Auto</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Notifications</div>
-
-          <div class="settings-item">
-            <div>
-              <div class="settings-item-label">Toast Position</div>
-              <div class="settings-item-desc">Where notifications appear</div>
-            </div>
-            <select
-              id="toastPosition"
-              onchange="updateToastPosition(this.value)"
-            >
-              <option value="top-right">Top Right</option>
-              <option value="top-center">Top Center</option>
-              <option value="bottom-right">Bottom Right</option>
-              <option value="bottom-center">Bottom Center</option>
-            </select>
-          </div>
-
-          <div class="settings-item">
-            <div>
-              <div class="settings-item-label">Notification Sound</div>
-              <div class="settings-item-desc">Play sound on notifications</div>
-            </div>
-            <label class="toggle-switch">
-              <input
-                type="checkbox"
-                id="notificationSound"
-                onchange="updateSoundSetting(this.checked)"
-              />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Email</div>
-
-          <div class="settings-item">
-            <div>
-              <div class="settings-item-label">Default Template</div>
-              <div class="settings-item-desc">Template for test emails</div>
-            </div>
-            <select
-              id="defaultTemplate"
-              onchange="updateDefaultTemplate(this.value)"
-            >
-              <option value="default">Default</option>
-              <option value="deep-work">Deep Work</option>
-              <option value="career">Career</option>
-              <option value="learning">Learning</option>
-              <option value="mindfulness">Mindfulness</option>
-              <option value="reflection">Reflection</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Dashboard</div>
-
-          <div class="settings-item">
-            <div>
-              <div class="settings-item-label">Activity Log</div>
-              <div class="settings-item-desc">
-                Show activity sidebar on load
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input
-                type="checkbox"
-                id="activityLogDefault"
-                onchange="updateActivityLogSetting(this.checked)"
-              />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div class="settings-item">
-            <div>
-              <div class="settings-item-label">Auto Refresh</div>
-              <div class="settings-item-desc">Refresh stats automatically</div>
-            </div>
-            <select id="autoRefresh" onchange="updateAutoRefresh(this.value)">
-              <option value="0">Off</option>
-              <option value="30">Every 30s</option>
-              <option value="60">Every 1 min</option>
-              <option value="300">Every 5 min</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="subscribers-modal" id="subscribersModal">
-      <div class="subscribers-panel">
-        <div class="settings-header">
-          <h2 class="settings-title">
+          <a class="nav-link" onclick="scrollToSection('section-subscribers')">
             <i class="fas fa-users"></i>
-            Subscribers
-          </h2>
-          <button class="settings-close" onclick="closeSubscribers()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+            <span>Subscribers</span>
+          </a>
+          <a class="nav-link" onclick="scrollToSection('section-testing')">
+            <i class="fas fa-paper-plane"></i>
+            <span>Email Studio</span>
+          </a>
+          <a class="nav-link" onclick="scrollToSection('section-diagnostics')">
+            <i class="fas fa-database"></i>
+            <span>System & DB</span>
+          </a>
+        </nav>
+      </div>
 
-        <form
-          class="subscriber-add-form"
-          onsubmit="return submitAddSubscriber(event);"
-        >
-          <div class="form-field">
-            <label for="newSubEmail">Email</label>
-            <input
-              type="email"
-              id="newSubEmail"
-              placeholder="name@example.com"
-              required
-            />
+      <div class="sidebar-footer">
+        <div class="system-pill">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="pulse-dot"></div>
+            <span>System Active</span>
           </div>
-          <div class="form-field">
-            <label for="newSubCron">Cron pattern</label>
-            <input type="text" id="newSubCron" placeholder="0 8 * * *" />
-          </div>
-          <div class="form-field">
-            <label for="newSubTz">Timezone</label>
-            <input type="text" id="newSubTz" placeholder="Asia/Kolkata" />
-          </div>
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-plus"></i>
-            <span>Add</span>
-          </button>
-        </form>
-
-        <div id="subscribersList">
-          <p class="settings-item-desc">Loading subscribers...</p>
+          <span style="color: var(--accent-emerald); font-weight: 700; font-size: 11px;">100% HEALTH</span>
         </div>
-      </div>
-    </div>
-
-    <div class="install-prompt" id="installPrompt">
-      <div class="install-prompt-header">
-        <i class="fas fa-download"></i>
-        Install App
-      </div>
-      <p class="install-prompt-text">
-        Install Morning Routine Sender for quick access and offline use.
-      </p>
-      <div class="install-prompt-actions">
-        <button class="install-btn-small primary" onclick="installPWA()">
-          Install
+        <button class="btn btn-danger btn-sm" style="width: 100%; justify-content: center;" onclick="handleLogout()">
+          <i class="fas fa-sign-out-alt"></i> Logout Session
         </button>
-        <button
-          class="install-btn-small secondary"
-          onclick="dismissInstallPrompt()"
-        >
-          Later
-        </button>
-      </div>
-    </div>
-
-    <aside class="activity-sidebar" id="activitySidebar">
-      <div class="activity-header">
-        <h3 class="activity-title">Activity Log</h3>
-        <button class="activity-close" onclick="toggleActivityLog()">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div id="activityLog">
-        <div class="activity-item">
-          <div>Dashboard initialized</div>
-          <div class="activity-time" id="initTime"></div>
-        </div>
       </div>
     </aside>
 
-    <button class="fab" onclick="sendTestEmail()" aria-label="Quick send email">
-      <i class="fas fa-envelope"></i>
-    </button>
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Top Navigation & Global Header -->
+      <header class="topbar">
+        <div class="header-title-wrap">
+          <h1>Admin Command Center</h1>
+          <p>Real-time delivery pipelines, subscribers telemetry, and automated dispatcher.</p>
+        </div>
 
+        <div class="header-actions">
+          <div class="cmd-trigger" onclick="openCommandPalette()">
+            <i class="fas fa-search"></i>
+            <span>Quick actions…</span>
+            <span class="cmd-badge">⌘K</span>
+          </div>
+          <button class="btn btn-glass" onclick="refreshAllData()">
+            <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
+          </button>
+          <button class="btn btn-primary" onclick="openAddSubscriberModal()">
+            <i class="fas fa-user-plus"></i> Add Subscriber
+          </button>
+        </div>
+      </header>
+
+      <!-- KPI Stat Cards -->
+      <section class="stats-grid" id="section-overview">
+        <!-- Total Subscribers -->
+        <div class="stat-card" style="--stat-accent: #6366f1;">
+          <div class="stat-header">
+            <span class="stat-label">Total Subscribers</span>
+            <div class="stat-icon-wrap"><i class="fas fa-users"></i></div>
+          </div>
+          <div class="stat-value" id="kpiTotalSubscribers">--</div>
+          <div class="stat-footer">
+            <span class="stat-badge-trend trend-info" id="kpiActiveBreakdown">-- active</span>
+            <span>across all regions</span>
+          </div>
+        </div>
+
+        <!-- Dispatch Success Rate -->
+        <div class="stat-card" style="--stat-accent: #10b981;">
+          <div class="stat-header">
+            <span class="stat-label">Delivery Health</span>
+            <div class="stat-icon-wrap"><i class="fas fa-shield-alt"></i></div>
+          </div>
+          <div class="stat-value" id="kpiDeliveryRate">99.8%</div>
+          <div class="stat-footer">
+            <span class="stat-badge-trend trend-up"><i class="fas fa-arrow-up"></i> 100% Reliable</span>
+            <span>SMTP Engine</span>
+          </div>
+        </div>
+
+        <!-- Active Cron Schedulers -->
+        <div class="stat-card" style="--stat-accent: #06b6d4;">
+          <div class="stat-header">
+            <span class="stat-label">Active Schedulers</span>
+            <div class="stat-icon-wrap"><i class="fas fa-clock"></i></div>
+          </div>
+          <div class="stat-value" id="kpiActiveJobs">--</div>
+          <div class="stat-footer">
+            <span class="stat-badge-trend trend-info">node-cron active</span>
+            <span>Asia/Kolkata default</span>
+          </div>
+        </div>
+
+        <!-- Database Retention Records -->
+        <div class="stat-card" style="--stat-accent: #f59e0b;">
+          <div class="stat-header">
+            <span class="stat-label">Database Logs</span>
+            <div class="stat-icon-wrap"><i class="fas fa-database"></i></div>
+          </div>
+          <div class="stat-value" id="kpiDbRecords">--</div>
+          <div class="stat-footer">
+            <span class="stat-badge-trend trend-info" id="kpiDbRetention">30 Days Kept</span>
+            <span>PostgreSQL cluster</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Visual Analytics & Charts Section -->
+      <section class="analytics-grid">
+        <!-- Subscriber Signups & Growth -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-chart-line"></i>
+              <span>Subscriber Acquisition & Growth</span>
+            </div>
+            <div class="range-btn-group">
+              <button class="range-btn active" onclick="loadGrowthStats(7, this)">7D</button>
+              <button class="range-btn" onclick="loadGrowthStats(30, this)">30D</button>
+              <button class="range-btn" onclick="loadGrowthStats(90, this)">90D</button>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="subscriberGrowthChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Routine Template Distribution Donut -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-layer-group"></i>
+              <span>Template Preference</span>
+            </div>
+          </div>
+          <div class="chart-container" style="height: 280px;">
+            <canvas id="templateDistributionChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Subscribers Command Center -->
+      <section class="card" id="section-subscribers">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-address-book"></i>
+            <span>Subscribers Management</span>
+            <span class="badge badge-template" id="subscribersCountBadge">0 Total</span>
+          </div>
+
+          <div class="subscribers-control-bar">
+            <div class="search-filter-wrap">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input
+                  type="text"
+                  id="subscriberSearchInput"
+                  class="input-text"
+                  placeholder="Filter by email or timezone…"
+                  oninput="filterSubscribersTable()"
+                />
+              </div>
+
+              <select id="subscriberStatusFilter" class="filter-select" onchange="filterSubscribersTable()">
+                <option value="all">All Statuses</option>
+                <option value="active">Active Only</option>
+                <option value="paused">Paused Only</option>
+              </select>
+
+              <select id="subscriberTemplateFilter" class="filter-select" onchange="filterSubscribersTable()">
+                <option value="all">All Templates</option>
+                <option value="default">Default</option>
+                <option value="deep-work">Deep Work</option>
+                <option value="career">Career</option>
+                <option value="learning">Learning</option>
+                <option value="mindfulness">Mindfulness</option>
+                <option value="reflection">Reflection</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-glass btn-sm" onclick="exportSubscribersCSV()">
+                <i class="fas fa-file-csv"></i> Export CSV
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="openAddSubscriberModal()">
+                <i class="fas fa-plus"></i> New Subscriber
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table" id="subscribersTable">
+            <thead>
+              <tr>
+                <th>Subscriber</th>
+                <th>Template Routine</th>
+                <th>Cron Schedule</th>
+                <th>Timezone</th>
+                <th>Status</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="subscribersTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">
+                  <i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading subscriber records…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Email Studio & Testing Center -->
+      <section class="card" id="section-testing">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-flask"></i>
+            <span>Email Studio & Live Testing</span>
+          </div>
+          <span style="font-size: 13px; color: var(--text-muted);">
+            Test routine emails with live HTML previews & instantaneous SMTP delivery.
+          </span>
+        </div>
+
+        <div class="template-studio-grid">
+          <!-- Left: Send Test Email Form -->
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="form-group">
+              <label class="form-label">Recipient Email</label>
+              <input
+                type="email"
+                id="testEmailRecipient"
+                class="form-control"
+                placeholder="your.email@example.com"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Select Routine Template</label>
+              <div class="template-card-selector">
+                <div class="template-pill selected" data-template="default" onclick="selectTemplatePill(this)">
+                  <i class="fas fa-coffee"></i>
+                  <span>Default</span>
+                </div>
+                <div class="template-pill" data-template="deep-work" onclick="selectTemplatePill(this)">
+                  <i class="fas fa-brain"></i>
+                  <span>Deep Work</span>
+                </div>
+                <div class="template-pill" data-template="learning" onclick="selectTemplatePill(this)">
+                  <i class="fas fa-graduation-cap"></i>
+                  <span>Learning</span>
+                </div>
+                <div class="template-pill" data-template="career" onclick="selectTemplatePill(this)">
+                  <i class="fas fa-briefcase"></i>
+                  <span>Career</span>
+                </div>
+                <div class="template-pill" data-template="mindfulness" onclick="selectTemplatePill(this)">
+                  <i class="fas fa-spa"></i>
+                  <span>Mindfulness</span>
+                </div>
+                <div class="template-pill" data-template="reflection" onclick="selectTemplatePill(this)">
+                  <i class="fas fa-moon"></i>
+                  <span>Reflection</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 8px;">
+              <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="sendSingleTestEmail()">
+                <i class="fas fa-paper-plane"></i> Send Test Routine Email
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="triggerBulkSendNow()">
+                <i class="fas fa-bolt"></i> Trigger Bulk Campaign Now
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Live Activity Stream -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span class="form-label">Live Activity & Telemetry</span>
+              <button class="btn btn-glass btn-sm" onclick="clearActivityStream()">Clear</button>
+            </div>
+            <div class="activity-stream" id="activityStream">
+              <div class="activity-item">
+                <div class="activity-icon info"><i class="fas fa-info"></i></div>
+                <div class="activity-body">
+                  <div>Admin Command Center initialized.</div>
+                  <div class="activity-time">Just now</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Diagnostics & Database Maintenance -->
+      <section class="card" id="section-diagnostics">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-server"></i>
+            <span>System Diagnostics & Maintenance</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <!-- Database Retention Cleanup -->
+          <div style="background: rgba(15, 23, 42, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 14px;">
+            <div style="font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-broom" style="color: var(--accent-amber);"></i>
+              <span>Database Retention Cleanup</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted);">
+              Purge tracker history records older than the selected retention threshold.
+            </p>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <input type="range" id="retentionDaysSlider" min="7" max="90" value="30" oninput="updateSliderLabel(this.value)" style="flex: 1;" />
+              <span id="retentionSliderLabel" style="font-weight: 700; font-size: 14px; min-width: 60px;">30 Days</span>
+            </div>
+            <button class="btn btn-glass btn-sm" onclick="executeDatabaseCleanup()">
+              <i class="fas fa-trash-alt"></i> Execute DB Purge
+            </button>
+          </div>
+
+          <!-- Server Log File Cleanup -->
+          <div style="background: rgba(15, 23, 42, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 14px;">
+            <div style="font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-file-alt" style="color: var(--accent-cyan);"></i>
+              <span>Server Disk Log Cleanup</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted);">
+              Remove local rotated Winston log files older than 3 days to free up container storage.
+            </p>
+            <button class="btn btn-glass btn-sm" style="margin-top: auto;" onclick="executeLogCleanup()">
+              <i class="fas fa-eraser"></i> Purge Stale Logs
+            </button>
+          </div>
+
+          <!-- Raw Database Table Inspector -->
+          <div style="background: rgba(15, 23, 42, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 14px;">
+            <div style="font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-table" style="color: var(--primary);"></i>
+              <span>Raw Database Inspector</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted);">
+              Inspect raw rows in the <code>email_tracker</code> table for debugging delivery states.
+            </p>
+            <button class="btn btn-glass btn-sm" style="margin-top: auto;" onclick="inspectDatabaseRows()">
+              <i class="fas fa-eye"></i> View Live Records
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Add / Edit Subscriber -->
+    <div class="modal-backdrop" id="subscriberModal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <div class="modal-title" id="subscriberModalTitle">Add New Subscriber</div>
+          <button class="close-btn" onclick="closeModal('subscriberModal')">&times;</button>
+        </div>
+
+        <form id="subscriberForm" onsubmit="handleSubscriberFormSubmit(event)" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" id="modalSubEmail" class="form-control" placeholder="subscriber@example.com" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Routine Template</label>
+            <select id="modalSubTemplate" class="form-control">
+              <option value="default">Default Morning Routine</option>
+              <option value="deep-work">Deep Work Routine</option>
+              <option value="learning">Continuous Learning</option>
+              <option value="career">Career Growth</option>
+              <option value="mindfulness">Mindfulness & Mental Clarity</option>
+              <option value="reflection">Evening Reflection</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cron Delivery Schedule (Preset or Custom)</label>
+            <select id="modalCronPreset" class="form-control" onchange="applyCronPreset(this.value)">
+              <option value="0 8 * * *">8:00 AM Daily (Default)</option>
+              <option value="0 7 * * *">7:00 AM Daily (Early Bird)</option>
+              <option value="0 9 * * *">9:00 AM Daily</option>
+              <option value="0 20 * * *">8:00 PM Daily (Evening)</option>
+              <option value="custom">Custom Cron Expression…</option>
+            </select>
+            <input type="text" id="modalSubCron" class="form-control" style="margin-top: 6px;" value="0 8 * * *" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Timezone</label>
+            <input type="text" id="modalSubTz" class="form-control" value="Asia/Kolkata" placeholder="e.g. America/New_York" />
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 10px;">
+            <button type="button" class="btn btn-glass" style="flex: 1; justify-content: center;" onclick="closeModal('subscriberModal')">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;" id="modalSubmitBtn">
+              Save Subscriber
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Raw DB Inspector -->
+    <div class="modal-backdrop" id="dbInspectorModal">
+      <div class="modal-dialog" style="max-width: 900px;">
+        <div class="modal-header">
+          <div class="modal-title">Raw Database Records (email_tracker)</div>
+          <button class="close-btn" onclick="closeModal('dbInspectorModal')">&times;</button>
+        </div>
+        <div style="max-height: 480px; overflow-y: auto; background: rgba(0,0,0,0.5); padding: 14px; border-radius: var(--radius-md);">
+          <pre id="dbInspectorContent" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a5f3fc; white-space: pre-wrap;">Loading records…</pre>
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+          <button class="btn btn-glass btn-sm" onclick="closeModal('dbInspectorModal')">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Command Palette -->
+    <div class="modal-backdrop" id="commandPaletteModal">
+      <div class="modal-dialog cmd-palette-dialog">
+        <input
+          type="text"
+          id="cmdPaletteInput"
+          class="cmd-search-input"
+          placeholder="Type a command or jump to section… (Esc to exit)"
+          oninput="filterCommandPalette(this.value)"
+        />
+        <ul class="cmd-results-list" id="cmdPaletteList">
+          <li class="cmd-item" onclick="executeCommand('add-sub')">
+            <i class="fas fa-user-plus"></i>
+            <span>Add New Subscriber</span>
+          </li>
+          <li class="cmd-item" onclick="executeCommand('send-test')">
+            <i class="fas fa-paper-plane"></i>
+            <span>Send Single Test Routine Email</span>
+          </li>
+          <li class="cmd-item" onclick="executeCommand('trigger-bulk')">
+            <i class="fas fa-bolt"></i>
+            <span>Trigger Bulk Morning Campaign</span>
+          </li>
+          <li class="cmd-item" onclick="executeCommand('db-cleanup')">
+            <i class="fas fa-broom"></i>
+            <span>Run Database Retention Cleanup</span>
+          </li>
+          <li class="cmd-item" onclick="executeCommand('export-csv')">
+            <i class="fas fa-file-csv"></i>
+            <span>Export Subscribers to CSV</span>
+          </li>
+          <li class="cmd-item" onclick="executeCommand('refresh')">
+            <i class="fas fa-sync-alt"></i>
+            <span>Refresh All Telemetry & Charts</span>
+          </li>
+          <li class="cmd-item" onclick="executeCommand('logout')">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout of Admin Session</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Application Logic -->
     <script>
       const API_BASE = "__DOMAIN__";
+      let allSubscribers = [];
+      let growthChartInstance = null;
+      let templateChartInstance = null;
+      let currentEditingEmail = null;
 
-      /* ==================== Toast Manager ==================== */
+      /* ==================== Safe Toast Notification System ==================== */
       class ToastManager {
         static show(config = {}) {
           const toastLib =
@@ -1851,971 +1418,635 @@
             position: "top-center",
             animationDuration: 300,
             textColor: "snow",
-            duration: 5000,
+            duration: 4000,
           };
 
-          const finalConfig = { ...defaults, ...config };
-          const id = toastLib.createToast(finalConfig);
-
-          return {
-            id,
-            dismiss() {
-              if (typeof toastLib.dismiss === "function") {
-                toastLib.dismiss(id);
-              } else if (typeof toastLib.noop === "function") {
-                toastLib.noop(id);
-              }
-            },
-          };
+          return toastLib.createToast({ ...defaults, ...config });
         }
 
-        static success(message, options = {}) {
-          return this.show({ message, type: "success", ...options });
+        static success(msg) {
+          this.show({ message: msg, type: "success" });
         }
-
-        static error(message, options = {}) {
-          return this.show({ message, type: "error", ...options });
+        static error(msg) {
+          this.show({ message: msg, type: "error" });
         }
-
-        static info(message, options = {}) {
-          return this.show({ message, type: "info", ...options });
+        static info(msg) {
+          this.show({ message: msg, type: "info" });
         }
-
-        static warning(message, options = {}) {
-          return this.show({ message, type: "warning", ...options });
-        }
-
-        static confirm(message, onConfirm) {
-          return this.show({
-            message,
-            type: "warning",
-            duration: 10000,
-            backgroundColor: "#f59e0b",
-            cta: { label: "Confirm", onClick: onConfirm },
-          });
-        }
-
-        static loading(message, cta = null) {
-          const config = {
-            message,
-            type: "info",
-            duration: 20000,
-          };
-          if (cta) config.cta = cta;
-          return this.show(config);
-        }
-
-        static dismissAll() {
-          if (typeof customizableToast?.dismiss === "function") {
-            // toast dismissed
-          } else if (typeof customizableToast?.noop === "function") {
-            // toast dismissed
-          }
+        static warn(msg) {
+          this.show({ message: msg, type: "warning" });
         }
       }
 
-      /* ==================== Activity Logger ==================== */
+      /* ==================== Activity Logger Stream ==================== */
       class ActivityLogger {
         static log(message, type = "info") {
-          const logDiv = document.getElementById("activityLog");
+          const stream = document.getElementById("activityStream");
+          if (!stream) return;
+
           const item = document.createElement("div");
           item.className = "activity-item";
 
-          const icons = {
-            success: "✅",
-            error: "❌",
-            warning: "⚠️",
-          };
-
-          const icon = icons[type] || "ℹ️";
+          let iconHtml = '<i class="fas fa-info"></i>';
+          if (type === "success") iconHtml = '<i class="fas fa-check"></i>';
+          if (type === "error") iconHtml = '<i class="fas fa-exclamation"></i>';
 
           item.innerHTML = `
-          <div>${icon} ${message}</div>
-          <div class="activity-time">${new Date().toLocaleTimeString()}</div>
-        `;
+            <div class="activity-icon ${type}">${iconHtml}</div>
+            <div class="activity-body">
+              <div>${escapeHtml(message)}</div>
+              <div class="activity-time">${new Date().toLocaleTimeString()}</div>
+            </div>
+          `;
 
-          logDiv.insertBefore(item, logDiv.firstChild);
-
-          // Keep only last 20 items
-          while (logDiv.children.length > 20) {
-            logDiv.lastChild.remove();
-          }
+          stream.prepend(item);
         }
+      }
+
+      function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
       }
 
       /* ==================== API Helper ==================== */
-      async function apiCall(url, options = {}) {
+      async function apiCall(endpoint, options = {}) {
         try {
-          const response = await fetch((API_BASE || "") + url, options);
-          const contentType = response.headers.get("content-type") || "";
+          const res = await fetch(endpoint, {
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              ...(options.headers || {}),
+            },
+            ...options,
+          });
 
-          if (contentType.includes("application/json")) {
-            const data = await response.json();
-            return { success: response.ok, data, status: response.status };
-          }
-
-          const text = await response.text();
-          return {
-            success: response.ok,
-            data: { message: text },
-            status: response.status,
-          };
-        } catch (error) {
-          return { success: false, error: error.message, status: 0 };
+          const data = await res.json().catch(() => ({}));
+          return { ok: res.ok, status: res.status, data };
+        } catch (err) {
+          console.error("API Call error:", endpoint, err);
+          return { ok: false, status: 0, data: { error: err.message } };
         }
       }
 
-      /* ==================== Theme Toggle ==================== */
-      function toggleTheme() {
-        const html = document.documentElement;
-        const currentTheme = html.dataset.theme;
-        const newTheme = currentTheme === "dark" ? "light" : "dark";
+      /* ==================== Data Fetching & Rendering ==================== */
+      async function refreshAllData() {
+        const icon = document.getElementById("refreshIcon");
+        if (icon) icon.classList.add("fa-spin");
 
-        html.dataset.theme = newTheme;
-        localStorage.setItem("theme", newTheme);
+        await Promise.allSettled([
+          loadSubscribers(),
+          loadGrowthStats(7),
+          loadDatabaseStats(),
+          loadScheduledJobs(),
+        ]);
 
-        const icon = document.getElementById("themeIcon");
-        icon.className = newTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
-
-        ActivityLogger.log(`Theme changed to ${newTheme} mode`);
-        ToastManager.info(
-          `${newTheme === "dark" ? "🌙" : "☀️"} ${newTheme} mode activated`,
-          { position: "top-center" },
-        );
+        if (icon) icon.classList.remove("fa-spin");
+        ToastManager.info("Dashboard refreshed");
       }
 
-      /* ==================== Activity Sidebar ==================== */
-      function toggleActivityLog() {
-        const sidebar = document.getElementById("activitySidebar");
-        sidebar.classList.toggle("open");
-      }
-
-      /* ==================== Initialize ==================== */
-      globalThis.addEventListener("DOMContentLoaded", async () => {
-        // Set theme
-        const savedTheme = localStorage.getItem("theme") || "light";
-        document.documentElement.dataset.theme = savedTheme;
-        document.getElementById("themeIcon").className =
-          savedTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
-
-        // Set init time
-        document.getElementById("initTime").textContent =
-          new Date().toLocaleString();
-
-        // Welcome toast
-        setTimeout(() => {
-          ToastManager.success("Dashboard ready!", {
-            duration: 6000,
-            cta: {
-              label: "View Stats",
-              onClick: () => loadDashboardStats(),
-            },
-          });
-        }, 500);
-
-        // Load stats
-        await loadDashboardStats();
-
-        ActivityLogger.log("Dashboard initialized successfully", "success");
-      });
-
-      /* ==================== Load Dashboard Stats ==================== */
-      async function loadDashboardStats() {
-        try {
-          const [jobs, stats] = await Promise.all([
-            apiCall("/scheduled-jobs"),
-            apiCall("/admin/database-stats"),
-          ]);
-
-          if (jobs.success && jobs.data) {
-            document.getElementById("scheduledJobs").textContent =
-              jobs.data.count || 0;
-          }
-
-          if (stats.success && stats.data) {
-            document.getElementById("dbRecords").textContent =
-              stats.data.totalRecords || 0;
-            document.getElementById("totalSent").textContent =
-              stats.data.totalRecords || 0;
-          }
-
-          ActivityLogger.log("Dashboard stats loaded");
-        } catch (error) {
-          console.error("Failed to load stats:", error);
-        }
-      }
-
-      /* ==================== Send Test Email ==================== */
-      async function sendTestEmail() {
-        const email = prompt("Enter email address:", "test@example.com");
-        if (!email) return;
-
-        const template = prompt("Enter template type:", "default") || "default";
-
-        const loading = ToastManager.loading("Sending test email...", {
-          label: "Cancel",
-          onClick: () => {
-            // toast dismissed
-            ToastManager.warning("Email sending cancelled");
-            ActivityLogger.log("Email sending cancelled", "warning");
-          },
-        });
-
-        // TODO: Need backend changes to accept admin session cookie instead of CRON_API_KEY
-        const result = await apiCall("/send-test-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, templateType: template }),
-        });
-
-        // toast dismissed
-
-        if (result.success) {
-          ToastManager.success(`✅ Email sent to ${email}`, {
-            duration: 7000,
-            cta: {
-              label: "View Logs",
-              onClick: () => viewLogs(),
-            },
-          });
-          ActivityLogger.log(`Test email sent to ${email}`, "success");
-        } else {
-          const errorMsg =
-            result.error || result.data?.error || "Unknown error";
-          ToastManager.error(`❌ Failed: ${errorMsg}`, {
-            duration: 8000,
-            cta: {
-              label: "Retry",
-              onClick: () => sendTestEmail(),
-            },
-          });
-          ActivityLogger.log(`Failed to send email: ${errorMsg}`, "error");
-        }
-      }
-
-      /* ==================== Send Bulk Emails ==================== */
-      async function sendBulkEmails() {
-        ToastManager.confirm("Send bulk emails to all users?", async () => {
-          const loading = ToastManager.loading("Sending bulk emails...", {
-            label: "View Progress",
-            onClick: () => {
-              ToastManager.info("Check activity log for progress");
-              toggleActivityLog();
-            },
-          });
-
-          ActivityLogger.log("Bulk email sending started");
-
-          // TODO: Need backend changes to accept admin session cookie instead of CRON_API_KEY
-          const result = await apiCall("/send-bulk-now", { method: "POST" });
-          // toast dismissed
-
-          if (result.success) {
-            const successCount = result.data.successCount || 0;
-            const failureCount = result.data.failureCount || 0;
-
-            ToastManager.success(
-              `✅ Success: ${successCount}, Failed: ${failureCount}`,
-              {
-                duration: 10000,
-                cta: {
-                  label: "Refresh Stats",
-                  onClick: async () => {
-                    await loadDashboardStats();
-                    ToastManager.info("Stats refreshed");
-                  },
-                },
-              },
-            );
-
-            ActivityLogger.log(
-              `Bulk emails sent: ${successCount} succeeded, ${failureCount} failed`,
-              "success",
-            );
-          } else {
-            ToastManager.error("❌ Bulk send failed", {
-              duration: 8000,
-              cta: {
-                label: "Try Again",
-                onClick: () => sendBulkEmails(),
-              },
-            });
-            ActivityLogger.log("Bulk email sending failed", "error");
-          }
-        });
-      }
-
-      /* ==================== Cleanup Database ==================== */
-      async function cleanupDatabase() {
-        const daysInput = prompt("Delete records older than (days):", "30");
-        if (!daysInput) return;
-
-        const days = Number.parseInt(daysInput, 10);
-        if (!days || days <= 0) {
-          ToastManager.warning("Please enter a valid number of days");
-          return;
-        }
-
-        ToastManager.show({
-          message: `Delete records older than ${days} days?`,
-          type: "warning",
-          duration: 10000,
-          backgroundColor: "#dc2626",
-          cta: {
-            label: "Confirm Delete",
-            onClick: async () => {
-              const loading = ToastManager.loading("Cleaning database...");
-
-              ActivityLogger.log(`Database cleanup started (${days} days)`);
-
-              const result = await apiCall("/admin/cleanup-database", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ days }),
-              });
-
-              // toast dismissed
-
-              if (result.success) {
-                const deleted = result.data.deleted || 0;
-                ToastManager.success(`✅ Deleted ${deleted} records`, {
-                  duration: 7000,
-                  cta: {
-                    label: "View Stats",
-                    onClick: () => viewDatabaseStats(),
-                  },
-                });
-                ActivityLogger.log(
-                  `Database cleanup completed: ${deleted} records deleted`,
-                  "success",
-                );
-                await loadDashboardStats();
-              } else {
-                ToastManager.error("❌ Cleanup failed");
-                ActivityLogger.log("Database cleanup failed", "error");
-              }
-            },
-          },
-        });
-      }
-
-      /* ==================== View Scheduled Jobs ==================== */
-      async function viewScheduledJobs() {
-        const result = await apiCall("/scheduled-jobs");
-
-        if (result.success && result.data) {
-          const jobs = result.data.jobs || [];
-
-          if (jobs.length === 0) {
-            ToastManager.info("No scheduled jobs found", {
-              duration: 5000,
-              cta: {
-                label: "Add Job",
-                onClick: () => ToastManager.info("Job scheduling coming soon!"),
-              },
-            });
-          } else {
-            let message = `📅 ${jobs.length} Scheduled Jobs:\n\n`;
-            for (const job of jobs) {
-              message += `• ${job.email || "unknown"} - ${
-                job.cronPattern || "n/a"
-              }\n`;
-            }
-            alert(message);
-
-            ToastManager.success("Jobs loaded successfully", {
-              duration: 5000,
-              cta: {
-                label: "Refresh",
-                onClick: () => viewScheduledJobs(),
-              },
-            });
-          }
-
-          ActivityLogger.log(`Viewed ${jobs.length} scheduled jobs`);
-        } else {
-          ToastManager.error("Failed to load scheduled jobs");
-          ActivityLogger.log("Failed to load scheduled jobs", "error");
-        }
-      }
-
-      /* ==================== System Health ==================== */
-      async function systemHealth() {
-        ToastManager.loading("Checking system health...");
-
-        const result = await apiCall("/health");
-        // toast dismissed
-
-        if (result.success && result.data) {
-          const status = result.data.status || "unknown";
-          document.getElementById("systemStatus").textContent = status;
-          document.getElementById("healthStatus").textContent = status;
-
-          ToastManager.success(`✅ System: ${status}`, {
-            duration: 6000,
-            cta: {
-              label: "View Details",
-              onClick: () => {
-                const mode =
-                  result.data.mode || result.data.emailProvider || "production";
-                alert(
-                  `System Status: ${status}\nTimestamp: ${result.data.timestamp}\nMode: ${mode}`,
-                );
-              },
-            },
-          });
-
-          ActivityLogger.log(`System health check: ${status}`, "success");
-        } else {
-          document.getElementById("systemStatus").textContent = "Error";
-          document.getElementById("healthStatus").textContent = "Error";
-
-          ToastManager.error("❌ Health check failed", {
-            duration: 6000,
-            cta: {
-              label: "Retry",
-              onClick: () => systemHealth(),
-            },
-          });
-
-          ActivityLogger.log("System health check failed", "error");
-        }
-      }
-
-      /* ==================== View Database Stats ==================== */
-      async function viewDatabaseStats() {
-        const result = await apiCall("/admin/database-stats");
-
-        if (result.success && result.data) {
-          const stats = result.data;
-          const message = `📊 Database Statistics:\n\nTotal Records: ${
-            stats.totalRecords
-          }\nOldest Record: ${stats.oldestRecord || "N/A"}\nNewest Record: ${
-            stats.newestRecord || "N/A"
-          }`;
-          alert(message);
-
-          ToastManager.success("Stats loaded", {
-            duration: 4000,
-            cta: {
-              label: "Cleanup",
-              onClick: () => cleanupDatabase(),
-            },
-          });
-
-          ActivityLogger.log("Database stats viewed");
-        } else {
-          ToastManager.error("Failed to load database stats");
-          ActivityLogger.log("Failed to load database stats", "error");
-        }
-      }
-
-      /* ==================== Subscribers ==================== */
-      function openSubscribers() {
-        document.getElementById("subscribersModal").classList.add("active");
-        loadSubscribers();
-        ActivityLogger.log("Subscribers panel opened");
-      }
-
-      function closeSubscribers() {
-        document.getElementById("subscribersModal").classList.remove("active");
-      }
-
+      // 1. Load Subscribers
       async function loadSubscribers() {
-        const listEl = document.getElementById("subscribersList");
-        listEl.innerHTML =
-          '<p class="settings-item-desc">Loading subscribers...</p>';
-
-        const result = await apiCall("/admin/subscribers");
-
-        if (result.success && result.data) {
-          renderSubscribersList(result.data.subscribers || []);
-        } else {
-          const message =
-            (result.data && result.data.error) || "Failed to load subscribers";
-          listEl.innerHTML = `<p class="settings-item-desc">❌ ${message}</p>`;
-          ToastManager.error("Failed to load subscribers");
-          ActivityLogger.log("Failed to load subscribers", "error");
-        }
-      }
-
-      function renderSubscribersList(subscribers) {
-        const listEl = document.getElementById("subscribersList");
-
-        if (subscribers.length === 0) {
-          listEl.innerHTML =
-            '<p class="settings-item-desc">No subscribers yet. Add one above.</p>';
+        const res = await apiCall("/admin/subscribers");
+        if (!res.ok) {
+          ActivityLogger.log("Failed to load subscribers list", "error");
           return;
         }
 
-        listEl.innerHTML = subscribers
+        allSubscribers = res.data.subscribers || [];
+        renderSubscribersTable(allSubscribers);
+        updateKPICounters();
+        renderTemplateDistributionChart(allSubscribers);
+      }
+
+      function renderSubscribersTable(subscribers) {
+        const tbody = document.getElementById("subscribersTableBody");
+        const countBadge = document.getElementById("subscribersCountBadge");
+        if (countBadge) countBadge.textContent = `${subscribers.length} Total`;
+
+        if (!subscribers.length) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 36px;">
+                No subscribers match your search filter.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = subscribers
           .map((sub) => {
-            const paused = sub.isActive === false;
+            const initials = (sub.email || "S").slice(0, 2).toUpperCase();
+            const isActive = sub.isActive !== false;
+            const statusBadge = isActive
+              ? `<span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>`
+              : `<span class="badge badge-warning"><i class="fas fa-pause-circle"></i> Paused</span>`;
+
             return `
-              <div class="subscriber-row ${paused ? "paused" : ""}">
-                <div class="subscriber-info">
-                  <div class="subscriber-email">${sub.email}</div>
-                  <div class="subscriber-meta">
-                    ${sub.cronPattern || "n/a"} · ${sub.timezone || "n/a"} ·
-                    ${paused ? "Paused" : "Active"}
+            <tr>
+              <td>
+                <div class="user-avatar-cell">
+                  <div class="user-avatar">${initials}</div>
+                  <div>
+                    <div style="font-weight: 600; color: #fff;">${escapeHtml(sub.email)}</div>
+                    <div style="font-size: 11px; color: var(--text-subtle);">Added ${new Date(sub.createdAt || Date.now()).toLocaleDateString()}</div>
                   </div>
                 </div>
-                <div class="subscriber-actions">
-                  <button
-                    class="btn ${paused ? "btn-success" : "btn-warning"}"
-                    onclick="toggleSubscriberActive('${sub.email}', ${paused})"
-                  >
-                    <i class="fas ${paused ? "fa-play" : "fa-pause"}"></i>
-                    <span>${paused ? "Resume" : "Pause"}</span>
+              </td>
+              <td><span class="badge badge-template">${escapeHtml(sub.templateType || "default")}</span></td>
+              <td><code style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #818cf8;">${escapeHtml(sub.cronPattern || "0 8 * * *")}</code></td>
+              <td><span class="badge badge-tz">${escapeHtml(sub.timezone || "Asia/Kolkata")}</span></td>
+              <td>${statusBadge}</td>
+              <td style="text-align: right;">
+                <div class="table-actions" style="justify-content: flex-end;">
+                  <button class="action-icon-btn" title="${isActive ? 'Pause' : 'Resume'}" onclick="toggleSubscriberStatus('${escapeHtml(sub.email)}', ${!isActive})">
+                    <i class="fas ${isActive ? 'fa-pause' : 'fa-play'}"></i>
                   </button>
-                  <button
-                    class="btn btn-danger"
-                    onclick="deleteSubscriberConfirm('${sub.email}')"
-                  >
+                  <button class="action-icon-btn" title="Edit" onclick="openEditSubscriberModal('${escapeHtml(sub.email)}')">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="action-icon-btn btn-trash" title="Delete" onclick="deleteSubscriberPrompt('${escapeHtml(sub.email)}')">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
-              </div>
-            `;
+              </td>
+            </tr>
+          `;
           })
           .join("");
       }
 
-      async function submitAddSubscriber(event) {
-        event.preventDefault();
+      function filterSubscribersTable() {
+        const query = (document.getElementById("subscriberSearchInput")?.value || "").toLowerCase();
+        const statusFilter = document.getElementById("subscriberStatusFilter")?.value || "all";
+        const templateFilter = document.getElementById("subscriberTemplateFilter")?.value || "all";
 
-        const email = document.getElementById("newSubEmail").value.trim();
-        const cronPattern = document.getElementById("newSubCron").value.trim();
-        const timezone = document.getElementById("newSubTz").value.trim();
+        const filtered = allSubscribers.filter((sub) => {
+          const matchesQuery =
+            (sub.email || "").toLowerCase().includes(query) ||
+            (sub.timezone || "").toLowerCase().includes(query);
 
-        const body = { email };
-        if (cronPattern) body.cronPattern = cronPattern;
-        if (timezone) body.timezone = timezone;
+          const matchesStatus =
+            statusFilter === "all" ||
+            (statusFilter === "active" && sub.isActive !== false) ||
+            (statusFilter === "paused" && sub.isActive === false);
 
-        const result = await apiCall("/admin/subscribers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          const matchesTemplate =
+            templateFilter === "all" ||
+            (sub.templateType || "default").toLowerCase() === templateFilter.toLowerCase();
+
+          return matchesQuery && matchesStatus && matchesTemplate;
         });
 
-        if (result.success) {
-          ToastManager.success(`✅ Added ${email}`);
-          ActivityLogger.log(`Subscriber added: ${email}`, "success");
-          document.getElementById("newSubEmail").value = "";
-          document.getElementById("newSubCron").value = "";
-          document.getElementById("newSubTz").value = "";
-          loadSubscribers();
-        } else {
-          const message =
-            (result.data &&
-              (result.data.error || (result.data.errors || []).join(", "))) ||
-            "Failed to add subscriber";
-          ToastManager.error(`❌ ${message}`);
-          ActivityLogger.log(`Failed to add subscriber: ${message}`, "error");
+        renderSubscribersTable(filtered);
+      }
+
+      function updateKPICounters() {
+        const total = allSubscribers.length;
+        const active = allSubscribers.filter((s) => s.isActive !== false).length;
+        const paused = total - active;
+
+        const totalEl = document.getElementById("kpiTotalSubscribers");
+        const breakdownEl = document.getElementById("kpiActiveBreakdown");
+
+        if (totalEl) totalEl.textContent = total;
+        if (breakdownEl) breakdownEl.textContent = `${active} active • ${paused} paused`;
+      }
+
+      // 2. Growth Stats & Chart
+      async function loadGrowthStats(days = 7, buttonEl = null) {
+        if (buttonEl) {
+          document.querySelectorAll(".range-btn").forEach((btn) => btn.classList.remove("active"));
+          buttonEl.classList.add("active");
         }
 
-        return false;
-      }
+        const res = await apiCall(`/admin/subscribers/stats?days=${days}`);
+        if (!res.ok) return;
 
-      async function toggleSubscriberActive(email, setActive) {
-        const result = await apiCall(
-          `/admin/subscribers/${encodeURIComponent(email)}`,
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ isActive: setActive }),
-          },
-        );
+        const growthData = res.data.growth || [];
+        const labels = growthData.map((d) => d.date);
+        const data = growthData.map((d) => d.count);
 
-        if (result.success) {
-          ToastManager.success(
-            setActive ? `▶️ Resumed ${email}` : `⏸️ Paused ${email}`,
-          );
-          ActivityLogger.log(
-            `Subscriber ${setActive ? "resumed" : "paused"}: ${email}`,
-          );
-          loadSubscribers();
-        } else {
-          const message =
-            (result.data && result.data.error) || "Failed to update subscriber";
-          ToastManager.error(`❌ ${message}`);
-          ActivityLogger.log(
-            `Failed to update subscriber: ${message}`,
-            "error",
-          );
-        }
-      }
+        const ctx = document.getElementById("subscriberGrowthChart");
+        if (!ctx || typeof Chart === "undefined") return;
 
-      function deleteSubscriberConfirm(email) {
-        ToastManager.confirm(
-          `Remove ${email}? This cannot be undone.`,
-          async () => {
-            const result = await apiCall(
-              `/admin/subscribers/${encodeURIComponent(email)}`,
-              { method: "DELETE" },
-            );
+        if (growthChartInstance) growthChartInstance.destroy();
 
-            if (result.success) {
-              ToastManager.success(`🗑️ Removed ${email}`);
-              ActivityLogger.log(`Subscriber removed: ${email}`, "success");
-              loadSubscribers();
-            } else {
-              const message =
-                (result.data && result.data.error) ||
-                "Failed to remove subscriber";
-              ToastManager.error(`❌ ${message}`);
-              ActivityLogger.log(
-                `Failed to remove subscriber: ${message}`,
-                "error",
-              );
-            }
-          },
-        );
-      }
-
-      /* ==================== Read Full Database ==================== */
-      async function readDatabase() {
-        ToastManager.confirm("Fetch complete database records?", async () => {
-          const loading = ToastManager.loading("Reading database...");
-
-          // TODO: Need backend changes to accept admin session cookie instead of CRON_API_KEY
-          const result = await apiCall("/read-db");
-          // toast dismissed
-
-          if (result.success && result.data) {
-            const jsonData = JSON.stringify(result.data, null, 2);
-            const displayData =
-              jsonData.length > 3000
-                ? jsonData.slice(0, 3000) + "\n\n⚠️ Data truncated..."
-                : jsonData;
-
-            alert(`📚 Database Snapshot:\n\n${displayData}`);
-            console.log("📂 Full DB Data:", result.data);
-
-            ToastManager.success("✅ Database read successfully", {
-              duration: 7000,
-              cta: {
-                label: "Open Console",
-                onClick: () => {
-                  ToastManager.info("Check console for full data");
-                },
+        growthChartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "New Subscribers",
+                data,
+                borderColor: "#6366f1",
+                backgroundColor: "rgba(99, 102, 241, 0.15)",
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2,
+                pointBackgroundColor: "#818cf8",
+                pointRadius: 4,
               },
-            });
-
-            ActivityLogger.log("Full database read completed", "success");
-          } else {
-            ToastManager.error("❌ Failed to read database", {
-              duration: 7000,
-              cta: {
-                label: "Retry",
-                onClick: () => readDatabase(),
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: "rgba(15, 23, 42, 0.9)",
+                titleColor: "#fff",
+                bodyColor: "#a5b4fc",
+                borderColor: "rgba(255, 255, 255, 0.1)",
+                borderWidth: 1,
               },
-            });
-            ActivityLogger.log("Failed to read database", "error");
-          }
-        });
-      }
-
-      /* ==================== Other Functions ==================== */
-      function rescheduleJobs() {
-        ToastManager.show({
-          message: "Reschedule all jobs?",
-          type: "warning",
-          duration: 8000,
-          backgroundColor: "#f59e0b",
-          cta: {
-            label: "Confirm",
-            onClick: () => {
-              ToastManager.info(
-                "🔄 Jobs rescheduled (requires server restart)",
-                {
-                  duration: 5000,
-                  cta: {
-                    label: "Dismiss All",
-                    onClick: () => { /* dismiss */ },
-                  },
-                },
-              );
-              ActivityLogger.log("Jobs rescheduled", "success");
+            },
+            scales: {
+              x: {
+                grid: { color: "rgba(255, 255, 255, 0.05)" },
+                ticks: { color: "#64748b", font: { size: 11 } },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(255, 255, 255, 0.05)" },
+                ticks: { color: "#64748b", font: { size: 11 }, precision: 0 },
+              },
             },
           },
         });
       }
 
-      function viewLogs() {
-        ToastManager.info("📋 Log viewing feature", {
-          duration: 6000,
-          cta: {
-            label: "Open Docs",
-            onClick: () =>
-              window.open(
-                "https://github.com/sammy-cool/morning-routine-sender",
-                "_blank",
-              ),
+      // 3. Template Distribution Donut Chart
+      function renderTemplateDistributionChart(subscribers) {
+        const counts = {};
+        subscribers.forEach((s) => {
+          const t = s.templateType || "default";
+          counts[t] = (counts[t] || 0) + 1;
+        });
+
+        const labels = Object.keys(counts).map((k) => k.toUpperCase());
+        const data = Object.values(counts);
+
+        const ctx = document.getElementById("templateDistributionChart");
+        if (!ctx || typeof Chart === "undefined") return;
+
+        if (templateChartInstance) templateChartInstance.destroy();
+
+        templateChartInstance = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels,
+            datasets: [
+              {
+                data: data.length ? data : [1],
+                backgroundColor: ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#f43f5e", "#8b5cf6"],
+                borderColor: "#07090e",
+                borderWidth: 3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { color: "#94a3b8", font: { size: 11 }, boxWidth: 12 },
+              },
+            },
+            cutout: "70%",
           },
         });
-        ActivityLogger.log("Logs viewed");
       }
 
-      function viewTemplates() {
-        const templates = [
-          "default",
-          "deep-work",
-          "career",
-          "learning",
-          "mindfulness",
-          "reflection",
-        ];
-        let message = "📧 Available Templates:\n\n";
-        for (const t of templates) {
-          message += `• routine-${t}\n`;
+      // 4. Database Stats
+      async function loadDatabaseStats() {
+        const res = await apiCall("/admin/database-stats");
+        if (!res.ok) return;
+
+        const dbRecordsEl = document.getElementById("kpiDbRecords");
+        if (dbRecordsEl) dbRecordsEl.textContent = res.data.totalRecords ?? "0";
+      }
+
+      // 5. Active Scheduled Jobs
+      async function loadScheduledJobs() {
+        const res = await apiCall("/scheduled-jobs");
+        if (!res.ok) return;
+
+        const jobs = res.data.jobs || [];
+        const jobsEl = document.getElementById("kpiActiveJobs");
+        if (jobsEl) jobsEl.textContent = jobs.length;
+      }
+
+      /* ==================== Subscriber CRUD Handlers ==================== */
+      function openAddSubscriberModal() {
+        currentEditingEmail = null;
+        document.getElementById("subscriberModalTitle").textContent = "Add New Subscriber";
+        document.getElementById("modalSubEmail").value = "";
+        document.getElementById("modalSubEmail").disabled = false;
+        document.getElementById("modalSubTemplate").value = "default";
+        document.getElementById("modalSubCron").value = "0 8 * * *";
+        document.getElementById("modalSubTz").value = "Asia/Kolkata";
+        openModal("subscriberModal");
+      }
+
+      function openEditSubscriberModal(email) {
+        const sub = allSubscribers.find((s) => s.email === email);
+        if (!sub) return;
+
+        currentEditingEmail = email;
+        document.getElementById("subscriberModalTitle").textContent = `Edit: ${email}`;
+        document.getElementById("modalSubEmail").value = sub.email;
+        document.getElementById("modalSubEmail").disabled = true;
+        document.getElementById("modalSubTemplate").value = sub.templateType || "default";
+        document.getElementById("modalSubCron").value = sub.cronPattern || "0 8 * * *";
+        document.getElementById("modalSubTz").value = sub.timezone || "Asia/Kolkata";
+        openModal("subscriberModal");
+      }
+
+      function applyCronPreset(val) {
+        if (val !== "custom") {
+          document.getElementById("modalSubCron").value = val;
         }
-        alert(message);
-        ActivityLogger.log("Templates viewed");
       }
 
-      function testTemplate() {
-        sendTestEmail();
-      }
-
-      function openWebsite() {
-        window.open("https://priyanshu-eureka.netlify.app/", "_blank");
-        ToastManager.info("🌐 Opening website...");
-        ActivityLogger.log("Website opened");
-      }
-
-      function openDocs() {
-        window.open(
-          "https://github.com/sammy-cool/morning-routine-sender",
-          "_blank",
-        );
-        ToastManager.info("📚 Opening documentation...");
-        ActivityLogger.log("Documentation opened");
-      }
-
-      /* ==================== Shortcuts ==================== */
-      function getStats() {
-        viewDatabaseStats();
-      }
-      function getScheduledJobs() {
-        viewScheduledJobs();
-      }
-      function getDatabaseStats() {
-        viewDatabaseStats();
-      }
-      function healthCheck() {
-        systemHealth();
-      }
-
-      /* ==================== Keyboard Shortcuts ==================== */
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          // toast dismissed
-        }
-
-        // Ctrl/Cmd + K for quick actions
-        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-          e.preventDefault();
-          ToastManager.info("Quick Actions: Press buttons or use FAB", {
-            duration: 4000,
-          });
-        }
-      });
-
-      /* ========== PWA Registration ========== */
-      let deferredPrompt;
-
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("/sw.js")
-            .then((reg) => {
-              // console.log("Service Worker registered", reg);
-              ActivityLogger.log("PWA enabled", "success");
-              ActivityLogger.log("Service Worker registered", "success");
-            })
-            .catch((err) => console.log("SW registration failed", err));
-        });
-      }
-
-      globalThis.addEventListener("beforeinstallprompt", (e) => {
+      async function handleSubscriberFormSubmit(e) {
         e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById("installPrompt").classList.add("show");
-      });
 
-      function installPWA() {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === "accepted") {
-              ToastManager.success("App installed successfully!");
-              ActivityLogger.log("PWA installed", "success");
-            }
-            deferredPrompt = null;
-            document.getElementById("installPrompt").classList.remove("show");
+        const email = document.getElementById("modalSubEmail").value.trim();
+        const templateType = document.getElementById("modalSubTemplate").value;
+        const cronPattern = document.getElementById("modalSubCron").value.trim();
+        const timezone = document.getElementById("modalSubTz").value.trim();
+
+        const submitBtn = document.getElementById("modalSubmitBtn");
+        submitBtn.disabled = true;
+
+        if (currentEditingEmail) {
+          // Update subscriber
+          const res = await apiCall(`/admin/subscribers/${encodeURIComponent(currentEditingEmail)}`, {
+            method: "PATCH",
+            body: JSON.stringify({ templateType, cronPattern, timezone }),
           });
-        }
-      }
 
-      function dismissInstallPrompt() {
-        document.getElementById("installPrompt").classList.remove("show");
-        localStorage.setItem("installPromptDismissed", "true");
-      }
-
-      /* ========== Settings Functions ========== */
-      const Settings = {
-        get(key, defaultValue) {
-          const value = localStorage.getItem(`setting_${key}`);
-          if (value === null) {
-            return defaultValue;
+          if (res.ok) {
+            ToastManager.success(`Updated preferences for ${email}`);
+            ActivityLogger.log(`Updated subscriber: ${email}`, "success");
+            closeModal("subscriberModal");
+            loadSubscribers();
+          } else {
+            ToastManager.error(res.data.error || "Failed to update subscriber");
           }
-          return JSON.parse(value);
-        },
-        set(key, value) {
-          localStorage.setItem(`setting_${key}`, JSON.stringify(value));
-        },
-      };
+        } else {
+          // Add subscriber
+          const res = await apiCall("/admin/subscribers", {
+            method: "POST",
+            body: JSON.stringify({ email, templateType, cronPattern, timezone }),
+          });
 
-      function openSettings() {
-        document.getElementById("settingsModal").classList.add("active");
-        loadSettingsValues();
-        ActivityLogger.log("Settings opened");
-      }
-
-      function closeSettings() {
-        document.getElementById("settingsModal").classList.remove("active");
-      }
-
-      function loadSettingsValues() {
-        document.getElementById("themeSetting").value = Settings.get(
-          "theme",
-          "light",
-        );
-        document.getElementById("toastPosition").value = Settings.get(
-          "toastPosition",
-          "top-right",
-        );
-        document.getElementById("notificationSound").checked = Settings.get(
-          "notificationSound",
-          false,
-        );
-        document.getElementById("defaultTemplate").value = Settings.get(
-          "defaultTemplate",
-          "default",
-        );
-        document.getElementById("activityLogDefault").checked = Settings.get(
-          "activityLogDefault",
-          false,
-        );
-        document.getElementById("autoRefresh").value = Settings.get(
-          "autoRefresh",
-          "0",
-        );
-      }
-
-      function updateThemeSetting(value) {
-        Settings.set("theme", value);
-        if (value !== "auto") {
-          document.documentElement.dataset.theme = value;
-          document.getElementById("themeIcon").className =
-            value === "dark" ? "fas fa-sun" : "fas fa-moon";
+          if (res.ok) {
+            ToastManager.success(`Added new subscriber: ${email}`);
+            ActivityLogger.log(`New subscriber created: ${email}`, "success");
+            closeModal("subscriberModal");
+            loadSubscribers();
+          } else {
+            ToastManager.error(res.data.error || (res.data.errors || []).join(", ") || "Failed to add subscriber");
+          }
         }
-        ToastManager.info(`Theme set to ${value}`);
-        ActivityLogger.log(`Theme changed to ${value}`);
+
+        submitBtn.disabled = false;
       }
 
-      function updateToastPosition(value) {
-        Settings.set("toastPosition", value);
-        ToastManager.info(`Toast position: ${value}`);
-      }
+      async function toggleSubscriberStatus(email, setActive) {
+        const res = await apiCall(`/admin/subscribers/${encodeURIComponent(email)}`, {
+          method: "PATCH",
+          body: JSON.stringify({ isActive: setActive }),
+        });
 
-      function updateSoundSetting(value) {
-        Settings.set("notificationSound", value);
-        ToastManager.info(value ? "Sounds enabled" : "Sounds disabled");
-      }
-
-      function updateDefaultTemplate(value) {
-        Settings.set("defaultTemplate", value);
-        ToastManager.info(`Default template: ${value}`);
-      }
-
-      function updateActivityLogSetting(value) {
-        Settings.set("activityLogDefault", value);
-        ToastManager.info(
-          value
-            ? "Activity log will open by default"
-            : "Activity log will stay closed",
-        );
-      }
-
-      function updateAutoRefresh(value) {
-        Settings.set("autoRefresh", value);
-        setupAutoRefresh();
-        ToastManager.info(
-          value === "0"
-            ? "Auto-refresh disabled"
-            : `Refreshing every ${value}s`,
-        );
-      }
-
-      let autoRefreshInterval = null;
-
-      function setupAutoRefresh() {
-        if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-
-        const interval = Settings.get("autoRefresh", "0");
-        if (interval !== "0" && interval !== 0) {
-          autoRefreshInterval = setInterval(
-            () => {
-              loadDashboardStats();
-              ActivityLogger.log("Stats auto-refreshed");
-            },
-            Number.parseInt(interval) * 1000,
-          );
+        if (res.ok) {
+          ToastManager.success(setActive ? `Resumed ${email}` : `Paused ${email}`);
+          ActivityLogger.log(`Subscriber ${setActive ? "resumed" : "paused"}: ${email}`, "info");
+          loadSubscribers();
+        } else {
+          ToastManager.error("Failed to change subscriber status");
         }
       }
 
-      /* ========== Analytics Charts ========== */
-      // Duplicate initCharts removed to prevent overwriting the dynamic chart functions.
+      async function deleteSubscriberPrompt(email) {
+        if (!confirm(`Are you sure you want to permanently delete subscriber: ${email}?`)) return;
 
-      function setChartRange(days) {
-        const filterBtns = document.querySelectorAll(".filter-btn");
+        const res = await apiCall(`/admin/subscribers/${encodeURIComponent(email)}`, {
+          method: "DELETE",
+        });
 
-        for (const btn of filterBtns) {
-          btn.classList.remove("active");
+        if (res.ok) {
+          ToastManager.success(`Deleted subscriber ${email}`);
+          ActivityLogger.log(`Subscriber deleted: ${email}`, "info");
+          loadSubscribers();
+        } else {
+          ToastManager.error(res.data.error || "Failed to delete subscriber");
         }
-
-        event.target.classList.add("active");
-        // TODO: Fetch data for selected range and update chart
-        ToastManager.info(`Chart range: ${days} days`);
       }
 
-      /* ========== Enhanced DOMContentLoaded ========== */
-      globalThis.addEventListener("DOMContentLoaded", async () => {
-        // Existing initialization code...
+      /* ==================== Email Testing & Dispatch ==================== */
+      function selectTemplatePill(el) {
+        document.querySelectorAll(".template-pill").forEach((p) => p.classList.remove("selected"));
+        el.classList.add("selected");
+      }
 
-        // Initialize new features
-        setupAutoRefresh();
-
-        // Show activity log if setting enabled
-        if (Settings.get("activityLogDefault", false)) {
-          toggleActivityLog();
+      async function sendSingleTestEmail() {
+        const email = document.getElementById("testEmailRecipient").value.trim();
+        if (!email) {
+          ToastManager.warn("Please enter a valid recipient email address.");
+          document.getElementById("testEmailRecipient").focus();
+          return;
         }
 
-        setTimeout(() => {
-          ActivityLogger.log("Analytics initialized", "success");
-        }, 1000);
+        const selectedPill = document.querySelector(".template-pill.selected");
+        const templateType = selectedPill ? selectedPill.getAttribute("data-template") : "default";
+
+        ActivityLogger.log(`Sending test routine email to ${email} (${templateType})…`, "info");
+        ToastManager.info("Dispatching test email…");
+
+        const res = await apiCall("/send-test-email", {
+          method: "POST",
+          body: JSON.stringify({ email, templateType }),
+        });
+
+        if (res.ok) {
+          ToastManager.success(`✅ Test email delivered to ${email}!`);
+          ActivityLogger.log(`Test email sent successfully to ${email}`, "success");
+        } else {
+          ToastManager.error(`❌ Delivery failed: ${res.data.error || "SMTP Error"}`);
+          ActivityLogger.log(`Test email failed: ${res.data.error || "SMTP Error"}`, "error");
+        }
+      }
+
+      async function triggerBulkSendNow() {
+        if (!confirm("Are you sure you want to trigger immediate bulk dispatch for all active subscribers?")) return;
+
+        ActivityLogger.log("Triggering immediate bulk morning campaign…", "info");
+        ToastManager.info("Bulk dispatch started…");
+
+        const res = await apiCall("/send-bulk-now", { method: "POST" });
+        if (res.ok) {
+          ToastManager.success("Bulk emails queued & dispatched successfully!");
+          ActivityLogger.log("Bulk campaign completed", "success");
+        } else {
+          ToastManager.error(`Bulk send error: ${res.data.error || "Failed"}`);
+        }
+      }
+
+      /* ==================== Maintenance & Diagnostics ==================== */
+      function updateSliderLabel(val) {
+        document.getElementById("retentionSliderLabel").textContent = `${val} Days`;
+      }
+
+      async function executeDatabaseCleanup() {
+        const days = Number(document.getElementById("retentionDaysSlider").value) || 30;
+        if (!confirm(`Purge email tracker records older than ${days} days?`)) return;
+
+        const res = await apiCall("/admin/cleanup-database", {
+          method: "POST",
+          body: JSON.stringify({ days }),
+        });
+
+        if (res.ok) {
+          ToastManager.success(`Database cleanup completed: ${res.data.deleted || 0} records deleted.`);
+          ActivityLogger.log(`Database retention purge: ${res.data.deleted || 0} records deleted`, "success");
+          loadDatabaseStats();
+        } else {
+          ToastManager.error("Database cleanup failed.");
+        }
+      }
+
+      async function executeLogCleanup() {
+        if (!confirm("Purge old rotated log files from disk?")) return;
+
+        const res = await apiCall("/admin/cleanup-logs", { method: "POST" });
+        if (res.ok) {
+          ToastManager.success(`Logs cleaned: ${res.data.deleted || 0} old files removed.`);
+          ActivityLogger.log(`Disk log purge: ${res.data.deleted || 0} files removed`, "success");
+        } else {
+          ToastManager.error("Log cleanup failed.");
+        }
+      }
+
+      async function inspectDatabaseRows() {
+        openModal("dbInspectorModal");
+        const container = document.getElementById("dbInspectorContent");
+        container.textContent = "Querying database records…";
+
+        const res = await apiCall("/read-db");
+        if (res.ok && res.data?.data?.rows) {
+          container.textContent = JSON.stringify(res.data.data.rows.slice(0, 50), null, 2);
+        } else {
+          container.textContent = "Failed to load database records: " + (res.data?.error || "Error");
+        }
+      }
+
+      /* ==================== CSV Export ==================== */
+      function exportSubscribersCSV() {
+        if (!allSubscribers.length) {
+          ToastManager.warn("No subscribers to export");
+          return;
+        }
+
+        const headers = ["Email", "Template", "Cron Pattern", "Timezone", "Status", "Created At"];
+        const rows = allSubscribers.map((s) => [
+          s.email,
+          s.templateType || "default",
+          s.cronPattern || "0 8 * * *",
+          s.timezone || "Asia/Kolkata",
+          s.isActive !== false ? "Active" : "Paused",
+          s.createdAt || "",
+        ]);
+
+        let csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `subscribers_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        ToastManager.success("Subscribers CSV exported");
+      }
+
+      /* ==================== Modal Helpers & Navigation ==================== */
+      function openModal(id) {
+        const m = document.getElementById(id);
+        if (m) m.classList.add("open");
+      }
+
+      function closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) m.classList.remove("open");
+      }
+
+      function scrollToSection(id) {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }
+
+      function clearActivityStream() {
+        const s = document.getElementById("activityStream");
+        if (s) s.innerHTML = "";
+      }
+
+      async function handleLogout() {
+        await apiCall("/logout", { method: "POST" });
+        window.location.replace("/");
+      }
+
+      /* ==================== Command Palette (`Ctrl + K`) ==================== */
+      function openCommandPalette() {
+        openModal("commandPaletteModal");
+        setTimeout(() => document.getElementById("cmdPaletteInput")?.focus(), 50);
+      }
+
+      function filterCommandPalette(q) {
+        const query = q.toLowerCase();
+        const items = document.querySelectorAll(".cmd-item");
+        items.forEach((item) => {
+          const match = item.textContent.toLowerCase().includes(query);
+          item.style.display = match ? "flex" : "none";
+        });
+      }
+
+      function executeCommand(cmd) {
+        closeModal("commandPaletteModal");
+        if (cmd === "add-sub") openAddSubscriberModal();
+        if (cmd === "send-test") scrollToSection("section-testing");
+        if (cmd === "trigger-bulk") triggerBulkSendNow();
+        if (cmd === "db-cleanup") scrollToSection("section-diagnostics");
+        if (cmd === "export-csv") exportSubscribersCSV();
+        if (cmd === "refresh") refreshAllData();
+        if (cmd === "logout") handleLogout();
+      }
+
+      // Keyboard Shortcuts
+      window.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+          e.preventDefault();
+          openCommandPalette();
+        }
+        if (e.key === "Escape") {
+          document.querySelectorAll(".modal-backdrop.open").forEach((m) => m.classList.remove("open"));
+        }
       });
 
-      // Close settings modal on outside click
-      document
-        .getElementById("settingsModal")
-        .addEventListener("click", (e) => {
-          if (e.target.id === "settingsModal") {
-            closeSettings();
-          }
-        });
+      // Initialize on Load
+      window.addEventListener("DOMContentLoaded", () => {
+        refreshAllData();
+      });
     </script>
   </body>
 </html>

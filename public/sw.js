@@ -17,7 +17,7 @@ const STATIC_ASSETS = [
 
   // SELF-HOSTED or PINNED ONLY
   "/js/npm-mod/customizable-toast-notification.js",
-  "https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.0/dist/index.umd.js",
+  "https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js",
   "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap",
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
   "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js",
