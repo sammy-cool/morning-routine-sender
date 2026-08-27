@@ -1,7 +1,6 @@
 // shared-data.js
 const fs = require("fs");
 const path = require("path");
-const axios = require("axios");
 
 let cache = new Map();
 
@@ -52,11 +51,15 @@ async function getNewRandomQuote(
 // Function to fetch a quote from FavQs API
 async function getDailyQuote() {
   try {
-    const response = await axios.get("https://favqs.com/api/qotd");
-    return response.data.quote.body + " - " + response.data.quote.author;
+    const response = await fetch("https://favqs.com/api/qotd");
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}`);
+    }
+    const data = await response.json();
+    return data.quote.body + " - " + data.quote.author;
   } catch (error) {
-    console.error("Error fetching quote:", error);
-    throw error;
+    console.error("Error fetching quote:", error.message || error);
+    return "Make today amazing and full of possibilities.";
   }
 }
 

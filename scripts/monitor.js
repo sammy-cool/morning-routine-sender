@@ -1,13 +1,13 @@
 // scripts/monitor.js - Health monitoring script
-const axios = require("axios");
 const logger = require("../logger");
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:2900";
 
 async function healthCheck() {
   try {
-    const response = await axios.get(`${BASE_URL}/health`);
-    console.log("✅ Health check passed:", response.data);
+    const response = await fetch(`${BASE_URL}/health`);
+    const data = await response.json();
+    console.log("✅ Health check passed:", data);
     return true;
   } catch (error) {
     console.error("❌ Health check failed:", error.message);
@@ -17,8 +17,9 @@ async function healthCheck() {
 
 async function checkScheduledJobs() {
   try {
-    const response = await axios.get(`${BASE_URL}/scheduled-jobs`);
-    console.log("📅 Scheduled jobs:", response.data);
+    const response = await fetch(`${BASE_URL}/scheduled-jobs`);
+    const data = await response.json();
+    console.log("📅 Scheduled jobs:", data);
     return true;
   } catch (error) {
     console.error("❌ Failed to get scheduled jobs:", error.message);
@@ -28,8 +29,9 @@ async function checkScheduledJobs() {
 
 async function getDatabaseStats() {
   try {
-    const response = await axios.get(`${BASE_URL}/admin/database-stats`);
-    console.log("📊 Database stats:", response.data);
+    const response = await fetch(`${BASE_URL}/admin/database-stats`);
+    const data = await response.json();
+    console.log("📊 Database stats:", data);
     return true;
   } catch (error) {
     console.error("❌ Failed to get database stats:", error.message);
