@@ -37,8 +37,7 @@ function buildRedisClient() {
     );
   }
 
-  const redis = new Redis(connectionUrl || "redis://127.0.0.1:6379", {
-    tls: {}, // Required for Render Redis (enables SSL) -- unchanged from before
+  const options = {
     retryStrategy: (times) => {
       if (times > 3) {
         logger.error("❌ Redis connection failed after 3 retries");
@@ -46,7 +45,13 @@ function buildRedisClient() {
       }
       return Math.min(times * 50, 2000);
     },
-  });
+  };
+  
+  if (connectionUrl && connectionUrl.startsWith('rediss://')) {
+    options.tls = {};
+  }
+
+  const redis = new Redis(connectionUrl || "redis://127.0.0.1:6379", options);
 
   redis.on("connect", () => {
     logger.info("✅ Redis connected");
