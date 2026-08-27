@@ -2,13 +2,6 @@
 require("dotenv").config();
 
 module.exports = {
-  test: {
-    client: "sqlite3",
-    connection: { filename: ":memory:" },
-    useNullAsDefault: true,
-    migrations: { directory: "./db/migrations" },
-    seeds: { directory: "./db/seeds" },
-  },
   development: {
     client: process.env.DB_CLIENT || "pg",
     connection: {
@@ -17,7 +10,7 @@ module.exports = {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized: process.env.DB_SSL },
     },
     useNullAsDefault: true,
     migrations: {
@@ -36,7 +29,7 @@ module.exports = {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized: process.env.DB_SSL },
     },
     useNullAsDefault: true,
     migrations: {
