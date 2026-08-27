@@ -1,6 +1,7 @@
 // shared-data.js
 const fs = require("fs");
 const path = require("path");
+const logger = require("../logger");
 
 let cache = new Map();
 
@@ -43,7 +44,7 @@ async function getNewRandomQuote(
     updateCache("lastSentQuote", randomQuote);
     return randomQuote;
   } catch (error) {
-    console.log("Error getting new random quote:", error);
+    logger.error("Error getting new random quote", { error: error.message || error });
     throw error;
   }
 }
@@ -58,7 +59,9 @@ async function getDailyQuote() {
     const data = await response.json();
     return data.quote.body + " - " + data.quote.author;
   } catch (error) {
-    console.error("Error fetching quote:", error.message || error);
+    logger.warn("Error fetching daily quote from FavQs API, using fallback", {
+      error: error.message || error,
+    });
     return "Make today amazing and full of possibilities.";
   }
 }
