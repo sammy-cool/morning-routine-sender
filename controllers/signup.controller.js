@@ -102,8 +102,11 @@ async function confirmSignup(req, res) {
     // One-time use, same as the login token.
     await redis.del(SIGNUP_KEY_PREFIX + token);
 
-    const { email, cronPattern, timezone } = JSON.parse(raw);
-    const result = await sharedData.addUser({ email, cronPattern, timezone });
+    const { email, cronPattern, timezone, routineTrack } = JSON.parse(raw);
+    const result = await sharedData.addUser({ email, cronPattern, timezone, routineTrack });
+
+    // Always ensure subscriber is marked active upon confirmation
+    await sharedData.setUserActive(email, true);
 
     // If they double-clicked the link (or it somehow got confirmed
     // twice), don't error -- just log them in. The subscriber already
