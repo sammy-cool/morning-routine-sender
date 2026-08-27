@@ -51,7 +51,7 @@ async function requestSignup(req, res) {
       SIGNUP_KEY_TTL_SECONDS,
     );
 
-    const baseUrl = req.app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+    const baseUrl = res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
     const confirmUrl = `${baseUrl}/confirm-subscription?token=${token}`;
 
     const transporter = getTransporter();

@@ -135,31 +135,24 @@ class EmailTracker {
    */
   async updateJobRun(jobName, emailsSent, emailsFailed, errorDetails = null) {
     try {
-      const existing = await db("job_last_run")
-        .where({ job_name: jobName })
-        .first();
-
-      if (existing) {
-        await db("job_last_run")
-          .where({ job_name: jobName })
-          .update({
-            last_run_at: new Date(),
-            status: emailsFailed > 0 ? "failed" : "success",
-            emails_sent: emailsSent,
-            emails_failed: emailsFailed,
-            error_details: errorDetails,
-            updated_at: new Date(),
-          });
-      } else {
-        await db("job_last_run").insert({
+      await db("job_last_run")
+        .insert({
           job_name: jobName,
           last_run_at: new Date(),
           status: emailsFailed > 0 ? "failed" : "success",
           emails_sent: emailsSent,
           emails_failed: emailsFailed,
           error_details: errorDetails,
+        })
+        .onConflict("job_name")
+        .merge({
+          last_run_at: new Date(),
+          status: emailsFailed > 0 ? "failed" : "success",
+          emails_sent: emailsSent,
+          emails_failed: emailsFailed,
+          error_details: errorDetails,
+          updated_at: new Date(),
         });
-      }
 
       logger.info("Job run recorded", { jobName, emailsSent, emailsFailed });
     } catch (error) {

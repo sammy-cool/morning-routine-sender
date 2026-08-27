@@ -38,7 +38,7 @@ async function requestLogin(req, res) {
     const token = crypto.randomBytes(32).toString("hex");
     await redis.set(LOGIN_KEY_PREFIX + token, email, "EX", LOGIN_KEY_TTL_SECONDS);
 
-    const baseUrl = req.app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+    const baseUrl = res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
     const loginUrl = `${baseUrl}/verify-login?token=${token}`;
 
     const transporter = getTransporter();

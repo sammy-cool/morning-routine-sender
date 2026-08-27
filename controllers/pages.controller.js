@@ -7,8 +7,18 @@ const logger = require("../logger");
 // project root -- same target files, adjusted relative path only.
 const ROOT_DIR = path.join(__dirname, "..");
 
-function getDomain(req) {
-  return req.app.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+function escapeHtml(unsafe) {
+  return (unsafe || "").toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/`/g, "&#x60;");
+}
+
+function getDomain(req, res) {
+  return res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
 }
 
 // GET /admin-dashboard
@@ -18,13 +28,13 @@ function adminDashboard(req, res) {
     return res.redirect(302, "/");
   }
 
-  const domain = getDomain(req);
+  const domain = getDomain(req, res);
   logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
   let html = fs.readFileSync(
     path.join(ROOT_DIR, "admin-renderer/views", "admin-dashboard.html"),
     "utf8",
   );
-  html = html.replaceAll("__DOMAIN__", domain);
+  html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
   return res.send(html);
 }
 
@@ -39,10 +49,10 @@ function health(req, res) {
 
 // GET /offline
 function offline(req, res) {
-  const domain = getDomain(req);
+  const domain = getDomain(req, res);
   logger.info("Landed in sleeping night", { domain, ip: req.ip });
   let html = fs.readFileSync(path.join(ROOT_DIR, "public", "offline.html"), "utf8");
-  html = html.replaceAll("__DOMAIN__", domain);
+  html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
   return res.send(html);
 }
 
@@ -71,20 +81,20 @@ async function userDashboard(req, res) {
     return res.redirect(302, "/");
   }
 
-  const domain = getDomain(req);
+  const domain = getDomain(req, res);
   logger.info("User Dashboard accessed", { domain, ip: req.ip, email });
   let html = fs.readFileSync(
     path.join(ROOT_DIR, "public", "user-dashboard.html"),
     "utf8",
   );
-  html = html.replace("__DOMAIN__", domain);
+  html = html.replace("__DOMAIN__", escapeHtml(domain));
   res.send(html);
 }
 
 // GET /  (root -- skeleton + role-based redirect)
 function root(req, res) {
   res.set("Cache-Control", "no-store");
-  const domain = getDomain(req);
+  const domain = getDomain(req, res);
 
   try {
     if (req.cookies?.mrn_role === "admin") {
@@ -100,7 +110,7 @@ function root(req, res) {
         path.join(ROOT_DIR, "public", "main-index.html"),
         "utf8",
       );
-      html = html.replaceAll("__DOMAIN__", domain);
+      html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
       return res.send(html);
     }
   } catch (err) {
@@ -112,7 +122,7 @@ function root(req, res) {
       path.join(ROOT_DIR, "public", "main-index.html"),
       "utf8",
     );
-    html = html.replaceAll("__DOMAIN__", domain);
+    html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
     return res.send(html);
   }
 }

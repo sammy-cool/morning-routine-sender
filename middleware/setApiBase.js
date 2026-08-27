@@ -10,10 +10,12 @@ function setApiBase(req, res, next) {
   const renderUrl = process.env.RENDER_URL;
 
   let baseURL;
-  if (host) {
+  if (renderUrl) {
+    baseURL = renderUrl;
+  } else if (host) {
     baseURL = `${protocol}://${host}`;
   } else {
-    baseURL = renderUrl;
+    baseURL = "http://localhost:3000"; // fallback
   }
 
   logger.info("🔍 Setting API base URL for...\n", {
@@ -22,8 +24,8 @@ function setApiBase(req, res, next) {
     ip: req.ip,
     timestamp: Date.now(),
   });
-  req.app.locals.apiBase = baseURL;
-  req.app.locals.officialDomain = renderUrl;
+  res.locals.apiBase = baseURL;
+  res.locals.officialDomain = renderUrl;
   next();
 }
 

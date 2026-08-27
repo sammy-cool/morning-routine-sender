@@ -26,7 +26,8 @@ async function generateAdminKey(req, res) {
   res.set("Cache-Control", "no-store");
   const adminSecret = req.get("x-admin-secret") || req.query.adminSecret;
 
-  if (adminSecret !== process.env.ADMIN_KEY) {
+  const expectedKey = process.env.ADMIN_KEY;
+  if (!expectedKey || adminSecret !== expectedKey) {
     logger.error("Forbidden: Invalid admin secret");
     return res.status(403).json({ message: "Forbidden: Invalid admin secret" });
   }
@@ -76,6 +77,7 @@ async function verifyAdminKey(req, res) {
       sameSite: isProd ? "none" : "lax",
       path: "/", // required
       maxAge: 5 * 60 * 1000,
+      signed: true,
     });
 
     return res.json({ role: "admin" });

@@ -309,6 +309,12 @@ function scheduleCleanupJobs() {
 
   // logger.info("✅ Cleanup job scheduled (every sunday at 2 AM)");
 
+  scheduledJobs.push({
+    email: 'system_cleanup',
+    job: cleanupJob,
+    cronPattern: '0 2 * * 0'
+  });
+
   return cleanupJob;
 }
 

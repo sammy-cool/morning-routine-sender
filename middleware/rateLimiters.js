@@ -5,7 +5,7 @@ const rateLimit = require("express-rate-limit");
 // dependency back on index.js. Behavior is unchanged from the original.
 const sendEmailLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.ALLOWED_RATE_LIMITER, // Allow N requests per IP
+  max: parseInt(process.env.ALLOWED_RATE_LIMITER, 10) || 100, // Allow N requests per IP
   message: "Too many requests from this IP, please try again after 15 minutes.",
 });
 
