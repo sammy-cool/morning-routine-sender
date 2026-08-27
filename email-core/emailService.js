@@ -6,6 +6,7 @@ const handlebars = require("handlebars");
 const crypto = require("node:crypto");
 
 const logger = require("../logger");
+const sharedData = require("../helper/shared-data");
 const { dailyDevNews, todayUTCYYYYMMDD } = require("../helper/util");
 const { generateUnsubscribeToken } = require("../helper/unsubscribeToken");
 
@@ -34,14 +35,24 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     const dayNumber = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, day: '2-digit' }).format(now);
     const templateYear = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, year: 'numeric' }).format(now);
 
+    let dailyTip = userData.dailyTip;
+    if (!dailyTip) {
+      try {
+        dailyTip = await sharedData.getNewRandomQuote();
+      } catch {
+        dailyTip = "Focus on small, consistent daily improvements to unlock extraordinary growth.";
+      }
+    }
+
     const data = {
-      logoUrl: `${process.env.LOGO_URL}`,
-      userName: userData.name || "Subscriber",
+      logoUrl: process.env.LOGO_URL || `${baseUrl}/assets/logo.png`,
+      userName: userData.name || (userData.email ? userData.email.split('@')[0] : "Subscriber"),
       dayNumber: dayNumber,
       year: templateYear,
-      dailyTip: userData.dailyTip || "Something to be get curious about today!",
+      dailyTip: dailyTip,
       ctaUrl: `${baseUrl}`,
       ctaText: "View Your Routine",
+      preferencesUrl: `${baseUrl}/user-dashboard`,
       trendingNews,
       unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(
         userData.email
