@@ -18,11 +18,10 @@ function setApiBase(req, res, next) {
     baseURL = "http://localhost:3000"; // fallback
   }
 
-  logger.info("🔍 Setting API base URL for...\n", {
-    baseURL: baseURL,
+  logger.debug("API base URL configured", {
+    baseURL,
     path: req.path || "unknown",
     ip: req.ip,
-    timestamp: Date.now(),
   });
   res.locals.apiBase = baseURL;
   res.locals.officialDomain = renderUrl;
