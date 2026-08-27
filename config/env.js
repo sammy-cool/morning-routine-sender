@@ -30,6 +30,12 @@ function validateEnv() {
     logger.warn(
       `⚠️  Missing environment variables (app will still start, but related features will fail): ${missing.join(", ")}`,
     );
+    if (process.env.NODE_ENV === "production") {
+      const criticalMissing = missing.filter(key => key === 'ADMIN_KEY' || key === 'CRON_API_KEY');
+      if (criticalMissing.length > 0) {
+        throw new Error(`CRITICAL security environment variables missing in production: ${criticalMissing.join(", ")}`);
+      }
+    }
   } else {
     logger.info("✅ All required environment variables are present");
   }

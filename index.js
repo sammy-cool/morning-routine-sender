@@ -113,7 +113,7 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(express.json());
 app.use(setApiBase);
-app.use(cookieParser());
+app.use(cookieParser(process.env.ADMIN_KEY || 'dev-secret'));
 // ENABLE gzip / brotli
 app.use(compression());
 

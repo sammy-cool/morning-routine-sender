@@ -4,7 +4,8 @@ const logger = require("../logger");
 
 // GET /read-db
 async function readDb(req, res) {
-  if (req.query.key !== process.env.CRON_API_KEY) {
+  const expectedKey = process.env.CRON_API_KEY;
+  if (!expectedKey || req.query.key !== expectedKey) {
     logger.error("Forbidden");
     return res.status(403).json({ error: "Forbidden" });
   }
