@@ -11,16 +11,14 @@ module.exports = {
   },
   development: {
     client: process.env.DB_CLIENT || "pg",
-    connection: process.env.DATABASE_URL 
-      ? { connectionString: process.env.DATABASE_URL, ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false } }
-      : {
-          host: process.env.DB_HOST,
-          port: process.env.DB_PORT || 5432,
-          user: process.env.DB_USER,
-          password: process.env.DB_PASSWORD,
-          database: process.env.DB_NAME,
-          ssl: process.env.DB_SSL === 'false' ? false : (process.env.DB_SSL === 'true' || process.env.DB_SSL ? { rejectUnauthorized: false } : false),
-        },
+    connection: {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT || 5432,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+    },
     useNullAsDefault: true,
     migrations: {
       directory: "./db/migrations",
@@ -32,16 +30,14 @@ module.exports = {
 
   production: {
     client: process.env.DB_CLIENT || "pg",
-    connection: process.env.DATABASE_URL 
-      ? { connectionString: process.env.DATABASE_URL, ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false } }
-      : {
-          host: process.env.DB_HOST,
-          port: process.env.DB_PORT || 5432,
-          user: process.env.DB_USER,
-          password: process.env.DB_PASSWORD,
-          database: process.env.DB_NAME,
-          ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
-        },
+    connection: {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT || 5432,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+    },
     useNullAsDefault: true,
     migrations: {
       directory: "./db/migrations",
