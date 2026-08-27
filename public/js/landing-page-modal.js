@@ -11,24 +11,30 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const generateBtn = document.getElementById("generateBtn");
     const generateStatus = document.getElementById("generateStatus");
 
+    if (!modalWrap) return;
+
     function openModal() {
       modalWrap.classList.add("open");
       modalWrap.setAttribute("aria-hidden", "false");
-      adminKeyInput.focus();
+      if (adminKeyInput) adminKeyInput.focus();
     }
     function closeModal() {
       modalWrap.classList.remove("open");
       modalWrap.setAttribute("aria-hidden", "true");
-      adminKeyInput.value = "";
+      if (adminKeyInput) adminKeyInput.value = "";
     }
 
-    openBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      openModal();
-    });
-    cancelBtn.addEventListener("click", function () {
-      closeModal();
-    });
+    if (openBtn) {
+      openBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        openModal();
+      });
+    }
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", function () {
+        closeModal();
+      });
+    }
 
     // Submit -> POST /verify-admin-key
     // (Extracted into a function so the new "generate & continue" flow
