@@ -140,7 +140,6 @@ async function getEmailHtmlTemplateAndUpdate(unsubscribeLink) {
 // helper/shared-data.js
 require("dotenv").config();
 const db = require("../db/knex");
-const logger = require("../logger");
 
 /**
  * Subscriber management, backed by the `subscribers` table
