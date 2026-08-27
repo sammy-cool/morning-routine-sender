@@ -6,7 +6,8 @@ const { safeCompare } = require("../helper/util");
 // GET /read-db
 async function readDb(req, res) {
   const expectedKey = process.env.CRON_API_KEY;
-  if (!expectedKey || !safeCompare(req.query.key, expectedKey)) {
+  const apiKey = req.get("x-cron-key") || req.query.key;
+  if (!expectedKey || !safeCompare(apiKey, expectedKey)) {
     logger.error("Forbidden");
     return res.status(403).json({ error: "Forbidden" });
   }

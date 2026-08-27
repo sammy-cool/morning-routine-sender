@@ -23,8 +23,19 @@ function validateSubscriberInput(
   if (cronPattern !== undefined && !cron.validate(cronPattern)) {
     errors.push("cronPattern is not a valid cron expression");
   }
+  function isValidTimezone(tz) {
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone: tz });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   if (timezone !== undefined && (typeof timezone !== "string" || !timezone.trim())) {
     errors.push("timezone must be a non-empty string");
+  } else if (timezone && !isValidTimezone(timezone)) {
+    errors.push('Invalid timezone');
   }
 
   return errors;

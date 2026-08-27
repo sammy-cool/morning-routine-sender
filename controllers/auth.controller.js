@@ -91,7 +91,8 @@ async function verifyAdminKey(req, res) {
 // POST /secret-jobs-scheduler
 async function secretJobsScheduler(req, res) {
   const clientIP = req.ip || req.socket.remoteAddress;
-  const { key, action } = req.query;
+  const key = req.get("x-api-key") || req.query.key;
+  const { action } = req.query;
 
   //IP Restriction
   if (process.env.NODE_ENV === "development") {

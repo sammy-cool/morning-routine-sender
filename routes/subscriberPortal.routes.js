@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { sendEmailLimiter } = require("../middleware/rateLimiters");
+const { sendEmailLimiter, authLimiter } = require("../middleware/rateLimiters");
 const { requireSubscriberSession } = require("../middleware/subscriberSession");
 const { checkHoneypot } = require("../middleware/honeypot");
 const authController = require("../controllers/subscriberAuth.controller");
@@ -20,7 +20,7 @@ router.post(
   sendEmailLimiter,
   authController.requestLogin,
 );
-router.get("/verify-login", authController.verifyLogin);
+router.get("/verify-login", authLimiter, authController.verifyLogin);
 router.post("/logout", authController.logout);
 
 router.post(
@@ -31,7 +31,7 @@ router.post(
   sendEmailLimiter,
   signupController.requestSignup,
 );
-router.get("/confirm-subscription", signupController.confirmSignup);
+router.get("/confirm-subscription", authLimiter, signupController.confirmSignup);
 
 router.get("/me", requireSubscriberSession, meController.getMe);
 router.get("/me/history", requireSubscriberSession, meController.getMyHistory);

@@ -16,7 +16,7 @@ async function sendTestEmail(req, res) {
     const expectedKey = process.env.CRON_API_KEY;
     if (
       email !== process.env.FROM_USER &&
-      (!expectedKey || !safeCompare(req.query.key, expectedKey))
+      (!expectedKey || !safeCompare(req.get("x-cron-key") || req.query.key, expectedKey))
     ) {
       logger.error("Forbidden");
       return res.status(403).json({ error: "Forbidden" });
@@ -148,7 +148,8 @@ function scheduledJobs(req, res) {
 // POST /send-bulk-now
 async function sendBulkNow(req, res) {
   const expectedKey = process.env.CRON_API_KEY;
-  if (!expectedKey || !safeCompare(req.query.key, expectedKey)) {
+  const apiKey = req.get("x-cron-key") || req.query.key;
+  if (!expectedKey || !safeCompare(apiKey, expectedKey)) {
     logger.error("Forbidden");
     return res.status(403).json({ error: "Forbidden" });
   }
