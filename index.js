@@ -145,15 +145,27 @@ const server = app.listen(PORT, () => {
   );
 
   // Initialize automatic scheduling
-  setTimeout(() => {
-    logger.info("⏰ Initializing automatic email scheduling...");
-    emailScheduler.scheduleAllJobs();
+  setTimeout(async () => {
+    try {
+      logger.info("⏰ Initializing automatic email scheduling...");
+      await emailScheduler.scheduleAllJobs();
+    } catch (error) {
+      logger.warn("⚠️  Could not schedule email jobs (database may be unavailable)", {
+        error: error.message,
+      });
+    }
   }, 5000); // delay for few seconds to ensure everything is ready
 
   // Schedule cleanup jobs
   setTimeout(() => {
-    emailScheduler.scheduleCleanupJobs();
-    logger.info("🧹 Database cleanup scheduled for every (Sunday at 2 AM)");
+    try {
+      emailScheduler.scheduleCleanupJobs();
+      logger.info("🧹 Database cleanup scheduled for every (Sunday at 2 AM)");
+    } catch (error) {
+      logger.warn("⚠️  Could not schedule cleanup jobs", {
+        error: error.message,
+      });
+    }
   }, 10000);
 });
 
@@ -186,6 +198,5 @@ process.on("uncaughtException", (error) => {
   gracefulShutdown("uncaughtException");
 });
 process.on("unhandledRejection", (reason) => {
-  logger.error("Unhandled rejection", { reason });
-  gracefulShutdown("unhandledRejection");
+  logger.error("Unhandled rejection (non-fatal)", { reason });
 });
