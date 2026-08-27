@@ -30,10 +30,21 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     // Toast helper
     function showToast(message, type = "info") {
+      const toastLib =
+        (typeof window !== "undefined" && window.customizableToast) ||
+        (typeof customizableToast !== "undefined" ? customizableToast : null);
+
+      if (toastLib && typeof toastLib.createToast === "function") {
+        return toastLib.createToast({
+          message,
+          type: type === "warn" ? "warning" : type,
+          position: "top-center",
+          duration: 4000,
+        });
+      }
+
       if (globalThis.ToastManager && typeof globalThis.ToastManager.show === "function") {
-        globalThis.ToastManager.show(message, type);
-      } else if (globalThis.CustomizableToast && typeof globalThis.CustomizableToast.show === "function") {
-        globalThis.CustomizableToast.show({ message, type });
+        globalThis.ToastManager.show({ message, type });
       }
     }
 

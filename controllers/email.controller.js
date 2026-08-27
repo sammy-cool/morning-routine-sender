@@ -52,16 +52,7 @@ async function sendTestEmail(req, res) {
     );
 
     try {
-      const emailRecord = {
-        recipient_email: email,
-        template_type: templateType,
-        status: "success",
-        sent_at: new Date().toISOString(),
-        message_id: result?.messageId || "test-msg-id",
-        message_ref: "test-ref",
-      };
-
-      await emailTracker.recordSentEmail(emailRecord);
+      await emailTracker.recordSend(email, templateType, result?.messageId || "test-msg-id");
       logger.info(`Test email recorded in DB for ${email}`);
     } catch (dbError) {
       logger.warn(`Could not record test email in DB: ${dbError.message}`);
