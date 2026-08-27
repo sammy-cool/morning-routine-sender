@@ -7,6 +7,7 @@ const emailController = require("../controllers/email.controller");
 
 router.post("/send-test-email", sendEmailLimiter, emailController.sendTestEmail);
 router.get("/unsubscribe", emailController.unsubscribe);
+router.post("/unsubscribe/request", sendEmailLimiter, emailController.requestUnsubscribe);
 router.get("/scheduled-jobs", requireAdmin, emailController.scheduledJobs);
 router.post("/send-bulk-now", sendEmailLimiter, emailController.sendBulkNow);
 

@@ -1,0 +1,126 @@
+(function () {
+  let deferredPrompt = null;
+  const DISMISS_KEY = "mrn_pwa_install_dismissed";
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function isStandalone() {
+    return (
+      globalThis.matchMedia("(display-mode: standalone)").matches ||
+      globalThis.navigator.standalone === true
+    );
+  }
+
+  function isIos() {
+    return (
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !globalThis.MSStream
+    );
+  }
+
+  function showToast(message, type = "info") {
+    if (globalThis.ToastManager && typeof globalThis.ToastManager.show === "function") {
+      globalThis.ToastManager.show(message, type);
+    } else if (globalThis.CustomizableToast && typeof globalThis.CustomizableToast.show === "function") {
+      globalThis.CustomizableToast.show({ message, type });
+    }
+  }
+
+  globalThis.addEventListener("DOMContentLoaded", function () {
+    const installBanner = document.getElementById("pwaInstallBanner");
+    const bannerInstallBtn = document.getElementById("pwaBannerInstallBtn");
+    const bannerDismissBtn = document.getElementById("pwaBannerDismissBtn");
+    const navInstallBtn = document.getElementById("pwaNavInstallBtn");
+    const iosInstallModal = document.getElementById("pwaIosModal");
+    const iosModalCloseBtn = document.getElementById("pwaIosCloseBtn");
+
+    if (isStandalone()) {
+      if (navInstallBtn) navInstallBtn.style.display = "none";
+      if (installBanner) installBanner.style.display = "none";
+      return;
+    }
+
+    const lastDismissed = Number(localStorage.getItem(DISMISS_KEY)) || 0;
+    const isDismissCooldown = Date.now() - lastDismissed < SEVEN_DAYS_MS;
+
+    function revealBanner() {
+      if (installBanner && !isDismissCooldown && !isStandalone()) {
+        installBanner.style.display = "flex";
+        setTimeout(() => {
+          installBanner.classList.add("visible");
+        }, 100);
+      }
+      if (navInstallBtn && !isStandalone()) {
+        navInstallBtn.style.display = "inline-flex";
+      }
+    }
+
+    // Chrome, Edge, Android PWA event
+    globalThis.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      setTimeout(revealBanner, 1200);
+    });
+
+    // If on iOS Safari, also reveal button after page load
+    if (isIos() && !isStandalone()) {
+      setTimeout(revealBanner, 1500);
+    }
+
+    async function triggerInstallFlow() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          showToast("Installing Morning Routine App...", "success");
+          if (installBanner) installBanner.style.display = "none";
+          if (navInstallBtn) navInstallBtn.style.display = "none";
+        }
+        deferredPrompt = null;
+      } else if (isIos()) {
+        if (iosInstallModal) {
+          iosInstallModal.style.display = "flex";
+          setTimeout(() => iosInstallModal.classList.add("visible"), 50);
+        } else {
+          alert("To install on iOS: Tap the Share button in Safari (⎋) and select 'Add to Home Screen' (+).");
+        }
+      } else {
+        showToast("To install, use the browser menu or address bar install icon.", "info");
+      }
+    }
+
+    if (bannerInstallBtn) {
+      bannerInstallBtn.addEventListener("click", triggerInstallFlow);
+    }
+
+    if (navInstallBtn) {
+      navInstallBtn.addEventListener("click", triggerInstallFlow);
+    }
+
+    if (bannerDismissBtn) {
+      bannerDismissBtn.addEventListener("click", function () {
+        if (installBanner) {
+          installBanner.classList.remove("visible");
+          setTimeout(() => {
+            installBanner.style.display = "none";
+          }, 300);
+        }
+        localStorage.setItem(DISMISS_KEY, Date.now().toString());
+      });
+    }
+
+    if (iosModalCloseBtn && iosInstallModal) {
+      iosModalCloseBtn.addEventListener("click", function () {
+        iosInstallModal.classList.remove("visible");
+        setTimeout(() => {
+          iosInstallModal.style.display = "none";
+        }, 300);
+      });
+    }
+
+    globalThis.addEventListener("appinstalled", () => {
+      showToast("🎉 Morning Routine installed successfully!", "success");
+      if (installBanner) installBanner.style.display = "none";
+      if (navInstallBtn) navInstallBtn.style.display = "none";
+      deferredPrompt = null;
+    });
+  });
+})();
