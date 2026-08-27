@@ -34,7 +34,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
 
     const data = {
       logoUrl: `${process.env.LOGO_URL}`,
-      userName: userData.name || "Priyanshu",
+      userName: userData.name || "Subscriber",
       dayNumber: dayNumber,
       year: templateYear,
       dailyTip: userData.dailyTip || "Something to be get curious about today!",

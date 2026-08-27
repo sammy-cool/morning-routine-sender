@@ -236,7 +236,13 @@ async function scheduleAllJobs() {
             time: new Date().toISOString(),
           });
 
-          await sendRoutineEmail(user);
+          const currentUser = await sharedData.getUserByEmail(user.email);
+          if (!currentUser || !currentUser.is_active) {
+            logger.info('Skipping inactive user', { email: user.email });
+            return;
+          }
+
+          await sendRoutineEmail(currentUser);
         },
         {
           scheduled: true,

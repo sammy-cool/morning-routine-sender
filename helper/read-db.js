@@ -14,7 +14,7 @@ async function readDb() {
     // (.rows / .rowCount) that the previous pg.Client-based version did,
     // so the response shape to callers is unchanged.
     const result = await db.raw(
-      "SELECT * FROM email_tracker ORDER BY sent_at DESC;",
+      "SELECT * FROM email_tracker ORDER BY sent_at DESC LIMIT 1000;",
     );
     return { rowCount: result.rowCount, rows: result.rows };
   } catch (err) {

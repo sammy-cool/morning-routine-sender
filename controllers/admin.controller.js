@@ -1,11 +1,12 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const logger = require("../logger");
+const { safeCompare } = require("../helper/util");
 
 // GET /read-db
 async function readDb(req, res) {
   const expectedKey = process.env.CRON_API_KEY;
-  if (!expectedKey || req.query.key !== expectedKey) {
+  if (!expectedKey || !safeCompare(req.query.key, expectedKey)) {
     logger.error("Forbidden");
     return res.status(403).json({ error: "Forbidden" });
   }
@@ -30,7 +31,7 @@ async function cleanupDatabase(req, res) {
     let days;
 
     if (Number.isFinite(bodyDays) && bodyDays > 0) {
-      days = bodyDays;
+      days = Math.max(Math.floor(bodyDays), 1);
     } else if (Number.isFinite(envDays) && envDays > 0) {
       days = envDays;
     } else {

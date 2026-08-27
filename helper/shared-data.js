@@ -14,7 +14,8 @@ function getCacheValue(key) {
 }
 
 async function getNewRandomQuote(
-  lastSentQuote = getCacheValue("lastSentQuote") || ""
+  lastSentQuote = getCacheValue("lastSentQuote") || "",
+  maxRetries = 10
 ) {
   try {
     const quotes = [
@@ -36,8 +37,8 @@ async function getNewRandomQuote(
     const randomIndex = Math.floor(Math.random() * quotes.length);
     const randomQuote = quotes[randomIndex];
 
-    if (randomQuote === lastSentQuote) {
-      return getNewRandomQuote();
+    if (randomQuote === lastSentQuote && maxRetries > 0) {
+      return getNewRandomQuote(lastSentQuote, maxRetries - 1);
     }
 
     updateCache("lastSentQuote", randomQuote);
@@ -76,8 +77,7 @@ function getRoutineType() {
 
 async function getEmailHtmlTemplateAndUpdate(unsubscribeLink) {
   // Email Template Changes before sending it!
-  const __dirname = "email-html-template";
-  const emailTemplatePath = path.join(__dirname, `${getRoutineType()}.html`);
+  const emailTemplatePath = path.join(__dirname, '..', 'email-templates', `${getRoutineType()}.html`);
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
 
   const htmlTemplateQuote = await getDailyQuote();
@@ -131,14 +131,6 @@ async function getEmailHtmlTemplateAndUpdate(unsubscribeLink) {
   return emailTemplate;
 }
 
-module.exports = {
-  cache,
-  updateCache,
-  getCacheValue,
-  getNewRandomQuote,
-  getEmailHtmlTemplateAndUpdate,
-};
-
 // helper/shared-data.js
 require("dotenv").config();
 const db = require("../db/knex");
@@ -190,21 +182,20 @@ async function getUserByEmail(email) {
  * @returns {Promise<{created: boolean, email: string}>}
  */
 async function addUser(user) {
-  const existing = await getUserByEmail(user.email);
-  if (existing) {
+  try {
+    await db("subscribers").insert({
+      email: user.email,
+      template_type: user.templateType || "basic",
+      cron_pattern: user.cronPattern || "0 8 * * *",
+      timezone: user.timezone || "Asia/Kolkata",
+      is_active: true,
+    });
+    logger.info(`✅ Subscriber added: ${user.email}`);
+    return { created: true, email: user.email };
+  } catch (error) {
     logger.warn(`⚠️  Subscriber already exists: ${user.email}`);
     return { created: false, email: user.email };
   }
-
-  await db("subscribers").insert({
-    email: user.email,
-    template_type: user.templateType || "basic",
-    cron_pattern: user.cronPattern || "0 8 * * *",
-    timezone: user.timezone || "Asia/Kolkata",
-    is_active: true,
-  });
-  logger.info(`✅ Subscriber added: ${user.email}`);
-  return { created: true, email: user.email };
 }
 
 /**
@@ -269,6 +260,11 @@ async function getAllUsers() {
 }
 
 module.exports = {
+  cache,
+  updateCache,
+  getCacheValue,
+  getNewRandomQuote,
+  getEmailHtmlTemplateAndUpdate,
   getUsers,
   getUserByEmail,
   addUser,

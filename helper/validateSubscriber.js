@@ -1,7 +1,7 @@
 const validator = require("validator");
 const cron = require("node-cron");
 
-const VALID_TEMPLATE_TYPES = ["basic"]; // only one exists in email-templates/ today
+const VALID_TEMPLATE_TYPES = ["basic", "default", "deep-work", "career", "learning", "mindfulness", "reflection"]; // matches admin UI options
 
 /**
  * Shared by controllers/subscribers.controller.js (admin, email required)

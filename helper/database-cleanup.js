@@ -43,7 +43,12 @@ async function optimizeDatabase() {
     logger.info("🔧 Optimizing database...");
 
     // Vacuum for SQLite (reclaim space)
-    await db.raw("VACUUM");
+    try {
+      await db.raw("VACUUM");
+      logger.info('Database optimized');
+    } catch (error) {
+      logger.warn('VACUUM skipped (not supported in this environment)', { error: error.message });
+    }
 
     // Analyze for query optimization
     await db.raw("ANALYZE");

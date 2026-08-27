@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const logger = require("../logger");
 const redis = require("../config/redisClient");
 const emailScheduler = require("../email-core/emailScheduler");
+const { safeCompare } = require("../helper/util");
 
 const KEY_EXPIRY_SECONDS = 300; // 5 minutes
 
@@ -27,7 +28,7 @@ async function generateAdminKey(req, res) {
   const adminSecret = req.get("x-admin-secret") || req.query.adminSecret;
 
   const expectedKey = process.env.ADMIN_KEY;
-  if (!expectedKey || adminSecret !== expectedKey) {
+  if (!expectedKey || !safeCompare(adminSecret, expectedKey)) {
     logger.error("Forbidden: Invalid admin secret");
     return res.status(403).json({ message: "Forbidden: Invalid admin secret" });
   }
