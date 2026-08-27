@@ -35,20 +35,21 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     const dayNumber = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, day: '2-digit' }).format(now);
     const templateYear = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, year: 'numeric' }).format(now);
 
-    let dailyTip = userData.dailyTip;
-    if (!dailyTip) {
-      try {
-        dailyTip = await sharedData.getNewRandomQuote();
-      } catch {
-        dailyTip = "Focus on small, consistent daily improvements to unlock extraordinary growth.";
-      }
+    let dailyQuote = "The secret of your future is hidden in your daily routine.";
+    try {
+      dailyQuote = await sharedData.getNewRandomQuote();
+    } catch {
+      dailyQuote = "The secret of your future is hidden in your daily routine.";
     }
+
+    let dailyTip = userData.dailyTip || "Dedicate the first 30 minutes of your morning to your highest-impact priority.";
 
     const data = {
       logoUrl: process.env.LOGO_URL || `${baseUrl}/assets/logo.png`,
       userName: userData.name || (userData.email ? userData.email.split('@')[0] : "Subscriber"),
       dayNumber: dayNumber,
       year: templateYear,
+      dailyQuote: dailyQuote,
       dailyTip: dailyTip,
       ctaUrl: `${baseUrl}`,
       ctaText: "View Your Routine",
@@ -71,7 +72,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       throw new Error("Email template rendering error");
     }
 
-    const text = `Hello ${data.userName},\n\n${data.dailyTip}\n\nVisit here: ${data.ctaUrl}`;
+    const text = `Good morning ${data.userName},\n\nQuote: "${data.dailyQuote}"\n\nToday's Ritual: ${data.dailyTip}\n\nVisit: ${data.ctaUrl}\nPreferences: ${data.preferencesUrl}\nUnsubscribe: ${data.unsubscribeUrl}`;
 
     // Send email
     try {
@@ -81,7 +82,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
         from: `"Morning Routine" <${process.env.FROM_USER}>`,
         replyTo: `${process.env.FROM_USER}`,
         to: userData.email,
-        subject: `Day ${data.dayNumber} Morning Routine Update`,
+        subject: `Day ${data.dayNumber} Morning Routine Update 🌞`,
         html,
         text,
         headers: {
@@ -93,7 +94,8 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
           "X-Template-Type": userData.templateType,
           "X-Job-Type": "routine-email",
           "X-Message-Ref": messageRef,
-          // "X-User-ID": userData.id || `temp-${crypto.randomBytes(4).toString("hex")}`,
+          "List-Unsubscribe": `<${data.unsubscribeUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         },
       });
 

@@ -32,12 +32,19 @@ async function addSubscriber(req, res) {
       timezone,
     });
 
-    if (!result.created) {
+    if (result && result.created === false) {
       return res.status(409).json({ error: "Subscriber already exists" });
     }
 
     res.status(201).json(result);
   } catch (error) {
+    if (
+      error.code === "23505" ||
+      error.code === "SQLITE_CONSTRAINT" ||
+      (error.message && error.message.toLowerCase().includes("already"))
+    ) {
+      return res.status(409).json({ error: "Subscriber already exists" });
+    }
     logger.error("Failed to add subscriber", { error: error.message });
     res.status(500).json({ error: "Failed to add subscriber" });
   }

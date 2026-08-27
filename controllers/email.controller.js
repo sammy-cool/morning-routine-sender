@@ -13,8 +13,7 @@ async function sendTestEmail(req, res) {
     const { email } = req.body;
     let templateType = req.body.templateType || "basic";
 
-    const isAdminSession =
-      (req.signedCookies?.mrn_role || req.cookies?.mrn_role) === "admin";
+    const isAdminSession = req.signedCookies?.mrn_role === "admin";
     const expectedKey = process.env.CRON_API_KEY || process.env.ADMIN_KEY;
     const apiKey = req.get("x-cron-key") || req.get("x-admin-secret") || req.query.key;
     const isKeyValid = expectedKey && apiKey && safeCompare(apiKey, expectedKey);
@@ -213,8 +212,7 @@ function scheduledJobs(req, res) {
 
 // POST /send-bulk-now
 async function sendBulkNow(req, res) {
-  const isAdminSession =
-    (req.signedCookies?.mrn_role || req.cookies?.mrn_role) === "admin";
+  const isAdminSession = req.signedCookies?.mrn_role === "admin";
   const expectedKey = process.env.CRON_API_KEY || process.env.ADMIN_KEY;
   const apiKey = req.get("x-cron-key") || req.get("x-admin-secret") || req.query.key;
   const isKeyValid = expectedKey && apiKey && safeCompare(apiKey, expectedKey);

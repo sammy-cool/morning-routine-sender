@@ -73,7 +73,7 @@
         <mj-column>
           <mj-text mj-class="quote" padding="0 10px">
             <div class="quote-container">
-              “The secret of your future is hidden in your daily routine.”
+              “{{dailyQuote}}”
             </div>
           </mj-text>
         </mj-column>

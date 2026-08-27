@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const cookieSignature = require("cookie-signature");
 const request = require("supertest");
 
 // Explicit factory, not jest.mock("../helper/shared-data") alone: without
@@ -22,10 +23,14 @@ const sharedData = require("../helper/shared-data");
 
 const subscribersRoutes = require("../routes/subscribers.routes");
 
+const TEST_SECRET = "test-secret";
+const signedRole = "s:" + cookieSignature.sign("admin", TEST_SECRET);
+const adminCookie = [`mrn_role=${signedRole}`];
+
 function buildApp() {
   const app = express();
   app.use(express.json());
-  app.use(cookieParser());
+  app.use(cookieParser(TEST_SECRET));
   app.use(subscribersRoutes);
   return app;
 }
@@ -53,11 +58,18 @@ describe("subscribers admin API", () => {
       expect(sharedData.addUser).not.toHaveBeenCalled();
     });
 
-    test("allows requests with the mrn_role=admin cookie through to the controller", async () => {
-      sharedData.getAllUsers.mockResolvedValue([]);
+    test("blocks requests with an unsigned mrn_role=admin cookie", async () => {
       const res = await request(app)
         .get("/admin/subscribers")
         .set("Cookie", ["mrn_role=admin"]);
+      expect(res.status).toBe(403);
+    });
+
+    test("allows requests with the signed mrn_role=admin cookie through to the controller", async () => {
+      sharedData.getAllUsers.mockResolvedValue([]);
+      const res = await request(app)
+        .get("/admin/subscribers")
+        .set("Cookie", adminCookie);
       expect(res.status).toBe(200);
       expect(sharedData.getAllUsers).toHaveBeenCalledTimes(1);
     });
@@ -72,7 +84,7 @@ describe("subscribers admin API", () => {
 
       const res = await request(app)
         .get("/admin/subscribers")
-        .set("Cookie", ["mrn_role=admin"]);
+        .set("Cookie", adminCookie);
 
       expect(res.status).toBe(200);
       expect(res.body.count).toBe(2);
@@ -81,8 +93,6 @@ describe("subscribers admin API", () => {
   });
 
   describe("POST /admin/subscribers", () => {
-    const adminCookie = ["mrn_role=admin"];
-
     test("rejects an invalid email", async () => {
       const res = await request(app)
         .post("/admin/subscribers")
@@ -104,7 +114,7 @@ describe("subscribers admin API", () => {
     });
 
     test("creates a subscriber with valid input", async () => {
-      sharedData.addUser.mockResolvedValue({ created: true, email: "new@example.com" });
+      sharedData.addUser.mockResolvedValue({ id: 1, email: "new@example.com" });
 
       const res = await request(app)
         .post("/admin/subscribers")
@@ -119,7 +129,9 @@ describe("subscribers admin API", () => {
     });
 
     test("returns 409 when addUser reports the subscriber already exists", async () => {
-      sharedData.addUser.mockResolvedValue({ created: false, email: "dup@example.com" });
+      const err = new Error("already subscribed");
+      err.code = "SQLITE_CONSTRAINT";
+      sharedData.addUser.mockRejectedValue(err);
 
       const res = await request(app)
         .post("/admin/subscribers")
@@ -131,8 +143,6 @@ describe("subscribers admin API", () => {
   });
 
   describe("PATCH /admin/subscribers/:email", () => {
-    const adminCookie = ["mrn_role=admin"];
-
     test("requires at least one field to update", async () => {
       const res = await request(app)
         .patch("/admin/subscribers/a@example.com")
@@ -144,6 +154,7 @@ describe("subscribers admin API", () => {
 
     test("pauses a subscriber via isActive:false", async () => {
       sharedData.setUserActive.mockResolvedValue(true);
+      sharedData.getUserByEmail.mockResolvedValue({ email: "a@example.com", isActive: false });
 
       const res = await request(app)
         .patch("/admin/subscribers/a@example.com")
@@ -156,6 +167,7 @@ describe("subscribers admin API", () => {
 
     test("returns 404 when the subscriber doesn't exist", async () => {
       sharedData.setUserActive.mockResolvedValue(false);
+      sharedData.updateUser.mockResolvedValue(false);
 
       const res = await request(app)
         .patch("/admin/subscribers/ghost@example.com")
@@ -167,8 +179,6 @@ describe("subscribers admin API", () => {
   });
 
   describe("DELETE /admin/subscribers/:email", () => {
-    const adminCookie = ["mrn_role=admin"];
-
     test("deletes an existing subscriber", async () => {
       sharedData.removeUser.mockResolvedValue(true);
 

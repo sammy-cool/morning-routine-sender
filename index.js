@@ -138,11 +138,7 @@ app.use(
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
       const normalized = origin.replace(/\/$/, "");
-      if (
-        allowedOriginsList.includes(normalized) ||
-        normalized.endsWith(".netlify.app") ||
-        normalized.endsWith(".onrender.com")
-      ) {
+      if (allowedOriginsList.includes(normalized)) {
         callback(null, true);
       } else {
         callback(null, false);
@@ -234,6 +230,15 @@ async function gracefulShutdown(signal) {
     await closeTransporterConnection();
 
     await emailTracker.close();
+
+    const redis = require("./config/redisClient");
+    if (redis && typeof redis.quit === "function") {
+      try {
+        await redis.quit();
+      } catch (e) {
+        // ignore if already disconnected
+      }
+    }
 
     logger.info("✅ Graceful shutdown completed");
     process.exit(0);
