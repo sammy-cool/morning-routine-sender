@@ -94,7 +94,8 @@ async function sendRoutineEmail(
     // Check if already sent today
     const alreadySent = await emailTracker.wasEmailSentToday(
       userData.email,
-      userData.templateType
+      userData.templateType,
+      userData.timezone
     );
 
     const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
@@ -226,7 +227,7 @@ async function scheduleAllJobs() {
           });
 
           const currentUser = await sharedData.getUserByEmail(user.email);
-          if (!currentUser || !currentUser.is_active) {
+          if (!currentUser || !currentUser.isActive) {
             logger.info('Skipping inactive user', { email: user.email });
             return;
           }
@@ -259,12 +260,17 @@ async function scheduleAllJobs() {
 function stopAllJobs() {
   logger.info("🛑 Stopping all cron jobs...");
 
-  for (const { email, job } of scheduledJobs) {
-    job.stop();
-    logger.info("Stopped cron job", { email });
+  const remainingJobs = [];
+  for (const jobData of scheduledJobs) {
+    if (jobData.email === 'system_cleanup') {
+      remainingJobs.push(jobData);
+    } else {
+      jobData.job.stop();
+      logger.info("Stopped cron job", { email: jobData.email });
+    }
   }
 
-  scheduledJobs = [];
+  scheduledJobs = remainingJobs;
 }
 
 /**

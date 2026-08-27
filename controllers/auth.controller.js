@@ -25,7 +25,7 @@ async function generateAdminKey(req, res) {
   logger.info("🔑 Generating one-time key 🔹 (protected route)");
 
   res.set("Cache-Control", "no-store");
-  const adminSecret = req.get("x-admin-secret") || req.query.adminSecret;
+  const adminSecret = req.get("x-admin-secret");
 
   const expectedKey = process.env.ADMIN_KEY;
   if (!expectedKey || !safeCompare(adminSecret, expectedKey)) {

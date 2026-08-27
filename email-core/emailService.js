@@ -29,8 +29,10 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
   try {
     const trendingNews = await dailyDevNews();
     const baseUrl = typeof appLocals === 'string' ? appLocals : (appLocals?.officialDomain || process.env.RENDER_URL || 'http://localhost:2900');
-    const dayNumber = todayUTCYYYYMMDD().split("-").at(-1);
-    const templateYear = todayUTCYYYYMMDD().split("-").at(0);
+    const userTimezone = userData.timezone || 'UTC';
+    const now = new Date();
+    const dayNumber = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, day: '2-digit' }).format(now);
+    const templateYear = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, year: 'numeric' }).format(now);
 
     const data = {
       logoUrl: `${process.env.LOGO_URL}`,
