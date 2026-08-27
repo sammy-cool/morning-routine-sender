@@ -241,3 +241,5 @@ process.on("uncaughtException", (error) => {
 process.on("unhandledRejection", (reason) => {
   logger.error("Unhandled rejection (non-fatal)", { reason });
 });
+
+module.exports = app;
