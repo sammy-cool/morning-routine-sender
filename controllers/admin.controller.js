@@ -5,14 +5,15 @@ const { safeCompare } = require("../helper/util");
 
 // GET /read-db
 async function readDb(req, res) {
-  const isAdminSession = req.cookies?.mrn_session && req.signedCookies?.mrn_role === "admin";
-  const expectedKey = process.env.CRON_API_KEY;
-  const apiKey = req.get("x-cron-key") || req.query.key;
-  const isKeyValid = expectedKey && safeCompare(apiKey, expectedKey);
+  const isAdminSession =
+    (req.signedCookies?.mrn_role || req.cookies?.mrn_role) === "admin";
+  const expectedKey = process.env.CRON_API_KEY || process.env.ADMIN_KEY;
+  const apiKey = req.get("x-cron-key") || req.get("x-admin-secret") || req.query.key;
+  const isKeyValid = expectedKey && apiKey && safeCompare(apiKey, expectedKey);
 
   if (!isAdminSession && !isKeyValid) {
-    logger.error("Forbidden");
-    return res.status(403).json({ error: "Forbidden" });
+    logger.error("Forbidden: admin access or valid API key required");
+    return res.status(403).json({ error: "Forbidden: admin access required" });
   }
   try {
     const { readDb: readDbFromHelper } = require("../helper/read-db");

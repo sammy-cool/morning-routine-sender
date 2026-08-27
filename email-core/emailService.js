@@ -53,7 +53,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       validationLevel: "strict",
     });
 
-    if (errors.length) {
+    if (errors && errors.length) {
       logger.error("MJML Errors:", errors);
       throw new Error("Email template rendering error");
     }
