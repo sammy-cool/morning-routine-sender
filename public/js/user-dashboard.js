@@ -16,7 +16,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const prefTz = document.getElementById("prefTz");
     const autoDetectTzBtn = document.getElementById("autoDetectTzBtn");
     const prefTrack = document.getElementById("prefTrack");
-    const trackCards = document.querySelectorAll(".track-card");
+    const trackGrid = document.getElementById("trackGrid");
 
     const preferencesForm = document.getElementById("preferencesForm");
     const savePrefsBtn = document.getElementById("savePrefsBtn");
@@ -28,24 +28,58 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     let currentSubscriber = null;
 
+    // Toast helper
+    function showToast(message, type = "info") {
+      if (globalThis.ToastManager && typeof globalThis.ToastManager.show === "function") {
+        globalThis.ToastManager.show(message, type);
+      } else if (globalThis.CustomizableToast && typeof globalThis.CustomizableToast.show === "function") {
+        globalThis.CustomizableToast.show({ message, type });
+      }
+    }
+
     // Multi-track card selector
-    trackCards.forEach((card) => {
-      card.addEventListener("click", function () {
-        trackCards.forEach((c) => c.classList.remove("selected"));
-        this.classList.add("selected");
-        prefTrack.value = this.getAttribute("data-track");
+    function selectTrack(track) {
+      if (!track) return;
+      prefTrack.value = track;
+      document.querySelectorAll(".track-card").forEach((c) => {
+        if (c.getAttribute("data-track") === track) {
+          c.classList.add("selected");
+        } else {
+          c.classList.remove("selected");
+        }
+      });
+    }
+
+    // Direct card click handlers + grid delegation
+    document.querySelectorAll(".track-card").forEach((card) => {
+      card.addEventListener("click", function (e) {
+        e.preventDefault();
+        const track = this.getAttribute("data-track");
+        selectTrack(track);
       });
     });
 
+    if (trackGrid) {
+      trackGrid.addEventListener("click", function (e) {
+        const card = e.target.closest(".track-card");
+        if (card) {
+          const track = card.getAttribute("data-track");
+          selectTrack(track);
+        }
+      });
+    }
+
     // Time select handling
-    visualTimeSelect.addEventListener("change", function () {
-      if (this.value === "custom") {
-        prefCron.style.display = "block";
-      } else {
-        prefCron.style.display = "none";
-        prefCron.value = this.value;
-      }
-    });
+    if (visualTimeSelect) {
+      visualTimeSelect.addEventListener("change", function () {
+        if (this.value === "custom") {
+          prefCron.style.display = "block";
+        } else {
+          prefCron.style.display = "none";
+          prefCron.value = this.value;
+        }
+      });
+    }
 
     // Auto-detect timezone
     if (autoDetectTzBtn) {
@@ -54,20 +88,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
           if (userTz) {
             prefTz.value = userTz;
-            showToast("Timezone detected: " + userTz, "success");
+            showToast("Timezone auto-detected: " + userTz, "success");
           }
         } catch (e) {
           console.error("Timezone auto-detect error", e);
         }
       });
-    }
-
-    function showToast(message, type = "info") {
-      if (globalThis.ToastManager && typeof globalThis.ToastManager.show === "function") {
-        globalThis.ToastManager.show(message, type);
-      } else if (globalThis.CustomizableToast && typeof globalThis.CustomizableToast.show === "function") {
-        globalThis.CustomizableToast.show({ message, type });
-      }
     }
 
     function showError(message) {
@@ -80,10 +106,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderSubscription(sub) {
-      currentSubscriber = sub;
+      // Normalize isActive: true by default unless explicitly false
+      const isActive = sub.isActive !== false && sub.isActive !== 0 && sub.isActive !== "false";
+      currentSubscriber = { ...sub, isActive };
+
       subEmail.textContent = sub.email;
-      subStatusBadge.textContent = sub.isActive ? "Active" : "Paused";
-      subStatusBadge.className = "status-badge " + (sub.isActive ? "active" : "paused");
+      subStatusBadge.textContent = isActive ? "Active" : "Paused";
+      subStatusBadge.className = "status-badge " + (isActive ? "active" : "paused");
 
       // Streak Banner
       const streak = Number(sub.streakCount) || 0;
@@ -91,48 +120,46 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         streakHeroCard.style.display = "flex";
         streakCountTitle.textContent = `${streak}-Day Streak Active 🔥`;
         if (streak > 0) {
-          streakSubtext.textContent = `You're on day ${streak} of building your morning routine habit. Awesome consistency!`;
+          streakSubtext.textContent = `You're on day ${streak} of building your daily morning routine. Consistency creates mastery!`;
         } else {
-          streakSubtext.textContent = "Complete your first morning routine today to ignite your streak counter.";
+          streakSubtext.textContent = "Start today's ritual to ignite your morning focus streak.";
         }
       }
 
       // Track Selection
-      const activeTrack = sub.routineTrack || sub.templateType || "deep-work";
-      prefTrack.value = activeTrack;
-      trackCards.forEach((c) => {
-        if (c.getAttribute("data-track") === activeTrack) {
-          c.classList.add("selected");
-        } else {
-          c.classList.remove("selected");
-        }
-      });
+      let activeTrack = sub.routineTrack || sub.templateType || "deep-work";
+      if (activeTrack === "basic" || activeTrack === "default") {
+        activeTrack = "deep-work";
+      }
+      selectTrack(activeTrack);
 
       // Cron & Time Select
       const cron = sub.cronPattern || "0 8 * * *";
       prefCron.value = cron;
       let matchedOption = false;
-      for (let opt of visualTimeSelect.options) {
-        if (opt.value === cron) {
-          visualTimeSelect.value = cron;
-          matchedOption = true;
-          prefCron.style.display = "none";
-          break;
+      if (visualTimeSelect) {
+        for (let opt of visualTimeSelect.options) {
+          if (opt.value === cron) {
+            visualTimeSelect.value = cron;
+            matchedOption = true;
+            prefCron.style.display = "none";
+            break;
+          }
+        }
+        if (!matchedOption) {
+          visualTimeSelect.value = "custom";
+          prefCron.style.display = "block";
         }
       }
-      if (!matchedOption) {
-        visualTimeSelect.value = "custom";
-        prefCron.style.display = "block";
-      }
 
-      prefTz.value = sub.timezone || "";
-      pauseResumeBtn.textContent = sub.isActive ? "Pause my routine" : "Resume my routine";
-      pauseResumeBtn.className = "btn " + (sub.isActive ? "btn-warning" : "btn-success");
+      prefTz.value = sub.timezone || "Asia/Kolkata";
+      pauseResumeBtn.textContent = isActive ? "Pause my routine" : "Resume my routine";
+      pauseResumeBtn.className = "btn " + (isActive ? "btn-warning" : "btn-success");
     }
 
     function renderHistory(history) {
-      if (history.length === 0) {
-        historyList.innerHTML = '<p class="meta" style="margin:0">No sends recorded yet.</p>';
+      if (!history || history.length === 0) {
+        historyList.innerHTML = '<p class="meta" style="margin:0">No dispatch history recorded yet.</p>';
         return;
       }
       historyList.innerHTML = history
@@ -151,7 +178,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     async function loadDashboard() {
       try {
-        const meResp = await fetch("/me");
+        const meResp = await fetch("/me", {
+          cache: "no-store",
+          headers: { "Pragma": "no-cache" }
+        });
         if (meResp.status === 401) {
           globalThis.location.href = "/";
           return;
@@ -164,7 +194,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const sub = await meResp.json();
         renderSubscription(sub);
 
-        const historyResp = await fetch("/me/history?limit=20");
+        const historyResp = await fetch("/me/history?limit=20", {
+          cache: "no-store",
+          headers: { "Pragma": "no-cache" }
+        });
         const historyData = await historyResp.json().catch(() => ({ history: [] }));
         renderHistory(historyData.history || []);
 
@@ -195,7 +228,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
         const resp = await fetch("/me", {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Pragma": "no-cache"
+          },
           body: JSON.stringify(body),
         });
         const data = await resp.json();
@@ -220,11 +256,16 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       pauseResumeBtn.disabled = true;
       actionStatus.textContent = "Updating status...";
 
+      const nextActiveState = !currentSubscriber.isActive;
+
       try {
         const resp = await fetch("/me", {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isActive: !currentSubscriber.isActive }),
+          headers: {
+            "Content-Type": "application/json",
+            "Pragma": "no-cache"
+          },
+          body: JSON.stringify({ isActive: nextActiveState }),
         });
         const data = await resp.json();
 

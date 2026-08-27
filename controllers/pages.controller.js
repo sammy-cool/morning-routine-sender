@@ -8,7 +8,8 @@ const logger = require("../logger");
 const ROOT_DIR = path.join(__dirname, "..");
 
 function escapeHtml(unsafe) {
-  return (unsafe || "").toString()
+  return (unsafe || "")
+    .toString()
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -21,9 +22,15 @@ function getDomain(req, res) {
   return res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
 }
 
+function setNoCacheHeaders(res) {
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+}
+
 // GET /admin-dashboard
 function adminDashboard(req, res) {
-  res.set("Cache-Control", "no-store");
+  setNoCacheHeaders(res);
   const role = req.signedCookies?.mrn_role;
   if (role !== "admin") {
     return res.redirect(302, "/");
@@ -59,17 +66,20 @@ function offline(req, res) {
 
 // GET /manifest.json
 function manifest(req, res) {
+  res.set("Cache-Control", "public, max-age=3600");
   res.sendFile(path.join(ROOT_DIR, "public", "manifest.json"));
 }
 
 // GET /sw.js
 function serviceWorker(req, res) {
+  setNoCacheHeaders(res);
+  res.set("Service-Worker-Allowed", "/");
   res.sendFile(path.join(ROOT_DIR, "public", "sw.js"));
 }
 
 // GET /user-dashboard
 async function userDashboard(req, res) {
-  res.set("Cache-Control", "no-store");
+  setNoCacheHeaders(res);
 
   // Deliberately required here, not at top of file: a top-level import
   // would pull in config/redisClient.js (a real Redis connection attempt)
@@ -94,7 +104,7 @@ async function userDashboard(req, res) {
 
 // GET /  (root -- skeleton + role-based redirect)
 function root(req, res) {
-  res.set("Cache-Control", "no-store");
+  setNoCacheHeaders(res);
   const domain = getDomain(req, res);
 
   try {

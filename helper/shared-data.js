@@ -273,13 +273,23 @@ async function getUsers() {
         "routine_track as routineTrack"
       );
     logger.info(`📋 Found ${rows.length} active subscribers`);
-    return rows;
+    return rows.map((r) => ({
+      ...r,
+      isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
+      streakCount: Number(r.streakCount) || 0,
+      routineTrack: r.routineTrack || r.templateType || "deep-work",
+    }));
   } catch (err) {
     // Fallback if migration hasn't run yet
     const rows = await db("subscribers")
       .where("is_active", true)
       .select("email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive");
-    return rows.map((r) => ({ ...r, streakCount: 0, routineTrack: r.templateType || "deep-work" }));
+    return rows.map((r) => ({
+      ...r,
+      isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
+      streakCount: 0,
+      routineTrack: r.templateType || "deep-work"
+    }));
   }
 }
 
@@ -302,14 +312,25 @@ async function getUserByEmail(email) {
         "routine_track as routineTrack"
       )
       .first();
-    return row || null;
+    if (!row) return null;
+    return {
+      ...row,
+      isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
+      streakCount: Number(row.streakCount) || 0,
+      routineTrack: row.routineTrack || row.templateType || "deep-work",
+    };
   } catch (err) {
     const row = await db("subscribers")
       .where("email", email)
       .select("email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive")
       .first();
     if (!row) return null;
-    return { ...row, streakCount: 0, routineTrack: row.templateType || "deep-work" };
+    return {
+      ...row,
+      isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
+      streakCount: 0,
+      routineTrack: row.templateType || "deep-work"
+    };
   }
 }
 
