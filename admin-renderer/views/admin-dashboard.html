@@ -60,6 +60,7 @@
 
     <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
 
+    <script src="/js/npm-mod/customizable-toast-notification.js" defer></script>
     <script
       src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.0/dist/index.umd.js"
       defer
@@ -1837,8 +1838,12 @@
       /* ==================== Toast Manager ==================== */
       class ToastManager {
         static show(config = {}) {
-          if (typeof customizableToast?.createToast !== "function") {
-            console.warn("Toast library not loaded");
+          const toastLib =
+            (typeof window !== "undefined" && window.customizableToast) ||
+            (typeof customizableToast !== "undefined" ? customizableToast : null);
+
+          if (!toastLib || typeof toastLib.createToast !== "function") {
+            console.log(`[Toast ${config.type || "info"}]:`, config.message || "");
             return null;
           }
 
@@ -1850,15 +1855,15 @@
           };
 
           const finalConfig = { ...defaults, ...config };
-          const id = customizableToast.createToast(finalConfig);
+          const id = toastLib.createToast(finalConfig);
 
           return {
             id,
             dismiss() {
-              if (typeof customizableToast.dismiss === "function") {
-                customizableToast.dismiss(id);
-              } else if (typeof customizableToast.noop === "function") {
-                customizableToast.noop(id);
+              if (typeof toastLib.dismiss === "function") {
+                toastLib.dismiss(id);
+              } else if (typeof toastLib.noop === "function") {
+                toastLib.noop(id);
               }
             },
           };

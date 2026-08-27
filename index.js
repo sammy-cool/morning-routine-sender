@@ -38,30 +38,40 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://cdn.jsdelivr.net",
+          "https://cdnjs.cloudflare.com",
+        ],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
           "https://fonts.googleapis.com",
+          "https://cdn.jsdelivr.net",
           "https://cdnjs.cloudflare.com",
         ],
         fontSrc: [
           "'self'",
           "https://fonts.gstatic.com",
           "https://cdnjs.cloudflare.com",
+          "https://cdn.jsdelivr.net",
           "data:",
         ],
-        imgSrc: ["'self'"],
-        connectSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
+        connectSrc: [
+          "'self'",
+          "https://fonts.googleapis.com",
+          "https://fonts.gstatic.com",
+          "https://cdn.jsdelivr.net",
+          "https://cdnjs.cloudflare.com",
+          "https://*.onrender.com",
+          "https://*.netlify.app",
+        ],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         frameAncestors: ["'self'"],
-        // Helmet defaults this to 'none' SEPARATELY from script-src -- it
-        // does not inherit 'unsafe-inline' from script-src above. This is
-        // specifically what governs onclick="..."/onchange="..." attributes
-        // (admin-dashboard.html has 30+ of these). Missed this on the first
-        // pass -- the local smoke test only hit the landing page, not the
-        // admin dashboard where these actually live.
         scriptSrcAttr: ["'unsafe-inline'"],
       },
     },
