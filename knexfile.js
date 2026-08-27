@@ -73,6 +73,14 @@ module.exports = {
       min: 0,
       max: 10,
       idleTimeoutMillis: 30000,
+      afterCreate: (conn, done) => {
+        if (conn && typeof conn.on === "function") {
+          conn.on("error", (err) => {
+            // Silently absorb idle connection termination so pool replaces socket
+          });
+        }
+        done(null, conn);
+      },
     },
   },
 
@@ -88,6 +96,15 @@ module.exports = {
       max: 10,
       idleTimeoutMillis: 30000,
       acquireTimeoutMillis: 60000,
+      propagateCreateError: false,
+      afterCreate: (conn, done) => {
+        if (conn && typeof conn.on === "function") {
+          conn.on("error", (err) => {
+            // Silently absorb idle connection termination so pool replaces socket
+          });
+        }
+        done(null, conn);
+      },
     },
   },
 };

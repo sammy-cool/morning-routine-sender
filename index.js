@@ -110,19 +110,37 @@ app.use((req, res, next) => {
   res.set("Expires", "0");
   next();
 });
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:2900'];
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-}));
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://morning-routine-sender.onrender.com",
+  "https://priyanshu-eureka.netlify.app",
+  "http://localhost:2900",
+  "http://127.0.0.1:2900",
+];
+
+const customOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim().replace(/\/$/, ""))
+  : [];
+
+const allowedOriginsList = [...new Set([...DEFAULT_ALLOWED_ORIGINS, ...customOrigins])];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/$/, "");
+      if (
+        allowedOriginsList.includes(normalized) ||
+        normalized.endsWith(".netlify.app") ||
+        normalized.endsWith(".onrender.com")
+      ) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(setApiBase);
 app.use(cookieParser(process.env.ADMIN_KEY || 'dev-secret'));
