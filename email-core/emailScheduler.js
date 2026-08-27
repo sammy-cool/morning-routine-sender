@@ -71,7 +71,7 @@ const logger = require("../logger");
 
 // email-core/emailScheduler.js
 const cron = require("node-cron");
-const { createTransporter } = require("../config/email-config");
+const { getTransporter } = require("../config/mailTransporter");
 const emailService = require("./emailService");
 const emailTracker = require("./emailTracker");
 const {
@@ -80,18 +80,7 @@ const {
 } = require("../helper/database-cleanup");
 const { maskEmail } = require("../helper/util");
 
-let transporter = null;
 let scheduledJobs = [];
-
-/**
- * Get or create transporter instance
- */
-function getTransporter() {
-  if (!transporter) {
-    transporter = createTransporter();
-  }
-  return transporter;
-}
 
 /**
  * Send routine email to a single user

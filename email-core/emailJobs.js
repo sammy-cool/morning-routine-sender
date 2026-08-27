@@ -1,12 +1,11 @@
 const validator = require("validator");
 
 const logger = require("../logger");
-const { createTransporter } = require("../config/email-config");
+const { getTransporter } = require("../config/mailTransporter");
 const { wasEmailSentToday, updateTracker } = require("./emailTracker");
 const { sendRoutineEmail } = require("./emailService");
 
 // Email Configuration
-const transporter = createTransporter();
 const adminEmail = process.env.ADMIN_EMAIL;
 
 async function alertAdmin(failedRecipients, type) {
@@ -16,7 +15,7 @@ async function alertAdmin(failedRecipients, type) {
     `Failed to send ${type} emails to:\n` + failedRecipients.join("\n");
 
   try {
-    await transporter.sendMail({
+    await getTransporter().sendMail({
       from: `"Server Alert" <${process.env.FROM_USER}>`,
       to: adminEmail,
       subject: `Alert: Failed ${type} emails`,
@@ -31,7 +30,7 @@ async function alertAdmin(failedRecipients, type) {
 // Function to send an email
 async function runEmailJob() {
   const recipients = [
-    "priyanshu.alt191@gmail.com", // Valid
+    process.env.TEST_EMAIL || "test@example.com", // Valid
     // "invalid@", // Invalid
     // "not-an-email", // Invalid
   ];
