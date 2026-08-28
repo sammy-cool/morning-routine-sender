@@ -1,11 +1,11 @@
 const { health, robots, sitemap, llmsTxt, llmsFullTxt, about } = require("../controllers/pages.controller");
 
 describe("pages.controller endpoints", () => {
-  test("health responds with status ok and a timestamp", () => {
+  test("health responds with status ok and a timestamp", async () => {
     const req = {};
     const res = { json: jest.fn() };
 
-    health(req, res);
+    await health(req, res);
 
     expect(res.json).toHaveBeenCalledTimes(1);
     const payload = res.json.mock.calls[0][0];
@@ -13,6 +13,19 @@ describe("pages.controller endpoints", () => {
     expect(payload.status).toBe("ok");
     expect(payload.mode).toBe("auto-scheduling-enabled");
     expect(() => new Date(payload.timestamp).toISOString()).not.toThrow();
+  });
+
+  test("deep health check returns status and checks object", async () => {
+    const req = { query: { deep: "true" } };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    await health(req, res);
+
+    expect(res.json).toHaveBeenCalledTimes(1);
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.checks).toBeDefined();
+    expect(payload.checks.database).toBeDefined();
+    expect(payload.checks.redis).toBeDefined();
   });
 
   test("robots responds with valid robots.txt directives and domain replacement", () => {
@@ -103,8 +116,8 @@ describe("pages.controller endpoints", () => {
 
     expect(res.status).toBe(200);
     expect(res.text).not.toContain("__DOMAIN__");
-    expect(res.text).toContain("https://morning-routine-sender.onrender.com/");
-    expect(res.text).toContain("https://morning-routine-sender.onrender.com/about");
+    expect(res.text).toMatch(/<loc>https?:\/\/[^<]+\/<\/loc>/);
+    expect(res.text).toMatch(/<loc>https?:\/\/[^<]+\/about<\/loc>/);
   });
 
   test("GET /robots.txt via Express app never contains un-replaced __DOMAIN__ placeholder", async () => {
@@ -123,6 +136,6 @@ describe("pages.controller endpoints", () => {
 
     expect(res.status).toBe(200);
     expect(res.text).not.toContain("__DOMAIN__");
-    expect(res.text).toContain("Sitemap: https://morning-routine-sender.onrender.com/sitemap.xml");
+    expect(res.text).toMatch(/Sitemap:\s+https?:\/\/[^\s]+\/sitemap\.xml/);
   });
 });

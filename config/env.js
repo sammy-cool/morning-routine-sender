@@ -8,23 +8,21 @@ const REQUIRED = [
   "PASSWORD",
   "TRANSPORTER_HOST",
   "TRANSPORTER_PORT",
-  "DB_HOST",
-  "DB_USER",
-  "DB_PASSWORD",
-  "DB_NAME",
   "ADMIN_KEY",
   "CRON_API_KEY",
 ];
 
-// Deliberately warn-only, not throw/exit: some of these (e.g. DB_HOST) are
-// only needed once a request actually touches that subsystem, and several
-// commands (npm run test:smtp, one-off scripts) don't need the full set.
-// Failing hard here would be a behavior change beyond what "centralize env
-// validation" was asked for -- this only makes missing config visible
-// immediately in the logs instead of surfacing as a confusing error deep
-// inside a route later.
 function validateEnv() {
   const missing = REQUIRED.filter((key) => !process.env[key]);
+
+  const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+  const hasDbParts = Boolean(
+    process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME
+  );
+
+  if (!hasDatabaseUrl && !hasDbParts) {
+    missing.push("DATABASE_URL (or DB_HOST, DB_USER, DB_NAME)");
+  }
 
   if (missing.length > 0) {
     logger.warn(

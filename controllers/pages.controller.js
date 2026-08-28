@@ -61,12 +61,59 @@ function adminDashboard(req, res) {
 }
 
 // GET /health
-function health(req, res) {
-  res.json({
+async function health(req, res) {
+  const isDeepCheck = Boolean(req?.query?.deep === "true" || req?.path === "/health/ready");
+
+  const payload = {
     status: "ok",
     timestamp: new Date().toISOString(),
     mode: "auto-scheduling-enabled",
-  });
+    uptimeSeconds: Math.floor(process.uptime()),
+    environment: process.env.NODE_ENV || "development",
+    memoryUsageMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
+  };
+
+  if (!isDeepCheck) {
+    return res.json(payload);
+  }
+
+  // Deep inspection
+  const db = require("../db/knex");
+  const redis = require("../config/redisClient");
+
+  const checks = {
+    database: { status: "unknown", latencyMs: null },
+    redis: { status: "unknown", latencyMs: null },
+  };
+
+  let isHealthy = true;
+
+  try {
+    const dbStart = Date.now();
+    await db.raw("SELECT 1");
+    checks.database = { status: "healthy", latencyMs: Date.now() - dbStart };
+  } catch (dbErr) {
+    isHealthy = false;
+    checks.database = { status: "unhealthy", error: dbErr.message };
+  }
+
+  try {
+    const redisStart = Date.now();
+    if (redis && typeof redis.ping === "function") {
+      await redis.ping();
+      checks.redis = { status: "healthy", latencyMs: Date.now() - redisStart };
+    } else {
+      checks.redis = { status: "skipped", reason: "no_client" };
+    }
+  } catch (redisErr) {
+    isHealthy = false;
+    checks.redis = { status: "unhealthy", error: redisErr.message };
+  }
+
+  payload.status = isHealthy ? "ok" : "degraded";
+  payload.checks = checks;
+
+  return res.status(isHealthy ? 200 : 503).json(payload);
 }
 
 // GET /offline
