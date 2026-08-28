@@ -141,6 +141,94 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
   }
 }
 
+// Load Weekly Digest MJML template
+const weeklyDigestPath = path.join(__dirname, "..", "email-templates", "weekly-digest.mjml");
+let weeklyTemplate = null;
+if (fs.existsSync(weeklyDigestPath)) {
+  const source = fs.readFileSync(weeklyDigestPath, "utf8");
+  weeklyTemplate = handlebars.compile(source);
+}
+
+/**
+ * Send Sunday Weekly Streak Digest email
+ * @param {Transporter} transporter - Nodemailer transporter
+ * @param {Object} appLocals - app.locals object from Express
+ * @param {Object} userData - user details
+ */
+async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
+  try {
+    const baseUrl =
+      typeof appLocals === "string"
+        ? appLocals
+        : appLocals?.officialDomain || process.env.RENDER_URL || "http://localhost:2900";
+    const userTimezone = userData.timezone || "UTC";
+    const now = new Date();
+    const templateYear = new Intl.DateTimeFormat("en-US", {
+      timeZone: userTimezone,
+      year: "numeric",
+    }).format(now);
+
+    const trackKey = userData.routineTrack || userData.templateType || "deep-work";
+    const digestInfo = sharedData.getWeeklyDigestContent(trackKey);
+    const userStreak = Number(userData.streakCount) || 0;
+    const streakBadge = userStreak > 0 ? `${userStreak}-Day Streak Active` : "Ignite Your Streak";
+
+    const checkinToken = generateActionToken(userData.email, "checkin");
+    const routineToken = generateActionToken(userData.email, "routine");
+
+    const data = {
+      userName: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
+      year: templateYear,
+      trackName: digestInfo.name,
+      trackBadge: digestInfo.badge,
+      streakCount: userStreak,
+      streakBadge: streakBadge,
+      streakEncouragement: digestInfo.weeklyEncouragement,
+      weeklyQuote: digestInfo.weeklyQuote,
+      weeklyReflectionGuidance: digestInfo.weeklyReflectionGuidance,
+      weeklyPrepItems: digestInfo.weeklyPrepItems,
+      ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}&source=weekly_digest`,
+      checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}&source=weekly_digest`,
+      preferencesUrl: `${baseUrl}/user-dashboard`,
+      unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(
+        userData.email
+      )}&token=${generateUnsubscribeToken(userData.email)}`,
+    };
+
+    const renderedMjml = weeklyTemplate ? weeklyTemplate(data) : "";
+    const mjmlResult = await mjml2html(renderedMjml, { validationLevel: "strict" });
+    const html = mjmlResult?.html || "";
+
+    const text = `Sunday Weekly Streak Digest for ${data.userName}\n\nStreak: ${data.streakBadge}\nPersona: ${digestInfo.name}\n\nWeekly Reflection: ${digestInfo.weeklyReflectionGuidance}\n\nUpcoming Week Prep:\n${digestInfo.weeklyPrepItems.map((p) => `- ${p.title}: ${p.description}`).join("\n")}\n\nOpen Routine: ${data.ctaUrl}\nCheck-in: ${data.checkinUrl}`;
+
+    const messageRef = crypto.randomBytes(8).toString("hex");
+    const info = await transporter.sendMail({
+      from: `"Morning Routine Digest" <${process.env.FROM_USER}>`,
+      replyTo: `${process.env.FROM_USER}`,
+      to: userData.email,
+      subject: `🔥 Sunday Weekly Streak Digest • ${streakBadge} 📊`,
+      html,
+      text,
+      headers: {
+        "X-Service": "morning-routine-sender",
+        "X-Campaign": "weekly-streak-digest",
+        "X-Template-Type": "weekly-digest",
+        "X-Job-Type": "weekly-digest-email",
+        "X-Message-Ref": messageRef,
+        "List-Unsubscribe": `<${data.unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
+    });
+
+    logger.info(`✅ Sunday Weekly Digest sent to ${userData.email} - ${messageRef}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Weekly digest send error:", { error: error.message, email: userData.email });
+    throw error;
+  }
+}
+
 module.exports = {
   sendRoutineEmail,
+  sendWeeklyDigestEmail,
 };

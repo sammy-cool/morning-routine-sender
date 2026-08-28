@@ -512,6 +512,38 @@
         <p id="actionStatus" class="small" aria-live="polite" style="color: #60a5fa;"></p>
       </div>
 
+      <!-- Push Notifications Configuration Card -->
+      <div class="card" id="notificationCard" style="display: none">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2><i class="fas fa-bell" style="color: var(--accent-amber);"></i> PWA Morning Routine Notifications</h2>
+            <p class="meta" style="font-size: 13px; margin-top: 4px;">
+              Receive instant morning reminders on your desktop or mobile device when your routine is ready.
+            </p>
+          </div>
+          <div>
+            <span class="status-badge" id="notifStatusBadge">Checking…</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 14px; padding: 16px; background: rgba(15, 23, 42, 0.4); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div>
+            <div style="font-weight: 700; font-size: 14px; color: #fff;" id="notifToggleTitle">Enable Morning Push Alerts</div>
+            <div class="small" id="notifToggleSubtext">One-click notification prompt to route directly to your live timer &amp; streak tracker.</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-primary" id="enableNotifBtn">
+              <i class="fas fa-bell"></i> Enable Notifications
+            </button>
+            <button type="button" class="btn btn-secondary" id="testNotifBtn" style="display: none;">
+              <i class="fas fa-paper-plane"></i> Test Notification
+            </button>
+          </div>
+        </div>
+
+        <div id="notifNotice" class="small" style="margin-top: 8px; color: var(--text-muted);"></div>
+      </div>
+
       <!-- Dispatch History Card -->
       <div class="card" id="historyCard" style="display: none">
         <h2><i class="fas fa-history" style="color: var(--accent-cyan);"></i> Recent Dispatch History</h2>
@@ -527,6 +559,6 @@
       <small>&copy; Morning Routine Sender • All rights reserved.</small>
     </footer>
 
-    <script src="/js/user-dashboard.js?v=4.1.0"></script>
+    <script src="/js/user-dashboard.js?v=4.2.0"></script>
   </body>
 </html>

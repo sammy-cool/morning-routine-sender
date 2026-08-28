@@ -191,7 +191,64 @@ async function sendBulkEmails(adminSkip, appLocals) {
 }
 
 /**
- * Schedule recurring jobs for all users
+ * Send Sunday Weekly Digest email to a single user
+ */
+async function sendUserWeeklyDigest(
+  userData,
+  adminSkip = "GG!",
+  appLocals = process.env.RENDER_URL
+) {
+  try {
+    const alreadySent = await emailTracker.wasEmailSentToday(
+      userData.email,
+      "weekly-digest",
+      userData.timezone
+    );
+
+    const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
+    if (alreadySent && !isAdminSkip) {
+      logger.info("Weekly digest already sent today, skipping.", { email: userData.email });
+      return { status: "skipped", reason: "already_sent_today" };
+    }
+
+    const result = await emailService.sendWeeklyDigestEmail(
+      getTransporter(),
+      appLocals,
+      userData
+    );
+
+    await emailTracker.recordSend(
+      userData.email,
+      "weekly-digest",
+      result.messageId,
+      { scheduled: true, type: "weekly_digest" }
+    );
+
+    logger.info("✅ Sunday Weekly Digest sent successfully", {
+      email: userData.email,
+      messageId: result.messageId,
+    });
+
+    return { status: "success", messageId: result.messageId };
+  } catch (error) {
+    logger.error("❌ Failed to send Sunday weekly digest", {
+      email: userData.email,
+      error: error.message,
+    });
+
+    await emailTracker.recordFailure(
+      userData.email,
+      "weekly-digest",
+      error.message,
+      0
+    );
+
+    return { status: "failed", error: error.message };
+  }
+}
+
+/**
+ * Schedule recurring jobs for all users (Daily Routines + Sunday Weekly Digests)
  */
 async function scheduleAllJobs() {
   // Stop any existing jobs
@@ -199,56 +256,88 @@ async function scheduleAllJobs() {
 
   const users = await sharedData.getUsers();
 
-  logger.info("📅 Scheduling cron jobs for all users", {
+  logger.info("📅 Scheduling daily routines and Sunday weekly digests for all users", {
     userCount: users.length,
   });
 
   for (const user of users) {
     const cronPattern = user.cronPattern || "0 8 * * *"; // Default: 8 AM daily
+    const userTz = user.timezone || "Asia/Kolkata";
+    const sundayCron = "0 8 * * 0"; // Every Sunday at 8 AM local time
 
+    // 1. Schedule Daily Routine Job
     try {
-      // Validate cron pattern
-      if (!cron.validate(cronPattern)) {
-        logger.error("Invalid cron pattern", {
-          email: user.email,
+      if (cron.validate(cronPattern)) {
+        const job = cron.schedule(
           cronPattern,
-        });
-        continue;
-      }
+          async () => {
+            logger.info("⏰ Daily cron job triggered", {
+              email: user.email,
+              templateType: user.templateType || "basic",
+              time: new Date().toISOString(),
+            });
 
-      // Schedule job
-      const job = cron.schedule(
+            const currentUser = await sharedData.getUserByEmail(user.email);
+            if (!currentUser || !currentUser.isActive) {
+              logger.info("Skipping inactive user", { email: user.email });
+              return;
+            }
+
+            await sendRoutineEmail(currentUser);
+          },
+          {
+            scheduled: true,
+            timezone: userTz,
+          }
+        );
+        scheduledJobs.push({
+          email: user.email,
+          job,
+          cronPattern,
+          type: "daily_routine",
+        });
+      }
+    } catch (error) {
+      logger.error("Failed to schedule recurring daily job", {
+        error: error.message,
+        email: user.email,
         cronPattern,
+      });
+    }
+
+    // 2. Schedule Sunday Weekly Digest Job
+    try {
+      const weeklyJob = cron.schedule(
+        sundayCron,
         async () => {
-          logger.info("⏰ Cron job triggered", {
+          logger.info("⏰ Sunday Weekly Digest cron triggered", {
             email: user.email,
-            templateType: user.templateType || "basic",
+            timezone: userTz,
             time: new Date().toISOString(),
           });
 
           const currentUser = await sharedData.getUserByEmail(user.email);
           if (!currentUser || !currentUser.isActive) {
-            logger.info('Skipping inactive user', { email: user.email });
             return;
           }
 
-          await sendRoutineEmail(currentUser);
+          await sendUserWeeklyDigest(currentUser);
         },
         {
           scheduled: true,
-          timezone: user.timezone || "Asia/Kolkata",
+          timezone: userTz,
         }
       );
       scheduledJobs.push({
         email: user.email,
-        job,
-        cronPattern,
+        job: weeklyJob,
+        cronPattern: sundayCron,
+        type: "weekly_digest",
       });
     } catch (error) {
-      logger.error("Failed to schedule recurring job", {
+      logger.error("Failed to schedule Sunday weekly digest job", {
         error: error.message,
         email: user.email,
-        cronPattern,
       });
     }
   }
@@ -323,6 +412,7 @@ module.exports = {
   scheduleAllJobs,
   stopAllJobs,
   sendRoutineEmail,
+  sendUserWeeklyDigest,
   sendBulkEmails,
   getScheduledJobsStatus,
   scheduleCleanupJobs,

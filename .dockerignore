@@ -1,0 +1,40 @@
+# Dependency directories
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git repository
+.git
+.gitignore
+
+# Environment and sensitive credential files
+.env
+.env.*
+!.env.example
+
+# Local runtime logs & output
+logs/
+*.log
+
+# Test and coverage artifacts
+__tests__/
+coverage/
+.nyc_output/
+
+# Editor and IDE configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation and meta files not required at container runtime
+README.md
+ARCHITECTURE.md
+LICENSE
+Procfile
+
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
