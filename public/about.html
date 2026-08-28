@@ -151,9 +151,9 @@
     />
     <link rel="stylesheet" href="/css/loader.css" />
 
-    <!-- Toast Notification CDN -->
+    <!-- Toast Notification CDN (latest) -->
     <script
-      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.5/dist/index.umd.js"
+      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
       defer
       crossorigin="anonymous"
     ></script>
@@ -1443,14 +1443,26 @@
         navigator.clipboard
           .writeText(email)
           .then(() => {
-            if (window.toastNotification) {
-              window.toastNotification({
-                message: "Email address copied to clipboard: " + email,
+            const toast =
+              (typeof window !== "undefined" && window.customizableToast) ||
+              (typeof customizableToast !== "undefined" ? customizableToast : null);
+            if (toast && typeof toast.createToast === "function") {
+              toast.createToast({
+                message: "Email copied to clipboard: " + email,
                 type: "success",
-                duration: 3000,
+                position: "top-center",
+                duration: 3500,
+                showProgressBar: true,
+                progressPosition: "bottom",
+                pauseOnHover: true,
+                borderRadius: "14px",
+                cta: {
+                  label: "Send Email",
+                  href: "mailto:" + email,
+                  variant: "link",
+                  autoClose: true,
+                },
               });
-            } else {
-              alert("Copied email to clipboard: " + email);
             }
           })
           .catch(() => {

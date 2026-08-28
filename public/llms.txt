@@ -17,10 +17,10 @@ Morning Routine Sender delivers personalized, high-signal morning rituals direct
 - **Privacy & Security**: Zero tracking pixels, passwordless magic links, instant self-service preference management, and RFC-compliant 1-click unsubscribe.
 
 ## Public Endpoints & Resources
-- **Landing & Signup**: [__DOMAIN__/](__DOMAIN__/)
-- **About & Creator Story**: [__DOMAIN__/about](__DOMAIN__/about)
-- **Live Routine & Focus Companion**: [__DOMAIN__/routine](__DOMAIN__/routine)
-- **1-Click Habit Check-In**: [__DOMAIN__/checkin](__DOMAIN__/checkin)
-- **Full Architecture & Technical Details**: [__DOMAIN__/llms-full.txt](__DOMAIN__/llms-full.txt)
-- **Web App Manifest**: [__DOMAIN__/manifest.json](__DOMAIN__/manifest.json)
-- **XML Sitemap**: [__DOMAIN__/sitemap.xml](__DOMAIN__/sitemap.xml)
+- **Landing & Signup**: [https://morning-routine-sender.onrender.com/](https://morning-routine-sender.onrender.com/)
+- **About & Creator Story**: [https://morning-routine-sender.onrender.com/about](https://morning-routine-sender.onrender.com/about)
+- **Live Routine & Focus Companion**: [https://morning-routine-sender.onrender.com/routine](https://morning-routine-sender.onrender.com/routine)
+- **1-Click Habit Check-In**: [https://morning-routine-sender.onrender.com/checkin](https://morning-routine-sender.onrender.com/checkin)
+- **Full Architecture & Technical Details**: [https://morning-routine-sender.onrender.com/llms-full.txt](https://morning-routine-sender.onrender.com/llms-full.txt)
+- **Web App Manifest**: [https://morning-routine-sender.onrender.com/manifest.json](https://morning-routine-sender.onrender.com/manifest.json)
+- **XML Sitemap**: [https://morning-routine-sender.onrender.com/sitemap.xml](https://morning-routine-sender.onrender.com/sitemap.xml)

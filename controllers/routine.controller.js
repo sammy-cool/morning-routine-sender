@@ -305,6 +305,12 @@ function renderCheckinPage(res, data) {
         ⚙️ Manage Routine Preferences
       </a>
     </div>
+
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 18px; font-size: 13px;">
+      <a href="/" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">🏠 Home</a>
+      <a href="/about" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">📖 About</a>
+      <a href="/user-dashboard" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">👤 Dashboard</a>
+    </div>
   </div>
 </body>
 </html>`);
@@ -376,7 +382,7 @@ async function liveRoutine(req, res) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.5/dist/index.umd.js" defer crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <style>
     :root {
       --bg: #07090e;
