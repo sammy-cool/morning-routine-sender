@@ -183,7 +183,7 @@ class Canvas2D {
     for (let py = y0; py < y1; py++) {
       for (let px = x0; px < x1; px++) {
         let inside = true;
-        let edgeDist = 9999;
+        let edgeDist;
 
         if (px < x + r && py < y + r) {
           const d = Math.hypot(px - (x + r), py - (y + r));

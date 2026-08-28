@@ -34,7 +34,7 @@ function parseResendPayload(payload) {
   if (!data || !data.to) return [];
 
   const recipient = Array.isArray(data.to) ? data.to[0] : data.to;
-  let eventType = "delivered";
+  let eventType;
   let bounceCode = null;
   let bounceDescription = null;
 
@@ -84,8 +84,8 @@ function parseSendGridPayload(events) {
   return items
     .map((ev) => {
       let eventType = "delivered";
-      let bounceCode = ev.status || null;
-      let bounceDescription = ev.reason || null;
+      const bounceCode = ev.status || null;
+      const bounceDescription = ev.reason || null;
 
       if (ev.event === "delivered") {
         eventType = "delivered";
@@ -133,7 +133,7 @@ function parseBrevoPayload(payload) {
 
   let eventType = "delivered";
   let bounceCode = payload.code || null;
-  let bounceDescription = payload.reason || null;
+  const bounceDescription = payload.reason || null;
 
   if (event === "delivered") {
     eventType = "delivered";

@@ -322,6 +322,15 @@ async function liveRoutine(req, res) {
   const trackKey = subscriber?.routineTrack || subscriber?.templateType || "deep-work";
   const trackContent = sharedData.getTrackContent(trackKey);
   const streakCount = subscriber?.streakCount || 0;
+  const { getDailyMorningSpark } = require("../helper/aiSparkGenerator");
+  const spark = await getDailyMorningSpark({
+    email: activeEmail || "",
+    routineTrack: trackKey,
+    streakCount: streakCount,
+    timezone: subscriber?.timezone || "UTC",
+    name: subscriber?.name || "",
+  });
+
   const checkinHref = activeEmail
     ? "/checkin?email=" + encodeURIComponent(activeEmail) + "&token=" + (token || "")
     : "/user-dashboard";
@@ -760,6 +769,27 @@ async function liveRoutine(req, res) {
       <div class="ritual-box">
         <div class="ritual-title">🎯 Morning Focus</div>
         <div class="ritual-text">${escapeHtml(trackContent.ritual)}</div>
+      </div>
+
+      <!-- Dynamic AI Kickoff Spark & Focus Mantra Card -->
+      <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.1) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 800; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.8px;">
+            ⚡ Daily Kickoff Spark • ${escapeHtml(spark.source === "curated" ? "Curated Spark" : "AI Spark")}
+          </span>
+          <span style="font-size: 12px; font-weight: 700; color: #34d399; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 10px; border-radius: 9999px;">
+            Mantra: "${escapeHtml(spark.focusMantra)}"
+          </span>
+        </div>
+        <div style="font-size: 15px; color: #f8fafc; line-height: 1.6; font-weight: 500; margin-bottom: 12px;">
+          ${escapeHtml(spark.sparkReflection)}
+        </div>
+        <div style="background: rgba(15, 23, 42, 0.6); border-left: 3px solid #10b981; border-radius: 8px; padding: 10px 14px;">
+          <span style="font-size: 12px; font-weight: 800; color: #34d399; text-transform: uppercase;">🚀 2-Min Micro-Action:</span>
+          <div style="font-size: 14px; color: #cbd5e1; margin-top: 2px; line-height: 1.5;">
+            ${escapeHtml(spark.microAction)}
+          </div>
+        </div>
       </div>
 
       <div class="checklist-title">Morning Habit Checklist</div>

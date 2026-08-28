@@ -5,7 +5,7 @@ const path = require("path");
 const logger = require("../logger");
 const db = require("../db/knex");
 
-let cache = new Map();
+const cache = new Map();
 
 function updateCache(key, value) {
   cache.set(key, value);
@@ -218,11 +218,6 @@ async function recordCheckin(email, timezone = "UTC") {
   let newStreak = 1;
   if (lastCheckin === yesterdayStr) {
     newStreak = currentStreak + 1;
-  } else if (!lastCheckin) {
-    newStreak = 1;
-  } else {
-    // Check if yesterday was missed
-    newStreak = 1;
   }
 
   try {

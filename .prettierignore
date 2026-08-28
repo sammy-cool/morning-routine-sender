@@ -1,0 +1,26 @@
+# Package & lockfiles
+node_modules/
+package-lock.json
+
+# Test coverage & logs
+coverage/
+logs/
+*.log
+
+# Third-party vendor and minified assets
+public/vendor/
+public/js/npm-mod/
+admin-renderer/js/npm-mod/
+public/assets/
+*.min.js
+*.min.css
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build & cache artifacts
+dist/
+build/
+.cache/

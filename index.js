@@ -152,18 +152,22 @@ const pagesController = require("./controllers/pages.controller");
 
 app.get("/admin-dashboard", pagesController.adminDashboard);
 
-// High performance static asset serving with caching and ETags
-app.use("/assets", express.static(path.join(__dirname, "public", "assets"), { maxAge: "7d", etag: true }));
-app.use(express.static(path.join(__dirname, "public"), { maxAge: "1d", etag: true }));
-
-app.use(require("./routes/auth.routes"));
+// Mount dynamic pages, SEO and API routes before general static assets
+// so that dynamic templates (/, /about, /sitemap.xml, /robots.txt, /llms.txt)
+// receive dynamic domain interpolation (__DOMAIN__) instead of raw static files.
 app.use(require("./routes/pages.routes"));
+app.use(require("./routes/auth.routes"));
 app.use(require("./routes/admin.routes"));
 app.use(require("./routes/subscribers.routes"));
 app.use(require("./routes/subscriberPortal.routes"));
 app.use("/api/webhooks", require("./routes/webhook.routes"));
 app.use("/admin/deliverability", require("./routes/deliverability.routes"));
+app.use(require("./routes/push.routes"));
 app.use(require("./routes/email.routes"));
+
+// High performance static asset serving with caching and ETags
+app.use("/assets", express.static(path.join(__dirname, "public", "assets"), { maxAge: "7d", etag: true }));
+app.use(express.static(path.join(__dirname, "public"), { maxAge: "1d", etag: true }));
 
 // 404 handler
 app.use((req, res, next) => {

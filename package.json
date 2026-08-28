@@ -16,7 +16,12 @@
     "db:migrate-json": "node scripts/migrate-json-to-db.js",
     "db:migrate-users": "node scripts/migrate-users-to-db.js",
     "test": "jest --forceExit",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:syntax": "node --check index.js knexfile.js logger.js && node -e \"const fs=require('fs'),cp=require('child_process');const check=(d)=>{if(!fs.existsSync(d))return;fs.readdirSync(d,{withFileTypes:true}).forEach(e=>{const p=d+'/'+e.name;if(e.isDirectory()&&!['node_modules','coverage','logs','vendor','npm-mod','.git','dist'].includes(e.name))check(p);else if(e.isFile()&&e.name.endsWith('.js'))cp.execSync('node --check \\\"'+p+'\\\"');})};['config','controllers','db','email-core','helper','middleware','public/js','admin-renderer/js','routes','scripts','__tests__'].forEach(check);console.log('✅ Syntax validation passed for all JavaScript files.');\""
   },
   "license": "ISC",
   "dependencies": {
@@ -37,13 +42,19 @@
     "nodemailer": "^9.0.1",
     "pg": "^8.16.3",
     "validator": "^13.15.22",
+    "web-push": "^3.6.7",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.11.0",
     "jest": "^30.4.2",
     "nodemon": "^3.1.4",
     "pg-mem": "^3.0.14",
+    "prettier": "^3.9.6",
     "supertest": "^7.2.2"
   },
   "keywords": [
