@@ -226,6 +226,8 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
         loadingCard.style.display = "none";
         subscriptionCard.style.display = "block";
+        const streakExportCard = document.getElementById("streakExportCard");
+        if (streakExportCard) streakExportCard.style.display = "block";
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);

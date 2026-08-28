@@ -5,10 +5,34 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const submitBtn = document.getElementById("subscriberLoginBtn");
     const status = document.getElementById("subscriberLoginStatus");
 
+    function showToast(message, type = "info", options = {}) {
+      const toastLib =
+        (typeof window !== "undefined" && window.customizableToast) ||
+        (typeof customizableToast !== "undefined" ? customizableToast : null);
+
+      if (toastLib && typeof toastLib.createToast === "function") {
+        return toastLib.createToast({
+          message,
+          type: type === "warn" ? "warning" : type,
+          position: "top-center",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          borderRadius: "14px",
+          showProgressBar: true,
+          progressPosition: "bottom",
+          pauseOnHover: true,
+          duration: 4500,
+          ...options,
+        });
+      }
+    }
+
+    if (!form) return;
+
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       const email = emailInput.value.trim();
       if (!email) {
+        showToast("Please enter your email address to continue.", "warn");
         emailInput.focus();
         return;
       }
@@ -26,13 +50,23 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           }),
         });
         const data = await resp.json();
-        status.textContent =
-          data.message ||
-          "If that email is subscribed, a login link has been sent.";
-        emailInput.value = "";
+        if (resp.ok) {
+          const successMsg =
+            data.message ||
+            "If that email is subscribed, a magic login link has been sent.";
+          if (status) status.textContent = successMsg;
+          showToast(successMsg, "success", { duration: 6000 });
+          emailInput.value = "";
+        } else {
+          const errorMsg = data.message || "Unable to send login link. Please try again.";
+          if (status) status.textContent = errorMsg;
+          showToast(errorMsg, "error");
+        }
       } catch (err) {
         console.error(err);
-        status.textContent = "Network error. Please try again.";
+        const netErrMsg = "Network error. Please try again.";
+        if (status) status.textContent = netErrMsg;
+        showToast(netErrMsg, "error");
       } finally {
         submitBtn.disabled = false;
       }

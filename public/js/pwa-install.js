@@ -97,7 +97,7 @@
           iosInstallModal.style.display = "flex";
           setTimeout(() => iosInstallModal.classList.add("visible"), 50);
         } else {
-          alert("To install on iOS: Tap the Share button in Safari (⎋) and select 'Add to Home Screen' (+).");
+          showToast("To install on iOS: Tap Share (⎋) and select 'Add to Home Screen' (+).", "info", { duration: 6000 });
         }
       } else {
         showToast("To install, use the browser menu or address bar install icon.", "info");
@@ -124,12 +124,26 @@
       });
     }
 
-    if (iosModalCloseBtn && iosInstallModal) {
-      iosModalCloseBtn.addEventListener("click", function () {
+    function closeIosModal() {
+      if (iosInstallModal) {
         iosInstallModal.classList.remove("visible");
         setTimeout(() => {
           iosInstallModal.style.display = "none";
         }, 300);
+      }
+    }
+
+    if (iosModalCloseBtn && iosInstallModal) {
+      iosModalCloseBtn.addEventListener("click", closeIosModal);
+      iosInstallModal.addEventListener("click", function (e) {
+        if (e.target === iosInstallModal) {
+          closeIosModal();
+        }
+      });
+      globalThis.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && iosInstallModal.classList.contains("visible")) {
+          closeIosModal();
+        }
       });
     }
 

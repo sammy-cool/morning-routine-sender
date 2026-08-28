@@ -40,9 +40,40 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    function showToast(message, type = "info", options = {}) {
+      const toastLib =
+        (typeof window !== "undefined" && window.customizableToast) ||
+        (typeof customizableToast !== "undefined" ? customizableToast : null);
+
+      if (toastLib && typeof toastLib.createToast === "function") {
+        return toastLib.createToast({
+          message,
+          type: type === "warn" ? "warning" : type,
+          position: "top-center",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          borderRadius: "14px",
+          showProgressBar: true,
+          progressPosition: "bottom",
+          pauseOnHover: true,
+          duration: 4500,
+          ...options,
+        });
+      }
+    }
+
+    modalWrap.addEventListener("click", function (e) {
+      if (e.target === modalWrap) {
+        closeModal();
+      }
+    });
+
+    globalThis.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && modalWrap.classList.contains("open")) {
+        closeModal();
+      }
+    });
+
     // Submit -> POST /verify-admin-key
-    // (Extracted into a function so the new "generate & continue" flow
-    // below can reuse the exact same verify step instead of duplicating it.)
     async function verifyKey(key) {
       try {
         const resp = await fetch("/verify-admin-key", {
@@ -52,16 +83,14 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         });
         const j = await resp.json();
         if (resp.ok && j.role === "admin") {
-          // Admin -> redirect to existing admin dashboard
           globalThis.location.href = "/admin-dashboard";
         } else {
-          // Not admin -> show user interface (already on page); optionally show message
-          alert("Key not recognized — showing user view.");
+          showToast("Key not recognized — showing standard user view.", "warning");
           closeModal();
         }
       } catch (err) {
         console.error(err);
-        alert("Network error. Try again.");
+        showToast("Network error. Please try again.", "error");
       }
     }
 
