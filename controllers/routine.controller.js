@@ -351,6 +351,7 @@ async function liveRoutine(req, res) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.5/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <style>
     :root {
       --bg: #07090e;
@@ -1232,7 +1233,25 @@ async function liveRoutine(req, res) {
             isSoundPlaying = false;
             updateSoundUI();
           }
-          alert('🎉 Focus sprint completed! Time for a short break.');
+          if (typeof customizableToast !== "undefined" && typeof customizableToast.createToast === "function") {
+            customizableToast.createToast({
+              message: "🎉 <b>Focus sprint completed!</b> Great job maintaining morning momentum.",
+              type: "success",
+              allowHtml: true,
+              showProgressBar: true,
+              pauseOnHover: true,
+              duration: 8000,
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              borderRadius: "14px",
+              cta: {
+                label: "🔥 1-Click Check-in",
+                variant: "link",
+                href: "${checkinHref}"
+              }
+            });
+          } else {
+            alert('🎉 Focus sprint completed! Time for a short break.');
+          }
         }
       }, 1000);
     }

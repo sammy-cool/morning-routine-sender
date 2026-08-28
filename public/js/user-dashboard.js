@@ -28,8 +28,8 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     let currentSubscriber = null;
 
-    // Toast helper
-    function showToast(message, type = "info") {
+    // Toast helper with full customizable-toast-notification capabilities
+    function showToast(message, type = "info", options = {}) {
       const toastLib =
         (typeof window !== "undefined" && window.customizableToast) ||
         (typeof customizableToast !== "undefined" ? customizableToast : null);
@@ -39,12 +39,18 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           message,
           type: type === "warn" ? "warning" : type,
           position: "top-center",
-          duration: 4000,
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          borderRadius: "14px",
+          showProgressBar: true,
+          progressPosition: "bottom",
+          pauseOnHover: true,
+          duration: 4500,
+          ...options,
         });
       }
 
       if (globalThis.ToastManager && typeof globalThis.ToastManager.show === "function") {
-        globalThis.ToastManager.show({ message, type });
+        globalThis.ToastManager.show({ message, type, ...options });
       }
     }
 
@@ -259,7 +265,14 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         }
         renderSubscription(data);
         saveStatus.textContent = "✅ Preferences saved successfully!";
-        showToast("Routine preferences updated!", "success");
+        showToast("Routine preferences updated!", "success", {
+          allowHtml: true,
+          cta: {
+            label: "⚡ Live Routine View",
+            variant: "link",
+            href: "/routine",
+          },
+        });
       } catch (err) {
         console.error(err);
         saveStatus.textContent = "Network error. Please try again.";

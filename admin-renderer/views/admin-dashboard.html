@@ -1432,25 +1432,29 @@
 
           const defaults = {
             position: "top-center",
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            borderRadius: "14px",
+            showProgressBar: true,
+            progressPosition: "bottom",
+            pauseOnHover: true,
+            duration: 4500,
             animationDuration: 300,
-            textColor: "snow",
-            duration: 4000,
           };
 
           return toastLib.createToast({ ...defaults, ...config });
         }
 
-        static success(msg) {
-          this.show({ message: msg, type: "success" });
+        static success(msg, options = {}) {
+          return this.show({ message: msg, type: "success", ...options });
         }
-        static error(msg) {
-          this.show({ message: msg, type: "error" });
+        static error(msg, options = {}) {
+          return this.show({ message: msg, type: "error", ...options });
         }
-        static info(msg) {
-          this.show({ message: msg, type: "info" });
+        static info(msg, options = {}) {
+          return this.show({ message: msg, type: "info", ...options });
         }
-        static warn(msg) {
-          this.show({ message: msg, type: "warning" });
+        static warn(msg, options = {}) {
+          return this.show({ message: msg, type: "warning", ...options });
         }
       }
 
