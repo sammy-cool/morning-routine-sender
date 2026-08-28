@@ -136,7 +136,7 @@ async function secretJobsScheduler(req, res) {
     await redis.del(`admin_key:${key}`);
 
     if (action === "start") {
-      emailScheduler.scheduleAllJobs();
+      await emailScheduler.scheduleAllJobs();
       return res.json({ message: "✅ All cron jobs scheduled and running." });
     } else if (action === "stop") {
       emailScheduler.stopAllJobs();

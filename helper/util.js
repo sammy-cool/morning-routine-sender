@@ -92,6 +92,7 @@ async function dailyDevNews() {
 
 function setRoleCookie(res, role) {
   const isProd = process.env.NODE_ENV === "production";
+  const hasSecret = Boolean(res.req?.secret);
 
   res.cookie("mrn_role", role, {
     httpOnly: true,
@@ -99,6 +100,7 @@ function setRoleCookie(res, role) {
     sameSite: "lax",
     path: "/",
     maxAge: 5 * 60 * 1000,
+    signed: hasSecret,
   });
 }
 
