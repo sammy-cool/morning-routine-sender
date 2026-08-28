@@ -139,7 +139,34 @@ const errorRotateTransport = new DailyRotateFile({
   zippedArchive: true,
 });
 
+let fileLoggingAvailable = false;
+try {
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
+  fs.accessSync(logsDir, fs.constants.W_OK);
+  fileLoggingAvailable = true;
+} catch (err) {
+  // Console logging fallback if disk is read-only
+}
+
 // Create Master Logger
+const transports = [
+  new winston.transports.Console({
+    format: consoleFormat,
+  }),
+];
+
+if (fileLoggingAvailable) {
+  dailyRotateTransport.on("error", (err) => {
+    // Non-fatal stream error
+  });
+  errorRotateTransport.on("error", (err) => {
+    // Non-fatal stream error
+  });
+  transports.push(dailyRotateTransport, errorRotateTransport);
+}
+
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || "info",
   defaultMeta: {
@@ -149,42 +176,40 @@ const logger = winston.createLogger({
     hostname: os.hostname(),
   },
   exitOnError: false,
-  transports: [
-    new winston.transports.Console({
-      format: consoleFormat,
-    }),
-    dailyRotateTransport,
-    errorRotateTransport,
-  ],
+  transports,
 });
 
-// Rotate Events
-dailyRotateTransport.on("rotate", (oldFilename, newFilename) => {
-  logger.info("📋 Log file rotated", { oldFilename, newFilename });
-});
+if (fileLoggingAvailable) {
+  dailyRotateTransport.on("rotate", (oldFilename, newFilename) => {
+    logger.info("📋 Log file rotated", { oldFilename, newFilename });
+  });
 
-dailyRotateTransport.on("logRemoved", (removedFilename) => {
-  logger.info("🗑️  Old log file removed", { removedFilename });
-});
+  dailyRotateTransport.on("logRemoved", (removedFilename) => {
+    logger.info("🗑️  Old log file removed", { removedFilename });
+  });
 
-// Unhandled Exceptions & Rejections Handlers
-logger.exceptions.handle(
-  new DailyRotateFile({
-    filename: path.join(logsDir, "exceptions-%DATE%.log"),
-    datePattern: "YYYY-MM-DD",
-    maxFiles: "7d",
-    format: fileFormat,
-  })
-);
+  try {
+    logger.exceptions.handle(
+      new DailyRotateFile({
+        filename: path.join(logsDir, "exceptions-%DATE%.log"),
+        datePattern: "YYYY-MM-DD",
+        maxFiles: "7d",
+        format: fileFormat,
+      })
+    );
 
-logger.rejections.handle(
-  new DailyRotateFile({
-    filename: path.join(logsDir, "rejections-%DATE%.log"),
-    datePattern: "YYYY-MM-DD",
-    maxFiles: "7d",
-    format: fileFormat,
-  })
-);
+    logger.rejections.handle(
+      new DailyRotateFile({
+        filename: path.join(logsDir, "rejections-%DATE%.log"),
+        datePattern: "YYYY-MM-DD",
+        maxFiles: "7d",
+        format: fileFormat,
+      })
+    );
+  } catch (err) {
+    // Ignore exception transport error
+  }
+}
 
 /**
  * Express Request Logger Middleware

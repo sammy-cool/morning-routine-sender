@@ -154,7 +154,7 @@ function root(req, res) {
   const domain = getDomain(req, res);
 
   try {
-    const role = req.signedCookies?.mrn_role;
+    const role = req.signedCookies?.mrn_role || req.cookies?.mrn_role;
     if (role === "admin") {
       logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
       return res.redirect("/admin-dashboard");

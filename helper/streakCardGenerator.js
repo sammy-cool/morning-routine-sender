@@ -1,5 +1,14 @@
 // helper/streakCardGenerator.js
 
+function escapeXml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 function getMilestoneTitle(streak) {
   const count = Number(streak) || 0;
   if (count >= 100) return "Master of Morning";
@@ -12,8 +21,10 @@ function getMilestoneTitle(streak) {
 }
 
 function generateStreakSvg({ name = "Morning Builder", streak = 1, track = "Deep Work" }) {
-  const milestone = getMilestoneTitle(streak);
-  const trackLabel = String(track).replace(/-/g, " ").toUpperCase();
+  const safeStreak = parseInt(streak, 10) || 1;
+  const milestone = escapeXml(getMilestoneTitle(safeStreak));
+  const trackLabel = escapeXml(String(track).replace(/-/g, " ").toUpperCase());
+  const safeName = escapeXml(name);
 
   return `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
     <defs>

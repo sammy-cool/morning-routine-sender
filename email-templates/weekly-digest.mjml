@@ -161,7 +161,7 @@
           </mj-text>
           {{#each weeklyPrepItems}}
           <div class="prep-item">
-            <strong>{{{this.title}}}:</strong> {{{this.description}}}
+            <strong>{{this.title}}:</strong> {{this.description}}
           </div>
           {{/each}}
         </mj-column>

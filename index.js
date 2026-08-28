@@ -156,17 +156,13 @@ app.get("/admin-dashboard", pagesController.adminDashboard);
 app.use("/assets", express.static(path.join(__dirname, "public", "assets"), { maxAge: "7d", etag: true }));
 app.use(express.static(path.join(__dirname, "public"), { maxAge: "1d", etag: true }));
 
-const PORT = process.env.PORT || 2900;
 app.use(require("./routes/auth.routes"));
-
 app.use(require("./routes/pages.routes"));
-
 app.use(require("./routes/admin.routes"));
 app.use(require("./routes/subscribers.routes"));
 app.use(require("./routes/subscriberPortal.routes"));
 app.use("/api/webhooks", require("./routes/webhook.routes"));
 app.use("/admin/deliverability", require("./routes/deliverability.routes"));
-
 app.use(require("./routes/email.routes"));
 
 // 404 handler
@@ -180,38 +176,50 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal Server Error" });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
-  logger.info(
-    `✅ Server started on port ${PORT} > 🔄 Mode: ${
-      process.env.NODE_ENV || "development"
-    } Auto-scheduling enabled with node-cron`,
-  );
+const PORT = parseInt(process.env.PORT, 10) || 2900;
+const HOST = "0.0.0.0";
 
-  // Initialize automatic scheduling
-  setTimeout(async () => {
-    try {
-      logger.info("⏰ Initializing automatic email scheduling...");
-      await emailScheduler.scheduleAllJobs();
-    } catch (error) {
-      logger.warn("⚠️  Could not schedule email jobs (database may be unavailable)", {
-        error: error.message,
-      });
-    }
-  }, 5000); // delay for few seconds to ensure everything is ready
+let server;
 
-  // Schedule cleanup jobs
-  setTimeout(() => {
-    try {
-      emailScheduler.scheduleCleanupJobs();
-      logger.info("🧹 Database cleanup scheduled for every (Sunday at 2 AM)");
-    } catch (error) {
-      logger.warn("⚠️  Could not schedule cleanup jobs", {
-        error: error.message,
-      });
-    }
-  }, 10000);
-});
+// Only bind server port when executed directly as main script
+if (require.main === module) {
+  server = app.listen(PORT, HOST, () => {
+    logger.info(
+      `✅ Server started on http://${HOST}:${PORT} > 🔄 Mode: ${
+        process.env.NODE_ENV || "development"
+      } Auto-scheduling enabled with node-cron`,
+    );
+
+    // Initialize automatic scheduling
+    setTimeout(async () => {
+      try {
+        logger.info("⏰ Initializing automatic email scheduling...");
+        await emailScheduler.scheduleAllJobs();
+      } catch (error) {
+        logger.warn("⚠️  Could not schedule email jobs (database may be unavailable)", {
+          error: error.message,
+        });
+      }
+    }, 5000); // delay for few seconds to ensure everything is ready
+
+    // Schedule cleanup jobs
+    setTimeout(() => {
+      try {
+        emailScheduler.scheduleCleanupJobs();
+        logger.info("🧹 Database cleanup scheduled for every (Sunday at 2 AM)");
+      } catch (error) {
+        logger.warn("⚠️  Could not schedule cleanup jobs", {
+          error: error.message,
+        });
+      }
+    }, 10000);
+  });
+
+  server.on("error", (err) => {
+    logger.error("❌ Server listen socket error:", { error: err.message, stack: err.stack });
+    process.exit(1);
+  });
+}
 
 // Graceful shutdown
 async function gracefulShutdown(signal) {

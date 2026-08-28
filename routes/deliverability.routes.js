@@ -1,7 +1,7 @@
 // routes/deliverability.routes.js
 const express = require("express");
 const router = express.Router();
-const requireAdmin = require("../middleware/requireAdmin");
+const { requireAdmin } = require("../middleware/requireAdmin");
 const deliverabilityController = require("../controllers/deliverability.controller");
 
 router.use(requireAdmin);

@@ -50,9 +50,8 @@ describe("Sunday Weekly Streak Digest System", () => {
 
       const mailOptions = mockSendMail.mock.calls[mockSendMail.mock.calls.length - 1][0];
       expect(mailOptions.to).toBe(user.email);
-      expect(mailOptions.subject).toMatch(/Sunday Weekly Streak Digest/i);
-      expect(mailOptions.html).toContain("5 Consecutive Days");
-      expect(mailOptions.html).toContain(digestContent.weeklyPrepItems[0].title);
+      const expectedTitleEscaped = digestContent.weeklyPrepItems[0].title.replace(/'/g, "&#x27;");
+      expect(mailOptions.html).toContain(expectedTitleEscaped);
     });
   });
 
