@@ -145,4 +145,43 @@ describe("pages.controller endpoints", () => {
     expect(res.text).not.toContain("__DOMAIN__");
     expect(res.text).toMatch(/Sitemap:\s+https?:\/\/[^\s]+\/sitemap\.xml/);
   });
+
+  test("GET /llms.txt via Express app never contains un-replaced __DOMAIN__ placeholder", async () => {
+    const request = require("supertest");
+    const express = require("express");
+    const { setApiBase } = require("../middleware/setApiBase");
+    const pagesRoutes = require("../routes/pages.routes");
+
+    const app = express();
+    app.use(setApiBase);
+    app.use(pagesRoutes);
+
+    const res = await request(app)
+      .get("/llms.txt")
+      .set("Host", "morning-routine-sender.onrender.com");
+
+    expect(res.status).toBe(200);
+    expect(res.text).not.toContain("__DOMAIN__");
+    expect(res.text).toContain("# Morning Routine Sender");
+    expect(res.text).toMatch(/https?:\/\/[^/]+\/about/);
+  });
+
+  test("GET /llms-full.txt via Express app never contains un-replaced __DOMAIN__ placeholder", async () => {
+    const request = require("supertest");
+    const express = require("express");
+    const { setApiBase } = require("../middleware/setApiBase");
+    const pagesRoutes = require("../routes/pages.routes");
+
+    const app = express();
+    app.use(setApiBase);
+    app.use(pagesRoutes);
+
+    const res = await request(app)
+      .get("/llms-full.txt")
+      .set("Host", "morning-routine-sender.onrender.com");
+
+    expect(res.status).toBe(200);
+    expect(res.text).not.toContain("__DOMAIN__");
+    expect(res.text).toContain("Morning Routine Sender");
+  });
 });

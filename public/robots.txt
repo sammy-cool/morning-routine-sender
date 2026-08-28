@@ -50,4 +50,4 @@ Allow: /llms.txt
 Allow: /llms-full.txt
 
 # Sitemaps & LLM Discovery
-Sitemap: __DOMAIN__/sitemap.xml
+Sitemap: https://morning-routine-sender.onrender.com/sitemap.xml

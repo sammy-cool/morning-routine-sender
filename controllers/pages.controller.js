@@ -144,7 +144,9 @@ function robots(req, res) {
   res.set("Cache-Control", "public, max-age=86400");
   const domain = getDomain(req, res);
   let content = getCachedTemplate("public/robots.txt");
-  content = content.replaceAll("__DOMAIN__", domain);
+  content = content
+    .replaceAll("__DOMAIN__", domain)
+    .replaceAll("https://morning-routine-sender.onrender.com", domain);
   return res.send(content);
 }
 
@@ -154,7 +156,9 @@ function sitemap(req, res) {
   res.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=3600");
   const domain = getDomain(req, res);
   let content = getCachedTemplate("public/sitemap.xml");
-  content = content.replaceAll("__DOMAIN__", domain);
+  content = content
+    .replaceAll("__DOMAIN__", domain)
+    .replaceAll("https://morning-routine-sender.onrender.com", domain);
   return res.send(content);
 }
 
@@ -164,7 +168,9 @@ function llmsTxt(req, res) {
   res.set("Cache-Control", "public, max-age=86400");
   const domain = getDomain(req, res);
   let content = getCachedTemplate("public/llms.txt");
-  content = content.replaceAll("__DOMAIN__", domain);
+  content = content
+    .replaceAll("__DOMAIN__", domain)
+    .replaceAll("https://morning-routine-sender.onrender.com", domain);
   return res.send(content);
 }
 
@@ -174,7 +180,9 @@ function llmsFullTxt(req, res) {
   res.set("Cache-Control", "public, max-age=86400");
   const domain = getDomain(req, res);
   let content = getCachedTemplate("public/llms-full.txt");
-  content = content.replaceAll("__DOMAIN__", domain);
+  content = content
+    .replaceAll("__DOMAIN__", domain)
+    .replaceAll("https://morning-routine-sender.onrender.com", domain);
   return res.send(content);
 }
 
