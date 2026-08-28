@@ -21,7 +21,7 @@ jest.mock("../helper/shared-data", () => ({
     tagline: "High-focus engineering rituals",
     ritual: "Select your #1 most critical deliverable.",
     quote: "Deep work is the ability to focus. - Cal Newport",
-    checklist: ["Hydrate (500ml)", "Silence Notifications"]
+    checklist: ["Hydrate (500ml)", "Silence Notifications"],
   }),
 }));
 jest.mock("../email-core/emailTracker", () => ({
@@ -76,9 +76,7 @@ describe("subscriber portal", () => {
     test("returns the same generic message for an unknown email", async () => {
       sharedData.getUserByEmail.mockResolvedValue(null);
 
-      const res = await request(app)
-        .post("/login")
-        .send({ email: "unknown@example.com" });
+      const res = await request(app).post("/login").send({ email: "unknown@example.com" });
 
       expect(res.status).toBe(200);
       expect(res.body.message).toMatch(/login link has been sent/i);
@@ -91,13 +89,9 @@ describe("subscriber portal", () => {
         isActive: true,
       });
 
-      const unknownRes = await request(app)
-        .post("/login")
-        .send({ email: "unknown@example.com" });
+      const unknownRes = await request(app).post("/login").send({ email: "unknown@example.com" });
       sharedData.getUserByEmail.mockResolvedValue(null);
-      const knownRes = await request(app)
-        .post("/login")
-        .send({ email: "unknown@example.com" });
+      const knownRes = await request(app).post("/login").send({ email: "unknown@example.com" });
 
       expect(unknownRes.body.message).toBe(knownRes.body.message);
       expect(unknownRes.status).toBe(knownRes.status);
@@ -109,9 +103,7 @@ describe("subscriber portal", () => {
         isActive: true,
       });
 
-      const res = await request(app)
-        .post("/login")
-        .send({ email: "real@example.com" });
+      const res = await request(app).post("/login").send({ email: "real@example.com" });
 
       expect(res.status).toBe(200);
       expect(mockSendMail).toHaveBeenCalledTimes(1);
@@ -130,9 +122,7 @@ describe("subscriber portal", () => {
     test("still returns the generic message if the DB lookup throws", async () => {
       sharedData.getUserByEmail.mockRejectedValue(new Error("DB unreachable"));
 
-      const res = await request(app)
-        .post("/login")
-        .send({ email: "anything@example.com" });
+      const res = await request(app).post("/login").send({ email: "anything@example.com" });
 
       expect(res.status).toBe(200);
       expect(res.body.message).toMatch(/login link has been sent/i);
@@ -274,9 +264,7 @@ describe("subscriber portal", () => {
 
     test("GET /me/history returns the subscriber's own history only", async () => {
       const agent = await loggedInAgent("history@example.com");
-      emailTracker.getHistory.mockResolvedValue([
-        { sent_at: "2026-01-01", status: "success" },
-      ]);
+      emailTracker.getHistory.mockResolvedValue([{ sent_at: "2026-01-01", status: "success" }]);
 
       const res = await agent.get("/me/history?limit=5");
 
@@ -335,7 +323,9 @@ describe("subscriber portal", () => {
         alreadyCheckedInToday: false,
       });
 
-      const res = await request(app).get(`/checkin?email=${encodeURIComponent(email)}&token=${token}`);
+      const res = await request(app).get(
+        `/checkin?email=${encodeURIComponent(email)}&token=${token}`,
+      );
       expect(res.status).toBe(200);
       expect(res.text).toMatch(/Day 4 Complete/i);
       expect(sharedData.recordCheckin).toHaveBeenCalledWith(email, undefined);
@@ -354,7 +344,9 @@ describe("subscriber portal", () => {
         routineTrack: "deep-work",
       });
 
-      const res = await request(app).get(`/routine?email=${encodeURIComponent(email)}&token=${token}`);
+      const res = await request(app).get(
+        `/routine?email=${encodeURIComponent(email)}&token=${token}`,
+      );
       expect(res.status).toBe(200);
       expect(res.text).toMatch(/Today's Action Ritual/i);
       expect(res.text).toMatch(/5-Day Streak/i);

@@ -11,12 +11,7 @@ const { generateUnsubscribeToken, generateActionToken } = require("../helper/uns
 const { getDailyMorningSpark } = require("../helper/aiSparkGenerator");
 
 // Load MJML template
-const mjmlTemplatePath = path.join(
-  __dirname,
-  "..",
-  "email-templates",
-  "email-template.mjml"
-);
+const mjmlTemplatePath = path.join(__dirname, "..", "email-templates", "email-template.mjml");
 const mjmlSource = fs.readFileSync(mjmlTemplatePath, "utf8");
 const template = handlebars.compile(mjmlSource);
 
@@ -86,7 +81,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       preferencesUrl: `${baseUrl}/user-dashboard`,
       trendingNews,
       unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(
-        userData.email
+        userData.email,
       )}&token=${generateUnsubscribeToken(userData.email)}`,
     };
 
@@ -132,9 +127,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
         },
       });
 
-      logger.info(
-        `Email sent successfully to ${userData.email} - ${messageRef}`
-      );
+      logger.info(`Email sent successfully to ${userData.email} - ${messageRef}`);
       return {
         success: true,
         messageId: info.messageId,
@@ -206,7 +199,7 @@ async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
       checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}&source=weekly_digest`,
       preferencesUrl: `${baseUrl}/user-dashboard`,
       unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(
-        userData.email
+        userData.email,
       )}&token=${generateUnsubscribeToken(userData.email)}`,
     };
 

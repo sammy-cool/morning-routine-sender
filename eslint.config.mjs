@@ -65,7 +65,7 @@ export default [
       ],
       "no-console": "off",
       "no-undef": "error",
-      "eqeqeq": ["error", "always", { null: "ignore" }],
+      eqeqeq: ["error", "always", { null: "ignore" }],
       "no-var": "error",
       "prefer-const": ["warn", { destructuring: "all" }],
       "no-useless-escape": "warn",

@@ -54,7 +54,8 @@ async function checkin(req, res) {
     return renderCheckinPage(res, {
       success: false,
       title: "Link Expired or Invalid",
-      message: "We couldn't verify this check-in link. Please use the button in your latest morning routine email.",
+      message:
+        "We couldn't verify this check-in link. Please use the button in your latest morning routine email.",
       badge: "Security Check",
     });
   }
@@ -71,8 +72,15 @@ async function checkin(req, res) {
     }
 
     const checkinResult = await sharedData.recordCheckin(email, subscriber.timezone);
-    const trackInfo = sharedData.getTrackContent(subscriber.routineTrack || subscriber.templateType);
-    const finalStreak = checkinResult.streakCount !== undefined ? checkinResult.streakCount : (checkinResult.streak !== undefined ? checkinResult.streak : 1);
+    const trackInfo = sharedData.getTrackContent(
+      subscriber.routineTrack || subscriber.templateType,
+    );
+    const finalStreak =
+      checkinResult.streakCount !== undefined
+        ? checkinResult.streakCount
+        : checkinResult.streak !== undefined
+          ? checkinResult.streak
+          : 1;
 
     if (checkinResult.alreadyCheckedInToday) {
       return renderCheckinPage(res, {
@@ -262,27 +270,35 @@ function renderCheckinPage(res, data) {
 <body>
   <div class="card">
     <div class="badge">${escapeHtml(data.badge)}</div>
-    ${data.success ? `
+    ${
+      data.success
+        ? `
       <div>
         <span class="streak-hero">🔥</span>
         <div style="font-family:'JetBrains Mono',monospace; font-size:36px; font-weight:800; color:#fff; margin-bottom:12px;">
           ${data.streakCount || 1} <span style="font-size:18px; color:#fbbf24;">DAY STREAK</span>
         </div>
       </div>
-    ` : `
+    `
+        : `
       <div style="font-size:48px; margin-bottom:12px;">⚠️</div>
-    `}
+    `
+    }
     <h1>${escapeHtml(data.title)}</h1>
     <p class="lead">${escapeHtml(data.message)}</p>
 
-    ${data.quote ? `
+    ${
+      data.quote
+        ? `
       <div class="quote-box">
         “${escapeHtml(data.quote)}”
       </div>
-    ` : ""}
+    `
+        : ""
+    }
 
     <div class="btn-group">
-      <a href="${data.routineUrl || '/routine'}" class="btn btn-primary">
+      <a href="${data.routineUrl || "/routine"}" class="btn btn-primary">
         ⚡ Open Live Routine Companion
       </a>
       <a href="/user-dashboard" class="btn btn-ghost">
@@ -341,7 +357,7 @@ async function liveRoutine(req, res) {
           <label class="checklist-item" id="item-${idx}">
             <input type="checkbox" onchange="toggleItem(${idx})">
             <span>${escapeHtml(item)}</span>
-          </label>`
+          </label>`,
     )
     .join("\n");
 

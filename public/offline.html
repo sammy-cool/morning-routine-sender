@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
@@ -36,7 +36,11 @@
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family:
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
       }
 
       body {
@@ -47,8 +51,7 @@
         align-items: center;
         justify-content: center;
         padding: 20px;
-        background-image: 
-          radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 60%);
+        background-image: radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 60%);
       }
 
       .card {
@@ -124,16 +127,34 @@
   <body>
     <main class="card">
       <div class="icon-wrap" aria-hidden="true">📡</div>
-      <div role="status" aria-live="polite" style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%;">
+      <div
+        role="status"
+        aria-live="polite"
+        style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%"
+      >
         <h1>Connection Offline</h1>
         <p>
           Your internet connection seems to be unavailable. Please check your network connection.
         </p>
         <div class="notice">The page will automatically reconnect once internet is restored.</div>
       </div>
-      <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px;">
-        <button class="btn" style="flex: 1;" onclick="window.location.reload()">Retry Connection</button>
-        <a href="/" class="btn" style="flex: 1; background: rgba(255,255,255,0.08); text-decoration: none; display: flex; align-items: center; justify-content: center;">Home</a>
+      <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px">
+        <button class="btn" style="flex: 1" onclick="window.location.reload()">
+          Retry Connection
+        </button>
+        <a
+          href="/"
+          class="btn"
+          style="
+            flex: 1;
+            background: rgba(255, 255, 255, 0.08);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+          >Home</a
+        >
       </div>
     </main>
 

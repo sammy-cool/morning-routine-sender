@@ -11,9 +11,7 @@
   }
 
   function isIos() {
-    return (
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !globalThis.MSStream
-    );
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !globalThis.MSStream;
   }
 
   function showToast(message, type = "info", options = {}) {
@@ -97,7 +95,11 @@
           iosInstallModal.style.display = "flex";
           setTimeout(() => iosInstallModal.classList.add("visible"), 50);
         } else {
-          showToast("To install on iOS: Tap Share (⎋) and select 'Add to Home Screen' (+).", "info", { duration: 6000 });
+          showToast(
+            "To install on iOS: Tap Share (⎋) and select 'Add to Home Screen' (+).",
+            "info",
+            { duration: 6000 },
+          );
         }
       } else {
         showToast("To install, use the browser menu or address bar install icon.", "info");

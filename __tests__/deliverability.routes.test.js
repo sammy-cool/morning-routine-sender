@@ -62,7 +62,10 @@ describe("Deliverability Routes Integration Tests", () => {
   });
 
   test("POST /admin/deliverability/unsuppress reactivates email", async () => {
-    suppressionService.unsuppressEmail.mockResolvedValue({ success: true, email: "reactivated@example.com" });
+    suppressionService.unsuppressEmail.mockResolvedValue({
+      success: true,
+      email: "reactivated@example.com",
+    });
 
     const res = await request(app)
       .post("/admin/deliverability/unsuppress")

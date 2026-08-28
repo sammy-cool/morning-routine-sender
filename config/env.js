@@ -16,9 +16,7 @@ function validateEnv() {
   const missing = REQUIRED.filter((key) => !process.env[key]);
 
   const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
-  const hasDbParts = Boolean(
-    process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME
-  );
+  const hasDbParts = Boolean(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME);
 
   if (!hasDatabaseUrl && !hasDbParts) {
     missing.push("DATABASE_URL (or DB_HOST, DB_USER, DB_NAME)");

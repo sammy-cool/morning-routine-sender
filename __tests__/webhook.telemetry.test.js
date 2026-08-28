@@ -58,7 +58,13 @@ describe("Webhook Parsers & Signature Verification Suite", () => {
   test("parseSendGridPayload normalizes multiple events", () => {
     const sgEvents = [
       { event: "delivered", email: "user1@example.com", sg_event_id: "sg_1" },
-      { event: "bounce", type: "bounce", email: "user2@example.com", status: "550", reason: "Blocked" },
+      {
+        event: "bounce",
+        type: "bounce",
+        email: "user2@example.com",
+        status: "550",
+        reason: "Blocked",
+      },
       { event: "spamreport", email: "user3@example.com" },
     ];
     const parsed = parseSendGridPayload(sgEvents);

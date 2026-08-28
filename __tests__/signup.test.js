@@ -79,9 +79,7 @@ describe("signup (double opt-in)", () => {
     test("already-subscribed email gets the generic response, no email sent (no enumeration signal)", async () => {
       sharedData.getUserByEmail.mockResolvedValue({ email: "existing@example.com" });
 
-      const res = await request(app)
-        .post("/subscribe")
-        .send({ email: "existing@example.com" });
+      const res = await request(app).post("/subscribe").send({ email: "existing@example.com" });
 
       expect(res.status).toBe(200);
       expect(res.body.message).toMatch(/confirm your subscription/i);
@@ -91,9 +89,7 @@ describe("signup (double opt-in)", () => {
     test("a genuinely new email gets a confirmation email with a real token in Redis", async () => {
       sharedData.getUserByEmail.mockResolvedValue(null);
 
-      const res = await request(app)
-        .post("/subscribe")
-        .send({ email: "brandnew@example.com" });
+      const res = await request(app).post("/subscribe").send({ email: "brandnew@example.com" });
 
       expect(res.status).toBe(200);
       expect(mockSendMail).toHaveBeenCalledTimes(1);

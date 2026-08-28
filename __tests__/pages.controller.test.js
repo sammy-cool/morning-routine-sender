@@ -1,4 +1,11 @@
-const { health, robots, sitemap, llmsTxt, llmsFullTxt, about } = require("../controllers/pages.controller");
+const {
+  health,
+  robots,
+  sitemap,
+  llmsTxt,
+  llmsFullTxt,
+  about,
+} = require("../controllers/pages.controller");
 
 describe("pages.controller endpoints", () => {
   test("health responds with status ok and a timestamp", async () => {

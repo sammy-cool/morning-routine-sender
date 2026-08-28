@@ -14,7 +14,7 @@ function validateSmtpConfig() {
   if (missing.length > 0) {
     throw new Error(
       `Missing required SMTP environment variables: ${missing.join(", ")}\n` +
-        `Please check your .env file and ensure all variables are set.`
+        `Please check your .env file and ensure all variables are set.`,
     );
   }
 }
@@ -58,10 +58,7 @@ function createTransporter() {
     },
 
     // Connection timeouts (prevent hanging connections)
-    connectionTimeout: parseInt(
-      process.env.SMTP_CONNECTION_TIMEOUT || "10000",
-      10
-    ), // 10s
+    connectionTimeout: parseInt(process.env.SMTP_CONNECTION_TIMEOUT || "10000", 10), // 10s
     greetingTimeout: parseInt(process.env.SMTP_GREETING_TIMEOUT || "10000", 10), // 10s
     socketTimeout: parseInt(process.env.SMTP_SOCKET_TIMEOUT || "15000", 10), // 15s
 
@@ -92,9 +89,7 @@ function createTransporter() {
         logger.error("Please verify your SMTP settings in .env file");
         // In production, you might want to exit process here
         if (process.env.NODE_ENV === "production") {
-          logger.info(
-            "⚠️  App will start but emails may fail. Consider using API instead."
-          );
+          logger.info("⚠️  App will start but emails may fail. Consider using API instead.");
         }
       } else {
         logger.info("✅ SMTP transporter is ready to send emails");

@@ -60,10 +60,15 @@ async function getTelemetryStats(req, res) {
     }
 
     const totalDispatched = stats.delivered + stats.soft_bounce + stats.hard_bounce;
-    const deliveryRate = totalDispatched > 0 ? ((stats.delivered / totalDispatched) * 100).toFixed(2) : "100.00";
-    const openRate = stats.delivered > 0 ? ((stats.opened / stats.delivered) * 100).toFixed(2) : "0.00";
+    const deliveryRate =
+      totalDispatched > 0 ? ((stats.delivered / totalDispatched) * 100).toFixed(2) : "100.00";
+    const openRate =
+      stats.delivered > 0 ? ((stats.opened / stats.delivered) * 100).toFixed(2) : "0.00";
     const clickRate = stats.opened > 0 ? ((stats.clicked / stats.opened) * 100).toFixed(2) : "0.00";
-    const bounceRate = totalDispatched > 0 ? (((stats.soft_bounce + stats.hard_bounce) / totalDispatched) * 100).toFixed(2) : "0.00";
+    const bounceRate =
+      totalDispatched > 0
+        ? (((stats.soft_bounce + stats.hard_bounce) / totalDispatched) * 100).toFixed(2)
+        : "0.00";
 
     return res.json({
       success: true,
@@ -94,7 +99,10 @@ async function unsuppressEmail(req, res) {
 
   try {
     const result = await suppressionService.unsuppressEmail(email, "admin");
-    return res.json({ success: true, message: `Email ${email} removed from suppression list and reactivated.` });
+    return res.json({
+      success: true,
+      message: `Email ${email} removed from suppression list and reactivated.`,
+    });
   } catch (error) {
     logger.error("Failed to unsuppress email", { email, error: error.message });
     return res.status(500).json({ success: false, error: error.message });

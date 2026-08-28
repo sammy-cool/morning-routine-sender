@@ -52,8 +52,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const data = await resp.json();
         if (resp.ok) {
           const successMsg =
-            data.message ||
-            "If that email is subscribed, a magic login link has been sent.";
+            data.message || "If that email is subscribed, a magic login link has been sent.";
           if (status) status.textContent = successMsg;
           showToast(successMsg, "success", { duration: 6000 });
           emailInput.value = "";

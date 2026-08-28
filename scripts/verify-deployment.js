@@ -4,7 +4,8 @@ const args = process.argv.slice(2);
 const cliUrl = args.find((arg) => arg.startsWith("http://") || arg.startsWith("https://"));
 const isDeep = args.includes("--deep") || process.env.VERIFY_DEEP === "true";
 
-const rawTarget = cliUrl || process.env.RENDER_URL || process.env.BASE_URL || "http://localhost:2900";
+const rawTarget =
+  cliUrl || process.env.RENDER_URL || process.env.BASE_URL || "http://localhost:2900";
 const TARGET_URL = rawTarget.replace(/\/+$/, "");
 const MAX_ATTEMPTS = parseInt(process.env.MAX_VERIFY_ATTEMPTS, 10) || 15;
 const TIMEOUT_MS = parseInt(process.env.VERIFY_TIMEOUT_MS, 10) || 5000;
@@ -65,7 +66,11 @@ async function verifyDeployment() {
 
       console.log("\n🔍 Verifying SEO / dynamic route (/robots.txt)...");
       const robotsResult = await checkEndpoint(`${TARGET_URL}/robots.txt`);
-      if (robotsResult.ok && typeof robotsResult.data === "string" && robotsResult.data.includes("User-agent")) {
+      if (
+        robotsResult.ok &&
+        typeof robotsResult.data === "string" &&
+        robotsResult.data.includes("User-agent")
+      ) {
         console.log("✅ [SEO Verified] /robots.txt responded with valid content.");
       }
 
@@ -74,7 +79,9 @@ async function verifyDeployment() {
     }
 
     const failureReason = result.error || `HTTP ${result.status} - ${JSON.stringify(result.data)}`;
-    console.log(`⚠️ Attempt ${attempt}/${MAX_ATTEMPTS} failed (${result.elapsed}ms): ${failureReason}`);
+    console.log(
+      `⚠️ Attempt ${attempt}/${MAX_ATTEMPTS} failed (${result.elapsed}ms): ${failureReason}`,
+    );
 
     if (attempt < MAX_ATTEMPTS) {
       console.log(`   Waiting ${delay}ms before next retry...\n`);
@@ -83,7 +90,9 @@ async function verifyDeployment() {
     }
   }
 
-  console.error(`\n❌ [DEPLOYMENT FAILED] Health verification timed out after ${MAX_ATTEMPTS} attempts.`);
+  console.error(
+    `\n❌ [DEPLOYMENT FAILED] Health verification timed out after ${MAX_ATTEMPTS} attempts.`,
+  );
   process.exit(1);
 }
 

@@ -11,8 +11,7 @@ const adminEmail = process.env.ADMIN_EMAIL;
 async function alertAdmin(failedRecipients, type) {
   if (failedRecipients.length === 0) return;
 
-  const message =
-    `Failed to send ${type} emails to:\n` + failedRecipients.join("\n");
+  const message = `Failed to send ${type} emails to:\n` + failedRecipients.join("\n");
 
   try {
     await getTransporter().sendMail({

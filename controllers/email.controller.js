@@ -38,18 +38,14 @@ async function sendTestEmail(req, res) {
 
     const emailService = require("../email-core/emailService");
 
-    const result = await emailService.sendRoutineEmail(
-      getTransporter(),
-      req.app.locals,
-      {
-        email,
-        templateType,
-        routineTrack: templateType,
-        name: "Test User",
-        dayNumber: "01",
-        streakCount: 1,
-      },
-    );
+    const result = await emailService.sendRoutineEmail(getTransporter(), req.app.locals, {
+      email,
+      templateType,
+      routineTrack: templateType,
+      name: "Test User",
+      dayNumber: "01",
+      streakCount: 1,
+    });
 
     try {
       await emailTracker.recordSend(email, templateType, result?.messageId || "test-msg-id");
@@ -167,7 +163,7 @@ async function unsubscribe(req, res) {
 </head>
 <body>
   <div class="card">
-    <div class="icon">${isSuccess ? '✅' : '📬'}</div>
+    <div class="icon">${isSuccess ? "✅" : "📬"}</div>
     <h1>${escapeHtml(title)}</h1>
     <p>${escapeHtml(message)}</p>
     <div class="btn-group">
@@ -370,7 +366,7 @@ async function unsubscribe(req, res) {
         "Already Unsubscribed",
         `${email} isn't currently subscribed or was already removed.`,
         true,
-        email
+        email,
       );
     }
 
@@ -378,7 +374,7 @@ async function unsubscribe(req, res) {
       "You're Unsubscribed",
       `${email} will no longer receive daily routine emails. Changed your mind? You can re-subscribe anytime!`,
       true,
-      email
+      email,
     );
   } catch (error) {
     logger.error("Unsubscribe failed", { error: error.message, email });
@@ -409,11 +405,9 @@ async function requestUnsubscribe(req, res) {
 
     const token = generateUnsubscribeToken(email);
     const baseUrl =
-      res.locals.apiBase ||
-      process.env.RENDER_URL ||
-      `${req.protocol}://${req.get("host")}`;
+      res.locals.apiBase || process.env.RENDER_URL || `${req.protocol}://${req.get("host")}`;
     const unsubscribeLink = `${baseUrl}/unsubscribe?email=${encodeURIComponent(
-      email
+      email,
     )}&token=${token}`;
 
     const transporter = getTransporter();

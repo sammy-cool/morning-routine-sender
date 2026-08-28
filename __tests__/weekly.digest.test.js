@@ -44,7 +44,11 @@ describe("Sunday Weekly Streak Digest System", () => {
         timezone: "Asia/Kolkata",
       };
 
-      const result = await emailService.sendWeeklyDigestEmail(mockTransporter, "http://localhost:2900", user);
+      const result = await emailService.sendWeeklyDigestEmail(
+        mockTransporter,
+        "http://localhost:2900",
+        user,
+      );
       expect(result.success).toBe(true);
       expect(mockSendMail).toHaveBeenCalled();
 

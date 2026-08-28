@@ -31,7 +31,9 @@ async function processWebhookEvents(req, res, events, providerName) {
     }
   }
 
-  logger.info(`📡 Webhook [${providerName}] processed ${processedCount} events (${errorCount} errors)`);
+  logger.info(
+    `📡 Webhook [${providerName}] processed ${processedCount} events (${errorCount} errors)`,
+  );
   return res.status(200).json({
     received: true,
     processed: processedCount,

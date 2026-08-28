@@ -175,7 +175,8 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     function renderHistory(history) {
       if (!history || history.length === 0) {
-        historyList.innerHTML = '<p class="meta" style="margin:0">No dispatch history recorded yet.</p>';
+        historyList.innerHTML =
+          '<p class="meta" style="margin:0">No dispatch history recorded yet.</p>';
         return;
       }
       historyList.innerHTML = history
@@ -197,11 +198,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const [meResp, historyResp] = await Promise.all([
           fetch("/me", {
             cache: "no-store",
-            headers: { "Pragma": "no-cache" },
+            headers: { Pragma: "no-cache" },
           }),
           fetch("/me/history?limit=20", {
             cache: "no-store",
-            headers: { "Pragma": "no-cache" },
+            headers: { Pragma: "no-cache" },
           }).catch(() => ({ ok: false })),
         ]);
 
@@ -255,14 +256,15 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            "Pragma": "no-cache"
+            Pragma: "no-cache",
           },
           body: JSON.stringify(body),
         });
         const data = await resp.json();
 
         if (!resp.ok) {
-          saveStatus.textContent = data.error || (data.errors || []).join(", ") || "Failed to save.";
+          saveStatus.textContent =
+            data.error || (data.errors || []).join(", ") || "Failed to save.";
           return;
         }
         renderSubscription(data);
@@ -295,7 +297,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            "Pragma": "no-cache"
+            Pragma: "no-cache",
           },
           body: JSON.stringify({ isActive: nextActiveState }),
         });
@@ -347,14 +349,19 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     }
 
     async function syncNotificationState() {
-      if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      if (
+        !("Notification" in window) ||
+        !("serviceWorker" in navigator) ||
+        !("PushManager" in window)
+      ) {
         if (notificationCard) notificationCard.style.display = "block";
         if (notifStatusBadge) {
           notifStatusBadge.textContent = "Unsupported";
           notifStatusBadge.className = "status-badge paused";
         }
         if (enableNotifBtn) enableNotifBtn.disabled = true;
-        if (notifNotice) notifNotice.textContent = "Push notifications are not supported in this browser.";
+        if (notifNotice)
+          notifNotice.textContent = "Push notifications are not supported in this browser.";
         return;
       }
 
@@ -373,7 +380,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           enableNotifBtn.disabled = false;
         }
         if (testNotifBtn) testNotifBtn.style.display = "inline-flex";
-        if (notifNotice) notifNotice.textContent = "✅ You will receive daily morning reminders when your routine goes live.";
+        if (notifNotice)
+          notifNotice.textContent =
+            "✅ You will receive daily morning reminders when your routine goes live.";
       } else if (permission === "denied") {
         if (notifStatusBadge) {
           notifStatusBadge.textContent = "Blocked 🚫";
@@ -386,7 +395,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           enableNotifBtn.disabled = true;
         }
         if (testNotifBtn) testNotifBtn.style.display = "none";
-        if (notifNotice) notifNotice.innerHTML = "⚠️ Notifications were blocked. To enable, click the lock icon in your browser URL bar and allow notifications.";
+        if (notifNotice)
+          notifNotice.innerHTML =
+            "⚠️ Notifications were blocked. To enable, click the lock icon in your browser URL bar and allow notifications.";
       } else {
         if (notifStatusBadge) {
           notifStatusBadge.textContent = "Disabled 🔕";
@@ -399,7 +410,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           enableNotifBtn.disabled = false;
         }
         if (testNotifBtn) testNotifBtn.style.display = "none";
-        if (notifNotice) notifNotice.textContent = "Allow notifications to receive wake-up alerts and streak reminders.";
+        if (notifNotice)
+          notifNotice.textContent =
+            "Allow notifications to receive wake-up alerts and streak reminders.";
       }
     }
 

@@ -24,22 +24,22 @@ const TRACK_CONFIGS = {
       "Select your #1 most critical architecture or coding deliverable. Silence all alerts for a 90-minute Deep Work sprint.",
       "Apply the 5-Minute Rule: Dive straight into your hardest engineering problem for 5 minutes without context switching.",
       "Review yesterday's git commits, map today's 3 core technical outcomes, and block out uninterrupted morning momentum.",
-      "Clear your desk, close all messaging apps, open documentation, and enter a dedicated 60-minute Flow State session."
+      "Clear your desk, close all messaging apps, open documentation, and enter a dedicated 60-minute Flow State session.",
     ],
     checklist: [
       "Hydrate (500ml water)",
       "Review Today's #1 Priority",
       "Silence Notifications (90 min)",
-      "Complete Flow State Sprint"
+      "Complete Flow State Sprint",
     ],
     quotes: [
       "Deep work is the ability to focus without distraction on a cognitively demanding task. - Cal Newport",
       "Action is the foundational key to all success. - Pablo Picasso",
       "Simplicity is prerequisite for reliability. - Edsger W. Dijkstra",
-      "Focus is a muscle. The more you practice single-tasking, the stronger it becomes."
-    ]
+      "Focus is a muscle. The more you practice single-tasking, the stronger it becomes.",
+    ],
   },
-  "mindfulness": {
+  mindfulness: {
     name: "Mindfulness & Stoic",
     badge: "🧘 Mindfulness & Stoic",
     tagline: "Mental clarity, breathwork & emotional resilience",
@@ -47,22 +47,22 @@ const TRACK_CONFIGS = {
       "Practice 4-7-8 Box Breathing for 3 minutes before checking your phone or reading emails.",
       "Write down 3 specific moments or people you are genuinely grateful for this morning.",
       "Stoic Reflection: Identify one external factor outside your control today and consciously choose equanimity.",
-      "Take a mindful 5-minute silent morning walk with zero digital inputs or earbuds."
+      "Take a mindful 5-minute silent morning walk with zero digital inputs or earbuds.",
     ],
     checklist: [
       "3-Min Box Breathing",
       "Gratitude Journaling (3 items)",
       "Stoic Equanimity Check",
-      "Mindful Morning Walk"
+      "Mindful Morning Walk",
     ],
     quotes: [
       "You have power over your mind - not outside events. Realize this, and you will find strength. - Marcus Aurelius",
       "We suffer more often in imagination than in reality. - Seneca",
       "Peace comes from within. Do not seek it without. - Buddha",
-      "Almost everything will work again if you unplug it for a few minutes, including you. - Anne Lamott"
-    ]
+      "Almost everything will work again if you unplug it for a few minutes, including you. - Anne Lamott",
+    ],
   },
-  "executive": {
+  executive: {
     name: "High-Performance Executive",
     badge: "💼 High-Performance Executive",
     tagline: "Strategic leverage, energy management & decisive execution",
@@ -70,22 +70,22 @@ const TRACK_CONFIGS = {
       "Define your 3 Non-Negotiable High-Leverage Outcomes for today before touching reactive messages.",
       "Prime your physical energy: drink 500ml water, complete 2 minutes of mobility stretches, and review your top quarterly goal.",
       "Audit your calendar: Eliminate, delegate, or shorten at least one low-value meeting today.",
-      "Perform a 2-minute decision audit: What is the single highest-leverage decision you need to make today?"
+      "Perform a 2-minute decision audit: What is the single highest-leverage decision you need to make today?",
     ],
     checklist: [
       "Drink 500ml Water & Stretch",
       "Define 3 Non-Negotiables",
       "Calendar Optimization Audit",
-      "Top Strategic Goal Review"
+      "Top Strategic Goal Review",
     ],
     quotes: [
       "The key is not to prioritize what's on your schedule, but to schedule your priorities. - Stephen Covey",
       "Focusing on the vital few rather than the trivial many is how extraordinary results are achieved.",
       "Discipline equals freedom. - Jocko Willink",
-      "Your time is limited, don't waste it living someone else's life. - Steve Jobs"
-    ]
+      "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
+    ],
   },
-  "learning": {
+  learning: {
     name: "Lifelong Learner",
     badge: "📚 Lifelong Learner",
     tagline: "Mental models, active recall & rapid knowledge synthesis",
@@ -93,22 +93,22 @@ const TRACK_CONFIGS = {
       "Active Recall: Teach yesterday's new concept out loud in 60 seconds as if explaining to a 10-year-old (Feynman Technique).",
       "Read 10 pages of a non-fiction or engineering book before opening social media.",
       "Identify one mental model (e.g. First Principles, Inversion, Pareto) and apply it to a current challenge.",
-      "Note down one intriguing thesis or question to explore deeply during your break."
+      "Note down one intriguing thesis or question to explore deeply during your break.",
     ],
     checklist: [
       "60-Sec Feynman Recall",
       "Read 10 Book Pages",
       "Apply 1 Mental Model",
-      "Capture 1 Curiosity Note"
+      "Capture 1 Curiosity Note",
     ],
     quotes: [
       "Live as if you were to die tomorrow. Learn as if you were to live forever. - Mahatma Gandhi",
       "An investment in knowledge pays the best interest. - Benjamin Franklin",
       "The beautiful thing about learning is that no one can take it away from you. - B.B. King",
-      "In a world of constant change, the learners will inherit the earth."
-    ]
+      "In a world of constant change, the learners will inherit the earth.",
+    ],
   },
-  "classic": {
+  classic: {
     name: "Morning Energizer",
     badge: "🌅 Morning Energizer",
     tagline: "Daily momentum, positive intention & energized mornings",
@@ -116,27 +116,27 @@ const TRACK_CONFIGS = {
       "Hydrate with 500ml water, get natural sunlight in your eyes for 5 minutes, and set a positive intention.",
       "Do 20 jumping jacks or a brisk stretch to wake up your nervous system and increase blood flow.",
       "Write down your single proudest intention for how you want to show up today.",
-      "Take 3 deep breaths, smile, and commit to making today 1% better than yesterday."
+      "Take 3 deep breaths, smile, and commit to making today 1% better than yesterday.",
     ],
     checklist: [
       "Hydrate & Sunlight (5 min)",
       "Quick Physical Activation",
       "Set Proud Intention",
-      "3 Deep Breaths & Smile"
+      "3 Deep Breaths & Smile",
     ],
     quotes: [
       "The secret of your future is hidden in your daily routine. - Mike Murdock",
       "Every morning we are born again. What we do today is what matters most. - Buddha",
       "Rise and shine with intentionality and joy.",
-      "Today is full of unlimited possibilities. Make it count."
-    ]
-  }
+      "Today is full of unlimited possibilities. Make it count.",
+    ],
+  },
 };
 
 function getTrackContent(trackKey = "deep-work") {
   const normalized = (trackKey || "deep-work").toLowerCase().trim();
   const config = TRACK_CONFIGS[normalized] || TRACK_CONFIGS["deep-work"];
-  
+
   const ritualIndex = Math.floor(Math.random() * config.rituals.length);
   const quoteIndex = Math.floor(Math.random() * config.quotes.length);
 
@@ -153,7 +153,7 @@ function getTrackContent(trackKey = "deep-work") {
 
 async function getNewRandomQuote(
   lastSentQuote = getCacheValue("lastSentQuote") || "",
-  maxRetries = 10
+  maxRetries = 10,
 ) {
   try {
     const quotes = [
@@ -195,10 +195,10 @@ async function recordCheckin(email, timezone = "UTC") {
 
   const tz = subscriber.timezone || timezone || "UTC";
   const now = new Date();
-  
+
   // Format today's and yesterday's dates in subscriber timezone
   const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now); // YYYY-MM-DD
-  
+
   const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const yesterdayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(yesterdayDate);
 
@@ -221,13 +221,11 @@ async function recordCheckin(email, timezone = "UTC") {
   }
 
   try {
-    await db("subscribers")
-      .where("email", email)
-      .update({
-        streak_count: newStreak,
-        last_checkin_date: todayStr,
-        updated_at: db.fn.now(),
-      });
+    await db("subscribers").where("email", email).update({
+      streak_count: newStreak,
+      last_checkin_date: todayStr,
+      updated_at: db.fn.now(),
+    });
 
     logger.info("🔥 Streak checkin recorded", { email, newStreak, todayStr });
     return {
@@ -265,7 +263,7 @@ async function getUsers() {
         "is_active as isActive",
         "streak_count as streakCount",
         "last_checkin_date as lastCheckinDate",
-        "routine_track as routineTrack"
+        "routine_track as routineTrack",
       );
     logger.info(`📋 Found ${rows.length} active subscribers`);
     return rows.map((r) => ({
@@ -278,12 +276,18 @@ async function getUsers() {
     // Fallback if migration hasn't run yet
     const rows = await db("subscribers")
       .where("is_active", true)
-      .select("email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive");
+      .select(
+        "email",
+        "template_type as templateType",
+        "cron_pattern as cronPattern",
+        "timezone",
+        "is_active as isActive",
+      );
     return rows.map((r) => ({
       ...r,
       isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
       streakCount: 0,
-      routineTrack: r.templateType || "deep-work"
+      routineTrack: r.templateType || "deep-work",
     }));
   }
 }
@@ -304,7 +308,7 @@ async function getUserByEmail(email) {
         "is_active as isActive",
         "streak_count as streakCount",
         "last_checkin_date as lastCheckinDate",
-        "routine_track as routineTrack"
+        "routine_track as routineTrack",
       )
       .first();
     if (!row) return null;
@@ -317,14 +321,20 @@ async function getUserByEmail(email) {
   } catch (err) {
     const row = await db("subscribers")
       .where("email", email)
-      .select("email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive")
+      .select(
+        "email",
+        "template_type as templateType",
+        "cron_pattern as cronPattern",
+        "timezone",
+        "is_active as isActive",
+      )
       .first();
     if (!row) return null;
     return {
       ...row,
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: 0,
-      routineTrack: row.templateType || "deep-work"
+      routineTrack: row.templateType || "deep-work",
     };
   }
 }
@@ -443,62 +453,135 @@ async function getAllUsers() {
         "streak_count as streakCount",
         "last_checkin_date as lastCheckinDate",
         "routine_track as routineTrack",
-        "created_at as createdAt"
+        "created_at as createdAt",
       )
       .orderBy("created_at", "desc");
   } catch (err) {
     return await db("subscribers")
-      .select("id", "email", "template_type as templateType", "cron_pattern as cronPattern", "timezone", "is_active as isActive", "created_at as createdAt")
+      .select(
+        "id",
+        "email",
+        "template_type as templateType",
+        "cron_pattern as cronPattern",
+        "timezone",
+        "is_active as isActive",
+        "created_at as createdAt",
+      )
       .orderBy("created_at", "desc");
   }
 }
 
 const WEEKLY_DIGEST_CONFIGS = {
   "deep-work": {
-    reflection: "Review the code, architectures, and features built over the past 7 days. Where did context switching steal the most momentum?",
+    reflection:
+      "Review the code, architectures, and features built over the past 7 days. Where did context switching steal the most momentum?",
     prepItems: [
-      { title: "Identify Monday's Single #1 Deliverable", description: "Define the core technical outcome you will complete during your first 90-minute block." },
-      { title: "Calendar Defense Audit", description: "Protect your prime morning hours (08:00 - 11:00) by declining or rescheduling non-essential check-ins." },
-      { title: "Tidy Workspace & Tools", description: "Commit any lingering branches, clean your desktop, and stage your IDE for instant morning flow." }
+      {
+        title: "Identify Monday's Single #1 Deliverable",
+        description:
+          "Define the core technical outcome you will complete during your first 90-minute block.",
+      },
+      {
+        title: "Calendar Defense Audit",
+        description:
+          "Protect your prime morning hours (08:00 - 11:00) by declining or rescheduling non-essential check-ins.",
+      },
+      {
+        title: "Tidy Workspace & Tools",
+        description:
+          "Commit any lingering branches, clean your desktop, and stage your IDE for instant morning flow.",
+      },
     ],
-    encouragement: "Consistency in deep work compounds exponentially. You're building world-class engineering focus."
+    encouragement:
+      "Consistency in deep work compounds exponentially. You're building world-class engineering focus.",
   },
-  "mindfulness": {
-    reflection: "Look back at the week's highest pressure moments. Where were you able to respond with equanimity instead of reacting with stress?",
+  mindfulness: {
+    reflection:
+      "Look back at the week's highest pressure moments. Where were you able to respond with equanimity instead of reacting with stress?",
     prepItems: [
-      { title: "Set a Gentle Week Tone", description: "Choose one overarching virtue for the week (e.g. Patience, Clarity, Presence)." },
-      { title: "Digital Sunset Sunday", description: "Power down screens 60 minutes before bed tonight to prime deep restorative sleep." },
-      { title: "Plan 3 Mindful Micro-Breaks", description: "Schedule three 5-minute calendar pauses throughout the week for intentional breathwork." }
+      {
+        title: "Set a Gentle Week Tone",
+        description:
+          "Choose one overarching virtue for the week (e.g. Patience, Clarity, Presence).",
+      },
+      {
+        title: "Digital Sunset Sunday",
+        description:
+          "Power down screens 60 minutes before bed tonight to prime deep restorative sleep.",
+      },
+      {
+        title: "Plan 3 Mindful Micro-Breaks",
+        description:
+          "Schedule three 5-minute calendar pauses throughout the week for intentional breathwork.",
+      },
     ],
-    encouragement: "Inner peace is not an accident—it's a daily discipline you are mastering."
+    encouragement: "Inner peace is not an accident—it's a daily discipline you are mastering.",
   },
-  "executive": {
-    reflection: "Audit your high-leverage vs low-leverage hours this week. What meetings or recurring tasks should be eliminated or delegated?",
+  executive: {
+    reflection:
+      "Audit your high-leverage vs low-leverage hours this week. What meetings or recurring tasks should be eliminated or delegated?",
     prepItems: [
-      { title: "Define the 3 Macro Outcomes", description: "Lock down the top 3 needle-moving strategic deliverables for your team/business this week." },
-      { title: "Meeting Pruning", description: "Shorten 30-min meetings to 20-min and 60-min meetings to 45-min across your calendar." },
-      { title: "Energy & Recovery Review", description: "Schedule non-negotiable slots for workout, nutrition, and deep sleep." }
+      {
+        title: "Define the 3 Macro Outcomes",
+        description:
+          "Lock down the top 3 needle-moving strategic deliverables for your team/business this week.",
+      },
+      {
+        title: "Meeting Pruning",
+        description:
+          "Shorten 30-min meetings to 20-min and 60-min meetings to 45-min across your calendar.",
+      },
+      {
+        title: "Energy & Recovery Review",
+        description: "Schedule non-negotiable slots for workout, nutrition, and deep sleep.",
+      },
     ],
-    encouragement: "High performers don't manage time; they manage energy and focus on the vital few."
+    encouragement:
+      "High performers don't manage time; they manage energy and focus on the vital few.",
   },
-  "learning": {
-    reflection: "Which key mental model or concept created the biggest breakthrough in your thinking this week?",
+  learning: {
+    reflection:
+      "Which key mental model or concept created the biggest breakthrough in your thinking this week?",
     prepItems: [
-      { title: "Queue This Week's Reading", description: "Select 1 primary book chapter or technical paper to read in morning 15-minute bursts." },
-      { title: "Active Recall Synthesis", description: "Write a 3-bullet summary of your biggest lesson learned from the past 7 days." },
-      { title: "Weekly Curiosity Question", description: "Formulate one compelling question you aim to answer by Friday." }
+      {
+        title: "Queue This Week's Reading",
+        description:
+          "Select 1 primary book chapter or technical paper to read in morning 15-minute bursts.",
+      },
+      {
+        title: "Active Recall Synthesis",
+        description:
+          "Write a 3-bullet summary of your biggest lesson learned from the past 7 days.",
+      },
+      {
+        title: "Weekly Curiosity Question",
+        description: "Formulate one compelling question you aim to answer by Friday.",
+      },
     ],
-    encouragement: "Continuous daily learning creates an unbeatable competitive advantage."
+    encouragement: "Continuous daily learning creates an unbeatable competitive advantage.",
   },
-  "classic": {
-    reflection: "Celebrate your wins from the past week and acknowledge how far your morning consistency has brought you!",
+  classic: {
+    reflection:
+      "Celebrate your wins from the past week and acknowledge how far your morning consistency has brought you!",
     prepItems: [
-      { title: "Prepare Your Morning Launchpad", description: "Set out workout clothes, fill your water bottle, and write tomorrow's top 3 tasks." },
-      { title: "Set Your Wake-Up Intent", description: "Visualize waking up refreshed, energized, and ready to conquer Monday morning." },
-      { title: "Positive Sunday Affirmation", description: "Commit to bringing energy, positivity, and enthusiasm into the new week." }
+      {
+        title: "Prepare Your Morning Launchpad",
+        description:
+          "Set out workout clothes, fill your water bottle, and write tomorrow's top 3 tasks.",
+      },
+      {
+        title: "Set Your Wake-Up Intent",
+        description:
+          "Visualize waking up refreshed, energized, and ready to conquer Monday morning.",
+      },
+      {
+        title: "Positive Sunday Affirmation",
+        description: "Commit to bringing energy, positivity, and enthusiasm into the new week.",
+      },
     ],
-    encouragement: "Every great week starts with an intentional Sunday evening and energized morning!"
-  }
+    encouragement:
+      "Every great week starts with an intentional Sunday evening and energized morning!",
+  },
 };
 
 function getWeeklyDigestContent(trackKey = "deep-work") {

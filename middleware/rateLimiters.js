@@ -9,6 +9,10 @@ const sendEmailLimiter = rateLimit({
   message: "Too many requests from this IP, please try again after 15 minutes.",
 });
 
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: { error: 'Too many attempts, try again later' } });
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many attempts, try again later" },
+});
 
 module.exports = { sendEmailLimiter, authLimiter };

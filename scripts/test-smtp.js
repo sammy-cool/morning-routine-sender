@@ -52,9 +52,7 @@ async function testSMTP() {
 
     console.error("\n💡 Troubleshooting tips:");
     console.error("   1. Check TRANSPORTER_HOST is correct");
-    console.error(
-      "   2. Verify TRANSPORTER_PORT (587 for STARTTLS, 465 for SSL)"
-    );
+    console.error("   2. Verify TRANSPORTER_PORT (587 for STARTTLS, 465 for SSL)");
     console.error("   3. Ensure FROM_USER and PASSWORD are correct");
     console.error("   4. For Gmail: Use App Password, not regular password");
     console.error("   5. Check firewall/network allows outbound SMTP");

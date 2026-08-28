@@ -24,3 +24,7 @@ public/assets/
 dist/
 build/
 .cache/
+
+# Email MJML templates
+*.mjml
+email-templates/

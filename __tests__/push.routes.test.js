@@ -129,7 +129,9 @@ describe("Web Push Routes (/api/push/*)", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(pushService.unsubscribeEndpoint).toHaveBeenCalledWith("https://fcm.googleapis.com/fcm/send/xyz");
+      expect(pushService.unsubscribeEndpoint).toHaveBeenCalledWith(
+        "https://fcm.googleapis.com/fcm/send/xyz",
+      );
     });
   });
 });

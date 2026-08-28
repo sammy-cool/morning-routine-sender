@@ -91,7 +91,6 @@ const { validateEnv } = require("./config/env");
 
 validateEnv();
 
-
 // const allowedOrigins = [
 //   "https://morning-routine-sender.onrender.com/",
 //   "https://priyanshu-eureka.netlify.app/",
@@ -145,7 +144,7 @@ app.use(
 app.use(express.json());
 app.use(setApiBase);
 app.use(logger.requestLogger);
-app.use(cookieParser(process.env.ADMIN_KEY || 'dev-secret'));
+app.use(cookieParser(process.env.ADMIN_KEY || "dev-secret"));
 
 // Protected admin-dashboard.html
 const pagesController = require("./controllers/pages.controller");
@@ -166,7 +165,10 @@ app.use(require("./routes/push.routes"));
 app.use(require("./routes/email.routes"));
 
 // High performance static asset serving with caching and ETags
-app.use("/assets", express.static(path.join(__dirname, "public", "assets"), { maxAge: "7d", etag: true }));
+app.use(
+  "/assets",
+  express.static(path.join(__dirname, "public", "assets"), { maxAge: "7d", etag: true }),
+);
 app.use(express.static(path.join(__dirname, "public"), { maxAge: "1d", etag: true }));
 
 // 404 handler

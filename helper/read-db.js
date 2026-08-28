@@ -13,9 +13,7 @@ async function readDb() {
     // knex.raw() with the pg client returns the same pg Result shape
     // (.rows / .rowCount) that the previous pg.Client-based version did,
     // so the response shape to callers is unchanged.
-    const result = await db.raw(
-      "SELECT * FROM email_tracker ORDER BY sent_at DESC LIMIT 1000;",
-    );
+    const result = await db.raw("SELECT * FROM email_tracker ORDER BY sent_at DESC LIMIT 1000;");
     return { rowCount: result.rowCount, rows: result.rows };
   } catch (err) {
     logger.error("❌ Error inspecting database:", err.message);

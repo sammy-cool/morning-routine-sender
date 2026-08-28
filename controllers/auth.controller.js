@@ -40,9 +40,7 @@ async function generateAdminKey(req, res) {
     logger.error("❌ Redis unavailable while generating admin key", {
       error: error.message,
     });
-    return res
-      .status(503)
-      .json({ message: "Service temporarily unavailable, try again shortly." });
+    return res.status(503).json({ message: "Service temporarily unavailable, try again shortly." });
   }
 
   logger.info(`🔑 New one-time key generated 🔹: GG!`);
@@ -122,9 +120,7 @@ async function secretJobsScheduler(req, res) {
     logger.error("❌ Redis unavailable while verifying key", {
       error: error.message,
     });
-    return res
-      .status(503)
-      .json({ message: "Service temporarily unavailable, try again shortly." });
+    return res.status(503).json({ message: "Service temporarily unavailable, try again shortly." });
   }
 
   if (!keyExists) {
@@ -142,15 +138,11 @@ async function secretJobsScheduler(req, res) {
       emailScheduler.stopAllJobs();
       return res.json({ message: "🛑 All cron jobs stopped." });
     } else {
-      return res
-        .status(400)
-        .json({ message: "Invalid or missing ?action=start|stop parameter." });
+      return res.status(400).json({ message: "Invalid or missing ?action=start|stop parameter." });
     }
   } catch (error) {
     logger.error("Error managing cron jobs:", error);
-    return res
-      .status(500)
-      .json({ message: "Internal server error.", error: error.message });
+    return res.status(500).json({ message: "Internal server error.", error: error.message });
   }
 }
 

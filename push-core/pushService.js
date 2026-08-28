@@ -11,7 +11,9 @@ function initVapid() {
   const subject = process.env.VAPID_SUBJECT || "mailto:admin@morningroutinesender.com";
 
   if (!publicKey || !privateKey) {
-    logger.info("ℹ️  VAPID keys not configured. Web push notifications disabled or running in local mode.");
+    logger.info(
+      "ℹ️  VAPID keys not configured. Web push notifications disabled or running in local mode.",
+    );
     return false;
   }
 
@@ -64,21 +66,18 @@ async function registerSubscription(subscriberEmail, subscription, userAgent = "
   };
 
   // Upsert on endpoint conflict
-  await db("push_subscriptions")
-    .insert(row)
-    .onConflict("endpoint")
-    .merge({
-      subscriber_id: row.subscriber_id,
-      subscriber_email: row.subscriber_email,
-      p256dh: row.p256dh,
-      auth: row.auth,
-      expiration_time: row.expiration_time,
-      user_agent: row.user_agent,
-      is_active: true,
-      failed_attempts: 0,
-      last_error_status: null,
-      updated_at: db.fn.now(),
-    });
+  await db("push_subscriptions").insert(row).onConflict("endpoint").merge({
+    subscriber_id: row.subscriber_id,
+    subscriber_email: row.subscriber_email,
+    p256dh: row.p256dh,
+    auth: row.auth,
+    expiration_time: row.expiration_time,
+    user_agent: row.user_agent,
+    is_active: true,
+    failed_attempts: 0,
+    last_error_status: null,
+    updated_at: db.fn.now(),
+  });
 
   logger.info("📱 Push subscription registered/updated", {
     email: subscriberEmail,
@@ -155,13 +154,11 @@ async function sendToSubscriptionRecord(subRecord, payloadObj) {
   try {
     await webpush.sendNotification(pushSubscription, payloadString, options);
 
-    await db("push_subscriptions")
-      .where("id", subRecord.id)
-      .update({
-        last_pushed_at: db.fn.now(),
-        failed_attempts: 0,
-        last_error_status: null,
-      });
+    await db("push_subscriptions").where("id", subRecord.id).update({
+      last_pushed_at: db.fn.now(),
+      failed_attempts: 0,
+      last_error_status: null,
+    });
 
     return { status: "sent", id: subRecord.id };
   } catch (error) {
@@ -179,13 +176,11 @@ async function sendToSubscriptionRecord(subRecord, payloadObj) {
         subscriptionId: subRecord.id,
         statusCode,
       });
-      await db("push_subscriptions")
-        .where("id", subRecord.id)
-        .update({
-          is_active: false,
-          last_error_status: statusCode,
-          updated_at: db.fn.now(),
-        });
+      await db("push_subscriptions").where("id", subRecord.id).update({
+        is_active: false,
+        last_error_status: statusCode,
+        updated_at: db.fn.now(),
+      });
       return { status: "pruned", statusCode, id: subRecord.id };
     }
 

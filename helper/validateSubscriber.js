@@ -30,7 +30,11 @@ function validateSubscriberInput(
   if (templateType !== undefined && !VALID_TEMPLATE_TYPES.includes(templateType)) {
     errors.push(`templateType must be one of: ${VALID_TEMPLATE_TYPES.join(", ")}`);
   }
-  if (routineTrack !== undefined && !VALID_TRACKS.includes(routineTrack) && !VALID_TEMPLATE_TYPES.includes(routineTrack)) {
+  if (
+    routineTrack !== undefined &&
+    !VALID_TRACKS.includes(routineTrack) &&
+    !VALID_TEMPLATE_TYPES.includes(routineTrack)
+  ) {
     errors.push(`routineTrack must be one of: ${VALID_TRACKS.join(", ")}`);
   }
   if (cronPattern !== undefined && !cron.validate(cronPattern)) {

@@ -90,7 +90,8 @@ async function updateSubscriber(req, res) {
     let updated = false;
 
     if (hasPreferenceUpdate) {
-      updated = (await sharedData.updateUser(email, { templateType, cronPattern, timezone })) || updated;
+      updated =
+        (await sharedData.updateUser(email, { templateType, cronPattern, timezone })) || updated;
     }
     if (isActive !== undefined) {
       updated = (await sharedData.setUserActive(email, Boolean(isActive))) || updated;
