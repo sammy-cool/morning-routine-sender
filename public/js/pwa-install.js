@@ -16,7 +16,7 @@
     );
   }
 
-  function showToast(message, type = "info") {
+  function showToast(message, type = "info", options = {}) {
     const toastLib =
       (typeof window !== "undefined" && window.customizableToast) ||
       (typeof customizableToast !== "undefined" ? customizableToast : null);
@@ -26,12 +26,18 @@
         message,
         type: type === "warn" ? "warning" : type,
         position: "top-center",
-        duration: 4000,
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        borderRadius: "14px",
+        showProgressBar: true,
+        progressPosition: "bottom",
+        pauseOnHover: true,
+        duration: 4500,
+        ...options,
       });
     }
 
     if (globalThis.ToastManager && typeof globalThis.ToastManager.show === "function") {
-      globalThis.ToastManager.show({ message, type });
+      globalThis.ToastManager.show({ message, type, ...options });
     }
   }
 
