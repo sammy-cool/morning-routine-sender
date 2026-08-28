@@ -14,13 +14,17 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     if (!modalWrap) return;
 
     function openModal() {
+      modalWrap.style.display = "flex";
       modalWrap.classList.add("open");
       modalWrap.setAttribute("aria-hidden", "false");
+      if (openBtn) openBtn.setAttribute("aria-expanded", "true");
       if (adminKeyInput) adminKeyInput.focus();
     }
     function closeModal() {
       modalWrap.classList.remove("open");
       modalWrap.setAttribute("aria-hidden", "true");
+      modalWrap.style.display = "none";
+      if (openBtn) openBtn.setAttribute("aria-expanded", "false");
       if (adminKeyInput) adminKeyInput.value = "";
     }
 

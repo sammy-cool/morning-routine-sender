@@ -10,6 +10,10 @@
     />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#090d16" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Routine Admin" />
     <title>Morning Routine • Admin Command Center</title>
 
     <link rel="icon" type="image/png" sizes="64x64" href="/assets/mrn-brand-ico.png" />
@@ -24,24 +28,14 @@
       rel="stylesheet"
     />
     <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      crossorigin="anonymous"
-    />
 
     <!-- Toast Notification & Chart.js -->
     <script
-      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
+      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.5/dist/index.umd.js"
       defer
       crossorigin="anonymous"
     ></script>
     <script src="/vendor/js/chart.umd.min.js" defer></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
-      defer
-      crossorigin="anonymous"
-    ></script>
 
     <style>
       :root {
@@ -932,21 +926,29 @@
 
         <nav class="nav-group">
           <div class="nav-label">Navigation</div>
-          <a class="nav-link active" onclick="scrollToSection('section-overview')">
+          <a href="#section-overview" class="nav-link active" onclick="scrollToSection('section-overview'); return false;">
             <i class="fas fa-chart-pie"></i>
             <span>Command Center</span>
           </a>
-          <a class="nav-link" onclick="scrollToSection('section-subscribers')">
+          <a href="#section-subscribers" class="nav-link" onclick="scrollToSection('section-subscribers'); return false;">
             <i class="fas fa-users"></i>
             <span>Subscribers</span>
           </a>
-          <a class="nav-link" onclick="scrollToSection('section-testing')">
+          <a href="#section-testing" class="nav-link" onclick="scrollToSection('section-testing'); return false;">
             <i class="fas fa-paper-plane"></i>
             <span>Email Studio</span>
           </a>
-          <a class="nav-link" onclick="scrollToSection('section-diagnostics')">
+          <a href="#section-diagnostics" class="nav-link" onclick="scrollToSection('section-diagnostics'); return false;">
             <i class="fas fa-database"></i>
             <span>System & DB</span>
+          </a>
+          <a href="/" target="_blank" rel="noopener" class="nav-link" title="Open Public Landing Page">
+            <i class="fas fa-external-link-alt"></i>
+            <span>Public Site</span>
+          </a>
+          <a href="/about" target="_blank" rel="noopener" class="nav-link" title="Open About Page">
+            <i class="fas fa-compass"></i>
+            <span>About Page</span>
           </a>
         </nav>
       </div>

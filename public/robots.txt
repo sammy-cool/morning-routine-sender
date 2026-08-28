@@ -1,15 +1,53 @@
+# robots.txt for Morning Routine Sender
 User-agent: *
-Disallow: /js/
-Disallow: /css/
-Disallow: /images/
-Disallow: /icons/
-Disallow: /fonts/
-Disallow: /node_modules/
+# Allow public rendering assets
+Allow: /css/
+Allow: /js/
+Allow: /assets/
+Allow: /vendor/
+Allow: /favicon.ico
+Allow: /manifest.json
+
+# Disallow private user, session, token & admin endpoints
+Disallow: /admin
+Disallow: /admin-dashboard
+Disallow: /user-dashboard
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /auth/
+Disallow: /checkin
+Disallow: /verify-login
+Disallow: /confirm-subscription
+Disallow: /unsubscribe
 Disallow: /storage/
 Disallow: /logs/
 
+# AI Crawlers & LLM Agents
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /admin
 Disallow: /user-dashboard
-Disallow: /generated-main.html
 
+User-agent: ClaudeBot
 Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /user-dashboard
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /user-dashboard
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+# Sitemaps & LLM Discovery
+Sitemap: __DOMAIN__/sitemap.xml

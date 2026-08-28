@@ -1,17 +1,23 @@
 {
+  "$schema": "https://json.schemastore.org/web-manifest.json",
+  "id": "/?source=pwa",
   "name": "Morning Routine Sender",
   "short_name": "MRSender",
-  "description": "Professional email automation dashboard",
+  "description": "Daily automated morning routine emails, habit streak tracking, focus sprint timer, and curated mindset tracks.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#4f46e5",
-  "theme_color": "#4f46e5",
   "orientation": "portrait-primary",
+  "background_color": "#07090e",
+  "theme_color": "#07090e",
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64",
-      "type": "image/png",
+      "src": "/favicon.ico",
+      "sizes": "48x48 32x32 16x16",
+      "type": "image/x-icon",
       "purpose": "any"
     },
     {
@@ -32,26 +38,38 @@
       "src": "/assets/screenshot-desktop.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "wide",
+      "label": "Morning Routine Sender Desktop Dashboard"
     },
     {
       "src": "/assets/screenshot-mobile.png",
       "sizes": "750x1334",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "narrow",
+      "label": "Morning Routine Sender Mobile Interface"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "lifestyle", "utilities"],
   "shortcuts": [
     {
-      "name": "Send Email",
-      "url": "/?action=send",
-      "description": "Quick send test email"
+      "name": "Subscribe to Routine",
+      "url": "/#signupView",
+      "description": "Join daily morning routine email dispatch"
     },
     {
-      "name": "View Stats",
-      "url": "/?action=stats",
-      "description": "View dashboard statistics"
+      "name": "Subscriber Portal",
+      "url": "/user-dashboard",
+      "description": "Manage routine schedule and tracks"
+    },
+    {
+      "name": "Live Routine Companion",
+      "url": "/routine",
+      "description": "Open focus timer and ambient soundscapes"
+    },
+    {
+      "name": "About Morning Routine",
+      "url": "/about",
+      "description": "Learn about the mission, architecture, and creator"
     }
   ]
 }

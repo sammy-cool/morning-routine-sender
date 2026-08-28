@@ -110,16 +110,10 @@ validateEnv();
 
 // app.use(cors(corsOptions));
 
-app.disable("etag");
-app.use((req, res, next) => {
-  res.set(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate",
-  );
-  res.set("Pragma", "no-cache");
-  res.set("Expires", "0");
-  next();
-});
+// ENABLE gzip / brotli compression early in middleware pipeline
+app.use(compression());
+app.enable("etag");
+
 const DEFAULT_ALLOWED_ORIGINS = [
   "https://morning-routine-sender.onrender.com",
   "https://priyanshu-eureka.netlify.app",
@@ -151,16 +145,15 @@ app.use(express.json());
 app.use(setApiBase);
 app.use(logger.requestLogger);
 app.use(cookieParser(process.env.ADMIN_KEY || 'dev-secret'));
-// ENABLE gzip / brotli
-app.use(compression());
 
 // Protected admin-dashboard.html
 const pagesController = require("./controllers/pages.controller");
 
 app.get("/admin-dashboard", pagesController.adminDashboard);
 
-app.use("/assets", express.static("assets"));
-app.use(express.static("public"));
+// High performance static asset serving with caching and ETags
+app.use("/assets", express.static(path.join(__dirname, "public", "assets"), { maxAge: "7d", etag: true }));
+app.use(express.static(path.join(__dirname, "public"), { maxAge: "1d", etag: true }));
 
 const PORT = process.env.PORT || 2900;
 app.use(require("./routes/auth.routes"));

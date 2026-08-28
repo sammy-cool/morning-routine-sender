@@ -1,0 +1,18 @@
+# Morning Routine Sender — Comprehensive Technical & Architectural Documentation
+
+## System Purpose & Philosophy
+Morning Routine Sender provides an intentional, low-friction morning kickoff for knowledge workers, developers, and executives. Rather than noisy marketing newsletters, it dispatches a concise, actionable morning routine email at each user's exact wake-up time.
+
+## Multi-Track Personas
+Subscribers can select or switch between 5 distinct tracks:
+1. `deep-work`: Tailored for software engineers, creators, and writers. Includes deep-work sprints, phone-inversion prompts, and maker wisdom.
+2. `mindfulness`: Stoic philosophy (Marcus Aurelius, Epictetus, Seneca), box-breathing, and gratitude reflection.
+3. `executive`: Prioritization frameworks (Eisenhower Matrix, Rule of 3), delegation checklists, and energy management.
+4. `learning`: Feynman technique reminders, mental models (First Principles, Inversion), and rapid reading highlights.
+5. `classic`: Affirmations, physical priming, hydration targets, and energizing mantras.
+
+## Technical Stack & Architecture
+- **Server**: Node.js & Express with security middleware (Helmet CSP, HSTS, Rate Limiting, Cookie-based Authentication).
+- **Scheduling**: Node-Cron + Knex with PostgreSQL and Redis session/cache layer.
+- **Delivery**: Nodemailer SMTP with TLS verification, dynamic MJML templates, and RFC 8058 1-click unsubscribe.
+- **Client Frontend**: Accessible semantic HTML5, Vanilla JavaScript, CSS custom properties, Web Audio API procedural synthesis, PWA Service Worker offline caching.

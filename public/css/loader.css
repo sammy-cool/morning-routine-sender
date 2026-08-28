@@ -1,7 +1,7 @@
 .off-load-page {
   height: 100vh;
-  font-family: "Inter", system-ui, sans-serif;
-  background: #f9fafb;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  background: #07090e;
   overflow: hidden;
   position: relative;
   z-index: 98;
@@ -36,9 +36,9 @@
   height: 160px;
   border-radius: 50%;
   border: 6px solid transparent;
-  border-top-color: #2563eb;
+  border-top-color: #6366f1;
   animation: rotate 1.4s linear infinite;
-  filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.4));
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
 }
 @keyframes rotate {
   from {
@@ -53,20 +53,31 @@
   width: 80px;
   height: 80px;
   border-radius: 20%;
-  background: #fff;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 2;
-  overflow: hidden;
-  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .logo img {
-  width: 60%;
-  height: 60%;
-  object-fit: contain;
+  width: 50px;
+  height: 50px;
+}
+
+.text {
+  margin-top: 15px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.5px;
+}
+
+.dots {
+  display: inline-block;
+  width: 20px;
+  text-align: left;
 }
 
 /* === Particle explosion === */
@@ -125,8 +136,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f9fafb;
-  color: #111827;
+  background: #07090e;
+  color: #f8fafc;
 }
 
 .skeleton-container.show {
@@ -143,7 +154,7 @@
 .skeleton {
   height: 2rem;
   border-radius: 10px;
-  background: linear-gradient(90deg, #ececec 25%, #f5f5f5 50%, #ececec 75%);
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
 }

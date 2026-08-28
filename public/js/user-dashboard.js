@@ -53,22 +53,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       if (!track) return;
       prefTrack.value = track;
       document.querySelectorAll(".track-card").forEach((c) => {
-        if (c.getAttribute("data-track") === track) {
-          c.classList.add("selected");
-        } else {
-          c.classList.remove("selected");
-        }
+        const isMatch = c.getAttribute("data-track") === track;
+        c.classList.toggle("selected", isMatch);
+        c.setAttribute("aria-checked", isMatch ? "true" : "false");
       });
     }
-
-    // Direct card click handlers + grid delegation
-    document.querySelectorAll(".track-card").forEach((card) => {
-      card.addEventListener("click", function (e) {
-        e.preventDefault();
-        const track = this.getAttribute("data-track");
-        selectTrack(track);
-      });
-    });
 
     if (trackGrid) {
       trackGrid.addEventListener("click", function (e) {
@@ -76,6 +65,16 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         if (card) {
           const track = card.getAttribute("data-track");
           selectTrack(track);
+        }
+      });
+      trackGrid.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          const card = e.target.closest(".track-card");
+          if (card) {
+            e.preventDefault();
+            const track = card.getAttribute("data-track");
+            selectTrack(track);
+          }
         }
       });
     }
@@ -189,10 +188,17 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     async function loadDashboard() {
       try {
-        const meResp = await fetch("/me", {
-          cache: "no-store",
-          headers: { "Pragma": "no-cache" }
-        });
+        const [meResp, historyResp] = await Promise.all([
+          fetch("/me", {
+            cache: "no-store",
+            headers: { "Pragma": "no-cache" },
+          }),
+          fetch("/me/history?limit=20", {
+            cache: "no-store",
+            headers: { "Pragma": "no-cache" },
+          }).catch(() => ({ ok: false })),
+        ]);
+
         if (meResp.status === 401) {
           globalThis.location.href = "/";
           return;
@@ -205,12 +211,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const sub = await meResp.json();
         renderSubscription(sub);
 
-        const historyResp = await fetch("/me/history?limit=20", {
-          cache: "no-store",
-          headers: { "Pragma": "no-cache" }
-        });
-        const historyData = await historyResp.json().catch(() => ({ history: [] }));
-        renderHistory(historyData.history || []);
+        if (historyResp && historyResp.ok) {
+          const historyData = await historyResp.json().catch(() => ({ history: [] }));
+          renderHistory(historyData.history || []);
+        } else {
+          renderHistory([]);
+        }
 
         loadingCard.style.display = "none";
         subscriptionCard.style.display = "block";
