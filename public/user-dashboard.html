@@ -580,6 +580,27 @@
         <div id="notifNotice" class="small" style="margin-top: 8px; color: var(--text-muted);"></div>
       </div>
 
+      <!-- Streak Milestone & Journal Export Card -->
+      <div class="card" id="streakExportCard" style="display: none">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2><i class="fas fa-award" style="color: var(--accent-rose);" aria-hidden="true"></i> Streak Milestone &amp; Data Export</h2>
+            <p class="meta" style="font-size: 13px; margin-top: 4px; color: var(--text-muted);">
+              Share your habit momentum or download your complete morning routine history.
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
+          <a href="/api/streak-card.svg" target="_blank" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fas fa-image" aria-hidden="true"></i> View Sharable Streak Card
+          </a>
+          <a href="/me/export-journal" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fas fa-file-download" aria-hidden="true"></i> Export Markdown Journal (.md)
+          </a>
+        </div>
+      </div>
+
       <!-- Dispatch History Card -->
       <div class="card" id="historyCard" style="display: none">
         <h2><i class="fas fa-history" style="color: var(--accent-cyan);" aria-hidden="true"></i> Recent Dispatch History</h2>

@@ -10,10 +10,6 @@ const signupController = require("../controllers/signup.controller");
 const meController = require("../controllers/me.controller");
 const routineController = require("../controllers/routine.controller");
 
-// Honeypot runs BEFORE the rate limiter and the controller -- a caught
-// bot never even touches the real rate-limit counter or triggers a real
-// email-send attempt. Response shapes match exactly what each real
-// controller already returns on success, so detection is invisible.
 router.post(
   "/login",
   checkHoneypot("website", {
@@ -39,8 +35,14 @@ router.get("/confirm-subscription", authLimiter, signupController.confirmSignup)
 router.get("/checkin", routineController.checkin);
 router.get("/routine", routineController.liveRoutine);
 
+// Dynamic Social Streak Badge SVG
+router.get("/api/streak-card", meController.getStreakCard);
+router.get("/api/streak-card.svg", meController.getStreakCard);
+
+// Authenticated Subscriber Portal Endpoints
 router.get("/me", requireSubscriberSession, meController.getMe);
 router.get("/me/history", requireSubscriberSession, meController.getMyHistory);
+router.get("/me/export-journal", requireSubscriberSession, meController.exportJournal);
 router.patch("/me", requireSubscriberSession, meController.updateMe);
 
 module.exports = router;

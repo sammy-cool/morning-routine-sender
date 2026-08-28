@@ -7,6 +7,27 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     if (!form) return;
 
+    function showToast(message, type = "info", options = {}) {
+      const toastLib =
+        (typeof window !== "undefined" && window.customizableToast) ||
+        (typeof customizableToast !== "undefined" ? customizableToast : null);
+
+      if (toastLib && typeof toastLib.createToast === "function") {
+        return toastLib.createToast({
+          message,
+          type: type === "warn" ? "warning" : type,
+          position: "top-center",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          borderRadius: "14px",
+          showProgressBar: true,
+          progressPosition: "bottom",
+          pauseOnHover: true,
+          duration: 4500,
+          ...options,
+        });
+      }
+    }
+
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
 
@@ -31,17 +52,20 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const data = await resp.json();
 
         if (!resp.ok) {
-          statusEl.textContent =
-            (data.errors || []).join(", ") || "Something went wrong.";
+          const errMsg = (data.errors || []).join(", ") || data.message || "Something went wrong.";
+          statusEl.textContent = errMsg;
+          showToast(errMsg, "error");
           return;
         }
 
-        statusEl.textContent =
-          data.message || "Check your inbox to confirm your subscription.";
+        const msg = data.message || "Check your inbox to confirm your subscription.";
+        statusEl.textContent = msg;
+        showToast(msg, "success", { duration: 6000 });
         emailInput.value = "";
       } catch (err) {
         console.error(err);
         statusEl.textContent = "Network error. Please try again.";
+        showToast("Network error. Please try again.", "error");
       } finally {
         submitBtn.disabled = false;
       }

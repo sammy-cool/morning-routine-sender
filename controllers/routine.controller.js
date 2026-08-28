@@ -824,6 +824,30 @@ async function liveRoutine(req, res) {
               <div class="preset-desc">Harmonic Drone & Sub-Bass</div>
             </div>
           </button>
+
+          <button type="button" class="preset-btn" id="preset-theta" onclick="selectPreset('theta')">
+            <span class="preset-icon">🧘</span>
+            <div>
+              <div class="preset-name">Theta Waves</div>
+              <div class="preset-desc">8Hz Binaural + 50Hz Sub Drone</div>
+            </div>
+          </button>
+
+          <button type="button" class="preset-btn" id="preset-cafe" onclick="selectPreset('cafe')">
+            <span class="preset-icon">☕</span>
+            <div>
+              <div class="preset-name">Cafe Ambience</div>
+              <div class="preset-desc">650Hz Pink + Ceramic Pings</div>
+            </div>
+          </button>
+
+          <button type="button" class="preset-btn" id="preset-forest" onclick="selectPreset('forest')">
+            <span class="preset-icon">🌲</span>
+            <div>
+              <div class="preset-name">Forest Birds</div>
+              <div class="preset-desc">Wind Brown Noise + FM Chirps</div>
+            </div>
+          </button>
         </div>
 
         <div class="sound-controls">
@@ -1131,6 +1155,293 @@ async function liveRoutine(req, res) {
       return [osc1, osc2, oscSub, oscHarm, oscHigh, lfo, flowMaster];
     }
 
+    // --- Preset 5: Theta Waves (8Hz Binaural + 50Hz Sub Drone) ---
+    function buildTheta(ctx, outNode) {
+      const thetaMaster = ctx.createGain();
+      thetaMaster.gain.setValueAtTime(0.001, ctx.currentTime);
+      thetaMaster.gain.exponentialRampToValueAtTime(0.65, ctx.currentTime + 0.4);
+      thetaMaster.connect(outNode);
+
+      const leftOsc = ctx.createOscillator();
+      leftOsc.type = 'sine';
+      leftOsc.frequency.setValueAtTime(200, ctx.currentTime);
+
+      const rightOsc = ctx.createOscillator();
+      rightOsc.type = 'sine';
+      rightOsc.frequency.setValueAtTime(208, ctx.currentTime);
+
+      const subOsc = ctx.createOscillator();
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(50, ctx.currentTime);
+
+      const subGain = ctx.createGain();
+      subGain.gain.setValueAtTime(0.28, ctx.currentTime);
+      subOsc.connect(subGain);
+      subGain.connect(thetaMaster);
+
+      const nodes = [leftOsc, rightOsc, subOsc, subGain, thetaMaster];
+
+      if (ctx.createStereoPanner) {
+        const leftPan = ctx.createStereoPanner();
+        leftPan.pan.setValueAtTime(-1, ctx.currentTime);
+        const rightPan = ctx.createStereoPanner();
+        rightPan.pan.setValueAtTime(1, ctx.currentTime);
+
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(0.35, ctx.currentTime);
+
+        leftOsc.connect(leftPan);
+        leftPan.connect(oscGain);
+        rightOsc.connect(rightPan);
+        rightPan.connect(oscGain);
+        oscGain.connect(thetaMaster);
+        nodes.push(leftPan, rightPan, oscGain);
+      } else {
+        const merger = ctx.createChannelMerger(2);
+        leftOsc.connect(merger, 0, 0);
+        rightOsc.connect(merger, 0, 1);
+        merger.connect(thetaMaster);
+        nodes.push(merger);
+      }
+
+      const pinkSrc = ctx.createBufferSource();
+      pinkSrc.buffer = createPinkNoiseBuffer(ctx, 5);
+      pinkSrc.loop = true;
+      const pinkFilter = ctx.createBiquadFilter();
+      pinkFilter.type = 'lowpass';
+      pinkFilter.frequency.setValueAtTime(220, ctx.currentTime);
+      const pinkGain = ctx.createGain();
+      pinkGain.gain.setValueAtTime(0.12, ctx.currentTime);
+
+      pinkSrc.connect(pinkFilter);
+      pinkFilter.connect(pinkGain);
+      pinkGain.connect(thetaMaster);
+
+      leftOsc.start();
+      rightOsc.start();
+      subOsc.start();
+      pinkSrc.start();
+      nodes.push(pinkSrc);
+      return nodes;
+    }
+
+    // --- Preset 6: Cafe Ambience (Bandpassed Pink 650Hz + Stochastic Ceramic Pings) ---
+    function buildCafe(ctx, outNode) {
+      const cafeMaster = ctx.createGain();
+      cafeMaster.gain.setValueAtTime(0.001, ctx.currentTime);
+      cafeMaster.gain.exponentialRampToValueAtTime(0.7, ctx.currentTime + 0.4);
+      cafeMaster.connect(outNode);
+
+      const pinkSrc = ctx.createBufferSource();
+      pinkSrc.buffer = createPinkNoiseBuffer(ctx, 6);
+      pinkSrc.loop = true;
+
+      const bpFilter = ctx.createBiquadFilter();
+      bpFilter.type = 'bandpass';
+      bpFilter.frequency.setValueAtTime(650, ctx.currentTime);
+      bpFilter.Q.setValueAtTime(1.2, ctx.currentTime);
+
+      const murmurLfo = ctx.createOscillator();
+      murmurLfo.frequency.setValueAtTime(0.25, ctx.currentTime);
+      const murmurLfoGain = ctx.createGain();
+      murmurLfoGain.gain.setValueAtTime(120, ctx.currentTime);
+      murmurLfo.connect(murmurLfoGain);
+      murmurLfoGain.connect(bpFilter.frequency);
+
+      const pinkGain = ctx.createGain();
+      pinkGain.gain.setValueAtTime(0.55, ctx.currentTime);
+
+      pinkSrc.connect(bpFilter);
+      bpFilter.connect(pinkGain);
+      pinkGain.connect(cafeMaster);
+
+      const brownSrc = ctx.createBufferSource();
+      brownSrc.buffer = createBrownNoiseBuffer(ctx, 5);
+      brownSrc.loop = true;
+      const rumbleFilter = ctx.createBiquadFilter();
+      rumbleFilter.type = 'lowpass';
+      rumbleFilter.frequency.setValueAtTime(180, ctx.currentTime);
+      const rumbleGain = ctx.createGain();
+      rumbleGain.gain.setValueAtTime(0.3, ctx.currentTime);
+      brownSrc.connect(rumbleFilter);
+      rumbleFilter.connect(rumbleGain);
+      rumbleGain.connect(cafeMaster);
+
+      let pingTimer = null;
+      let isRunning = true;
+
+      function scheduleNextPing() {
+        if (!isRunning || !audioCtx || audioCtx.state === 'closed') return;
+        const delay = 1200 + Math.random() * 3200;
+        pingTimer = setTimeout(() => {
+          if (!isRunning || !audioCtx || audioCtx.state === 'closed') return;
+          try {
+            const now = ctx.currentTime;
+            const pingFreq = 2000 + Math.random() * 800;
+            const pingDuration = 0.08 + Math.random() * 0.08;
+
+            const pingOsc = ctx.createOscillator();
+            const pingGain = ctx.createGain();
+            pingOsc.type = 'sine';
+            pingOsc.frequency.setValueAtTime(pingFreq, now);
+
+            const pingHarm = ctx.createOscillator();
+            const harmGain = ctx.createGain();
+            pingHarm.type = 'triangle';
+            pingHarm.frequency.setValueAtTime(pingFreq * 1.58, now);
+
+            pingGain.gain.setValueAtTime(0.001, now);
+            pingGain.gain.linearRampToValueAtTime(0.06 + Math.random() * 0.05, now + 0.003);
+            pingGain.gain.exponentialRampToValueAtTime(0.0001, now + pingDuration);
+
+            harmGain.gain.setValueAtTime(0.001, now);
+            harmGain.gain.linearRampToValueAtTime(0.02 + Math.random() * 0.02, now + 0.002);
+            harmGain.gain.exponentialRampToValueAtTime(0.0001, now + pingDuration * 0.7);
+
+            pingOsc.connect(pingGain);
+            pingGain.connect(cafeMaster);
+            pingHarm.connect(harmGain);
+            harmGain.connect(cafeMaster);
+
+            pingOsc.start(now);
+            pingHarm.start(now);
+            pingOsc.stop(now + pingDuration + 0.02);
+            pingHarm.stop(now + pingDuration + 0.02);
+          } catch (err) {}
+
+          scheduleNextPing();
+        }, delay);
+      }
+
+      scheduleNextPing();
+      pinkSrc.start();
+      brownSrc.start();
+      murmurLfo.start();
+
+      const timerHandle = {
+        stop: () => {
+          isRunning = false;
+          if (pingTimer) clearTimeout(pingTimer);
+        },
+        disconnect: () => {
+          isRunning = false;
+          if (pingTimer) clearTimeout(pingTimer);
+        }
+      };
+
+      return [pinkSrc, brownSrc, murmurLfo, timerHandle, cafeMaster];
+    }
+
+    // --- Preset 7: Forest Birds (Wind Brown Noise + Procedural FM Chirps) ---
+    function buildForest(ctx, outNode) {
+      const forestMaster = ctx.createGain();
+      forestMaster.gain.setValueAtTime(0.001, ctx.currentTime);
+      forestMaster.gain.exponentialRampToValueAtTime(0.7, ctx.currentTime + 0.4);
+      forestMaster.connect(outNode);
+
+      const brownSrc = ctx.createBufferSource();
+      brownSrc.buffer = createBrownNoiseBuffer(ctx, 6);
+      brownSrc.loop = true;
+
+      const windFilter = ctx.createBiquadFilter();
+      windFilter.type = 'lowpass';
+      windFilter.frequency.setValueAtTime(380, ctx.currentTime);
+      windFilter.Q.setValueAtTime(2.0, ctx.currentTime);
+
+      const windLfo = ctx.createOscillator();
+      windLfo.type = 'sine';
+      windLfo.frequency.setValueAtTime(0.12, ctx.currentTime);
+
+      const windLfoGain = ctx.createGain();
+      windLfoGain.gain.setValueAtTime(220, ctx.currentTime);
+      windLfo.connect(windLfoGain);
+      windLfoGain.connect(windFilter.frequency);
+
+      const windGain = ctx.createGain();
+      windGain.gain.setValueAtTime(0.42, ctx.currentTime);
+
+      const windAmpLfo = ctx.createOscillator();
+      windAmpLfo.frequency.setValueAtTime(0.08, ctx.currentTime);
+      const windAmpGain = ctx.createGain();
+      windAmpGain.gain.setValueAtTime(0.15, ctx.currentTime);
+      windAmpLfo.connect(windAmpGain);
+      windAmpGain.connect(windGain.gain);
+
+      brownSrc.connect(windFilter);
+      windFilter.connect(windGain);
+      windGain.connect(forestMaster);
+
+      const pinkSrc = ctx.createBufferSource();
+      pinkSrc.buffer = createPinkNoiseBuffer(ctx, 5);
+      pinkSrc.loop = true;
+      const leafFilter = ctx.createBiquadFilter();
+      leafFilter.type = 'bandpass';
+      leafFilter.frequency.setValueAtTime(1400, ctx.currentTime);
+      leafFilter.Q.setValueAtTime(0.8, ctx.currentTime);
+      const leafGain = ctx.createGain();
+      leafGain.gain.setValueAtTime(0.08, ctx.currentTime);
+      pinkSrc.connect(leafFilter);
+      leafFilter.connect(leafGain);
+      leafGain.connect(forestMaster);
+
+      let chirpTimer = null;
+      let isRunning = true;
+
+      function triggerBirdChirp() {
+        if (!isRunning || !audioCtx || audioCtx.state === 'closed') return;
+        try {
+          const now = ctx.currentTime;
+          const baseFreq = 2800 + Math.random() * 1200;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(baseFreq, now);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq + 600, now + 0.04);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq - 300, now + 0.12);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.12, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+
+          osc.connect(gain);
+          gain.connect(forestMaster);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } catch(e) {}
+      }
+
+      function scheduleNextChirp() {
+        if (!isRunning || !audioCtx || audioCtx.state === 'closed') return;
+        const delay = 1800 + Math.random() * 3800;
+        chirpTimer = setTimeout(() => {
+          if (!isRunning || !audioCtx || audioCtx.state === 'closed') return;
+          triggerBirdChirp();
+          scheduleNextChirp();
+        }, delay);
+      }
+
+      scheduleNextChirp();
+      brownSrc.start();
+      pinkSrc.start();
+      windLfo.start();
+      windAmpLfo.start();
+
+      const timerHandle = {
+        stop: () => {
+          isRunning = false;
+          if (chirpTimer) clearTimeout(chirpTimer);
+        },
+        disconnect: () => {
+          isRunning = false;
+          if (chirpTimer) clearTimeout(chirpTimer);
+        }
+      };
+
+      return [brownSrc, pinkSrc, windLfo, windAmpLfo, timerHandle, forestMaster];
+    }
+
+    const PRESETS = ['rain', 'waves', 'binaural', 'flow', 'theta', 'cafe', 'forest'];
+
     function stopSoundNodes(duration = 0.15) {
       if (activeNodes.length === 0) return;
       const nodes = [...activeNodes];
@@ -1157,6 +1468,9 @@ async function liveRoutine(req, res) {
         else if (preset === 'waves') activeNodes = buildOcean(ctx, masterGainNode);
         else if (preset === 'binaural') activeNodes = buildBinaural(ctx, masterGainNode);
         else if (preset === 'flow') activeNodes = buildFlow(ctx, masterGainNode);
+        else if (preset === 'theta') activeNodes = buildTheta(ctx, masterGainNode);
+        else if (preset === 'cafe') activeNodes = buildCafe(ctx, masterGainNode);
+        else if (preset === 'forest') activeNodes = buildForest(ctx, masterGainNode);
         isSoundPlaying = true;
         updateSoundUI();
       }, 160);
@@ -1164,7 +1478,7 @@ async function liveRoutine(req, res) {
 
     function selectPreset(preset) {
       currentPreset = preset;
-      ['rain', 'waves', 'binaural', 'flow'].forEach(p => {
+      PRESETS.forEach(p => {
         const btn = document.getElementById('preset-' + p);
         if (btn) btn.classList.toggle('active', p === preset);
       });

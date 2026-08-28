@@ -79,6 +79,7 @@ const {
   optimizeDatabase,
 } = require("../helper/database-cleanup");
 const { maskEmail } = require("../helper/util");
+const suppressionService = require("./suppressionService");
 
 let scheduledJobs = [];
 
@@ -91,6 +92,18 @@ async function sendRoutineEmail(
   appLocals = process.env.RENDER_URL
 ) {
   try {
+    const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
+
+    // Check pre-send suppression eligibility
+    const eligibility = await suppressionService.checkPreSendEligibility(userData.email);
+    if (eligibility.isSuppressed && !isAdminSkip) {
+      logger.warn("Recipient suppressed or on bounce cooldown, skipping dispatch.", {
+        email: userData.email,
+        reason: eligibility.reason,
+      });
+      return { status: "skipped", reason: eligibility.reason };
+    }
+
     // Check if already sent today
     const alreadySent = await emailTracker.wasEmailSentToday(
       userData.email,
@@ -98,7 +111,6 @@ async function sendRoutineEmail(
       userData.timezone
     );
 
-    const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
     if (alreadySent) {
       const logMessage = isAdminSkip
         ? "Admin override active — proceeding despite prior send."
