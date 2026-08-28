@@ -65,6 +65,11 @@
       "name": "Live Routine Companion",
       "url": "/routine",
       "description": "Open focus timer and ambient soundscapes"
+    },
+    {
+      "name": "About Morning Routine",
+      "url": "/about",
+      "description": "Learn about the mission, architecture, and creator"
     }
   ]
 }

@@ -745,12 +745,14 @@
         </a>
 
         <nav class="nav-links" aria-label="Main Navigation">
+          <a href="/about" class="nav-link-item" style="color: var(--text-muted); text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 6px 10px;">About</a>
+          <a href="/routine" class="nav-link-item" style="color: var(--text-muted); text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 6px 10px;">Focus Companion</a>
           <button id="pwaNavInstallBtn" class="btn btn-install btn-sm" style="display: none;" aria-label="Install Morning Routine App">
             <i class="fas fa-arrow-down-to-bracket" aria-hidden="true"></i> Install App
           </button>
-          <a class="btn btn-glass btn-sm" href="#" id="openModalBtn" aria-haspopup="dialog">
+          <button type="button" class="btn btn-glass btn-sm" id="openModalBtn" aria-haspopup="dialog" aria-controls="keyModal" aria-expanded="false">
             <i class="fas fa-key" aria-hidden="true"></i> Admin Access
-          </a>
+          </button>
           <a class="btn btn-primary btn-sm" href="#signupView">
             <i class="fas fa-paper-plane" aria-hidden="true"></i> Subscribe Free
           </a>
@@ -885,10 +887,13 @@
     <footer class="footer" id="mainRootFooter">
       <div class="container footer-wrap">
         <div>&copy; 2026 Morning Routine Sender • All rights reserved.</div>
-        <nav class="footer-links" aria-label="Footer Navigation" style="display: flex; gap: 18px; align-items: center;">
+        <nav class="footer-links" aria-label="Footer Navigation" style="display: flex; gap: 18px; align-items: center; flex-wrap: wrap;">
+          <a href="/" style="color: var(--text-muted); text-decoration: none;">Home</a>
+          <a href="/about" style="color: var(--text-muted); text-decoration: none;">About</a>
           <a href="/routine" style="color: var(--text-muted); text-decoration: none;">Focus Companion</a>
+          <a href="/user-dashboard" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
           <a href="/unsubscribe" style="color: var(--text-muted); text-decoration: none;">Unsubscribe / Manage</a>
-          <a href="#" onclick="document.getElementById('openModalBtn').click(); return false;" style="color: var(--text-muted); text-decoration: none;">Admin Access</a>
+          <button type="button" onclick="document.getElementById('openModalBtn').click();" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; font-family: inherit;">Admin Access</button>
         </nav>
       </div>
     </footer>

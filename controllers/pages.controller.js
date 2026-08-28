@@ -175,10 +175,21 @@ function root(req, res) {
   }
 }
 
+// GET /about
+function about(req, res) {
+  setNoCacheHeaders(res);
+  const domain = getDomain(req, res);
+  logger.info("About page accessed", { domain, ip: req.ip });
+  let html = getCachedTemplate("public/about.html");
+  html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
+  return res.send(html);
+}
+
 module.exports = {
   adminDashboard,
   health,
   offline,
+  about,
   manifest,
   serviceWorker,
   robots,

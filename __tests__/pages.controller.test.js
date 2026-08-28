@@ -1,4 +1,4 @@
-const { health, robots, sitemap, llmsTxt, llmsFullTxt } = require("../controllers/pages.controller");
+const { health, robots, sitemap, llmsTxt, llmsFullTxt, about } = require("../controllers/pages.controller");
 
 describe("pages.controller endpoints", () => {
   test("health responds with status ok and a timestamp", () => {
@@ -65,5 +65,25 @@ describe("pages.controller endpoints", () => {
     const md = res.send.mock.calls[0][0];
     expect(md).toContain("# Morning Routine Sender");
     expect(md).toContain("https://routine.example.com/");
+  });
+
+  test("about responds with rendered HTML containing creator profile and replaced domain", () => {
+    const req = { protocol: "https", get: () => "routine.example.com", ip: "127.0.0.1" };
+    const res = {
+      set: jest.fn(),
+      locals: { apiBase: "https://routine.example.com" },
+      send: jest.fn(),
+    };
+
+    about(req, res);
+
+    expect(res.set).toHaveBeenCalledWith("Cache-Control", "no-cache, no-store, must-revalidate");
+    expect(res.send).toHaveBeenCalledTimes(1);
+    const html = res.send.mock.calls[0][0];
+    expect(html).toContain("Priyanshu Patel");
+    expect(html).toContain("priyanshu.alt191@gmail.com");
+    expect(html).toContain("https://github.com/sammy-cool");
+    expect(html).toContain("https://www.linkedin.com/in/eureka-priyanshu-persona/");
+    expect(html).toContain("https://routine.example.com/about");
   });
 });

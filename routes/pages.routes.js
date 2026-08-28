@@ -12,6 +12,7 @@ router.get("/sitemap.xml", pagesController.sitemap);
 router.get("/llms.txt", pagesController.llmsTxt);
 router.get("/llms-full.txt", pagesController.llmsFullTxt);
 router.get("/.well-known/llms.txt", pagesController.llmsTxt);
+router.get("/about", pagesController.about);
 router.get("/user-dashboard", pagesController.userDashboard);
 router.get("/dashboard", pagesController.userDashboard);
 router.get("/", pagesController.root);

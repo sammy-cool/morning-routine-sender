@@ -152,8 +152,8 @@ const pagesController = require("./controllers/pages.controller");
 app.get("/admin-dashboard", pagesController.adminDashboard);
 
 // High performance static asset serving with caching and ETags
-app.use("/assets", express.static("assets", { maxAge: "7d", etag: true }));
-app.use(express.static("public", { maxAge: "1d", etag: true }));
+app.use("/assets", express.static(path.join(__dirname, "public", "assets"), { maxAge: "7d", etag: true }));
+app.use(express.static(path.join(__dirname, "public"), { maxAge: "1d", etag: true }));
 
 const PORT = process.env.PORT || 2900;
 app.use(require("./routes/auth.routes"));

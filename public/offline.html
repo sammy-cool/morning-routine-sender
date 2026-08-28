@@ -122,14 +122,19 @@
   </head>
 
   <body>
-    <main class="card" role="alert" aria-live="polite">
-      <div class="icon-wrap">📡</div>
-      <h1>Connection Offline</h1>
-      <p>
-        Your internet connection seems to be unavailable. Please check your network connection.
-      </p>
-      <div class="notice">The page will automatically reconnect once internet is restored.</div>
-      <button class="btn" onclick="window.location.reload()">Retry Connection</button>
+    <main class="card">
+      <div class="icon-wrap" aria-hidden="true">📡</div>
+      <div role="status" aria-live="polite" style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%;">
+        <h1>Connection Offline</h1>
+        <p>
+          Your internet connection seems to be unavailable. Please check your network connection.
+        </p>
+        <div class="notice">The page will automatically reconnect once internet is restored.</div>
+      </div>
+      <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px;">
+        <button class="btn" style="flex: 1;" onclick="window.location.reload()">Retry Connection</button>
+        <a href="/" class="btn" style="flex: 1; background: rgba(255,255,255,0.08); text-decoration: none; display: flex; align-items: center; justify-content: center;">Home</a>
+      </div>
     </main>
 
     <script>

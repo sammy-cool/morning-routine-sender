@@ -18,6 +18,7 @@ Morning Routine Sender delivers personalized, high-signal morning rituals direct
 
 ## Public Endpoints & Resources
 - **Landing & Signup**: [__DOMAIN__/](__DOMAIN__/)
+- **About & Creator Story**: [__DOMAIN__/about](__DOMAIN__/about)
 - **Live Routine & Focus Companion**: [__DOMAIN__/routine](__DOMAIN__/routine)
 - **1-Click Habit Check-In**: [__DOMAIN__/checkin](__DOMAIN__/checkin)
 - **Full Architecture & Technical Details**: [__DOMAIN__/llms-full.txt](__DOMAIN__/llms-full.txt)

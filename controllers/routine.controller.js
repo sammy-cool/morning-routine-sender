@@ -735,11 +735,19 @@ async function liveRoutine(req, res) {
 <body>
   <div class="container">
     <div class="header">
-      <a href="/" class="brand">
+      <a href="/" class="brand" aria-label="Morning Routine Home">
         <span>🌅</span> Morning Routine
       </a>
-      <div class="streak-pill">
-        🔥 ${streakCount}-Day Streak
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div class="streak-pill">
+          🔥 ${streakCount}-Day Streak
+        </div>
+        <a href="/about" style="color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600; padding: 4px 8px;">
+          About
+        </a>
+        <a href="/user-dashboard" style="color: #fff; background: rgba(255,255,255,0.08); text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 9999px; border: 1px solid var(--border);">
+          ⚙️ Dashboard
+        </a>
       </div>
     </div>
 
