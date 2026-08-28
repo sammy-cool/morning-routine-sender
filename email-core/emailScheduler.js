@@ -136,6 +136,14 @@ async function sendRoutineEmail(
       userData
     );
 
+    // Dispatch Web Push Notification (non-blocking)
+    try {
+      const pushService = require("../push-core/pushService");
+      await pushService.dispatchMorningPushForSubscriber(userData);
+    } catch (pushErr) {
+      logger.debug("Push notification dispatch non-fatal check", { error: pushErr.message });
+    }
+
     // Record in database
     await emailTracker.recordSend(
       userData.email,

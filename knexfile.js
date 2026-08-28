@@ -53,8 +53,8 @@ function buildConnection() {
 
 module.exports = {
   test: {
-    client: "sqlite3",
-    connection: { filename: ":memory:" },
+    client: process.env.DB_CLIENT || "pg",
+    connection: buildConnection(),
     useNullAsDefault: true,
     migrations: { directory: "./db/migrations" },
     seeds: { directory: "./db/seeds" },

@@ -20,7 +20,7 @@ function escapeHtml(unsafe) {
 async function sendTestEmail(req, res) {
   try {
     const { email } = req.body;
-    let templateType = req.body.templateType || "basic";
+    const templateType = req.body.templateType || "basic";
 
     const isAdminSession = req.signedCookies?.mrn_role === "admin";
     const expectedKey = process.env.CRON_API_KEY || process.env.ADMIN_KEY;

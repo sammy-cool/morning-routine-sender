@@ -71,7 +71,7 @@ async function exportJournal(req, res) {
 // GET /api/streak-card.svg
 async function getStreakCard(req, res) {
   try {
-    let email = req.query.email || req.subscriberEmail;
+    const email = req.query.email || req.subscriberEmail;
     let subscriber = null;
     if (email) {
       subscriber = await sharedData.getUserByEmail(email);

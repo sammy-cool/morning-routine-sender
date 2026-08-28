@@ -335,8 +335,19 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const notifNotice = document.getElementById("notifNotice");
     const notifToggleTitle = document.getElementById("notifToggleTitle");
 
-    function syncNotificationState() {
-      if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+    function urlBase64ToUint8Array(base64String) {
+      const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+      const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+
+    async function syncNotificationState() {
+      if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
         if (notificationCard) notificationCard.style.display = "block";
         if (notifStatusBadge) {
           notifStatusBadge.textContent = "Unsupported";
@@ -357,9 +368,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         }
         if (notifToggleTitle) notifToggleTitle.textContent = "Morning Notifications Active";
         if (enableNotifBtn) {
-          enableNotifBtn.innerHTML = '<i class="fas fa-check"></i> Notifications Enabled';
+          enableNotifBtn.innerHTML = '<i class="fas fa-check"></i> Notifications Active';
           enableNotifBtn.className = "btn btn-success";
-          enableNotifBtn.disabled = true;
+          enableNotifBtn.disabled = false;
         }
         if (testNotifBtn) testNotifBtn.style.display = "inline-flex";
         if (notifNotice) notifNotice.textContent = "✅ You will receive daily morning reminders when your routine goes live.";
@@ -396,44 +407,63 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       enableNotifBtn.addEventListener("click", async function () {
         try {
           const permission = await Notification.requestPermission();
-          syncNotificationState();
-          if (permission === "granted") {
-            showToast("🎉 Push notifications enabled!", "success");
-          } else if (permission === "denied") {
-            showToast("Notifications were denied in browser settings.", "warn");
+          await syncNotificationState();
+
+          if (permission !== "granted") {
+            showToast("Notification permission was not granted.", "warn");
+            return;
           }
+
+          // Fetch VAPID public key
+          const keyResp = await fetch("/api/push/vapid-public-key");
+          if (keyResp.ok) {
+            const { publicKey } = await keyResp.json();
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(publicKey),
+            });
+
+            await fetch("/api/push/subscribe", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ subscription }),
+            });
+          }
+
+          showToast("🎉 Push notifications activated!", "success");
         } catch (err) {
-          console.error("Failed to request notification permission", err);
+          console.error("Failed to enable push notifications", err);
+          showToast(err.message || "Failed to enable notifications.", "error");
         }
       });
     }
 
     if (testNotifBtn) {
       testNotifBtn.addEventListener("click", async function () {
+        testNotifBtn.disabled = true;
         try {
-          if (Notification.permission !== "granted") {
-            showToast("Please enable notifications first.", "warn");
-            return;
+          const resp = await fetch("/api/push/send-test", { method: "POST" });
+          if (resp.ok) {
+            showToast("Test notification sent! Check your screen.", "info");
+          } else {
+            // Local fallback test
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification("🌅 Time for your Morning Routine!", {
+              body: "Your daily focus ritual is ready. Click to open your live timer & streak check-in.",
+              icon: "/assets/mrn-brand-ico.png",
+              badge: "/assets/mrn-brand-ico.png",
+              tag: "morning-routine-test",
+              renotify: true,
+              data: { url: "/routine" },
+            });
+            showToast("Test notification dispatched locally.", "info");
           }
-          const registration = await navigator.serviceWorker.ready;
-          await registration.showNotification("🌅 Time for your Morning Routine!", {
-            body: "Your daily focus ritual is ready. Click to open your live timer & streak check-in.",
-            icon: "/assets/mrn-brand-ico.png",
-            badge: "/assets/mrn-brand-ico.png",
-            tag: "morning-routine-test",
-            renotify: true,
-            data: {
-              url: "/routine",
-            },
-            actions: [
-              { action: "open_routine", title: "⚡ Start Ritual" },
-              { action: "checkin", title: "🔥 1-Click Check-in" },
-            ],
-          });
-          showToast("Test notification sent! Check your notification center.", "info");
         } catch (err) {
           console.error("Test notification failed", err);
-          showToast("Could not display notification.", "error");
+          showToast("Could not send test push.", "warn");
+        } finally {
+          testNotifBtn.disabled = false;
         }
       });
     }

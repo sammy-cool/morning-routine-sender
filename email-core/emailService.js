@@ -8,6 +8,7 @@ const logger = require("../logger");
 const sharedData = require("../helper/shared-data");
 const { dailyDevNews } = require("../helper/util");
 const { generateUnsubscribeToken, generateActionToken } = require("../helper/unsubscribeToken");
+const { getDailyMorningSpark } = require("../helper/aiSparkGenerator");
 
 // Load MJML template
 const mjmlTemplatePath = path.join(
@@ -53,6 +54,15 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     const dailyQuote = userData.dailyQuote || trackInfo.quote;
     const dailyTip = userData.dailyTip || trackInfo.ritual;
 
+    // Generate dynamic AI Morning Spark (with instant curated fallback)
+    const morningSpark = await getDailyMorningSpark({
+      email: userData.email,
+      routineTrack: trackKey,
+      streakCount: userStreak,
+      timezone: userTimezone,
+      name: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
+    });
+
     const checkinToken = generateActionToken(userData.email, "checkin");
     const routineToken = generateActionToken(userData.email, "routine");
 
@@ -65,6 +75,11 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       trackBadge: trackBadge,
       dailyQuote: dailyQuote,
       dailyTip: dailyTip,
+      aiSparkReflection: morningSpark.sparkReflection,
+      aiMicroAction: morningSpark.microAction,
+      aiFocusMantra: morningSpark.focusMantra,
+      aiSourceBadge: morningSpark.source === "curated" ? "Curated Spark" : "AI Spark",
+      streakTier: morningSpark.streakTier,
       ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}`,
       ctaText: "⚡ Open Interactive Routine & Focus Timer",
       checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}`,

@@ -86,4 +86,43 @@ describe("pages.controller endpoints", () => {
     expect(html).toContain("https://www.linkedin.com/in/eureka-priyanshu-persona/");
     expect(html).toContain("https://routine.example.com/about");
   });
+
+  test("GET /sitemap.xml via Express app never contains un-replaced __DOMAIN__ placeholder", async () => {
+    const request = require("supertest");
+    const express = require("express");
+    const { setApiBase } = require("../middleware/setApiBase");
+    const pagesRoutes = require("../routes/pages.routes");
+
+    const app = express();
+    app.use(setApiBase);
+    app.use(pagesRoutes);
+
+    const res = await request(app)
+      .get("/sitemap.xml")
+      .set("Host", "morning-routine-sender.onrender.com");
+
+    expect(res.status).toBe(200);
+    expect(res.text).not.toContain("__DOMAIN__");
+    expect(res.text).toContain("https://morning-routine-sender.onrender.com/");
+    expect(res.text).toContain("https://morning-routine-sender.onrender.com/about");
+  });
+
+  test("GET /robots.txt via Express app never contains un-replaced __DOMAIN__ placeholder", async () => {
+    const request = require("supertest");
+    const express = require("express");
+    const { setApiBase } = require("../middleware/setApiBase");
+    const pagesRoutes = require("../routes/pages.routes");
+
+    const app = express();
+    app.use(setApiBase);
+    app.use(pagesRoutes);
+
+    const res = await request(app)
+      .get("/robots.txt")
+      .set("Host", "morning-routine-sender.onrender.com");
+
+    expect(res.status).toBe(200);
+    expect(res.text).not.toContain("__DOMAIN__");
+    expect(res.text).toContain("Sitemap: https://morning-routine-sender.onrender.com/sitemap.xml");
+  });
 });

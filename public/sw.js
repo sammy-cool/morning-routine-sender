@@ -172,7 +172,7 @@ self.addEventListener("push", (event) => {
     try {
       const payload = event.data.json();
       data = Object.assign(data, payload);
-    } catch (e) {
+    } catch (_e) {
       data.body = event.data.text() || data.body;
     }
   }
@@ -194,11 +194,16 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  let targetUrl = "/routine";
-  if (event.action === "checkin") {
+  const action = event.action;
+  const notifData = event.notification.data || {};
+  let targetUrl = notifData.url || "/routine";
+
+  if (action === "open_dashboard") {
+    targetUrl = notifData.dashboardUrl || "/user-dashboard";
+  } else if (action === "checkin") {
     targetUrl = "/checkin";
-  } else if (event.notification.data && event.notification.data.url) {
-    targetUrl = event.notification.data.url;
+  } else if (action === "open_routine") {
+    targetUrl = notifData.url || "/routine";
   }
 
   event.waitUntil(
