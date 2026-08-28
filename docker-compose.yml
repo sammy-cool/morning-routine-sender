@@ -1,0 +1,122 @@
+version: "3.8"
+
+services:
+  # ---------------------------------------------------------------------------
+  # Morning Routine Sender Application
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: morning-routine-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-2900}:2900"
+    environment:
+      - NODE_ENV=production
+      - PORT=2900
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-routine_user}
+      - DB_PASSWORD=${DB_PASSWORD:-routine_secret_password}
+      - DB_NAME=${DB_NAME:-morning_routine_db}
+      - DB_SSL=false
+      - DATABASE_URL=postgresql://${DB_USER:-routine_user}:${DB_PASSWORD:-routine_secret_password}@db:5432/${DB_NAME:-morning_routine_db}?sslmode=disable
+      - USE_MOCK_REDIS=false
+      - REDIS_URL=redis://redis:6379
+      - ADMIN_KEY=${ADMIN_KEY:-admin_secret_key_change_in_prod}
+      - CRON_API_KEY=${CRON_API_KEY:-cron_secret_key_change_in_prod}
+      - ADMIN_SKIP_KEY=${ADMIN_SKIP_KEY:-admin_skip_secret}
+      - UNSUBSCRIBE_SECRET=${UNSUBSCRIBE_SECRET:-unsubscribe_secret_change_in_prod}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - TRANSPORTER_HOST=${TRANSPORTER_HOST:-smtp.gmail.com}
+      - TRANSPORTER_PORT=${TRANSPORTER_PORT:-587}
+      - TRANSPORTER_SECURE=${TRANSPORTER_SECURE:-false}
+      - TRANSPORTER_REQUIRE_TLS=${TRANSPORTER_REQUIRE_TLS:-true}
+      - FROM_USER=${FROM_USER}
+      - FROM_NAME=${FROM_NAME:-Morning Routine Sender}
+      - PASSWORD=${PASSWORD}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:2900}
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - app_logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_healthy
+        restart: true
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:2900/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - routine-network
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database (v16 Alpine)
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: morning-routine-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-routine_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-routine_secret_password}
+      POSTGRES_DB: ${DB_NAME:-morning_routine_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${DB_EXTERNAL_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-routine_user} -d $${POSTGRES_DB:-morning_routine_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - routine-network
+
+  # ---------------------------------------------------------------------------
+  # Redis Cache & Session Store (v7 Alpine)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: morning-routine-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - routine-network
+
+# ---------------------------------------------------------------------------
+# Named Volumes & Networks
+# ---------------------------------------------------------------------------
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  routine-network:
+    driver: bridge

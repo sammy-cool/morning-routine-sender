@@ -30,10 +30,21 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     // Toast helper
     function showToast(message, type = "info") {
+      const toastLib =
+        (typeof window !== "undefined" && window.customizableToast) ||
+        (typeof customizableToast !== "undefined" ? customizableToast : null);
+
+      if (toastLib && typeof toastLib.createToast === "function") {
+        return toastLib.createToast({
+          message,
+          type: type === "warn" ? "warning" : type,
+          position: "top-center",
+          duration: 4000,
+        });
+      }
+
       if (globalThis.ToastManager && typeof globalThis.ToastManager.show === "function") {
-        globalThis.ToastManager.show(message, type);
-      } else if (globalThis.CustomizableToast && typeof globalThis.CustomizableToast.show === "function") {
-        globalThis.CustomizableToast.show({ message, type });
+        globalThis.ToastManager.show({ message, type });
       }
     }
 
@@ -295,6 +306,118 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       globalThis.location.href = "/";
     });
 
+    // --- Push Notification Controller ---
+    const notificationCard = document.getElementById("notificationCard");
+    const notifStatusBadge = document.getElementById("notifStatusBadge");
+    const enableNotifBtn = document.getElementById("enableNotifBtn");
+    const testNotifBtn = document.getElementById("testNotifBtn");
+    const notifNotice = document.getElementById("notifNotice");
+    const notifToggleTitle = document.getElementById("notifToggleTitle");
+
+    function syncNotificationState() {
+      if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+        if (notificationCard) notificationCard.style.display = "block";
+        if (notifStatusBadge) {
+          notifStatusBadge.textContent = "Unsupported";
+          notifStatusBadge.className = "status-badge paused";
+        }
+        if (enableNotifBtn) enableNotifBtn.disabled = true;
+        if (notifNotice) notifNotice.textContent = "Push notifications are not supported in this browser.";
+        return;
+      }
+
+      if (notificationCard) notificationCard.style.display = "block";
+
+      const permission = Notification.permission;
+      if (permission === "granted") {
+        if (notifStatusBadge) {
+          notifStatusBadge.textContent = "Active 🔔";
+          notifStatusBadge.className = "status-badge active";
+        }
+        if (notifToggleTitle) notifToggleTitle.textContent = "Morning Notifications Active";
+        if (enableNotifBtn) {
+          enableNotifBtn.innerHTML = '<i class="fas fa-check"></i> Notifications Enabled';
+          enableNotifBtn.className = "btn btn-success";
+          enableNotifBtn.disabled = true;
+        }
+        if (testNotifBtn) testNotifBtn.style.display = "inline-flex";
+        if (notifNotice) notifNotice.textContent = "✅ You will receive daily morning reminders when your routine goes live.";
+      } else if (permission === "denied") {
+        if (notifStatusBadge) {
+          notifStatusBadge.textContent = "Blocked 🚫";
+          notifStatusBadge.className = "status-badge paused";
+        }
+        if (notifToggleTitle) notifToggleTitle.textContent = "Notifications Blocked";
+        if (enableNotifBtn) {
+          enableNotifBtn.innerHTML = '<i class="fas fa-ban"></i> Permission Blocked';
+          enableNotifBtn.className = "btn btn-warning";
+          enableNotifBtn.disabled = true;
+        }
+        if (testNotifBtn) testNotifBtn.style.display = "none";
+        if (notifNotice) notifNotice.innerHTML = "⚠️ Notifications were blocked. To enable, click the lock icon in your browser URL bar and allow notifications.";
+      } else {
+        if (notifStatusBadge) {
+          notifStatusBadge.textContent = "Disabled 🔕";
+          notifStatusBadge.className = "status-badge paused";
+        }
+        if (notifToggleTitle) notifToggleTitle.textContent = "Enable Morning Push Alerts";
+        if (enableNotifBtn) {
+          enableNotifBtn.innerHTML = '<i class="fas fa-bell"></i> Enable Notifications';
+          enableNotifBtn.className = "btn btn-primary";
+          enableNotifBtn.disabled = false;
+        }
+        if (testNotifBtn) testNotifBtn.style.display = "none";
+        if (notifNotice) notifNotice.textContent = "Allow notifications to receive wake-up alerts and streak reminders.";
+      }
+    }
+
+    if (enableNotifBtn) {
+      enableNotifBtn.addEventListener("click", async function () {
+        try {
+          const permission = await Notification.requestPermission();
+          syncNotificationState();
+          if (permission === "granted") {
+            showToast("🎉 Push notifications enabled!", "success");
+          } else if (permission === "denied") {
+            showToast("Notifications were denied in browser settings.", "warn");
+          }
+        } catch (err) {
+          console.error("Failed to request notification permission", err);
+        }
+      });
+    }
+
+    if (testNotifBtn) {
+      testNotifBtn.addEventListener("click", async function () {
+        try {
+          if (Notification.permission !== "granted") {
+            showToast("Please enable notifications first.", "warn");
+            return;
+          }
+          const registration = await navigator.serviceWorker.ready;
+          await registration.showNotification("🌅 Time for your Morning Routine!", {
+            body: "Your daily focus ritual is ready. Click to open your live timer & streak check-in.",
+            icon: "/assets/mrn-brand-ico.png",
+            badge: "/assets/mrn-brand-ico.png",
+            tag: "morning-routine-test",
+            renotify: true,
+            data: {
+              url: "/routine",
+            },
+            actions: [
+              { action: "open_routine", title: "⚡ Start Ritual" },
+              { action: "checkin", title: "🔥 1-Click Check-in" },
+            ],
+          });
+          showToast("Test notification sent! Check your notification center.", "info");
+        } catch (err) {
+          console.error("Test notification failed", err);
+          showToast("Could not display notification.", "error");
+        }
+      });
+    }
+
     loadDashboard();
+    syncNotificationState();
   })();
 });

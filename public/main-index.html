@@ -523,7 +523,7 @@
         transition: var(--transition);
       }
 
-      .modal-backdrop.active, .modal-backdrop.visible {
+      .modal-backdrop.active, .modal-backdrop.visible, .modal-backdrop.open {
         opacity: 1;
         pointer-events: auto;
       }
@@ -545,7 +545,7 @@
         transition: var(--transition);
       }
 
-      .modal-backdrop.active .modal, .modal-backdrop.visible .modal {
+      .modal-backdrop.active .modal, .modal-backdrop.visible .modal, .modal-backdrop.open .modal {
         transform: scale(1);
       }
 

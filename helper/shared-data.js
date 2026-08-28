@@ -458,13 +458,76 @@ async function getAllUsers() {
   }
 }
 
+const WEEKLY_DIGEST_CONFIGS = {
+  "deep-work": {
+    reflection: "Review the code, architectures, and features built over the past 7 days. Where did context switching steal the most momentum?",
+    prepItems: [
+      { title: "Identify Monday's Single #1 Deliverable", description: "Define the core technical outcome you will complete during your first 90-minute block." },
+      { title: "Calendar Defense Audit", description: "Protect your prime morning hours (08:00 - 11:00) by declining or rescheduling non-essential check-ins." },
+      { title: "Tidy Workspace & Tools", description: "Commit any lingering branches, clean your desktop, and stage your IDE for instant morning flow." }
+    ],
+    encouragement: "Consistency in deep work compounds exponentially. You're building world-class engineering focus."
+  },
+  "mindfulness": {
+    reflection: "Look back at the week's highest pressure moments. Where were you able to respond with equanimity instead of reacting with stress?",
+    prepItems: [
+      { title: "Set a Gentle Week Tone", description: "Choose one overarching virtue for the week (e.g. Patience, Clarity, Presence)." },
+      { title: "Digital Sunset Sunday", description: "Power down screens 60 minutes before bed tonight to prime deep restorative sleep." },
+      { title: "Plan 3 Mindful Micro-Breaks", description: "Schedule three 5-minute calendar pauses throughout the week for intentional breathwork." }
+    ],
+    encouragement: "Inner peace is not an accident—it's a daily discipline you are mastering."
+  },
+  "executive": {
+    reflection: "Audit your high-leverage vs low-leverage hours this week. What meetings or recurring tasks should be eliminated or delegated?",
+    prepItems: [
+      { title: "Define the 3 Macro Outcomes", description: "Lock down the top 3 needle-moving strategic deliverables for your team/business this week." },
+      { title: "Meeting Pruning", description: "Shorten 30-min meetings to 20-min and 60-min meetings to 45-min across your calendar." },
+      { title: "Energy & Recovery Review", description: "Schedule non-negotiable slots for workout, nutrition, and deep sleep." }
+    ],
+    encouragement: "High performers don't manage time; they manage energy and focus on the vital few."
+  },
+  "learning": {
+    reflection: "Which key mental model or concept created the biggest breakthrough in your thinking this week?",
+    prepItems: [
+      { title: "Queue This Week's Reading", description: "Select 1 primary book chapter or technical paper to read in morning 15-minute bursts." },
+      { title: "Active Recall Synthesis", description: "Write a 3-bullet summary of your biggest lesson learned from the past 7 days." },
+      { title: "Weekly Curiosity Question", description: "Formulate one compelling question you aim to answer by Friday." }
+    ],
+    encouragement: "Continuous daily learning creates an unbeatable competitive advantage."
+  },
+  "classic": {
+    reflection: "Celebrate your wins from the past week and acknowledge how far your morning consistency has brought you!",
+    prepItems: [
+      { title: "Prepare Your Morning Launchpad", description: "Set out workout clothes, fill your water bottle, and write tomorrow's top 3 tasks." },
+      { title: "Set Your Wake-Up Intent", description: "Visualize waking up refreshed, energized, and ready to conquer Monday morning." },
+      { title: "Positive Sunday Affirmation", description: "Commit to bringing energy, positivity, and enthusiasm into the new week." }
+    ],
+    encouragement: "Every great week starts with an intentional Sunday evening and energized morning!"
+  }
+};
+
+function getWeeklyDigestContent(trackKey = "deep-work") {
+  const normalized = (trackKey || "deep-work").toLowerCase().trim();
+  const baseTrack = getTrackContent(normalized);
+  const digestConfig = WEEKLY_DIGEST_CONFIGS[normalized] || WEEKLY_DIGEST_CONFIGS["deep-work"];
+  return {
+    ...baseTrack,
+    weeklyReflectionGuidance: digestConfig.reflection,
+    weeklyPrepItems: digestConfig.prepItems,
+    weeklyEncouragement: digestConfig.encouragement,
+    weeklyQuote: baseTrack.quote,
+  };
+}
+
 module.exports = {
   cache,
   updateCache,
   getCacheValue,
   getNewRandomQuote,
   TRACK_CONFIGS,
+  WEEKLY_DIGEST_CONFIGS,
   getTrackContent,
+  getWeeklyDigestContent,
   recordCheckin,
   getUsers,
   getUserByEmail,

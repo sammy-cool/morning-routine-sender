@@ -1,11 +1,12 @@
-const logger = require("../logger");
+// controllers/routine.controller.js
+const { verifyUnsubscribeToken, verifyActionToken } = require("../helper/unsubscribeToken");
 const sharedData = require("../helper/shared-data");
-const { verifyActionToken, verifyUnsubscribeToken } = require("../helper/unsubscribeToken");
-const { getSessionEmail } = require("../middleware/subscriberSession");
+const logger = require("../logger");
+const redis = require("../config/redisClient");
 
-function escapeHtml(unsafe) {
-  return (unsafe || "")
-    .toString()
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -14,8 +15,21 @@ function escapeHtml(unsafe) {
 }
 
 /**
- * GET /checkin?email=...&token=...
- * 1-Click Streak & Habit Check-in from Email or Web
+ * Helper to get subscriber email from redis session if available
+ */
+async function getSessionEmail(req) {
+  const sessionToken = req.cookies?.mrn_session;
+  if (!sessionToken) return null;
+  try {
+    return await redis.get(`subscriber_session:${sessionToken}`);
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * GET /checkin
+ * 1-Click Habit Streak Check-in Endpoint
  */
 async function checkin(req, res) {
   const email = (req.query.email || "").trim().toLowerCase();
@@ -58,52 +72,54 @@ async function checkin(req, res) {
 
     const checkinResult = await sharedData.recordCheckin(email, subscriber.timezone);
     const trackInfo = sharedData.getTrackContent(subscriber.routineTrack || subscriber.templateType);
+    const finalStreak = checkinResult.streakCount !== undefined ? checkinResult.streakCount : (checkinResult.streak !== undefined ? checkinResult.streak : 1);
 
     if (checkinResult.alreadyCheckedInToday) {
       return renderCheckinPage(res, {
         success: true,
-        streak: checkinResult.streak,
-        title: `🔥 ${checkinResult.streak}-Day Streak Maintained!`,
-        message: "You've already recorded your morning check-in for today. Keep this incredible momentum going!",
-        badge: "Already Checked In",
+        streakCount: finalStreak,
+        title: "Already Checked In Today! ⚡",
+        message: `You've already logged your routine for today. Your streak is safe at ${finalStreak} days!`,
         quote: trackInfo.quote,
-        email,
-        token,
+        badge: `${finalStreak}-Day Streak Maintained 🔥`,
+        routineUrl: `/routine?email=${encodeURIComponent(email)}&token=${token}`,
       });
     }
 
+    logger.info("Habit check-in recorded successfully", {
+      email,
+      streakCount: finalStreak,
+      timezone: subscriber.timezone,
+    });
+
     return renderCheckinPage(res, {
       success: true,
-      streak: checkinResult.streak,
-      title: `🎉 Day ${checkinResult.streak} Complete!`,
-      message: "Morning routine checked off. You're building an unstoppable daily habit.",
-      badge: `${checkinResult.streak}-Day Active Streak`,
+      streakCount: finalStreak,
+      title: `Day ${finalStreak} Complete! 🔥`,
+      message: `Great job completing your morning routine. You have maintained a ${finalStreak}-day streak!`,
       quote: trackInfo.quote,
-      email,
-      token,
+      badge: `${finalStreak}-Day Active Streak`,
+      routineUrl: `/routine?email=${encodeURIComponent(email)}&token=${token}`,
     });
   } catch (err) {
-    logger.error("Checkin handler error", { error: err.message, email });
+    logger.error("Check-in controller error", { error: err.message, email });
     return renderCheckinPage(res, {
       success: false,
-      title: "Check-in Temporarily Unavailable",
-      message: "We encountered a hiccup recording your check-in. Your streak is safe!",
-      badge: "System Notice",
+      title: "Server Error",
+      message: "We encountered an issue saving your check-in. Please try again in a few moments.",
+      badge: "Error",
     });
   }
 }
 
-/**
- * Renders Obsidian Glassmorphism Celebration Page for Habit Check-in
- */
-function renderCheckinPage(res, { success, title, message, badge, streak, quote, email, token }) {
+function renderCheckinPage(res, data) {
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)} • Morning Routine</title>
+  <title>${escapeHtml(data.title)} • Morning Routine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
@@ -158,9 +174,9 @@ function renderCheckinPage(res, { success, title, message, badge, streak, quote,
       border-radius: 9999px;
       font-size: 13px;
       font-weight: 700;
-      background: ${success ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'};
-      color: ${success ? '#34d399' : '#f87171'};
-      border: 1px solid ${success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'};
+      background: ${data.success ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)"};
+      color: ${data.success ? "#34d399" : "#f87171"};
+      border: 1px solid ${data.success ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"};
       margin-bottom: 24px;
     }
     .streak-hero {
@@ -239,15 +255,28 @@ function renderCheckinPage(res, { success, title, message, badge, streak, quote,
 </head>
 <body>
   <div class="card">
-    <div class="badge">${escapeHtml(badge || "Habit Check-in")}</div>
-    ${streak ? `<div class="streak-hero">🔥</div>` : `<div style="font-size:48px; margin-bottom:12px;">${success ? '✨' : '⚠️'}</div>`}
-    <h1>${escapeHtml(title)}</h1>
-    <p class="lead">${escapeHtml(message)}</p>
+    <div class="badge">${escapeHtml(data.badge)}</div>
+    ${data.success ? `
+      <div>
+        <span class="streak-hero">🔥</span>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:36px; font-weight:800; color:#fff; margin-bottom:12px;">
+          ${data.streakCount || 1} <span style="font-size:18px; color:#fbbf24;">DAY STREAK</span>
+        </div>
+      </div>
+    ` : `
+      <div style="font-size:48px; margin-bottom:12px;">⚠️</div>
+    `}
+    <h1>${escapeHtml(data.title)}</h1>
+    <p class="lead">${escapeHtml(data.message)}</p>
 
-    ${quote ? `<div class="quote-box">“${escapeHtml(quote)}”</div>` : ""}
+    ${data.quote ? `
+      <div class="quote-box">
+        “${escapeHtml(data.quote)}”
+      </div>
+    ` : ""}
 
     <div class="btn-group">
-      <a href="/routine${email ? `?email=${encodeURIComponent(email)}&token=${token}` : ''}" class="btn btn-primary">
+      <a href="${data.routineUrl || '/routine'}" class="btn btn-primary">
         ⚡ Open Live Routine Companion
       </a>
       <a href="/user-dashboard" class="btn btn-ghost">
@@ -261,7 +290,7 @@ function renderCheckinPage(res, { success, title, message, badge, streak, quote,
 
 /**
  * GET /routine
- * Interactive Live Routine View & Focus Companion
+ * Interactive Live Routine View & Focus Companion with Web Audio Ambient Soundscapes
  */
 async function liveRoutine(req, res) {
   const sessionEmail = await getSessionEmail(req);
@@ -287,7 +316,19 @@ async function liveRoutine(req, res) {
   const trackKey = subscriber?.routineTrack || subscriber?.templateType || "deep-work";
   const trackContent = sharedData.getTrackContent(trackKey);
   const streakCount = subscriber?.streakCount || 0;
-  const timezone = subscriber?.timezone || "UTC";
+  const checkinHref = activeEmail
+    ? "/checkin?email=" + encodeURIComponent(activeEmail) + "&token=" + (token || "")
+    : "/user-dashboard";
+
+  const checklistHtml = trackContent.checklist
+    .map(
+      (item, idx) => `
+          <label class="checklist-item" id="item-${idx}">
+            <input type="checkbox" onchange="toggleItem(${idx})">
+            <span>${escapeHtml(item)}</span>
+          </label>`
+    )
+    .join("\n");
 
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`<!DOCTYPE html>
@@ -355,33 +396,34 @@ async function liveRoutine(req, res) {
     }
     .card {
       background: var(--card-bg);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
       border: 1px solid var(--border);
       border-radius: 24px;
-      padding: 32px;
-      margin-bottom: 24px;
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      padding: 36px 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px var(--primary-glow);
     }
     .track-badge {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #818cf8;
-      background: rgba(99, 102, 241, 0.12);
-      padding: 4px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 6px 16px;
       border-radius: 9999px;
-      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
     }
     h1 {
       font-size: 28px;
       font-weight: 800;
       letter-spacing: -0.02em;
       margin-bottom: 8px;
+      color: #fff;
     }
-    .tagline {
+    p.tagline {
       color: var(--text-muted);
       font-size: 15px;
       margin-bottom: 20px;
@@ -502,6 +544,180 @@ async function liveRoutine(req, res) {
       transform: translateY(-2px);
       box-shadow: 0 14px 28px -5px rgba(99, 102, 241, 0.6);
     }
+    /* Ambient Soundscape Studio */
+    .soundscape-card {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .sound-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sound-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .audio-visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 16px;
+    }
+    .audio-bar {
+      width: 3px;
+      height: 4px;
+      background: #818cf8;
+      border-radius: 2px;
+      transition: height 0.2s ease;
+    }
+    .audio-visualizer.playing .audio-bar:nth-child(1) { animation: soundBar 0.8s infinite ease-in-out; }
+    .audio-visualizer.playing .audio-bar:nth-child(2) { animation: soundBar 1.1s infinite ease-in-out 0.2s; }
+    .audio-visualizer.playing .audio-bar:nth-child(3) { animation: soundBar 0.7s infinite ease-in-out 0.4s; }
+    .audio-visualizer.playing .audio-bar:nth-child(4) { animation: soundBar 0.9s infinite ease-in-out 0.1s; }
+    @keyframes soundBar {
+      0%, 100% { height: 4px; }
+      50% { height: 16px; background: #34d399; }
+    }
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 540px) {
+      .preset-grid { grid-template-columns: 1fr; }
+    }
+    .preset-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      color: var(--text-main);
+    }
+    .preset-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .preset-btn.active {
+      background: rgba(99, 102, 241, 0.16);
+      border-color: #6366f1;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+    }
+    .preset-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .preset-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .preset-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .sound-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .sound-play-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-sound-play {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-sound-play:hover {
+      filter: brightness(1.15);
+    }
+    .btn-sound-play.playing {
+      background: #ef4444;
+    }
+    .vol-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 160px;
+      max-width: 240px;
+    }
+    .vol-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    .vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #818cf8;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
+    }
+    .vol-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 38px;
+    }
+    .auto-sync-opt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      margin-top: 12px;
+    }
+    .auto-sync-opt input {
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -527,12 +743,7 @@ async function liveRoutine(req, res) {
 
       <div class="checklist-title">Morning Habit Checklist</div>
       <div class="checklist">
-        ${trackContent.checklist.map((item, idx) => `
-          <label class="checklist-item" id="item-${idx}">
-            <input type="checkbox" onchange="toggleItem(${idx})">
-            <span>${escapeHtml(item)}</span>
-          </label>
-        `).join('')}
+        ${checklistHtml}
       </div>
 
       <!-- Focus Sprint Timer -->
@@ -546,7 +757,75 @@ async function liveRoutine(req, res) {
         </div>
       </div>
 
-      <a href="${activeEmail ? `/checkin?email=${encodeURIComponent(activeEmail)}&token=${token || ''}` : '/user-dashboard'}" class="btn-checkin">
+      <!-- Ambient Focus Soundscape Studio -->
+      <div class="soundscape-card">
+        <div class="sound-header">
+          <div class="sound-title">
+            <span>🎧</span> Ambient Focus Soundscapes
+          </div>
+          <div class="audio-visualizer" id="audioVisualizer">
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+          </div>
+        </div>
+
+        <div class="preset-grid">
+          <button type="button" class="preset-btn active" id="preset-rain" onclick="selectPreset('rain')">
+            <span class="preset-icon">🌧️</span>
+            <div>
+              <div class="preset-name">Rain & Storm</div>
+              <div class="preset-desc">Lowpass White & Brown Noise</div>
+            </div>
+          </button>
+
+          <button type="button" class="preset-btn" id="preset-waves" onclick="selectPreset('waves')">
+            <span class="preset-icon">🌊</span>
+            <div>
+              <div class="preset-name">Ocean Waves</div>
+              <div class="preset-desc">Pink Noise Periodic Swell</div>
+            </div>
+          </button>
+
+          <button type="button" class="preset-btn" id="preset-binaural" onclick="selectPreset('binaural')">
+            <span class="preset-icon">🧠</span>
+            <div>
+              <div class="preset-name">40Hz Binaural Beats</div>
+              <div class="preset-desc">200Hz Carrier + 40Hz Focus</div>
+            </div>
+          </button>
+
+          <button type="button" class="preset-btn" id="preset-flow" onclick="selectPreset('flow')">
+            <span class="preset-icon">⚡</span>
+            <div>
+              <div class="preset-name">Deep Flow Tone</div>
+              <div class="preset-desc">Harmonic Drone & Sub-Bass</div>
+            </div>
+          </button>
+        </div>
+
+        <div class="sound-controls">
+          <div class="sound-play-group">
+            <button class="btn-sound-play" id="soundPlayBtn" onclick="toggleSound()">
+              <span id="soundPlayIcon">▶</span> <span id="soundPlayText">Play Sound</span>
+            </button>
+          </div>
+
+          <div class="vol-container">
+            <span style="font-size: 14px;">🔈</span>
+            <input type="range" class="vol-slider" id="volumeSlider" min="0" max="100" value="65" oninput="setMasterVolume(this.value)">
+            <span class="vol-label" id="volPercent">65%</span>
+          </div>
+        </div>
+
+        <label class="auto-sync-opt">
+          <input type="checkbox" id="autoStartSound" checked>
+          <span>Auto-start ambient soundscape when 25-min sprint timer starts</span>
+        </label>
+      </div>
+
+      <a href="${checkinHref}" class="btn-checkin">
         ⚡ Complete Routine & Maintain Streak
       </a>
     </div>
@@ -567,10 +846,352 @@ async function liveRoutine(req, res) {
       return m + ':' + s;
     }
 
+    // --- Web Audio Ambient Soundscape Generator Engine ---
+    let audioCtx = null;
+    let masterGainNode = null;
+    let activeNodes = [];
+    let currentPreset = 'rain';
+    let isSoundPlaying = false;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioCtxClass();
+        masterGainNode = audioCtx.createGain();
+        const initialVol = parseFloat(document.getElementById('volumeSlider').value) / 100;
+        masterGainNode.gain.setValueAtTime(initialVol, audioCtx.currentTime);
+        masterGainNode.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function createWhiteNoiseBuffer(ctx, duration = 5) {
+      const sampleRate = ctx.sampleRate;
+      const buffer = ctx.createBuffer(2, sampleRate * duration, sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = buffer.getChannelData(ch);
+        for (let i = 0; i < data.length; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+      }
+      return buffer;
+    }
+
+    function createPinkNoiseBuffer(ctx, duration = 5) {
+      const sampleRate = ctx.sampleRate;
+      const buffer = ctx.createBuffer(2, sampleRate * duration, sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = buffer.getChannelData(ch);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < data.length; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+          b6 = white * 0.115926;
+        }
+      }
+      return buffer;
+    }
+
+    function createBrownNoiseBuffer(ctx, duration = 5) {
+      const sampleRate = ctx.sampleRate;
+      const buffer = ctx.createBuffer(2, sampleRate * duration, sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = buffer.getChannelData(ch);
+        let lastOut = 0.0;
+        for (let i = 0; i < data.length; i++) {
+          const white = Math.random() * 2 - 1;
+          data[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = data[i];
+          data[i] *= 3.5;
+        }
+      }
+      return buffer;
+    }
+
+    function buildRain(ctx, outNode) {
+      const rainGain = ctx.createGain();
+      rainGain.gain.setValueAtTime(0.001, ctx.currentTime);
+      rainGain.gain.exponentialRampToValueAtTime(0.7, ctx.currentTime + 0.4);
+      rainGain.connect(outNode);
+
+      const whiteSrc = ctx.createBufferSource();
+      whiteSrc.buffer = createWhiteNoiseBuffer(ctx, 5);
+      whiteSrc.loop = true;
+      const whiteFilter = ctx.createBiquadFilter();
+      whiteFilter.type = 'lowpass';
+      whiteFilter.frequency.setValueAtTime(950, ctx.currentTime);
+      const whiteGain = ctx.createGain();
+      whiteGain.gain.setValueAtTime(0.35, ctx.currentTime);
+      whiteSrc.connect(whiteFilter);
+      whiteFilter.connect(whiteGain);
+      whiteGain.connect(rainGain);
+
+      const brownSrc = ctx.createBufferSource();
+      brownSrc.buffer = createBrownNoiseBuffer(ctx, 5);
+      brownSrc.loop = true;
+      const brownFilter = ctx.createBiquadFilter();
+      brownFilter.type = 'lowpass';
+      brownFilter.frequency.setValueAtTime(320, ctx.currentTime);
+      const brownGain = ctx.createGain();
+      brownGain.gain.setValueAtTime(0.65, ctx.currentTime);
+
+      const lfo = ctx.createOscillator();
+      lfo.frequency.setValueAtTime(0.18, ctx.currentTime);
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(0.2, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(brownGain.gain);
+
+      brownSrc.connect(brownFilter);
+      brownFilter.connect(brownGain);
+      brownGain.connect(rainGain);
+
+      whiteSrc.start();
+      brownSrc.start();
+      lfo.start();
+      return [whiteSrc, brownSrc, lfo, rainGain];
+    }
+
+    function buildOcean(ctx, outNode) {
+      const oceanGain = ctx.createGain();
+      oceanGain.gain.setValueAtTime(0.001, ctx.currentTime);
+      oceanGain.gain.exponentialRampToValueAtTime(0.8, ctx.currentTime + 0.4);
+      oceanGain.connect(outNode);
+
+      const pinkSrc = ctx.createBufferSource();
+      pinkSrc.buffer = createPinkNoiseBuffer(ctx, 6);
+      pinkSrc.loop = true;
+
+      const waveFilter = ctx.createBiquadFilter();
+      waveFilter.type = 'lowpass';
+      waveFilter.frequency.setValueAtTime(450, ctx.currentTime);
+      waveFilter.Q.setValueAtTime(1.5, ctx.currentTime);
+
+      const waveGain = ctx.createGain();
+      waveGain.gain.setValueAtTime(0.45, ctx.currentTime);
+
+      const lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(0.1, ctx.currentTime);
+
+      const lfoGainMod = ctx.createGain();
+      lfoGainMod.gain.setValueAtTime(0.35, ctx.currentTime);
+      lfo.connect(lfoGainMod);
+      lfoGainMod.connect(waveGain.gain);
+
+      const lfoFilterMod = ctx.createGain();
+      lfoFilterMod.gain.setValueAtTime(350, ctx.currentTime);
+      lfo.connect(lfoFilterMod);
+      lfoFilterMod.connect(waveFilter.frequency);
+
+      pinkSrc.connect(waveFilter);
+      waveFilter.connect(waveGain);
+      waveGain.connect(oceanGain);
+
+      pinkSrc.start();
+      lfo.start();
+      return [pinkSrc, lfo, oceanGain];
+    }
+
+    function buildBinaural(ctx, outNode) {
+      const beatMaster = ctx.createGain();
+      beatMaster.gain.setValueAtTime(0.001, ctx.currentTime);
+      beatMaster.gain.exponentialRampToValueAtTime(0.65, ctx.currentTime + 0.4);
+      beatMaster.connect(outNode);
+
+      const leftOsc = ctx.createOscillator();
+      leftOsc.type = 'sine';
+      leftOsc.frequency.setValueAtTime(200, ctx.currentTime);
+
+      const rightOsc = ctx.createOscillator();
+      rightOsc.type = 'sine';
+      rightOsc.frequency.setValueAtTime(240, ctx.currentTime);
+
+      const nodes = [leftOsc, rightOsc, beatMaster];
+
+      if (ctx.createStereoPanner) {
+        const leftPan = ctx.createStereoPanner();
+        leftPan.pan.setValueAtTime(-1, ctx.currentTime);
+        const rightPan = ctx.createStereoPanner();
+        rightPan.pan.setValueAtTime(1, ctx.currentTime);
+
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(0.4, ctx.currentTime);
+
+        leftOsc.connect(leftPan);
+        leftPan.connect(oscGain);
+        rightOsc.connect(rightPan);
+        rightPan.connect(oscGain);
+        oscGain.connect(beatMaster);
+        nodes.push(leftPan, rightPan, oscGain);
+      } else {
+        const merger = ctx.createChannelMerger(2);
+        leftOsc.connect(merger, 0, 0);
+        rightOsc.connect(merger, 0, 1);
+        merger.connect(beatMaster);
+        nodes.push(merger);
+      }
+
+      const pinkSrc = ctx.createBufferSource();
+      pinkSrc.buffer = createPinkNoiseBuffer(ctx, 5);
+      pinkSrc.loop = true;
+      const pinkFilter = ctx.createBiquadFilter();
+      pinkFilter.type = 'lowpass';
+      pinkFilter.frequency.setValueAtTime(280, ctx.currentTime);
+      const pinkGain = ctx.createGain();
+      pinkGain.gain.setValueAtTime(0.15, ctx.currentTime);
+
+      pinkSrc.connect(pinkFilter);
+      pinkFilter.connect(pinkGain);
+      pinkGain.connect(beatMaster);
+
+      leftOsc.start();
+      rightOsc.start();
+      pinkSrc.start();
+      nodes.push(pinkSrc);
+      return nodes;
+    }
+
+    function buildFlow(ctx, outNode) {
+      const flowMaster = ctx.createGain();
+      flowMaster.gain.setValueAtTime(0.001, ctx.currentTime);
+      flowMaster.gain.exponentialRampToValueAtTime(0.6, ctx.currentTime + 0.4);
+      flowMaster.connect(outNode);
+
+      const osc1 = ctx.createOscillator(); osc1.type = 'sine'; osc1.frequency.setValueAtTime(110, ctx.currentTime);
+      const osc2 = ctx.createOscillator(); osc2.type = 'sine'; osc2.frequency.setValueAtTime(110.8, ctx.currentTime);
+      const oscSub = ctx.createOscillator(); oscSub.type = 'sine'; oscSub.frequency.setValueAtTime(55, ctx.currentTime);
+      const oscHarm = ctx.createOscillator(); oscHarm.type = 'triangle'; oscHarm.frequency.setValueAtTime(165, ctx.currentTime);
+      const oscHigh = ctx.createOscillator(); oscHigh.type = 'sine'; oscHigh.frequency.setValueAtTime(220, ctx.currentTime);
+
+      const g1 = ctx.createGain(); g1.gain.setValueAtTime(0.28, ctx.currentTime);
+      const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.25, ctx.currentTime);
+      const gSub = ctx.createGain(); gSub.gain.setValueAtTime(0.35, ctx.currentTime);
+      const gHarm = ctx.createGain(); gHarm.gain.setValueAtTime(0.12, ctx.currentTime);
+      const gHigh = ctx.createGain(); gHigh.gain.setValueAtTime(0.08, ctx.currentTime);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(360, ctx.currentTime);
+      filter.Q.setValueAtTime(2.2, ctx.currentTime);
+
+      const lfo = ctx.createOscillator();
+      lfo.frequency.setValueAtTime(0.05, ctx.currentTime);
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(140, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(filter.frequency);
+
+      osc1.connect(g1); g1.connect(filter);
+      osc2.connect(g2); g2.connect(filter);
+      oscSub.connect(gSub); gSub.connect(filter);
+      oscHarm.connect(gHarm); gHarm.connect(filter);
+      oscHigh.connect(gHigh); gHigh.connect(filter);
+      filter.connect(flowMaster);
+
+      osc1.start(); osc2.start(); oscSub.start(); oscHarm.start(); oscHigh.start(); lfo.start();
+      return [osc1, osc2, oscSub, oscHarm, oscHigh, lfo, flowMaster];
+    }
+
+    function stopSoundNodes(duration = 0.25) {
+      if (activeNodes.length === 0) return;
+      const nodes = [...activeNodes];
+      activeNodes = [];
+      if (audioCtx) {
+        nodes.forEach(n => {
+          if (n instanceof GainNode) {
+            try { n.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + duration); } catch(e){}
+          }
+        });
+      }
+      setTimeout(() => {
+        nodes.forEach(n => {
+          try { if (n.stop) n.stop(); if (n.disconnect) n.disconnect(); } catch(e){}
+        });
+      }, duration * 1000 + 40);
+    }
+
+    function startSoundscape(preset) {
+      const ctx = getAudioContext();
+      stopSoundNodes(0.2);
+      setTimeout(() => {
+        if (preset === 'rain') activeNodes = buildRain(ctx, masterGainNode);
+        else if (preset === 'waves') activeNodes = buildOcean(ctx, masterGainNode);
+        else if (preset === 'binaural') activeNodes = buildBinaural(ctx, masterGainNode);
+        else if (preset === 'flow') activeNodes = buildFlow(ctx, masterGainNode);
+        isSoundPlaying = true;
+        updateSoundUI();
+      }, 220);
+    }
+
+    function selectPreset(preset) {
+      currentPreset = preset;
+      ['rain', 'waves', 'binaural', 'flow'].forEach(p => {
+        const btn = document.getElementById('preset-' + p);
+        if (btn) btn.classList.toggle('active', p === preset);
+      });
+      if (isSoundPlaying) {
+        startSoundscape(preset);
+      }
+    }
+
+    function toggleSound() {
+      if (isSoundPlaying) {
+        stopSoundNodes(0.3);
+        isSoundPlaying = false;
+        updateSoundUI();
+      } else {
+        startSoundscape(currentPreset);
+      }
+    }
+
+    function setMasterVolume(val) {
+      const vol = Math.max(0, Math.min(100, parseInt(val, 10))) / 100;
+      document.getElementById('volPercent').innerText = Math.round(vol * 100) + '%';
+      if (masterGainNode && audioCtx) {
+        masterGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+        masterGainNode.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.05);
+      }
+    }
+
+    function updateSoundUI() {
+      const playBtn = document.getElementById('soundPlayBtn');
+      const icon = document.getElementById('soundPlayIcon');
+      const text = document.getElementById('soundPlayText');
+      const visualizer = document.getElementById('audioVisualizer');
+
+      if (isSoundPlaying) {
+        playBtn.classList.add('playing');
+        icon.innerText = '⏸';
+        text.innerText = 'Pause Sound';
+        visualizer.classList.add('playing');
+      } else {
+        playBtn.classList.remove('playing');
+        icon.innerText = '▶';
+        text.innerText = 'Play Sound';
+        visualizer.classList.remove('playing');
+      }
+    }
+
     function startTimer() {
       if (timerInterval) return;
       document.getElementById('startBtn').style.display = 'none';
       document.getElementById('pauseBtn').style.display = 'inline-block';
+
+      const autoStart = document.getElementById('autoStartSound')?.checked;
+      if (autoStart && !isSoundPlaying) {
+        startSoundscape(currentPreset);
+      }
+
       timerInterval = setInterval(() => {
         if (timeLeft > 0) {
           timeLeft--;
@@ -578,6 +1199,11 @@ async function liveRoutine(req, res) {
         } else {
           clearInterval(timerInterval);
           timerInterval = null;
+          if (isSoundPlaying) {
+            stopSoundNodes(0.8);
+            isSoundPlaying = false;
+            updateSoundUI();
+          }
           alert('🎉 Focus sprint completed! Time for a short break.');
         }
       }, 1000);

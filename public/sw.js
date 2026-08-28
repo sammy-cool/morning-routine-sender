@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4.1.0";
+const CACHE_VERSION = "v4.2.0";
 const CACHE_NAME = `mrn-pwa-${CACHE_VERSION}`;
 
 // STATIC ASSETS ONLY (NO HTML, NO AUTH, NO SUBSCRIBER DATA)
@@ -148,4 +148,76 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
+});
+
+// ---------------- PUSH EVENT LISTENER ----------------
+self.addEventListener("push", (event) => {
+  let data = {
+    title: "🌅 Time for your Morning Routine!",
+    body: "Your daily focus ritual is ready. Click to open your live timer & streak check-in.",
+    icon: "/assets/mrn-brand-ico.png",
+    badge: "/assets/mrn-brand-ico.png",
+    tag: "morning-routine-reminder",
+    renotify: true,
+    data: {
+      url: "/routine",
+    },
+    actions: [
+      { action: "open_routine", title: "⚡ Start Ritual" },
+      { action: "checkin", title: "🔥 1-Click Check-in" },
+    ],
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      data = Object.assign(data, payload);
+    } catch (e) {
+      data.body = event.data.text() || data.body;
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon || "/assets/mrn-brand-ico.png",
+      badge: data.badge || "/assets/mrn-brand-ico.png",
+      tag: data.tag || "morning-routine-reminder",
+      renotify: data.renotify !== undefined ? data.renotify : true,
+      data: data.data || { url: "/routine" },
+      actions: data.actions || [],
+    })
+  );
+});
+
+// ---------------- NOTIFICATION CLICK EVENT LISTENER ----------------
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  let targetUrl = "/routine";
+  if (event.action === "checkin") {
+    targetUrl = "/checkin";
+  } else if (event.notification.data && event.notification.data.url) {
+    targetUrl = event.notification.data.url;
+  }
+
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          const clientUrl = new URL(client.url);
+          if (clientUrl.origin === location.origin && "focus" in client) {
+            return client.focus().then(() => {
+              if (client.navigate) {
+                return client.navigate(targetUrl);
+              }
+            });
+          }
+        }
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
+  );
 });

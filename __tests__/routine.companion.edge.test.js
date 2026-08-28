@@ -89,5 +89,11 @@ describe("Live Routine Companion Edge Cases (/routine)", () => {
     expect(res.status).toBe(200);
     expect(res.text).toMatch(/Today's Morning Routine/i);
     expect(res.text).toMatch(/Focus Sprint Timer/i);
+    expect(res.text).toMatch(/Ambient Focus Soundscapes/i);
+    expect(res.text).toContain("Rain & Storm");
+    expect(res.text).toContain("Ocean Waves");
+    expect(res.text).toContain("40Hz Binaural Beats");
+    expect(res.text).toContain("Deep Flow Tone");
+    expect(res.text).toContain("AudioContext");
   });
 });
