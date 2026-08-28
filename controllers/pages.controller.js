@@ -2,9 +2,6 @@ const fs = require("node:fs");
 const path = require("node:path");
 const logger = require("../logger");
 
-// All __dirname-based paths here go up one level (..) since this file
-// lives in controllers/, but the original index.js used __dirname at the
-// project root -- same target files, adjusted relative path only.
 const ROOT_DIR = path.join(__dirname, "..");
 
 function escapeHtml(unsafe) {
@@ -28,6 +25,26 @@ function setNoCacheHeaders(res) {
   res.set("Expires", "0");
 }
 
+// In-Memory Template Cache for High-Throughput / Zero-Disk-I/O Performance
+const templateCache = new Map();
+
+function getCachedTemplate(relativePath) {
+  if (process.env.NODE_ENV === "production" && templateCache.has(relativePath)) {
+    return templateCache.get(relativePath);
+  }
+  try {
+    const fullPath = path.join(ROOT_DIR, relativePath);
+    if (fs.existsSync(fullPath)) {
+      const content = fs.readFileSync(fullPath, "utf8");
+      templateCache.set(relativePath, content);
+      return content;
+    }
+  } catch (err) {
+    logger.warn(`Could not read template from disk: ${relativePath}`, { error: err.message });
+  }
+  return "";
+}
+
 // GET /admin-dashboard
 function adminDashboard(req, res) {
   setNoCacheHeaders(res);
@@ -38,10 +55,7 @@ function adminDashboard(req, res) {
 
   const domain = getDomain(req, res);
   logger.info("Admin Dashboard accessed", { domain, ip: req.ip });
-  let html = fs.readFileSync(
-    path.join(ROOT_DIR, "admin-renderer/views", "admin-dashboard.html"),
-    "utf8",
-  );
+  let html = getCachedTemplate("admin-renderer/views/admin-dashboard.html");
   html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
   return res.send(html);
 }
@@ -59,14 +73,14 @@ function health(req, res) {
 function offline(req, res) {
   const domain = getDomain(req, res);
   logger.info("Landed in sleeping night", { domain, ip: req.ip });
-  let html = fs.readFileSync(path.join(ROOT_DIR, "public", "offline.html"), "utf8");
+  let html = getCachedTemplate("public/offline.html");
   html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
   return res.send(html);
 }
 
 // GET /manifest.json
 function manifest(req, res) {
-  res.set("Cache-Control", "public, max-age=3600");
+  res.set("Cache-Control", "public, max-age=86400");
   res.sendFile(path.join(ROOT_DIR, "public", "manifest.json"));
 }
 
@@ -77,15 +91,50 @@ function serviceWorker(req, res) {
   res.sendFile(path.join(ROOT_DIR, "public", "sw.js"));
 }
 
+// GET /robots.txt
+function robots(req, res) {
+  res.set("Content-Type", "text/plain; charset=utf-8");
+  res.set("Cache-Control", "public, max-age=86400");
+  const domain = getDomain(req, res);
+  let content = getCachedTemplate("public/robots.txt");
+  content = content.replaceAll("__DOMAIN__", domain);
+  return res.send(content);
+}
+
+// GET /sitemap.xml
+function sitemap(req, res) {
+  res.set("Content-Type", "application/xml; charset=utf-8");
+  res.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=3600");
+  const domain = getDomain(req, res);
+  let content = getCachedTemplate("public/sitemap.xml");
+  content = content.replaceAll("__DOMAIN__", domain);
+  return res.send(content);
+}
+
+// GET /llms.txt & /.well-known/llms.txt
+function llmsTxt(req, res) {
+  res.set("Content-Type", "text/markdown; charset=utf-8");
+  res.set("Cache-Control", "public, max-age=86400");
+  const domain = getDomain(req, res);
+  let content = getCachedTemplate("public/llms.txt");
+  content = content.replaceAll("__DOMAIN__", domain);
+  return res.send(content);
+}
+
+// GET /llms-full.txt
+function llmsFullTxt(req, res) {
+  res.set("Content-Type", "text/markdown; charset=utf-8");
+  res.set("Cache-Control", "public, max-age=86400");
+  const domain = getDomain(req, res);
+  let content = getCachedTemplate("public/llms-full.txt");
+  content = content.replaceAll("__DOMAIN__", domain);
+  return res.send(content);
+}
+
 // GET /user-dashboard
 async function userDashboard(req, res) {
   setNoCacheHeaders(res);
 
-  // Deliberately required here, not at top of file: a top-level import
-  // would pull in config/redisClient.js (a real Redis connection attempt)
-  // on every load of this module, including tests that only exercise
-  // unrelated functions like health() -- breaking the dependency-free
-  // unit test design the rest of __tests__/ relies on.
   const { getSessionEmail } = require("../middleware/subscriberSession");
   const email = await getSessionEmail(req);
   if (!email) {
@@ -94,15 +143,12 @@ async function userDashboard(req, res) {
 
   const domain = getDomain(req, res);
   logger.info("User Dashboard accessed", { domain, ip: req.ip, email });
-  let html = fs.readFileSync(
-    path.join(ROOT_DIR, "public", "user-dashboard.html"),
-    "utf8",
-  );
-  html = html.replace("__DOMAIN__", escapeHtml(domain));
+  let html = getCachedTemplate("public/user-dashboard.html");
+  html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
   res.send(html);
 }
 
-// GET /  (root -- skeleton + role-based redirect)
+// GET /  (root -- role-based redirect + high performance template delivery)
 function root(req, res) {
   setNoCacheHeaders(res);
   const domain = getDomain(req, res);
@@ -117,23 +163,13 @@ function root(req, res) {
       return res.redirect("/user-dashboard");
     } else {
       logger.info("Landing page accessed", { domain, ip: req.ip });
-
-      let html = fs.readFileSync(
-        path.join(ROOT_DIR, "public", "main-index.html"),
-        "utf8",
-      );
+      let html = getCachedTemplate("public/main-index.html");
       html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
       return res.send(html);
     }
   } catch (err) {
-    logger.error(
-      "Failed to serve dashboard: redirecting back to main view page",
-      err,
-    );
-    let html = fs.readFileSync(
-      path.join(ROOT_DIR, "public", "main-index.html"),
-      "utf8",
-    );
+    logger.error("Failed to serve dashboard: redirecting back to main view page", err);
+    let html = getCachedTemplate("public/main-index.html");
     html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
     return res.send(html);
   }
@@ -145,6 +181,10 @@ module.exports = {
   offline,
   manifest,
   serviceWorker,
+  robots,
+  sitemap,
+  llmsTxt,
+  llmsFullTxt,
   userDashboard,
   root,
 };

@@ -1,0 +1,25 @@
+# Morning Routine Sender
+
+> Automated, timezone-aware daily morning routine email delivery system engineered for peak focus, mindset reflections, and habit streak tracking.
+
+## Core Overview
+Morning Routine Sender delivers personalized, high-signal morning rituals directly to subscribers' inboxes at their local wake-up time. The platform features curated content personas (Deep Work, Stoic Mindfulness, Executive Leverage, Lifelong Learning, and Morning Energizer), 1-click habit check-in streak tracking, an interactive 25-minute Pomodoro focus companion with procedural ambient soundscapes, and zero-ad-tracking privacy.
+
+## Key Capabilities & Architecture
+- **Timezone-Aware Cron Engine**: Automated dispatch synced to subscriber wake-up schedules across all global IANA timezones.
+- **5 Curated Persona Tracks**:
+  1. *Deep Work & Builder*: Distraction-free sprint protocols, developer wisdom, and maker focus.
+  2. *Mindfulness & Stoic*: Breathwork, gratitude rituals, and Marcus Aurelius / Seneca reflections.
+  3. *High-Performance Exec*: Top 3 non-negotiables, strategic leverage, and delegation frameworks.
+  4. *Lifelong Learner*: Mental models, active recall principles, and book insights.
+  5. *Morning Energizer*: Affirmations, hydration prompts, and morning momentum.
+- **Habit Streak & Focus Companion**: 1-click email check-in tracking with instant live web timer and procedural Web Audio ambient focus soundscapes (Rain & Storm, Ocean Waves, 40Hz Binaural Beats, Deep Flow Tone).
+- **Privacy & Security**: Zero tracking pixels, passwordless magic links, instant self-service preference management, and RFC-compliant 1-click unsubscribe.
+
+## Public Endpoints & Resources
+- **Landing & Signup**: [__DOMAIN__/](__DOMAIN__/)
+- **Live Routine & Focus Companion**: [__DOMAIN__/routine](__DOMAIN__/routine)
+- **1-Click Habit Check-In**: [__DOMAIN__/checkin](__DOMAIN__/checkin)
+- **Full Architecture & Technical Details**: [__DOMAIN__/llms-full.txt](__DOMAIN__/llms-full.txt)
+- **Web App Manifest**: [__DOMAIN__/manifest.json](__DOMAIN__/manifest.json)
+- **XML Sitemap**: [__DOMAIN__/sitemap.xml](__DOMAIN__/sitemap.xml)

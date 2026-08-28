@@ -118,12 +118,15 @@ function renderCheckinPage(res, data) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#07090e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>${escapeHtml(data.title)} • Morning Routine</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -148,7 +151,7 @@ function renderCheckinPage(res, data) {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px 16px;
+      padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
     .card {
       background: var(--card-bg);
@@ -338,12 +341,15 @@ async function liveRoutine(req, res) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#07090e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Today's Morning Routine • ${escapeHtml(trackContent.name)}</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -365,7 +371,7 @@ async function liveRoutine(req, res) {
         radial-gradient(circle at 100% 50%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 32px 16px;
+      padding: max(32px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
     .container {
       max-width: 720px;
@@ -874,7 +880,10 @@ async function liveRoutine(req, res) {
       return audioCtx;
     }
 
+    let cachedWhite = null, cachedPink = null, cachedBrown = null;
+
     function createWhiteNoiseBuffer(ctx, duration = 5) {
+      if (cachedWhite) return cachedWhite;
       const sampleRate = ctx.sampleRate;
       const buffer = ctx.createBuffer(2, sampleRate * duration, sampleRate);
       for (let ch = 0; ch < 2; ch++) {
@@ -883,10 +892,12 @@ async function liveRoutine(req, res) {
           data[i] = Math.random() * 2 - 1;
         }
       }
-      return buffer;
+      cachedWhite = buffer;
+      return cachedWhite;
     }
 
     function createPinkNoiseBuffer(ctx, duration = 5) {
+      if (cachedPink) return cachedPink;
       const sampleRate = ctx.sampleRate;
       const buffer = ctx.createBuffer(2, sampleRate * duration, sampleRate);
       for (let ch = 0; ch < 2; ch++) {
@@ -904,10 +915,12 @@ async function liveRoutine(req, res) {
           b6 = white * 0.115926;
         }
       }
-      return buffer;
+      cachedPink = buffer;
+      return cachedPink;
     }
 
     function createBrownNoiseBuffer(ctx, duration = 5) {
+      if (cachedBrown) return cachedBrown;
       const sampleRate = ctx.sampleRate;
       const buffer = ctx.createBuffer(2, sampleRate * duration, sampleRate);
       for (let ch = 0; ch < 2; ch++) {
@@ -920,7 +933,8 @@ async function liveRoutine(req, res) {
           data[i] *= 3.5;
         }
       }
-      return buffer;
+      cachedBrown = buffer;
+      return cachedBrown;
     }
 
     function buildRain(ctx, outNode) {
@@ -1108,7 +1122,7 @@ async function liveRoutine(req, res) {
       return [osc1, osc2, oscSub, oscHarm, oscHigh, lfo, flowMaster];
     }
 
-    function stopSoundNodes(duration = 0.25) {
+    function stopSoundNodes(duration = 0.15) {
       if (activeNodes.length === 0) return;
       const nodes = [...activeNodes];
       activeNodes = [];
@@ -1123,12 +1137,12 @@ async function liveRoutine(req, res) {
         nodes.forEach(n => {
           try { if (n.stop) n.stop(); if (n.disconnect) n.disconnect(); } catch(e){}
         });
-      }, duration * 1000 + 40);
+      }, duration * 1000 + 20);
     }
 
     function startSoundscape(preset) {
       const ctx = getAudioContext();
-      stopSoundNodes(0.2);
+      stopSoundNodes(0.12);
       setTimeout(() => {
         if (preset === 'rain') activeNodes = buildRain(ctx, masterGainNode);
         else if (preset === 'waves') activeNodes = buildOcean(ctx, masterGainNode);
@@ -1136,7 +1150,7 @@ async function liveRoutine(req, res) {
         else if (preset === 'flow') activeNodes = buildFlow(ctx, masterGainNode);
         isSoundPlaying = true;
         updateSoundUI();
-      }, 220);
+      }, 160);
     }
 
     function selectPreset(preset) {

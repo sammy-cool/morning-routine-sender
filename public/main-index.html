@@ -1,39 +1,164 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" dir="ltr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="stylesheet" href="/css/loader.css" />
-    <link rel="manifest" href="/manifest.json" />
 
-    <title>Morning Routine Sender • Start Every Day Inspired</title>
+    <!-- Primary Page Metadata & SEO -->
+    <title>Morning Routine Sender • Start Every Day Inspired &amp; Focused</title>
     <meta
       name="description"
-      content="Automated, thoughtful morning routine emails tailored to your timezone. Curated wisdom, deep-work focus, streak tracking, and actionable morning rituals."
+      content="Automated, thoughtful morning routine emails tailored to your timezone. Curated wisdom, deep-work focus, habit streak tracking, and actionable morning rituals."
     />
     <meta
       name="keywords"
-      content="email automation, morning routine, daily habits, deep work, productivity, self improvement, habit streak, newsletter"
+      content="email automation, morning routine, daily habits, deep work, productivity, self improvement, habit streak, newsletter, timezone aware, focus timer"
     />
-    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Morning Routine Sender" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="__DOMAIN__/" />
+
+    <!-- Favicons, Icons & Web Manifest -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/mrn-brand-ico.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/mrn-brand-ico.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- AI / LLM & Search Discovery -->
+    <link rel="alternate" type="text/markdown" title="LLM Context" href="/llms.txt" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+    <!-- Theme & Cross-Platform Mobile Specs -->
     <meta name="theme-color" content="#07090e" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Morning Routine" />
+    <meta name="application-name" content="Morning Routine Sender" />
 
-    <meta property="og:title" content="Morning Routine Sender • Start Every Day Inspired" />
+    <!-- OpenGraph Social Sharing Metadata -->
+    <meta property="og:site_name" content="Morning Routine Sender" />
+    <meta property="og:title" content="Morning Routine Sender • Start Every Day Inspired &amp; Focused" />
     <meta
       property="og:description"
-      content="Automated, thoughtful morning routine emails tailored to your timezone. Curated wisdom, deep-work focus, and actionable morning rituals."
+      content="Automated, thoughtful morning routine emails tailored to your timezone. Curated wisdom, deep-work focus, habit streak tracking, and actionable morning rituals."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="__DOMAIN__/" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:image" content="__DOMAIN__/assets/screenshot-desktop.png" />
+    <meta property="og:image:secure_url" content="__DOMAIN__/assets/screenshot-desktop.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
+    <meta property="og:image:alt" content="Morning Routine Sender - Daily Automated Rituals and Habit Streak Dashboard" />
 
-    <!-- Google Fonts & FontAwesome -->
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@MorningRoutine" />
+    <meta name="twitter:creator" content="@MorningRoutine" />
+    <meta name="twitter:title" content="Morning Routine Sender • Start Every Day Inspired &amp; Focused" />
+    <meta
+      name="twitter:description"
+      content="Automated, thoughtful morning routine emails tailored to your timezone. Curated wisdom, deep-work focus, streak tracking, and actionable morning rituals."
+    />
+    <meta name="twitter:image" content="__DOMAIN__/assets/screenshot-desktop.png" />
+    <meta name="twitter:image:alt" content="Morning Routine Sender Preview" />
+
+    <!-- Schema.org Multi-Entity JSON-LD Graph -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "__DOMAIN__/#webapp",
+          "name": "Morning Routine Sender",
+          "url": "__DOMAIN__/",
+          "description": "Automated, timezone-aware daily morning routine email delivery system featuring curated tracks, habit streak tracking, and focus companion tools.",
+          "applicationCategory": "ProductivityApplication",
+          "operatingSystem": "Any, Web, PWA, iOS, Android",
+          "browserRequirements": "Requires JavaScript. Requires HTML5.",
+          "inLanguage": "en-US",
+          "image": "__DOMAIN__/assets/screenshot-desktop.png",
+          "screenshot": "__DOMAIN__/assets/screenshot-desktop.png",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Timezone-Aware Automated Email Delivery",
+            "5 Focus Personas (Deep Work, Stoic Mindfulness, Exec, Learner, Energizer)",
+            "Daily Habit Streak Tracking",
+            "Interactive 25-Minute Pomodoro Focus Companion & Ambient Soundscapes",
+            "Zero Ad Tracking Privacy and 1-Click Unsubscribe"
+          ],
+          "creator": {
+            "@id": "__DOMAIN__/#organization"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "__DOMAIN__/#organization",
+          "name": "Morning Routine Sender",
+          "url": "__DOMAIN__/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "__DOMAIN__/assets/mrn-brand-ico.png",
+            "width": "512",
+            "height": "512"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "__DOMAIN__/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "How does Morning Routine Sender deliver emails at my exact wake-up time?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Our automated cron scheduling engine computes your local IANA timezone and dispatches your selected morning ritual right when you wake up."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What persona tracks are available?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Subscribers can choose between 5 curated tracks: Deep Work & Builder, Mindfulness & Stoic, High-Performance Exec, Lifelong Learner, and Morning Energizer."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Morning Routine Sender free to use?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, Morning Routine Sender is 100% free with zero advertisements or third-party tracking pixels."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does the habit streak check-in work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Every morning email includes a secure 1-click check-in button. Tapping it logs your daily consistency and launches your interactive 25-minute Pomodoro focus ritual."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <!-- Performance Hints, Google Fonts & CDNs -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -45,10 +170,11 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       crossorigin="anonymous"
     />
+    <link rel="stylesheet" href="/css/loader.css" />
 
-    <!-- Toast Notification CDN -->
+    <!-- Toast Notification CDN with pinned version -->
     <script
-      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
+      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.5/dist/index.umd.js"
       defer
       crossorigin="anonymous"
     ></script>
@@ -69,7 +195,7 @@
         --accent-amber: #f59e0b;
         --text-main: #f8fafc;
         --text-muted: #94a3b8;
-        --text-subtle: #64748b;
+        --text-subtle: #94a3b8;
         --radius-sm: 8px;
         --radius-md: 14px;
         --radius-lg: 22px;
@@ -97,6 +223,8 @@
           radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
           radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
         background-attachment: fixed;
+        padding-top: env(safe-area-inset-top, 0);
+        padding-bottom: env(safe-area-inset-bottom, 0);
       }
 
       .container {
@@ -108,9 +236,9 @@
 
       /* Top Navbar */
       header.navbar {
-        padding: 16px 0;
+        padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 16px max(20px, env(safe-area-inset-left));
         border-bottom: 1px solid var(--border-subtle);
-        background: rgba(11, 15, 25, 0.75);
+        background: rgba(11, 15, 25, 0.85);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         position: sticky;
@@ -176,52 +304,57 @@
         text-decoration: none;
         white-space: nowrap;
         touch-action: manipulation;
-        min-height: 42px;
+        min-height: 44px;
       }
 
       .btn-sm {
         padding: 8px 14px;
         font-size: 13px;
-        min-height: 36px;
+        min-height: 40px;
       }
 
       .btn-primary {
         background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-        color: #fff;
-        box-shadow: 0 4px 14px var(--primary-glow);
+        color: #ffffff;
+        box-shadow: 0 4px 15px -3px var(--primary-glow);
       }
+
       .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 22px rgba(99, 102, 241, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px -4px var(--primary-glow);
+        filter: brightness(1.08);
       }
 
       .btn-glass {
-        background: var(--bg-surface-elevated);
-        border-color: var(--border-subtle);
-        color: var(--text-main);
-        backdrop-filter: blur(12px);
-      }
-      .btn-glass:hover {
-        background: rgba(51, 65, 85, 0.8);
-        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-subtle);
         color: #fff;
+        backdrop-filter: blur(10px);
+      }
+
+      .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
       }
 
       .btn-install {
-        background: rgba(16, 185, 129, 0.15);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
+        border: 1px solid rgba(16, 185, 129, 0.4);
         color: #34d399;
-        border-color: rgba(16, 185, 129, 0.3);
       }
+
       .btn-install:hover {
-        background: rgba(16, 185, 129, 0.25);
-        color: #fff;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(6, 182, 212, 0.3));
+        border-color: #34d399;
+        transform: translateY(-2px);
       }
 
       /* Hero Section */
       .hero-section {
-        padding: 56px 0 36px;
+        padding: clamp(36px, 7vw, 72px) 0 clamp(24px, 4vw, 40px);
         text-align: center;
-        max-width: 820px;
+        max-width: 800px;
         margin: 0 auto;
       }
 
@@ -234,7 +367,7 @@
         border: 1px solid rgba(99, 102, 241, 0.3);
         border-radius: 9999px;
         font-size: 13px;
-        font-weight: 700;
+        font-weight: 600;
         color: #a5b4fc;
         margin-bottom: 20px;
       }
@@ -243,33 +376,33 @@
         font-size: clamp(28px, 5.5vw, 48px);
         font-weight: 800;
         line-height: 1.15;
-        letter-spacing: -0.03em;
-        margin-bottom: 16px;
+        letter-spacing: -0.025em;
         background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        margin-bottom: 16px;
       }
 
       .hero-subtitle {
         font-size: clamp(15px, 2.5vw, 17px);
-        color: var(--text-muted);
         line-height: 1.6;
-        margin: 0 auto;
+        color: var(--text-muted);
         max-width: 640px;
+        margin: 0 auto 36px;
       }
 
-      /* Portals 2-Column Grid */
+      /* Portals Grid (Signup & Login) */
       .portal-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 24px;
-        margin: 28px 0 48px;
+        margin-bottom: 56px;
       }
 
-      @media (max-width: 720px) {
+      @media (max-width: 480px) {
         .portal-grid {
           grid-template-columns: 1fr;
-          gap: 18px;
+          gap: 16px;
         }
       }
 
@@ -286,6 +419,13 @@
         transition: var(--transition);
         position: relative;
         overflow: hidden;
+      }
+
+      @media (max-width: 480px) {
+        .portal-card {
+          padding: 24px 18px;
+          border-radius: 18px;
+        }
       }
 
       .portal-card:hover {
@@ -369,10 +509,11 @@
         margin-bottom: 28px;
       }
 
-      .features-header h3 {
-        font-size: 22px;
+      .features-header h2 {
+        font-size: 24px;
         font-weight: 800;
         color: #fff;
+        letter-spacing: -0.01em;
       }
 
       .features-grid {
@@ -393,8 +534,9 @@
       }
 
       .feature-card:hover {
-        background: rgba(30, 41, 59, 0.5);
-        border-color: rgba(99, 102, 241, 0.3);
+        background: rgba(15, 23, 42, 0.65);
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
       }
 
       .feature-icon {
@@ -402,7 +544,7 @@
         height: 38px;
         border-radius: var(--radius-sm);
         background: rgba(99, 102, 241, 0.15);
-        color: #a5b4fc;
+        color: #818cf8;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -410,7 +552,7 @@
       }
 
       .feature-title {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 700;
         color: #fff;
       }
@@ -421,14 +563,32 @@
         line-height: 1.5;
       }
 
-      /* PWA Bottom Floating Install Banner */
+      /* Footer */
+      footer.footer {
+        margin-top: auto;
+        padding: 24px max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+        border-top: 1px solid var(--border-subtle);
+        background: rgba(7, 9, 14, 0.95);
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .footer-wrap {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      /* Floating PWA Banner */
       .pwa-banner {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
-        max-width: 420px;
+        bottom: max(20px, env(safe-area-inset-bottom));
+        right: max(20px, env(safe-area-inset-right));
+        max-width: 440px;
         width: calc(100% - 40px);
-        background: rgba(15, 23, 42, 0.9);
+        background: rgba(15, 23, 42, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(99, 102, 241, 0.4);
@@ -454,7 +614,7 @@
         .pwa-banner {
           left: 16px;
           right: 16px;
-          bottom: 16px;
+          bottom: max(16px, env(safe-area-inset-bottom));
           width: calc(100% - 32px);
           flex-direction: column;
           align-items: flex-start;
@@ -519,35 +679,32 @@
         justify-content: center;
         padding: 20px;
         z-index: 1000;
-        opacity: 0;
-        pointer-events: none;
-        transition: var(--transition);
-      }
-
-      .modal-backdrop.active, .modal-backdrop.visible, .modal-backdrop.open {
-        opacity: 1;
-        pointer-events: auto;
       }
 
       .modal {
-        background: var(--bg-card);
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
+        background: #0d1322;
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
-        max-width: 460px;
         width: 100%;
-        padding: 32px 28px;
+        max-width: 440px;
+        padding: 28px 24px;
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 30px var(--primary-glow);
-        transform: scale(0.95);
-        transition: var(--transition);
+        gap: 14px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        position: relative;
+        animation: modalEntrance 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      .modal-backdrop.active .modal, .modal-backdrop.visible .modal, .modal-backdrop.open .modal {
-        transform: scale(1);
+      @keyframes modalEntrance {
+        from {
+          opacity: 0;
+          transform: translateY(12px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
 
       .modal h2 {
@@ -556,95 +713,80 @@
         color: #fff;
       }
 
-      .meta {
+      .modal p.meta {
         font-size: 13px;
         color: var(--text-muted);
-        line-height: 1.4;
+        line-height: 1.5;
       }
 
-      .small {
+      .modal .small {
         font-size: 12px;
-        color: var(--text-subtle);
+        color: var(--text-muted);
       }
 
-      .small a {
+      .modal .small a {
         color: #818cf8;
         text-decoration: none;
       }
-      .small a:hover {
+
+      .modal .small a:hover {
         text-decoration: underline;
-      }
-
-      footer.footer {
-        margin-top: auto;
-        padding: 24px 0;
-        border-top: 1px solid var(--border-subtle);
-      }
-
-      .footer-wrap {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 14px;
-        font-size: 13px;
-        color: var(--text-subtle);
       }
     </style>
   </head>
 
   <body>
-    <!-- Header Navbar -->
+    <!-- Top Header Navbar -->
     <header class="navbar" id="mainRootHeader">
       <div class="container nav-wrap">
-        <a href="/" class="brand-logo">
-          <div class="brand-icon"><i class="fas fa-sun"></i></div>
+        <a href="/" class="brand-logo" aria-label="Morning Routine Sender Home">
+          <div class="brand-icon" aria-hidden="true"><i class="fas fa-sun"></i></div>
           <span class="brand-name">Morning Routine</span>
         </a>
 
-        <div class="nav-links">
-          <button id="pwaNavInstallBtn" class="btn btn-install btn-sm" style="display: none;">
-            <i class="fas fa-arrow-down-to-bracket"></i> Install App
+        <nav class="nav-links" aria-label="Main Navigation">
+          <button id="pwaNavInstallBtn" class="btn btn-install btn-sm" style="display: none;" aria-label="Install Morning Routine App">
+            <i class="fas fa-arrow-down-to-bracket" aria-hidden="true"></i> Install App
           </button>
-          <a class="btn btn-glass btn-sm" href="#" id="openModalBtn">
-            <i class="fas fa-key"></i> Admin Access
+          <a class="btn btn-glass btn-sm" href="#" id="openModalBtn" aria-haspopup="dialog">
+            <i class="fas fa-key" aria-hidden="true"></i> Admin Access
           </a>
           <a class="btn btn-primary btn-sm" href="#signupView">
-            <i class="fas fa-paper-plane"></i> Subscribe Free
+            <i class="fas fa-paper-plane" aria-hidden="true"></i> Subscribe Free
           </a>
-        </div>
+        </nav>
       </div>
     </header>
 
-    <!-- Main Workspace -->
+    <!-- Main Content Workspace -->
     <main class="container" id="mainRoot">
       <!-- Hero Section -->
-      <section class="hero-section">
+      <section class="hero-section" aria-labelledby="hero-title">
         <div class="hero-pill">
-          <i class="fas fa-sparkles"></i>
+          <i class="fas fa-sparkles" aria-hidden="true"></i>
           <span>Automated Daily Rituals • Powered by SMTP Engine</span>
         </div>
-        <h1 class="hero-title">Start Every Single Morning Inspired &amp; Aligned</h1>
+        <h1 class="hero-title" id="hero-title">Start Every Single Morning Inspired &amp; Aligned</h1>
         <p class="hero-subtitle">
           Receive curated morning routines, deep work reflections, habit streak tracking, and tailored wisdom delivered right when you wake up in your local timezone.
         </p>
       </section>
 
       <!-- Portals Grid: Signup + Subscriber Login -->
-      <section class="portal-grid">
+      <section class="portal-grid" aria-label="Subscriber Access and Onboarding">
         <!-- New Subscriber Signup Card -->
-        <div class="portal-card" id="signupView">
-          <div class="portal-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+        <article class="portal-card" id="signupView" aria-labelledby="signupTitle">
+          <div class="portal-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;" aria-hidden="true">
             <i class="fas fa-user-plus"></i>
           </div>
           <div>
-            <h2 class="portal-title">Join Daily Routine</h2>
+            <h2 class="portal-title" id="signupTitle">Join Daily Routine</h2>
             <p class="portal-desc">
               Get an inspiring morning routine email daily. We send a quick confirmation link to verify your inbox.
             </p>
           </div>
 
-          <form id="subscriberSignupForm" class="portal-form">
+          <form id="subscriberSignupForm" class="portal-form" aria-label="Subscribe to daily morning routine">
             <input
               type="text"
               name="website"
@@ -660,28 +802,29 @@
                 class="input-text"
                 placeholder="your.email@example.com"
                 required
+                aria-label="Email address for subscription"
               />
               <button type="submit" class="btn btn-primary" id="subscriberSignupBtn">
-                <i class="fas fa-paper-plane"></i> Subscribe
+                <i class="fas fa-paper-plane" aria-hidden="true"></i> Subscribe
               </button>
             </div>
-            <p id="subscriberSignupStatus" class="form-status" style="color: #34d399;"></p>
+            <p id="subscriberSignupStatus" class="form-status" style="color: #34d399;" aria-live="polite"></p>
           </form>
-        </div>
+        </article>
 
         <!-- Existing Subscriber Magic Link Login -->
-        <div class="portal-card" id="userView">
-          <div class="portal-icon" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee;">
+        <article class="portal-card" id="userView" aria-labelledby="loginTitle">
+          <div class="portal-icon" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee;" aria-hidden="true">
             <i class="fas fa-magic"></i>
           </div>
           <div>
-            <h2 class="portal-title">Subscriber Portal</h2>
+            <h2 class="portal-title" id="loginTitle">Subscriber Portal</h2>
             <p class="portal-desc">
               Already subscribed? Enter your email to receive an instant magic login link to manage send times, streak, or pause anytime.
             </p>
           </div>
 
-          <form id="subscriberLoginForm" class="portal-form">
+          <form id="subscriberLoginForm" class="portal-form" aria-label="Subscriber magic link login">
             <input
               type="text"
               name="website"
@@ -697,41 +840,42 @@
                 class="input-text"
                 placeholder="your.email@example.com"
                 required
+                aria-label="Email address for magic link login"
               />
               <button type="submit" class="btn btn-glass" id="subscriberLoginBtn">
-                <i class="fas fa-sign-in-alt"></i> Login Link
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login Link
               </button>
             </div>
-            <p id="subscriberLoginStatus" class="form-status" style="color: #60a5fa;"></p>
+            <p id="subscriberLoginStatus" class="form-status" style="color: #60a5fa;" aria-live="polite"></p>
           </form>
-        </div>
+        </article>
       </section>
 
       <!-- Features Showcase Section -->
-      <section class="features-section">
+      <section class="features-section" aria-labelledby="features-title">
         <div class="features-header">
-          <h3>Engineered for Precision &amp; Clarity</h3>
+          <h2 id="features-title">Engineered for Precision &amp; Clarity</h2>
         </div>
         <div class="features-grid">
           <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-clock"></i></div>
-            <div class="feature-title">Timezone Aware</div>
-            <div class="feature-desc">Automated cron scheduling ensures your routine lands exactly when you wake up.</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fas fa-clock"></i></div>
+            <h3 class="feature-title">Timezone Aware</h3>
+            <p class="feature-desc">Automated cron scheduling ensures your routine lands exactly when you wake up.</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-brain"></i></div>
-            <div class="feature-title">5 Tailored Tracks</div>
-            <div class="feature-desc">Choose from Deep Work, Mindfulness &amp; Stoic, High-Performance Exec, or Lifelong Learner.</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fas fa-brain"></i></div>
+            <h3 class="feature-title">5 Tailored Tracks</h3>
+            <p class="feature-desc">Choose from Deep Work, Mindfulness &amp; Stoic, High-Performance Exec, or Lifelong Learner.</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-fire"></i></div>
-            <div class="feature-title">Daily Streak Tracking</div>
-            <div class="feature-desc">1-Click habit check-in from your email with built-in 25-minute Pomodoro focus companion.</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fas fa-fire"></i></div>
+            <h3 class="feature-title">Daily Streak Tracking</h3>
+            <p class="feature-desc">1-Click habit check-in from your email with built-in 25-minute Pomodoro focus companion.</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-            <div class="feature-title">Privacy First</div>
-            <div class="feature-desc">Zero ad tracking pixels, self-service preferences, and instant 1-click unsubscribe.</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fas fa-shield-alt"></i></div>
+            <h3 class="feature-title">Privacy First</h3>
+            <p class="feature-desc">Zero ad tracking pixels, self-service preferences, and instant 1-click unsubscribe.</p>
           </div>
         </div>
       </section>
@@ -740,18 +884,19 @@
     <!-- Footer -->
     <footer class="footer" id="mainRootFooter">
       <div class="container footer-wrap">
-        <div>&copy; Morning Routine Sender • All rights reserved.</div>
-        <div style="display: flex; gap: 18px; align-items: center;">
-          <a href="/unsubscribe" style="color: var(--text-subtle); text-decoration: none;">Unsubscribe / Manage</a>
-          <a href="#" onclick="document.getElementById('openModalBtn').click(); return false;" style="color: var(--text-subtle); text-decoration: none;">Admin Access</a>
-        </div>
+        <div>&copy; 2026 Morning Routine Sender • All rights reserved.</div>
+        <nav class="footer-links" aria-label="Footer Navigation" style="display: flex; gap: 18px; align-items: center;">
+          <a href="/routine" style="color: var(--text-muted); text-decoration: none;">Focus Companion</a>
+          <a href="/unsubscribe" style="color: var(--text-muted); text-decoration: none;">Unsubscribe / Manage</a>
+          <a href="#" onclick="document.getElementById('openModalBtn').click(); return false;" style="color: var(--text-muted); text-decoration: none;">Admin Access</a>
+        </nav>
       </div>
     </footer>
 
     <!-- PWA Bottom Floating Install Banner -->
     <div id="pwaInstallBanner" class="pwa-banner" style="display: none;">
       <div class="pwa-banner-content">
-        <div class="pwa-banner-icon">
+        <div class="pwa-banner-icon" aria-hidden="true">
           <i class="fas fa-sun"></i>
         </div>
         <div>
@@ -762,21 +907,21 @@
       <div class="pwa-banner-actions">
         <button id="pwaBannerDismissBtn" class="btn btn-glass btn-sm">Later</button>
         <button id="pwaBannerInstallBtn" class="btn btn-primary btn-sm">
-          <i class="fas fa-arrow-down-to-bracket"></i> Install
+          <i class="fas fa-arrow-down-to-bracket" aria-hidden="true"></i> Install
         </button>
       </div>
     </div>
 
     <!-- iOS Safari PWA Install Modal Guide -->
     <div id="pwaIosModal" class="modal-backdrop" style="display: none;">
-      <div class="modal" role="dialog" aria-modal="true">
-        <h2>Install on iPhone / iPad</h2>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="iosModalTitle">
+        <h2 id="iosModalTitle">Install on iPhone / iPad</h2>
         <p class="meta">
           To install Morning Routine on iOS Safari:
         </p>
         <ol style="margin-left: 20px; font-size: 14px; color: var(--text-muted); line-height: 1.8;">
-          <li>Tap the <strong>Share</strong> button <i class="fas fa-arrow-up-from-bracket" style="color:#818cf8;"></i> in Safari's bottom toolbar.</li>
-          <li>Scroll down and tap <strong>Add to Home Screen</strong> <i class="fas fa-plus-square" style="color:#34d399;"></i>.</li>
+          <li>Tap the <strong>Share</strong> button <i class="fas fa-arrow-up-from-bracket" style="color:#818cf8;" aria-hidden="true"></i> in Safari's bottom toolbar.</li>
+          <li>Scroll down and tap <strong>Add to Home Screen</strong> <i class="fas fa-plus-square" style="color:#34d399;" aria-hidden="true"></i>.</li>
           <li>Tap <strong>Add</strong> in the top right corner.</li>
         </ol>
         <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
@@ -792,6 +937,7 @@
       role="dialog"
       aria-modal="true"
       aria-hidden="true"
+      style="display: none;"
     >
       <div class="modal" role="document" aria-labelledby="modalTitle">
         <h2 id="modalTitle">Admin Access</h2>
@@ -837,11 +983,10 @@
       </div>
     </div>
 
-    <!-- Scripts with Cache-Busting -->
-    <script src="/js/skeleton-loader.js?v=4.1.0"></script>
-    <script defer src="/js/landing-page-modal.js?v=4.1.0"></script>
-    <script defer src="/js/subscriber-login.js?v=4.1.0"></script>
-    <script defer src="/js/subscriber-signup.js?v=4.1.0"></script>
-    <script defer src="/js/pwa-install.js?v=4.1.0"></script>
+    <!-- Client Scripts -->
+    <script defer src="/js/landing-page-modal.js?v=4.2.0"></script>
+    <script defer src="/js/subscriber-login.js?v=4.2.0"></script>
+    <script defer src="/js/subscriber-signup.js?v=4.2.0"></script>
+    <script defer src="/js/pwa-install.js?v=4.2.0"></script>
   </body>
 </html>

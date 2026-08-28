@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Your Morning Routine • Subscriber Dashboard</title>
     <meta name="description" content="Manage your Morning Routine Sender subscription, track persona, wake-up schedule, and streak." />
     <meta name="robots" content="noindex, nofollow" />
@@ -12,6 +12,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Morning Routine" />
 
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/mrn-brand-ico.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/mrn-brand-ico.png" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="/css/loader.css" />
 
@@ -28,9 +31,9 @@
       crossorigin="anonymous"
     />
 
-    <!-- Toast Notification CDN -->
+    <!-- Toast Notification CDN with pinned version -->
     <script
-      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
+      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.5/dist/index.umd.js"
       defer
       crossorigin="anonymous"
     ></script>
@@ -52,7 +55,7 @@
         --accent-rose: #f43f5e;
         --text-main: #f8fafc;
         --text-muted: #94a3b8;
-        --text-subtle: #64748b;
+        --text-subtle: #94a3b8;
         --radius-sm: 8px;
         --radius-md: 14px;
         --radius-lg: 20px;
@@ -75,10 +78,12 @@
         display: flex;
         flex-direction: column;
         background-image: 
-          radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-          radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
-          radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+          radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+          radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
+          radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
         background-attachment: fixed;
+        padding-top: env(safe-area-inset-top, 0);
+        padding-bottom: env(safe-area-inset-bottom, 0);
       }
 
       .container {
@@ -90,9 +95,9 @@
 
       /* Navbar */
       header.navbar {
-        padding: 18px 0;
+        padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 16px max(20px, env(safe-area-inset-left));
         border-bottom: 1px solid var(--border-subtle);
-        background: rgba(11, 15, 25, 0.75);
+        background: rgba(11, 15, 25, 0.85);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         position: sticky;
@@ -104,18 +109,19 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 12px;
       }
 
       .brand-logo {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         text-decoration: none;
       }
 
       .brand-icon {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
         border-radius: var(--radius-md);
         display: flex;
@@ -123,78 +129,22 @@
         justify-content: center;
         font-size: 17px;
         color: #fff;
-        box-shadow: 0 4px 12px var(--primary-glow);
+        box-shadow: 0 4px 14px var(--primary-glow);
       }
 
       .brand-name {
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 800;
         color: #fff;
       }
 
-      /* Buttons */
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 11px 20px;
-        border-radius: var(--radius-md);
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        border: 1px solid transparent;
-        text-decoration: none;
-      }
-
-      .btn-primary {
-        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-        color: #fff;
-        box-shadow: 0 4px 14px var(--primary-glow);
-      }
-      .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 22px rgba(99, 102, 241, 0.5);
-      }
-
-      .btn-glass, .btn-secondary {
-        background: var(--bg-surface-elevated);
-        border-color: var(--border-subtle);
-        color: var(--text-main);
-        backdrop-filter: blur(12px);
-      }
-      .btn-glass:hover, .btn-secondary:hover {
-        background: rgba(51, 65, 85, 0.8);
-        color: #fff;
-      }
-
-      .btn-warning {
-        background: rgba(245, 158, 11, 0.15);
-        color: #fbbf24;
-        border-color: rgba(245, 158, 11, 0.3);
-      }
-      .btn-warning:hover {
-        background: rgba(245, 158, 11, 0.25);
-        color: #fff;
-      }
-
-      .btn-success {
-        background: rgba(16, 185, 129, 0.15);
-        color: #34d399;
-        border-color: rgba(16, 185, 129, 0.3);
-      }
-      .btn-success:hover {
-        background: rgba(16, 185, 129, 0.25);
-        color: #fff;
-      }
-
-      /* Main Cards */
-      main.main-content {
-        margin: 32px auto 40px;
+      /* Main Content */
+      .main-content {
+        padding: clamp(24px, 4vw, 36px) 20px 48px;
         display: flex;
         flex-direction: column;
         gap: 20px;
+        flex: 1;
       }
 
       .card {
@@ -204,18 +154,28 @@
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
         padding: 28px;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
         display: flex;
         flex-direction: column;
         gap: 18px;
-        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+
+      @media (max-width: 520px) {
+        .card {
+          padding: 20px 16px;
+          border-radius: 16px;
+        }
       }
 
       .card h2 {
         font-size: 18px;
-        font-weight: 700;
+        font-weight: 800;
+        color: #fff;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
       }
 
       /* Streak Hero Banner */
@@ -229,12 +189,24 @@
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 16px;
+        box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.15);
+      }
+
+      @media (max-width: 520px) {
+        .streak-hero-card {
+          padding: 20px 16px;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .streak-hero-card .btn {
+          width: 100%;
+        }
       }
 
       .streak-info {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 14px;
       }
 
       .streak-fire {
@@ -297,6 +269,7 @@
         font-size: 14px;
         outline: none;
         transition: var(--transition);
+        min-height: 44px;
       }
 
       input[type="text"]:focus, select:focus {
@@ -321,12 +294,13 @@
         transition: var(--transition);
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
+        touch-action: manipulation;
       }
 
       .track-card:hover {
-        background: rgba(30, 41, 59, 0.6);
-        border-color: rgba(99, 102, 241, 0.3);
+        background: rgba(15, 23, 42, 0.7);
+        border-color: var(--border-hover);
       }
 
       .track-card.selected {
@@ -339,9 +313,6 @@
         font-size: 14px;
         font-weight: 700;
         color: #fff;
-        display: flex;
-        align-items: center;
-        gap: 6px;
       }
 
       .track-desc {
@@ -350,73 +321,133 @@
         line-height: 1.4;
       }
 
-      .history-row {
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        border: 1px solid transparent;
+        text-decoration: none;
+        white-space: nowrap;
+        touch-action: manipulation;
+        min-height: 44px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: #fff;
+        box-shadow: 0 4px 15px -3px var(--primary-glow);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px -4px var(--primary-glow);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-subtle);
+        color: #fff;
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn-warning {
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        color: #fbbf24;
+      }
+
+      .btn-warning:hover {
+        background: rgba(245, 158, 11, 0.25);
+      }
+
+      /* History List */
+      .history-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 12px 14px;
-        border-radius: var(--radius-md);
-        background: rgba(15, 23, 42, 0.4);
+        border-radius: var(--radius-sm);
+        background: rgba(15, 23, 42, 0.35);
         border: 1px solid var(--border-subtle);
-        margin-bottom: 8px;
+        margin-top: 8px;
         font-size: 13px;
       }
 
-      .history-status.success { color: #34d399; font-weight: 600; }
-      .history-status.failed { color: #fb7185; font-weight: 600; }
-
-      .meta {
-        font-size: 13px;
-        color: var(--text-muted);
+      .history-status {
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 11px;
       }
 
-      .small {
-        font-size: 12px;
-        color: var(--text-subtle);
+      .history-status.sent {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
       }
 
+      .history-status.failed {
+        background: rgba(244, 63, 94, 0.15);
+        color: #fb7185;
+      }
+
+      /* Footer */
       footer {
-        margin-top: auto;
-        padding: 24px 0;
+        padding: 24px max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
         border-top: 1px solid var(--border-subtle);
         text-align: center;
         font-size: 13px;
-        color: var(--text-subtle);
+        color: var(--text-muted);
       }
     </style>
   </head>
   <body>
+    <!-- Accessible Heading -->
+    <h1 class="visually-hidden" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
+      Subscriber Routine Command Center &amp; Preference Dashboard
+    </h1>
+
     <header class="navbar">
       <div class="container nav-wrap">
-        <div class="brand-logo">
-          <div class="brand-icon"><i class="fas fa-sun"></i></div>
+        <a href="/" class="brand-logo" aria-label="Back to Morning Routine Home">
+          <div class="brand-icon" aria-hidden="true"><i class="fas fa-sun"></i></div>
           <div>
             <div class="brand-name">Your Morning Routine</div>
-            <div style="font-size: 11px; color: var(--text-subtle);">Subscriber Management Portal</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Subscriber Management Portal</div>
           </div>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <a href="/routine" class="btn btn-primary" style="padding: 8px 14px; font-size: 13px;">
-            <i class="fas fa-bolt"></i> Live Routine
+        </a>
+        <nav style="display: flex; gap: 10px; align-items: center;" aria-label="Subscriber Actions">
+          <a href="/routine" class="btn btn-primary" style="padding: 8px 14px; font-size: 13px; min-height: 40px;">
+            <i class="fas fa-bolt" aria-hidden="true"></i> Live Routine
           </a>
-          <button class="btn btn-secondary" id="logoutBtn" style="padding: 8px 14px; font-size: 13px;">
-            <i class="fas fa-sign-out-alt"></i> Logout
+          <button class="btn btn-secondary" id="logoutBtn" style="padding: 8px 14px; font-size: 13px; min-height: 40px;">
+            <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout
           </button>
-        </div>
+        </nav>
       </div>
     </header>
 
-    <main class="container main-content">
+    <main class="container main-content" id="dashboardMain">
       <div class="card" id="loadingCard">
-        <p class="meta" style="margin: 0">
-          <i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading your subscription details…
+        <p class="meta" style="margin: 0; color: var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="margin-right: 8px;" aria-hidden="true"></i> Loading your subscription details…
         </p>
       </div>
 
       <!-- Streak Progress Banner -->
       <div class="streak-hero-card" id="streakHeroCard" style="display: none;">
         <div class="streak-info">
-          <div class="streak-fire">🔥</div>
+          <div class="streak-fire" aria-hidden="true">🔥</div>
           <div>
             <div style="font-size: 20px; font-weight: 800; color: #fff;" id="streakCountTitle">0-Day Streak Active</div>
             <p class="small" id="streakSubtext" style="color: #cbd5e1; margin-top: 2px;">
@@ -425,7 +456,7 @@
           </div>
         </div>
         <a href="/routine" class="btn btn-primary">
-          <i class="fas fa-play"></i> Start Today's Ritual
+          <i class="fas fa-play" aria-hidden="true"></i> Start Today's Ritual
         </a>
       </div>
 
@@ -433,7 +464,7 @@
       <div class="card" id="subscriptionCard" style="display: none">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h2><i class="fas fa-user-circle" style="color: var(--primary);"></i> Routine Persona & Schedule</h2>
+            <h2><i class="fas fa-user-circle" style="color: var(--primary);" aria-hidden="true"></i> Routine Persona &amp; Schedule</h2>
             <p class="meta" id="subEmail" style="font-size: 15px; color: #fff; font-weight: 600; margin-top: 4px;"></p>
           </div>
           <div>
@@ -444,27 +475,27 @@
         <form id="preferencesForm" style="margin-top: 8px;">
           <!-- Multi-Track Persona Selection -->
           <div>
-            <label>Choose Your Focus Persona & Routine Track</label>
-            <div class="track-grid" id="trackGrid">
-              <div class="track-card selected" data-track="deep-work">
-                <div class="track-title">⚡ Deep Work & Builder</div>
-                <div class="track-desc">Distraction-free focus sprints & developer wisdom.</div>
+            <label>Choose Your Focus Persona &amp; Routine Track</label>
+            <div class="track-grid" id="trackGrid" role="radiogroup" aria-label="Routine Persona Track Selection">
+              <div class="track-card selected" data-track="deep-work" role="radio" aria-checked="true" tabindex="0">
+                <div class="track-title">⚡ Deep Work &amp; Builder</div>
+                <div class="track-desc">Distraction-free focus sprints &amp; developer wisdom.</div>
               </div>
-              <div class="track-card" data-track="mindfulness">
-                <div class="track-title">🧘 Mindfulness & Stoic</div>
-                <div class="track-desc">Breathwork, gratitude & stoic mental clarity.</div>
+              <div class="track-card" data-track="mindfulness" role="radio" aria-checked="false" tabindex="0">
+                <div class="track-title">🧘 Mindfulness &amp; Stoic</div>
+                <div class="track-desc">Breathwork, gratitude &amp; stoic mental clarity.</div>
               </div>
-              <div class="track-card" data-track="executive">
+              <div class="track-card" data-track="executive" role="radio" aria-checked="false" tabindex="0">
                 <div class="track-title">💼 High-Performance Exec</div>
-                <div class="track-desc">Top 3 non-negotiables & strategic leverage.</div>
+                <div class="track-desc">Top 3 non-negotiables &amp; strategic leverage.</div>
               </div>
-              <div class="track-card" data-track="learning">
+              <div class="track-card" data-track="learning" role="radio" aria-checked="false" tabindex="0">
                 <div class="track-title">📚 Lifelong Learner</div>
-                <div class="track-desc">Mental models, active recall & book summaries.</div>
+                <div class="track-desc">Mental models, active recall &amp; book summaries.</div>
               </div>
-              <div class="track-card" data-track="classic">
+              <div class="track-card" data-track="classic" role="radio" aria-checked="false" tabindex="0">
                 <div class="track-title">🌅 Morning Energizer</div>
-                <div class="track-desc">Positive affirmations & energizing momentum.</div>
+                <div class="track-desc">Positive affirmations &amp; energizing momentum.</div>
               </div>
             </div>
             <input type="hidden" id="prefTrack" value="deep-work" />
@@ -473,34 +504,34 @@
           <!-- Schedule & Timezone -->
           <div class="field-row" style="margin-top: 18px;">
             <div>
-              <label for="visualTimeSelect">Wake-Up & Send Time</label>
+              <label for="visualTimeSelect">Wake-Up &amp; Send Time</label>
               <select id="visualTimeSelect">
                 <option value="0 5 * * *">05:00 AM (Early Bird)</option>
                 <option value="0 6 * * *">06:00 AM (Sunrise Focus)</option>
                 <option value="0 7 * * *">07:00 AM (Prime Morning)</option>
-                <option value="0 8 * * *" selected>08:00 AM (Standard Standard)</option>
+                <option value="0 8 * * *" selected>08:00 AM (Standard Routine)</option>
                 <option value="0 9 * * *">09:00 AM (Workday Start)</option>
                 <option value="0 10 * * *">10:00 AM (Mid-Morning)</option>
                 <option value="custom">⚙️ Custom Cron Pattern…</option>
               </select>
               <input type="text" id="prefCron" placeholder="0 8 * * *" style="display:none; margin-top: 8px;" />
-              <div class="small" style="margin-top: 4px;">Delivered directly to your inbox every morning.</div>
+              <div class="small" style="margin-top: 4px; color: var(--text-muted); font-size: 12px;">Delivered directly to your inbox every morning.</div>
             </div>
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <label for="prefTz" style="margin-bottom: 0;">Timezone</label>
-                <button type="button" id="autoDetectTzBtn" style="background: none; border: none; color: #818cf8; font-size: 11px; cursor: pointer; text-decoration: underline;">
-                  <i class="fas fa-crosshairs"></i> Auto-detect
+                <button type="button" id="autoDetectTzBtn" style="background: none; border: none; color: #818cf8; font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px 6px;">
+                  <i class="fas fa-crosshairs" aria-hidden="true"></i> Auto-detect
                 </button>
               </div>
               <input type="text" id="prefTz" placeholder="Asia/Kolkata" />
-              <div class="small" style="margin-top: 4px;">e.g. <code>America/New_York</code>, <code>Europe/London</code>, <code>Asia/Kolkata</code></div>
+              <div class="small" style="margin-top: 4px; color: var(--text-muted); font-size: 12px;">e.g. <code>America/New_York</code>, <code>Europe/London</code>, <code>Asia/Kolkata</code></div>
             </div>
           </div>
 
           <div style="margin-top: 20px;">
             <button type="submit" class="btn btn-primary" id="savePrefsBtn">
-              <i class="fas fa-save"></i> Save Preferences
+              <i class="fas fa-save" aria-hidden="true"></i> Save Preferences
             </button>
             <p id="saveStatus" class="small" aria-live="polite" style="margin-top: 8px; color: #34d399;"></p>
           </div>
@@ -509,7 +540,7 @@
         <div style="margin-top: 16px; padding-top: 18px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
             <div style="font-weight: 600; font-size: 14px;">Routine Status</div>
-            <div class="small">Pause emails temporarily without deleting your streak or account.</div>
+            <div class="small" style="color: var(--text-muted); font-size: 12px;">Pause emails temporarily without deleting your streak or account.</div>
           </div>
           <button class="btn btn-warning" id="pauseResumeBtn"></button>
         </div>
@@ -520,8 +551,8 @@
       <div class="card" id="notificationCard" style="display: none">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h2><i class="fas fa-bell" style="color: var(--accent-amber);"></i> PWA Morning Routine Notifications</h2>
-            <p class="meta" style="font-size: 13px; margin-top: 4px;">
+            <h2><i class="fas fa-bell" style="color: var(--accent-amber);" aria-hidden="true"></i> PWA Morning Routine Notifications</h2>
+            <p class="meta" style="font-size: 13px; margin-top: 4px; color: var(--text-muted);">
               Receive instant morning reminders on your desktop or mobile device when your routine is ready.
             </p>
           </div>
@@ -533,14 +564,14 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 14px; padding: 16px; background: rgba(15, 23, 42, 0.4); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
           <div>
             <div style="font-weight: 700; font-size: 14px; color: #fff;" id="notifToggleTitle">Enable Morning Push Alerts</div>
-            <div class="small" id="notifToggleSubtext">One-click notification prompt to route directly to your live timer &amp; streak tracker.</div>
+            <div class="small" id="notifToggleSubtext" style="color: var(--text-muted); font-size: 12px;">One-click notification prompt to route directly to your live timer &amp; streak tracker.</div>
           </div>
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary" id="enableNotifBtn">
-              <i class="fas fa-bell"></i> Enable Notifications
+              <i class="fas fa-bell" aria-hidden="true"></i> Enable Notifications
             </button>
             <button type="button" class="btn btn-secondary" id="testNotifBtn" style="display: none;">
-              <i class="fas fa-paper-plane"></i> Test Notification
+              <i class="fas fa-paper-plane" aria-hidden="true"></i> Test Notification
             </button>
           </div>
         </div>
@@ -550,7 +581,7 @@
 
       <!-- Dispatch History Card -->
       <div class="card" id="historyCard" style="display: none">
-        <h2><i class="fas fa-history" style="color: var(--accent-cyan);"></i> Recent Dispatch History</h2>
+        <h2><i class="fas fa-history" style="color: var(--accent-cyan);" aria-hidden="true"></i> Recent Dispatch History</h2>
         <div id="historyList"></div>
       </div>
 
@@ -560,9 +591,9 @@
     </main>
 
     <footer>
-      <small>&copy; Morning Routine Sender • All rights reserved.</small>
+      <small>&copy; 2026 Morning Routine Sender • All rights reserved.</small>
     </footer>
 
-    <script src="/js/user-dashboard.js?v=4.2.0"></script>
+    <script defer src="/js/user-dashboard.js?v=4.2.0"></script>
   </body>
 </html>
