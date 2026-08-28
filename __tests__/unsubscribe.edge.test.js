@@ -70,7 +70,9 @@ describe("Unsubscribe & Self-Service Edge Cases", () => {
       const token = generateUnsubscribeToken(email);
       sharedData.setUserActive.mockResolvedValue(true);
 
-      const res = await request(app).get(`/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`);
+      const res = await request(app).get(
+        `/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`,
+      );
       expect(res.status).toBe(200);
       expect(res.text).toMatch(/You're Unsubscribed/i);
       expect(sharedData.setUserActive).toHaveBeenCalledWith(email, false);
@@ -80,7 +82,9 @@ describe("Unsubscribe & Self-Service Edge Cases", () => {
       const email = "subscriber@example.com";
       const forgedToken = "bad-token-1234567890abcdef";
 
-      const res = await request(app).get(`/unsubscribe?email=${encodeURIComponent(email)}&token=${forgedToken}`);
+      const res = await request(app).get(
+        `/unsubscribe?email=${encodeURIComponent(email)}&token=${forgedToken}`,
+      );
       expect(res.status).toBe(200);
       expect(res.text).toMatch(/Link Expired or Invalid/i);
       expect(sharedData.setUserActive).not.toHaveBeenCalled();
@@ -95,9 +99,7 @@ describe("Unsubscribe & Self-Service Edge Cases", () => {
         isActive: true,
       });
 
-      const res = await request(app)
-        .post("/unsubscribe/request")
-        .send({ email });
+      const res = await request(app).post("/unsubscribe/request").send({ email });
 
       expect(res.status).toBe(200);
       expect(res.body.message).toMatch(/If that email is subscribed/i);
@@ -121,9 +123,7 @@ describe("Unsubscribe & Self-Service Edge Cases", () => {
     });
 
     test("returns generic message for invalid email format", async () => {
-      const res = await request(app)
-        .post("/unsubscribe/request")
-        .send({ email: "not-an-email" });
+      const res = await request(app).post("/unsubscribe/request").send({ email: "not-an-email" });
 
       expect(res.status).toBe(200);
       expect(res.body.message).toMatch(/If that email is subscribed/i);

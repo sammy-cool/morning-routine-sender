@@ -17,9 +17,7 @@ async function cleanupOldEmailRecords(days) {
     });
 
     // Delete old email tracker records
-    const deleted = await db("email_tracker")
-      .where("sent_at", "<", cutoffDate)
-      .delete();
+    const deleted = await db("email_tracker").where("sent_at", "<", cutoffDate).delete();
 
     logger.info("✅ Database cleanup completed", {
       recordsDeleted: deleted,
@@ -45,9 +43,9 @@ async function optimizeDatabase() {
     // Vacuum for SQLite (reclaim space)
     try {
       await db.raw("VACUUM");
-      logger.info('Database optimized');
+      logger.info("Database optimized");
     } catch (error) {
-      logger.warn('VACUUM skipped (not supported in this environment)', { error: error.message });
+      logger.warn("VACUUM skipped (not supported in this environment)", { error: error.message });
     }
 
     // Analyze for query optimization
@@ -69,12 +67,8 @@ async function optimizeDatabase() {
 async function getDatabaseStats() {
   try {
     const [emailCount] = await db("email_tracker").count("* as count");
-    const [oldestRecord] = await db("email_tracker")
-      .orderBy("sent_at", "asc")
-      .limit(1);
-    const [newestRecord] = await db("email_tracker")
-      .orderBy("sent_at", "desc")
-      .limit(1);
+    const [oldestRecord] = await db("email_tracker").orderBy("sent_at", "asc").limit(1);
+    const [newestRecord] = await db("email_tracker").orderBy("sent_at", "desc").limit(1);
 
     return {
       totalRecords: emailCount.count,

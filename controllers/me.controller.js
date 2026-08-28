@@ -59,7 +59,7 @@ async function exportJournal(req, res) {
     res.setHeader("Content-Type", "text/markdown; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="morning-routine-journal-${new Date().toISOString().split("T")[0]}.md"`
+      `attachment; filename="morning-routine-journal-${new Date().toISOString().split("T")[0]}.md"`,
     );
     res.send(md);
   } catch (error) {
@@ -77,7 +77,9 @@ async function getStreakCard(req, res) {
       subscriber = await sharedData.getUserByEmail(email);
     }
     const streak = subscriber ? subscriber.streakCount : Number(req.query.streak) || 1;
-    const track = subscriber ? (subscriber.routineTrack || subscriber.templateType) : (req.query.track || "deep-work");
+    const track = subscriber
+      ? subscriber.routineTrack || subscriber.templateType
+      : req.query.track || "deep-work";
 
     const svg = generateStreakSvg({
       name: email ? email.split("@")[0] : "Morning Builder",

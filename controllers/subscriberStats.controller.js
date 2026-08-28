@@ -34,10 +34,7 @@ async function getSubscriberStats(req, res) {
       .orderBy("date", "asc");
 
     const growth = growthRows.map((row) => ({
-      date:
-        row.date instanceof Date
-          ? row.date.toISOString().slice(0, 10)
-          : String(row.date),
+      date: row.date instanceof Date ? row.date.toISOString().slice(0, 10) : String(row.date),
       count: Number(row.count),
     }));
 

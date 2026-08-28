@@ -5,7 +5,11 @@ const { parse } = require("pg-connection-string");
 
 function getSsl(host) {
   if (process.env.DB_SSL === "false") return false;
-  if (process.env.DB_SSL === "true" || process.env.DB_SSL || process.env.NODE_ENV === "production") {
+  if (
+    process.env.DB_SSL === "true" ||
+    process.env.DB_SSL ||
+    process.env.NODE_ENV === "production"
+  ) {
     if (host && (!host.includes(".") || host === "localhost" || host === "127.0.0.1")) {
       return false;
     }

@@ -58,7 +58,9 @@ describe("Habit Streak & Check-in Edge Cases", () => {
       const email = "streak@example.com";
       const wrongToken = "invalid-checkin-token-12345";
 
-      const res = await request(app).get(`/checkin?email=${encodeURIComponent(email)}&token=${wrongToken}`);
+      const res = await request(app).get(
+        `/checkin?email=${encodeURIComponent(email)}&token=${wrongToken}`,
+      );
       expect(res.status).toBe(200);
       expect(res.text).toMatch(/Link Expired or Invalid/i);
     });
@@ -68,7 +70,9 @@ describe("Habit Streak & Check-in Edge Cases", () => {
       // Generate a token for an unauthorized action
       const unauthorizedToken = generateActionToken(email, "unauthorized_action");
 
-      const res = await request(app).get(`/checkin?email=${encodeURIComponent(email)}&token=${unauthorizedToken}`);
+      const res = await request(app).get(
+        `/checkin?email=${encodeURIComponent(email)}&token=${unauthorizedToken}`,
+      );
       expect(res.status).toBe(200);
       expect(res.text).toMatch(/Link Expired or Invalid/i);
     });
@@ -91,7 +95,9 @@ describe("Habit Streak & Check-in Edge Cases", () => {
         alreadyCheckedInToday: false,
       });
 
-      const res = await request(app).get(`/checkin?email=${encodeURIComponent(email)}&token=${token}`);
+      const res = await request(app).get(
+        `/checkin?email=${encodeURIComponent(email)}&token=${token}`,
+      );
       expect(res.status).toBe(200);
       expect(res.text).toMatch(/Day 1 Complete/i);
       expect(res.text).toMatch(/1-Day Active Streak/i);
@@ -116,7 +122,9 @@ describe("Habit Streak & Check-in Edge Cases", () => {
         alreadyCheckedInToday: true,
       });
 
-      const res = await request(app).get(`/checkin?email=${encodeURIComponent(email)}&token=${token}`);
+      const res = await request(app).get(
+        `/checkin?email=${encodeURIComponent(email)}&token=${token}`,
+      );
       expect(res.status).toBe(200);
       expect(res.text).toMatch(/5-Day Streak Maintained/i);
       expect(res.text).toMatch(/Already Checked In/i);

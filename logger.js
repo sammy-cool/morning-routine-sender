@@ -35,7 +35,7 @@ function safeStringify(obj, indent = 2) {
       }
       return value;
     },
-    indent
+    indent,
   );
 }
 
@@ -96,7 +96,7 @@ const consoleFormat = winston.format.combine(
     }
 
     return `[${timestamp}] ${level}: ${message}${metaStr}${stackStr}`;
-  })
+  }),
 );
 
 // Structured JSON Format for File Logs (for analysis & alerting)
@@ -115,7 +115,7 @@ const fileFormat = winston.format.combine(
       }
       return value;
     },
-  })
+  }),
 );
 
 // Daily rotate transport for all logs (3-day retention)
@@ -195,7 +195,7 @@ if (fileLoggingAvailable) {
         datePattern: "YYYY-MM-DD",
         maxFiles: "7d",
         format: fileFormat,
-      })
+      }),
     );
 
     logger.rejections.handle(
@@ -204,7 +204,7 @@ if (fileLoggingAvailable) {
         datePattern: "YYYY-MM-DD",
         maxFiles: "7d",
         format: fileFormat,
-      })
+      }),
     );
   } catch (err) {
     // Ignore exception transport error

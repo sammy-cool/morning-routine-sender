@@ -13,7 +13,10 @@ function verifyHmacSignature(rawBody, signatureHeader, secret) {
       .update(typeof rawBody === "string" ? rawBody : JSON.stringify(rawBody))
       .digest("hex");
 
-    const cleanSig = signatureHeader.replace(/^sha256=/, "").replace(/^t=.*,v1=/, "").trim();
+    const cleanSig = signatureHeader
+      .replace(/^sha256=/, "")
+      .replace(/^t=.*,v1=/, "")
+      .trim();
     const signatureBuffer = Buffer.from(cleanSig, "hex");
     const computedBuffer = Buffer.from(computed, "hex");
 
@@ -155,7 +158,9 @@ function parseBrevoPayload(payload) {
 
   return [
     {
-      eventId: payload.id ? String(payload.id) : `brevo_${payload["message-id"] || Date.now()}_${event}`,
+      eventId: payload.id
+        ? String(payload.id)
+        : `brevo_${payload["message-id"] || Date.now()}_${event}`,
       recipientEmail: email,
       messageId: payload["message-id"] || null,
       eventType,

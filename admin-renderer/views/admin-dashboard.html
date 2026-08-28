@@ -66,7 +66,11 @@
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family:
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
         -webkit-font-smoothing: antialiased;
       }
 
@@ -76,7 +80,7 @@
         min-height: 100vh;
         display: flex;
         overflow-x: hidden;
-        background-image: 
+        background-image:
           radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
           radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
           radial-gradient(at 50% 100%, rgba(244, 63, 94, 0.06) 0px, transparent 50%);
@@ -84,10 +88,20 @@
       }
 
       /* Custom Scrollbar */
-      ::-webkit-scrollbar { width: 8px; height: 8px; }
-      ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-      ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
 
       /* Sidebar */
       aside.sidebar {
@@ -186,13 +200,15 @@
         transition: var(--transition);
       }
 
-      .nav-link:hover, .nav-link.active {
+      .nav-link:hover,
+      .nav-link.active {
         color: #fff;
         background: rgba(99, 102, 241, 0.12);
         border-color: rgba(99, 102, 241, 0.25);
       }
 
-      .nav-link:hover i, .nav-link.active i {
+      .nav-link:hover i,
+      .nav-link.active i {
         color: #818cf8;
       }
 
@@ -229,8 +245,15 @@
       }
 
       @keyframes pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(0.85); }
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.4;
+          transform: scale(0.85);
+        }
       }
 
       /* Main Content */
@@ -383,7 +406,12 @@
         left: 0;
         right: 0;
         height: 2px;
-        background: linear-gradient(90deg, transparent, var(--stat-accent, var(--primary)), transparent);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--stat-accent, var(--primary)),
+          transparent
+        );
         opacity: 0.8;
       }
 
@@ -438,8 +466,14 @@
         border-radius: 12px;
         font-size: 11px;
       }
-      .trend-up { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-      .trend-info { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+      .trend-up {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+      }
+      .trend-info {
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+      }
 
       /* Visual Analytics & Charts */
       .analytics-grid {
@@ -449,9 +483,15 @@
       }
 
       @media (max-width: 1100px) {
-        .analytics-grid { grid-template-columns: 1fr; }
-        aside.sidebar { display: none; }
-        main.main-content { padding: 20px; }
+        .analytics-grid {
+          grid-template-columns: 1fr;
+        }
+        aside.sidebar {
+          display: none;
+        }
+        main.main-content {
+          padding: 20px;
+        }
       }
 
       .card {
@@ -639,10 +679,27 @@
         text-transform: capitalize;
       }
 
-      .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-      .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-      .badge-template { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
-      .badge-tz { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--text-muted); background: rgba(255, 255, 255, 0.05); }
+      .badge-success {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .badge-warning {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      .badge-template {
+        background: rgba(99, 102, 241, 0.15);
+        color: #a5b4fc;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+      }
+      .badge-tz {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-muted);
+        background: rgba(255, 255, 255, 0.05);
+      }
 
       .table-actions {
         display: flex;
@@ -681,17 +738,43 @@
       }
 
       @media (max-width: 900px) {
-        .template-studio-grid { grid-template-columns: 1fr; }
-        .search-filter-wrap { max-width: 100%; width: 100%; flex-direction: column; align-items: stretch; }
-        .subscribers-control-bar { flex-direction: column; align-items: stretch; }
+        .template-studio-grid {
+          grid-template-columns: 1fr;
+        }
+        .search-filter-wrap {
+          max-width: 100%;
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .subscribers-control-bar {
+          flex-direction: column;
+          align-items: stretch;
+        }
       }
 
       @media (max-width: 640px) {
-        header.topbar { flex-direction: column; align-items: stretch; }
-        .header-actions { flex-direction: column; width: 100%; }
-        .cmd-trigger, .header-actions .btn { width: 100%; justify-content: center; }
-        .modal-dialog { padding: 20px 16px; margin: 12px; }
-        main.main-content { padding: 16px; gap: 20px; }
+        header.topbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .header-actions {
+          flex-direction: column;
+          width: 100%;
+        }
+        .cmd-trigger,
+        .header-actions .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        .modal-dialog {
+          padding: 20px 16px;
+          margin: 12px;
+        }
+        main.main-content {
+          padding: 16px;
+          gap: 20px;
+        }
       }
 
       .template-card-selector {
@@ -725,7 +808,8 @@
         font-weight: 600;
       }
 
-      .template-pill:hover, .template-pill.selected {
+      .template-pill:hover,
+      .template-pill.selected {
         border-color: var(--primary);
         background: rgba(99, 102, 241, 0.12);
       }
@@ -767,9 +851,18 @@
         margin-top: 2px;
       }
 
-      .activity-icon.info { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
-      .activity-icon.success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-      .activity-icon.error { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+      .activity-icon.info {
+        background: rgba(99, 102, 241, 0.2);
+        color: #818cf8;
+      }
+      .activity-icon.success {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+      }
+      .activity-icon.error {
+        background: rgba(244, 63, 94, 0.2);
+        color: #fb7185;
+      }
 
       .activity-body {
         flex: 1;
@@ -838,7 +931,9 @@
         font-size: 18px;
         cursor: pointer;
       }
-      .close-btn:hover { color: #fff; }
+      .close-btn:hover {
+        color: #fff;
+      }
 
       .form-group {
         display: flex;
@@ -903,7 +998,8 @@
         color: var(--text-muted);
       }
 
-      .cmd-item:hover, .cmd-item.active {
+      .cmd-item:hover,
+      .cmd-item.active {
         background: rgba(99, 102, 241, 0.15);
         color: #fff;
       }
@@ -926,23 +1022,57 @@
 
         <nav class="nav-group">
           <div class="nav-label">Navigation</div>
-          <a href="#section-overview" class="nav-link active" onclick="scrollToSection('section-overview'); return false;">
+          <a
+            href="#section-overview"
+            class="nav-link active"
+            onclick="
+              scrollToSection('section-overview');
+              return false;
+            "
+          >
             <i class="fas fa-chart-pie"></i>
             <span>Command Center</span>
           </a>
-          <a href="#section-subscribers" class="nav-link" onclick="scrollToSection('section-subscribers'); return false;">
+          <a
+            href="#section-subscribers"
+            class="nav-link"
+            onclick="
+              scrollToSection('section-subscribers');
+              return false;
+            "
+          >
             <i class="fas fa-users"></i>
             <span>Subscribers</span>
           </a>
-          <a href="#section-testing" class="nav-link" onclick="scrollToSection('section-testing'); return false;">
+          <a
+            href="#section-testing"
+            class="nav-link"
+            onclick="
+              scrollToSection('section-testing');
+              return false;
+            "
+          >
             <i class="fas fa-paper-plane"></i>
             <span>Email Studio</span>
           </a>
-          <a href="#section-diagnostics" class="nav-link" onclick="scrollToSection('section-diagnostics'); return false;">
+          <a
+            href="#section-diagnostics"
+            class="nav-link"
+            onclick="
+              scrollToSection('section-diagnostics');
+              return false;
+            "
+          >
             <i class="fas fa-database"></i>
             <span>System & DB</span>
           </a>
-          <a href="/" target="_blank" rel="noopener" class="nav-link" title="Open Public Landing Page">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener"
+            class="nav-link"
+            title="Open Public Landing Page"
+          >
             <i class="fas fa-external-link-alt"></i>
             <span>Public Site</span>
           </a>
@@ -955,13 +1085,19 @@
 
       <div class="sidebar-footer">
         <div class="system-pill">
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px">
             <div class="pulse-dot"></div>
             <span>System Active</span>
           </div>
-          <span style="color: var(--accent-emerald); font-weight: 700; font-size: 11px;">100% HEALTH</span>
+          <span style="color: var(--accent-emerald); font-weight: 700; font-size: 11px"
+            >100% HEALTH</span
+          >
         </div>
-        <button class="btn btn-danger btn-sm" style="width: 100%; justify-content: center;" onclick="handleLogout()">
+        <button
+          class="btn btn-danger btn-sm"
+          style="width: 100%; justify-content: center"
+          onclick="handleLogout()"
+        >
           <i class="fas fa-sign-out-alt"></i> Logout Session
         </button>
       </div>
@@ -994,7 +1130,7 @@
       <!-- KPI Stat Cards -->
       <section class="stats-grid" id="section-overview">
         <!-- Total Subscribers -->
-        <div class="stat-card" style="--stat-accent: #6366f1;">
+        <div class="stat-card" style="--stat-accent: #6366f1">
           <div class="stat-header">
             <span class="stat-label">Total Subscribers</span>
             <div class="stat-icon-wrap"><i class="fas fa-users"></i></div>
@@ -1007,20 +1143,22 @@
         </div>
 
         <!-- Dispatch Success Rate -->
-        <div class="stat-card" style="--stat-accent: #10b981;">
+        <div class="stat-card" style="--stat-accent: #10b981">
           <div class="stat-header">
             <span class="stat-label">Delivery Health</span>
             <div class="stat-icon-wrap"><i class="fas fa-shield-alt"></i></div>
           </div>
           <div class="stat-value" id="kpiDeliveryRate">99.8%</div>
           <div class="stat-footer">
-            <span class="stat-badge-trend trend-up"><i class="fas fa-arrow-up"></i> 100% Reliable</span>
+            <span class="stat-badge-trend trend-up"
+              ><i class="fas fa-arrow-up"></i> 100% Reliable</span
+            >
             <span>SMTP Engine</span>
           </div>
         </div>
 
         <!-- Active Cron Schedulers -->
-        <div class="stat-card" style="--stat-accent: #06b6d4;">
+        <div class="stat-card" style="--stat-accent: #06b6d4">
           <div class="stat-header">
             <span class="stat-label">Active Schedulers</span>
             <div class="stat-icon-wrap"><i class="fas fa-clock"></i></div>
@@ -1033,7 +1171,7 @@
         </div>
 
         <!-- Database Retention Records -->
-        <div class="stat-card" style="--stat-accent: #f59e0b;">
+        <div class="stat-card" style="--stat-accent: #f59e0b">
           <div class="stat-header">
             <span class="stat-label">Database Logs</span>
             <div class="stat-icon-wrap"><i class="fas fa-database"></i></div>
@@ -1074,7 +1212,7 @@
               <span>Template Preference</span>
             </div>
           </div>
-          <div class="chart-container" style="height: 280px;">
+          <div class="chart-container" style="height: 280px">
             <canvas id="templateDistributionChart"></canvas>
           </div>
         </div>
@@ -1102,13 +1240,21 @@
                 />
               </div>
 
-              <select id="subscriberStatusFilter" class="filter-select" onchange="filterSubscribersTable()">
+              <select
+                id="subscriberStatusFilter"
+                class="filter-select"
+                onchange="filterSubscribersTable()"
+              >
                 <option value="all">All Statuses</option>
                 <option value="active">Active Only</option>
                 <option value="paused">Paused Only</option>
               </select>
 
-              <select id="subscriberTemplateFilter" class="filter-select" onchange="filterSubscribersTable()">
+              <select
+                id="subscriberTemplateFilter"
+                class="filter-select"
+                onchange="filterSubscribersTable()"
+              >
                 <option value="all">All Templates</option>
                 <option value="default">Default</option>
                 <option value="deep-work">Deep Work</option>
@@ -1119,7 +1265,7 @@
               </select>
             </div>
 
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px">
               <button class="btn btn-glass btn-sm" onclick="exportSubscribersCSV()">
                 <i class="fas fa-file-csv"></i> Export CSV
               </button>
@@ -1139,13 +1285,17 @@
                 <th>Cron Schedule</th>
                 <th>Timezone</th>
                 <th>Status</th>
-                <th style="text-align: right;">Actions</th>
+                <th style="text-align: right">Actions</th>
               </tr>
             </thead>
             <tbody id="subscribersTableBody">
               <tr>
-                <td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">
-                  <i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading subscriber records…
+                <td
+                  colspan="6"
+                  style="text-align: center; color: var(--text-subtle); padding: 30px"
+                >
+                  <i class="fas fa-spinner fa-spin" style="margin-right: 8px"></i> Loading
+                  subscriber records…
                 </td>
               </tr>
             </tbody>
@@ -1160,14 +1310,14 @@
             <i class="fas fa-flask"></i>
             <span>Email Studio & Live Testing</span>
           </div>
-          <span style="font-size: 13px; color: var(--text-muted);">
+          <span style="font-size: 13px; color: var(--text-muted)">
             Test routine emails with live HTML previews & instantaneous SMTP delivery.
           </span>
         </div>
 
         <div class="template-studio-grid">
           <!-- Left: Send Test Email Form -->
-          <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 16px">
             <div class="form-group">
               <label class="form-label">Recipient Email</label>
               <input
@@ -1181,35 +1331,63 @@
             <div class="form-group">
               <label class="form-label">Select Routine Template</label>
               <div class="template-card-selector">
-                <div class="template-pill selected" data-template="default" onclick="selectTemplatePill(this)">
+                <div
+                  class="template-pill selected"
+                  data-template="default"
+                  onclick="selectTemplatePill(this)"
+                >
                   <i class="fas fa-coffee"></i>
                   <span>Default</span>
                 </div>
-                <div class="template-pill" data-template="deep-work" onclick="selectTemplatePill(this)">
+                <div
+                  class="template-pill"
+                  data-template="deep-work"
+                  onclick="selectTemplatePill(this)"
+                >
                   <i class="fas fa-brain"></i>
                   <span>Deep Work</span>
                 </div>
-                <div class="template-pill" data-template="learning" onclick="selectTemplatePill(this)">
+                <div
+                  class="template-pill"
+                  data-template="learning"
+                  onclick="selectTemplatePill(this)"
+                >
                   <i class="fas fa-graduation-cap"></i>
                   <span>Learning</span>
                 </div>
-                <div class="template-pill" data-template="career" onclick="selectTemplatePill(this)">
+                <div
+                  class="template-pill"
+                  data-template="career"
+                  onclick="selectTemplatePill(this)"
+                >
                   <i class="fas fa-briefcase"></i>
                   <span>Career</span>
                 </div>
-                <div class="template-pill" data-template="mindfulness" onclick="selectTemplatePill(this)">
+                <div
+                  class="template-pill"
+                  data-template="mindfulness"
+                  onclick="selectTemplatePill(this)"
+                >
                   <i class="fas fa-spa"></i>
                   <span>Mindfulness</span>
                 </div>
-                <div class="template-pill" data-template="reflection" onclick="selectTemplatePill(this)">
+                <div
+                  class="template-pill"
+                  data-template="reflection"
+                  onclick="selectTemplatePill(this)"
+                >
                   <i class="fas fa-moon"></i>
                   <span>Reflection</span>
                 </div>
               </div>
             </div>
 
-            <div style="display: flex; gap: 12px; margin-top: 8px;">
-              <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="sendSingleTestEmail()">
+            <div style="display: flex; gap: 12px; margin-top: 8px">
+              <button
+                class="btn btn-primary"
+                style="flex: 1; justify-content: center"
+                onclick="sendSingleTestEmail()"
+              >
                 <i class="fas fa-paper-plane"></i> Send Test Routine Email
               </button>
               <button class="btn btn-danger btn-sm" onclick="triggerBulkSendNow()">
@@ -1220,7 +1398,14 @@
 
           <!-- Right: Live Activity Stream -->
           <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+              "
+            >
               <span class="form-label">Live Activity & Telemetry</span>
               <button class="btn btn-glass btn-sm" onclick="clearActivityStream()">Clear</button>
             </div>
@@ -1238,12 +1423,16 @@
       </section>
 
       <!-- DNS & Deliverability Guard -->
-      <section class="card" id="section-deliverability" style="margin-bottom: 24px;">
+      <section class="card" id="section-deliverability" style="margin-bottom: 24px">
         <div class="card-header">
           <div class="card-title">
-            <i class="fas fa-shield-alt" style="color: var(--accent-emerald);"></i>
+            <i class="fas fa-shield-alt" style="color: var(--accent-emerald)"></i>
             <span>DNS &amp; Deliverability Guard</span>
-            <span class="brand-badge" id="dnsHealthBadge" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+            <span
+              class="brand-badge"
+              id="dnsHealthBadge"
+              style="background: rgba(16, 185, 129, 0.15); color: #34d399"
+            >
               Audit Ready
             </span>
           </div>
@@ -1253,58 +1442,248 @@
         </div>
 
         <!-- Score & Telemetry Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
-          <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Deliverability Score</div>
-            <div id="dnsHealthScore" style="font-size: 28px; font-weight: 800; color: #10b981; margin: 4px 0;">-- / 100</div>
-            <div id="dnsDomainLabel" style="font-size: 11px; color: var(--text-subtle);">Sender Domain: Checking...</div>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+          "
+        >
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.6);
+              padding: 16px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-weight: 700;
+              "
+            >
+              Deliverability Score
+            </div>
+            <div
+              id="dnsHealthScore"
+              style="font-size: 28px; font-weight: 800; color: #10b981; margin: 4px 0"
+            >
+              -- / 100
+            </div>
+            <div id="dnsDomainLabel" style="font-size: 11px; color: var(--text-subtle)">
+              Sender Domain: Checking...
+            </div>
           </div>
 
-          <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">7-Day Delivery Rate</div>
-            <div id="telemetryDeliveryRate" style="font-size: 28px; font-weight: 800; color: #6366f1; margin: 4px 0;">--%</div>
-            <div id="telemetryDispatchedLabel" style="font-size: 11px; color: var(--text-subtle);">0 Total Dispatched</div>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.6);
+              padding: 16px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-weight: 700;
+              "
+            >
+              7-Day Delivery Rate
+            </div>
+            <div
+              id="telemetryDeliveryRate"
+              style="font-size: 28px; font-weight: 800; color: #6366f1; margin: 4px 0"
+            >
+              --%
+            </div>
+            <div id="telemetryDispatchedLabel" style="font-size: 11px; color: var(--text-subtle)">
+              0 Total Dispatched
+            </div>
           </div>
 
-          <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Bounce Rate</div>
-            <div id="telemetryBounceRate" style="font-size: 28px; font-weight: 800; color: #f59e0b; margin: 4px 0;">--%</div>
-            <div id="telemetrySuppressedCount" style="font-size: 11px; color: var(--text-subtle);">0 Suppressed</div>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.6);
+              padding: 16px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-weight: 700;
+              "
+            >
+              Bounce Rate
+            </div>
+            <div
+              id="telemetryBounceRate"
+              style="font-size: 28px; font-weight: 800; color: #f59e0b; margin: 4px 0"
+            >
+              --%
+            </div>
+            <div id="telemetrySuppressedCount" style="font-size: 11px; color: var(--text-subtle)">
+              0 Suppressed
+            </div>
           </div>
         </div>
 
         <!-- DNS Check Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;" id="dnsChecksGrid">
-          <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span style="font-weight: 700; font-size: 13px;"><i class="fas fa-envelope-open-text" style="color: #6366f1; margin-right: 6px;"></i> SPF Record</span>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+          "
+          id="dnsChecksGrid"
+        >
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.4);
+              padding: 14px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+              "
+            >
+              <span style="font-weight: 700; font-size: 13px"
+                ><i class="fas fa-envelope-open-text" style="color: #6366f1; margin-right: 6px"></i>
+                SPF Record</span
+              >
               <span id="spfStatusBadge" class="brand-badge">--</span>
             </div>
-            <div id="spfRecordDisplay" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); word-break: break-all;">Click 'Run Full DNS Audit' to test.</div>
+            <div
+              id="spfRecordDisplay"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 11px;
+                color: var(--text-muted);
+                word-break: break-all;
+              "
+            >
+              Click 'Run Full DNS Audit' to test.
+            </div>
           </div>
 
-          <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span style="font-weight: 700; font-size: 13px;"><i class="fas fa-key" style="color: #10b981; margin-right: 6px;"></i> DKIM Key</span>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.4);
+              padding: 14px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+              "
+            >
+              <span style="font-weight: 700; font-size: 13px"
+                ><i class="fas fa-key" style="color: #10b981; margin-right: 6px"></i> DKIM Key</span
+              >
               <span id="dkimStatusBadge" class="brand-badge">--</span>
             </div>
-            <div id="dkimRecordDisplay" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); word-break: break-all;">Selector authentication check.</div>
+            <div
+              id="dkimRecordDisplay"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 11px;
+                color: var(--text-muted);
+                word-break: break-all;
+              "
+            >
+              Selector authentication check.
+            </div>
           </div>
 
-          <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span style="font-weight: 700; font-size: 13px;"><i class="fas fa-user-shield" style="color: #06b6d4; margin-right: 6px;"></i> DMARC Policy</span>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.4);
+              padding: 14px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+              "
+            >
+              <span style="font-weight: 700; font-size: 13px"
+                ><i class="fas fa-user-shield" style="color: #06b6d4; margin-right: 6px"></i> DMARC
+                Policy</span
+              >
               <span id="dmarcStatusBadge" class="brand-badge">--</span>
             </div>
-            <div id="dmarcRecordDisplay" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); word-break: break-all;">Domain policy alignment check.</div>
+            <div
+              id="dmarcRecordDisplay"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 11px;
+                color: var(--text-muted);
+                word-break: break-all;
+              "
+            >
+              Domain policy alignment check.
+            </div>
           </div>
 
-          <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span style="font-weight: 700; font-size: 13px;"><i class="fas fa-server" style="color: #f59e0b; margin-right: 6px;"></i> MX Host</span>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.4);
+              padding: 14px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+              "
+            >
+              <span style="font-weight: 700; font-size: 13px"
+                ><i class="fas fa-server" style="color: #f59e0b; margin-right: 6px"></i> MX
+                Host</span
+              >
               <span id="mxStatusBadge" class="brand-badge">--</span>
             </div>
-            <div id="mxRecordDisplay" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); word-break: break-all;">Inbound mail server resolution.</div>
+            <div
+              id="mxRecordDisplay"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 11px;
+                color: var(--text-muted);
+                word-break: break-all;
+              "
+            >
+              Inbound mail server resolution.
+            </div>
           </div>
         </div>
       </section>
@@ -1318,19 +1697,55 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+          "
+        >
           <!-- Database Retention Cleanup -->
-          <div style="background: rgba(15, 23, 42, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 14px;">
-            <div style="font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px;">
-              <i class="fas fa-broom" style="color: var(--accent-amber);"></i>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.5);
+              padding: 20px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            "
+          >
+            <div
+              style="
+                font-weight: 700;
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <i class="fas fa-broom" style="color: var(--accent-amber)"></i>
               <span>Database Retention Cleanup</span>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted);">
+            <p style="font-size: 13px; color: var(--text-muted)">
               Purge tracker history records older than the selected retention threshold.
             </p>
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <input type="range" id="retentionDaysSlider" min="7" max="90" value="30" oninput="updateSliderLabel(this.value)" style="flex: 1;" />
-              <span id="retentionSliderLabel" style="font-weight: 700; font-size: 14px; min-width: 60px;">30 Days</span>
+            <div style="display: flex; align-items: center; gap: 12px">
+              <input
+                type="range"
+                id="retentionDaysSlider"
+                min="7"
+                max="90"
+                value="30"
+                oninput="updateSliderLabel(this.value)"
+                style="flex: 1"
+              />
+              <span
+                id="retentionSliderLabel"
+                style="font-weight: 700; font-size: 14px; min-width: 60px"
+                >30 Days</span
+              >
             </div>
             <button class="btn btn-glass btn-sm" onclick="executeDatabaseCleanup()">
               <i class="fas fa-trash-alt"></i> Execute DB Purge
@@ -1338,29 +1753,74 @@
           </div>
 
           <!-- Server Log File Cleanup -->
-          <div style="background: rgba(15, 23, 42, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 14px;">
-            <div style="font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px;">
-              <i class="fas fa-file-alt" style="color: var(--accent-cyan);"></i>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.5);
+              padding: 20px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            "
+          >
+            <div
+              style="
+                font-weight: 700;
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <i class="fas fa-file-alt" style="color: var(--accent-cyan)"></i>
               <span>Server Disk Log Cleanup</span>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted);">
+            <p style="font-size: 13px; color: var(--text-muted)">
               Remove local rotated Winston log files older than 3 days to free up container storage.
             </p>
-            <button class="btn btn-glass btn-sm" style="margin-top: auto;" onclick="executeLogCleanup()">
+            <button
+              class="btn btn-glass btn-sm"
+              style="margin-top: auto"
+              onclick="executeLogCleanup()"
+            >
               <i class="fas fa-eraser"></i> Purge Stale Logs
             </button>
           </div>
 
           <!-- Raw Database Table Inspector -->
-          <div style="background: rgba(15, 23, 42, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 14px;">
-            <div style="font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px;">
-              <i class="fas fa-table" style="color: var(--primary);"></i>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.5);
+              padding: 20px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            "
+          >
+            <div
+              style="
+                font-weight: 700;
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <i class="fas fa-table" style="color: var(--primary)"></i>
               <span>Raw Database Inspector</span>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted);">
-              Inspect raw rows in the <code>email_tracker</code> table for debugging delivery states.
+            <p style="font-size: 13px; color: var(--text-muted)">
+              Inspect raw rows in the <code>email_tracker</code> table for debugging delivery
+              states.
             </p>
-            <button class="btn btn-glass btn-sm" style="margin-top: auto;" onclick="inspectDatabaseRows()">
+            <button
+              class="btn btn-glass btn-sm"
+              style="margin-top: auto"
+              onclick="inspectDatabaseRows()"
+            >
               <i class="fas fa-eye"></i> View Live Records
             </button>
           </div>
@@ -1376,10 +1836,20 @@
           <button class="close-btn" onclick="closeModal('subscriberModal')">&times;</button>
         </div>
 
-        <form id="subscriberForm" onsubmit="handleSubscriberFormSubmit(event)" style="display: flex; flex-direction: column; gap: 16px;">
+        <form
+          id="subscriberForm"
+          onsubmit="handleSubscriberFormSubmit(event)"
+          style="display: flex; flex-direction: column; gap: 16px"
+        >
           <div class="form-group">
             <label class="form-label">Email Address *</label>
-            <input type="email" id="modalSubEmail" class="form-control" placeholder="subscriber@example.com" required />
+            <input
+              type="email"
+              id="modalSubEmail"
+              class="form-control"
+              placeholder="subscriber@example.com"
+              required
+            />
           </div>
 
           <div class="form-group">
@@ -1396,26 +1866,52 @@
 
           <div class="form-group">
             <label class="form-label">Cron Delivery Schedule (Preset or Custom)</label>
-            <select id="modalCronPreset" class="form-control" onchange="applyCronPreset(this.value)">
+            <select
+              id="modalCronPreset"
+              class="form-control"
+              onchange="applyCronPreset(this.value)"
+            >
               <option value="0 8 * * *">8:00 AM Daily (Default)</option>
               <option value="0 7 * * *">7:00 AM Daily (Early Bird)</option>
               <option value="0 9 * * *">9:00 AM Daily</option>
               <option value="0 20 * * *">8:00 PM Daily (Evening)</option>
               <option value="custom">Custom Cron Expression…</option>
             </select>
-            <input type="text" id="modalSubCron" class="form-control" style="margin-top: 6px;" value="0 8 * * *" />
+            <input
+              type="text"
+              id="modalSubCron"
+              class="form-control"
+              style="margin-top: 6px"
+              value="0 8 * * *"
+            />
           </div>
 
           <div class="form-group">
             <label class="form-label">Timezone</label>
-            <input type="text" id="modalSubTz" class="form-control" value="Asia/Kolkata" placeholder="e.g. America/New_York" />
+            <input
+              type="text"
+              id="modalSubTz"
+              class="form-control"
+              value="Asia/Kolkata"
+              placeholder="e.g. America/New_York"
+            />
           </div>
 
-          <div style="display: flex; gap: 12px; margin-top: 10px;">
-            <button type="button" class="btn btn-glass" style="flex: 1; justify-content: center;" onclick="closeModal('subscriberModal')">
+          <div style="display: flex; gap: 12px; margin-top: 10px">
+            <button
+              type="button"
+              class="btn btn-glass"
+              style="flex: 1; justify-content: center"
+              onclick="closeModal('subscriberModal')"
+            >
               Cancel
             </button>
-            <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;" id="modalSubmitBtn">
+            <button
+              type="submit"
+              class="btn btn-primary"
+              style="flex: 1; justify-content: center"
+              id="modalSubmitBtn"
+            >
               Save Subscriber
             </button>
           </div>
@@ -1425,16 +1921,35 @@
 
     <!-- Modal: Raw DB Inspector -->
     <div class="modal-backdrop" id="dbInspectorModal">
-      <div class="modal-dialog" style="max-width: 900px;">
+      <div class="modal-dialog" style="max-width: 900px">
         <div class="modal-header">
           <div class="modal-title">Raw Database Records (email_tracker)</div>
           <button class="close-btn" onclick="closeModal('dbInspectorModal')">&times;</button>
         </div>
-        <div style="max-height: 480px; overflow-y: auto; background: rgba(0,0,0,0.5); padding: 14px; border-radius: var(--radius-md);">
-          <pre id="dbInspectorContent" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a5f3fc; white-space: pre-wrap;">Loading records…</pre>
+        <div
+          style="
+            max-height: 480px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 14px;
+            border-radius: var(--radius-md);
+          "
+        >
+          <pre
+            id="dbInspectorContent"
+            style="
+              font-family: &quot;JetBrains Mono&quot;, monospace;
+              font-size: 12px;
+              color: #a5f3fc;
+              white-space: pre-wrap;
+            "
+          >
+Loading records…</pre>
         </div>
-        <div style="display: flex; justify-content: flex-end;">
-          <button class="btn btn-glass btn-sm" onclick="closeModal('dbInspectorModal')">Close</button>
+        <div style="display: flex; justify-content: flex-end">
+          <button class="btn btn-glass btn-sm" onclick="closeModal('dbInspectorModal')">
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -1483,18 +1998,37 @@
     </div>
 
     <!-- Modal: Accessible Async Confirmation Dialog -->
-    <div class="modal-backdrop" id="confirmDialogModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="confirmDialogTitle">
-      <div class="modal-dialog" style="max-width: 440px;">
+    <div
+      class="modal-backdrop"
+      id="confirmDialogModal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="confirmDialogTitle"
+    >
+      <div class="modal-dialog" style="max-width: 440px">
         <div class="modal-header">
           <div class="modal-title" id="confirmDialogTitle">Confirm Action</div>
           <button class="close-btn" onclick="closeConfirmDialog(false)">&times;</button>
         </div>
-        <div style="padding: 6px 0 16px 0; color: var(--text-muted); font-size: 14px; line-height: 1.6;" id="confirmDialogMessage">
+        <div
+          style="padding: 6px 0 16px 0; color: var(--text-muted); font-size: 14px; line-height: 1.6"
+          id="confirmDialogMessage"
+        >
           Are you sure you want to proceed?
         </div>
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-          <button type="button" class="btn btn-glass" onclick="closeConfirmDialog(false)">Cancel</button>
-          <button type="button" class="btn btn-danger" id="confirmDialogOkBtn" onclick="closeConfirmDialog(true)">Confirm</button>
+        <div style="display: flex; gap: 12px; justify-content: flex-end">
+          <button type="button" class="btn btn-glass" onclick="closeConfirmDialog(false)">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            id="confirmDialogOkBtn"
+            onclick="closeConfirmDialog(true)"
+          >
+            Confirm
+          </button>
         </div>
       </div>
     </div>
@@ -1674,8 +2208,8 @@
               <td>${statusBadge}</td>
               <td style="text-align: right;">
                 <div class="table-actions" style="justify-content: flex-end;">
-                  <button class="action-icon-btn" title="${isActive ? 'Pause' : 'Resume'}" onclick="toggleSubscriberStatus('${escapeHtml(sub.email)}', ${!isActive})">
-                    <i class="fas ${isActive ? 'fa-pause' : 'fa-play'}"></i>
+                  <button class="action-icon-btn" title="${isActive ? "Pause" : "Resume"}" onclick="toggleSubscriberStatus('${escapeHtml(sub.email)}', ${!isActive})">
+                    <i class="fas ${isActive ? "fa-pause" : "fa-play"}"></i>
                   </button>
                   <button class="action-icon-btn" title="Edit" onclick="openEditSubscriberModal('${escapeHtml(sub.email)}')">
                     <i class="fas fa-edit"></i>
@@ -1900,10 +2434,13 @@
 
         if (currentEditingEmail) {
           // Update subscriber
-          const res = await apiCall(`/admin/subscribers/${encodeURIComponent(currentEditingEmail)}`, {
-            method: "PATCH",
-            body: JSON.stringify({ templateType, cronPattern, timezone }),
-          });
+          const res = await apiCall(
+            `/admin/subscribers/${encodeURIComponent(currentEditingEmail)}`,
+            {
+              method: "PATCH",
+              body: JSON.stringify({ templateType, cronPattern, timezone }),
+            },
+          );
 
           if (res.ok) {
             ToastManager.success(`Updated preferences for ${email}`);
@@ -1926,7 +2463,9 @@
             closeModal("subscriberModal");
             loadSubscribers();
           } else {
-            ToastManager.error(res.data.error || (res.data.errors || []).join(", ") || "Failed to add subscriber");
+            ToastManager.error(
+              res.data.error || (res.data.errors || []).join(", ") || "Failed to add subscriber",
+            );
           }
         }
 
@@ -2007,7 +2546,8 @@
       async function triggerBulkSendNow() {
         const confirmed = await showConfirmDialog({
           title: "Trigger Bulk Morning Campaign",
-          message: "Are you sure you want to trigger immediate bulk dispatch for all active subscribers?",
+          message:
+            "Are you sure you want to trigger immediate bulk dispatch for all active subscribers?",
           confirmText: "Dispatch Campaign",
           confirmVariant: "btn-primary",
         });
@@ -2046,8 +2586,13 @@
         });
 
         if (res.ok) {
-          ToastManager.success(`Database cleanup completed: ${res.data.deleted || 0} records deleted.`);
-          ActivityLogger.log(`Database retention purge: ${res.data.deleted || 0} records deleted`, "success");
+          ToastManager.success(
+            `Database cleanup completed: ${res.data.deleted || 0} records deleted.`,
+          );
+          ActivityLogger.log(
+            `Database retention purge: ${res.data.deleted || 0} records deleted`,
+            "success",
+          );
           loadDatabaseStats();
         } else {
           ToastManager.error("Database cleanup failed.");
@@ -2081,7 +2626,8 @@
         if (res.ok && res.data?.data?.rows) {
           container.textContent = JSON.stringify(res.data.data.rows.slice(0, 50), null, 2);
         } else {
-          container.textContent = "Failed to load database records: " + (res.data?.error || "Error");
+          container.textContent =
+            "Failed to load database records: " + (res.data?.error || "Error");
         }
       }
 
@@ -2091,10 +2637,13 @@
           const res = await apiCall("/admin/deliverability/telemetry-stats");
           if (res.ok && res.data?.metrics) {
             const m = res.data.metrics;
-            document.getElementById("telemetryDeliveryRate").textContent = m.deliveryRate || "100.00%";
-            document.getElementById("telemetryDispatchedLabel").textContent = `${m.totalDispatched || 0} Total Dispatched (7d)`;
+            document.getElementById("telemetryDeliveryRate").textContent =
+              m.deliveryRate || "100.00%";
+            document.getElementById("telemetryDispatchedLabel").textContent =
+              `${m.totalDispatched || 0} Total Dispatched (7d)`;
             document.getElementById("telemetryBounceRate").textContent = m.bounceRate || "0.00%";
-            document.getElementById("telemetrySuppressedCount").textContent = `${m.totalSuppressed || 0} Suppressed`;
+            document.getElementById("telemetrySuppressedCount").textContent =
+              `${m.totalSuppressed || 0} Suppressed`;
           }
         } catch (e) {
           console.error("Telemetry stats load error:", e);
@@ -2120,37 +2669,48 @@
               audit.healthScore >= 80 ? "rgba(16, 185, 129, 0.15)" : "rgba(245, 158, 11, 0.15)";
             badge.style.color = audit.healthScore >= 80 ? "#34d399" : "#fbbf24";
 
-            document.getElementById("dnsDomainLabel").textContent = `Sender Domain: ${audit.domain}`;
+            document.getElementById("dnsDomainLabel").textContent =
+              `Sender Domain: ${audit.domain}`;
 
             // SPF
             const spf = audit.checks.spf;
             document.getElementById("spfStatusBadge").textContent = spf.status;
-            document.getElementById("spfStatusBadge").className = `brand-badge ${spf.status === "PASS" ? "active" : "paused"}`;
-            document.getElementById("spfRecordDisplay").textContent = spf.record || (spf.issues || []).join(" ") || "No SPF record";
+            document.getElementById("spfStatusBadge").className =
+              `brand-badge ${spf.status === "PASS" ? "active" : "paused"}`;
+            document.getElementById("spfRecordDisplay").textContent =
+              spf.record || (spf.issues || []).join(" ") || "No SPF record";
 
             // DKIM
             const dkim = audit.checks.dkim;
             document.getElementById("dkimStatusBadge").textContent = dkim.status;
-            document.getElementById("dkimStatusBadge").className = `brand-badge ${dkim.status === "PASS" ? "active" : "paused"}`;
-            document.getElementById("dkimRecordDisplay").textContent = dkim.record || (dkim.issues || []).join(" ") || "No DKIM record";
+            document.getElementById("dkimStatusBadge").className =
+              `brand-badge ${dkim.status === "PASS" ? "active" : "paused"}`;
+            document.getElementById("dkimRecordDisplay").textContent =
+              dkim.record || (dkim.issues || []).join(" ") || "No DKIM record";
 
             // DMARC
             const dmarc = audit.checks.dmarc;
             document.getElementById("dmarcStatusBadge").textContent = dmarc.status;
-            document.getElementById("dmarcStatusBadge").className = `brand-badge ${dmarc.status === "PASS" ? "active" : "paused"}`;
-            document.getElementById("dmarcRecordDisplay").textContent = dmarc.record || (dmarc.issues || []).join(" ") || "No DMARC record";
+            document.getElementById("dmarcStatusBadge").className =
+              `brand-badge ${dmarc.status === "PASS" ? "active" : "paused"}`;
+            document.getElementById("dmarcRecordDisplay").textContent =
+              dmarc.record || (dmarc.issues || []).join(" ") || "No DMARC record";
 
             // MX
             const mx = audit.checks.mx;
             document.getElementById("mxStatusBadge").textContent = mx.status;
-            document.getElementById("mxStatusBadge").className = `brand-badge ${mx.status === "PASS" ? "active" : "paused"}`;
+            document.getElementById("mxStatusBadge").className =
+              `brand-badge ${mx.status === "PASS" ? "active" : "paused"}`;
             document.getElementById("mxRecordDisplay").textContent =
               mx.records && mx.records.length > 0
                 ? mx.records.map((r) => `${r.exchange} (${r.priority})`).join(", ")
                 : "No MX hosts";
 
             ToastManager.success(`DNS Deliverability Audit completed: Grade ${audit.grade}`);
-            ActivityLogger.log(`DNS Audit completed for ${audit.domain}: Score ${audit.healthScore}/100`, "success");
+            ActivityLogger.log(
+              `DNS Audit completed for ${audit.domain}: Score ${audit.healthScore}/100`,
+              "success",
+            );
           } else {
             ToastManager.error("Failed to run DNS audit.");
           }
@@ -2178,11 +2738,16 @@
           s.createdAt || "",
         ]);
 
-        let csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+        let csvContent =
+          "data:text/csv;charset=utf-8," +
+          [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `subscribers_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.setAttribute(
+          "download",
+          `subscribers_export_${new Date().toISOString().slice(0, 10)}.csv`,
+        );
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -2194,7 +2759,12 @@
       const modalTriggerMap = new Map();
       let confirmDialogResolver = null;
 
-      function showConfirmDialog({ title = "Confirm Action", message = "Are you sure?", confirmText = "Confirm", confirmVariant = "btn-danger" } = {}) {
+      function showConfirmDialog({
+        title = "Confirm Action",
+        message = "Are you sure?",
+        confirmText = "Confirm",
+        confirmVariant = "btn-danger",
+      } = {}) {
         return new Promise((resolve) => {
           confirmDialogResolver = resolve;
           document.getElementById("confirmDialogTitle").textContent = title;

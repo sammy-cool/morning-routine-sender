@@ -36,22 +36,27 @@ class SuppressionService {
       }
 
       // 2. Check subscriber cooldown status
-      const subscriber = await db("subscribers")
-        .where("email", email)
-        .first();
+      const subscriber = await db("subscribers").where("email", email).first();
 
       if (!subscriber) {
         return { isSuppressed: false };
       }
 
-      if (!subscriber.is_active || subscriber.deliverability_status === "bounced" || subscriber.deliverability_status === "complained") {
+      if (
+        !subscriber.is_active ||
+        subscriber.deliverability_status === "bounced" ||
+        subscriber.deliverability_status === "complained"
+      ) {
         return {
           isSuppressed: true,
           reason: `subscriber_inactive_or_${subscriber.deliverability_status || "disabled"}`,
         };
       }
 
-      if (subscriber.bounce_cooldown_until && new Date(subscriber.bounce_cooldown_until) > new Date()) {
+      if (
+        subscriber.bounce_cooldown_until &&
+        new Date(subscriber.bounce_cooldown_until) > new Date()
+      ) {
         return {
           isSuppressed: true,
           reason: "soft_bounce_cooldown",
@@ -203,17 +208,20 @@ class SuppressionService {
     const subscriber = await db("subscribers").where("email", email).first();
     const currentCount = (subscriber?.soft_bounce_count || 0) + 1;
 
-    logger.warn(`⚠️ Processing Soft Bounce for ${email} (Count: ${currentCount}/${MAX_CONSECUTIVE_SOFT_BOUNCES})`, {
-      bounceCode,
-      reason,
-    });
+    logger.warn(
+      `⚠️ Processing Soft Bounce for ${email} (Count: ${currentCount}/${MAX_CONSECUTIVE_SOFT_BOUNCES})`,
+      {
+        bounceCode,
+        reason,
+      },
+    );
 
     if (currentCount >= MAX_CONSECUTIVE_SOFT_BOUNCES) {
       await this.handleHardBounce(
         email,
         provider,
         bounceCode || "4.2.2_ESCALATED",
-        `Exceeded ${MAX_CONSECUTIVE_SOFT_BOUNCES} consecutive soft bounces: ${reason || "Mailbox unavailable"}`
+        `Exceeded ${MAX_CONSECUTIVE_SOFT_BOUNCES} consecutive soft bounces: ${reason || "Mailbox unavailable"}`,
       );
       return;
     }
@@ -270,15 +278,13 @@ class SuppressionService {
   async handleDelivered(email) {
     const hasStatus = await db.schema.hasColumn("subscribers", "deliverability_status");
     if (hasStatus) {
-      await db("subscribers")
-        .where("email", email)
-        .update({
-          soft_bounce_count: 0,
-          bounce_cooldown_until: null,
-          deliverability_status: "active",
-          last_delivered_at: db.fn.now(),
-          updated_at: db.fn.now(),
-        });
+      await db("subscribers").where("email", email).update({
+        soft_bounce_count: 0,
+        bounce_cooldown_until: null,
+        deliverability_status: "active",
+        last_delivered_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      });
     }
   }
 

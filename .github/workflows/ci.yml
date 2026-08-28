@@ -5,8 +5,8 @@ on:
     branches:
       - main
       - master
-      - 'feat/**'
-      - 'fix/**'
+      - "feat/**"
+      - "fix/**"
   pull_request:
     branches:
       - main
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   lint-and-audit:
-    name: Syntax & Security Audit
+    name: Lint, Syntax & Security Audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -28,27 +28,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Dependencies
         run: npm ci
 
-      - name: JavaScript Syntax Validation (node --check)
+      - name: AST & Syntax Check
         run: |
-          echo "🔍 Checking JavaScript syntax across all source files..."
-          ERRORS=0
-          while IFS= read -r -d '' file; do
-            if ! node --check "$file" 2>&1; then
-              echo "❌ Syntax error in $file"
-              ERRORS=$((ERRORS + 1))
-            fi
-          done < <(find . -type f -name "*.js" -not -path "./node_modules/*" -not -path "./coverage/*" -print0)
-          
-          if [ $ERRORS -ne 0 ]; then
-            echo "❌ Total syntax errors detected: $ERRORS"
-            exit 1
-          fi
-          echo "✅ All JavaScript source files passed syntax check."
+          echo "🔍 Running AST & JavaScript syntax validation..."
+          npm run check:syntax
+
+      - name: Code Quality & Lint (ESLint 9)
+        run: |
+          echo "🧹 Running ESLint check..."
+          npm run lint
+
+      - name: Code Formatting Check (Prettier)
+        run: |
+          echo "🎨 Verifying Prettier code formatting..."
+          npm run format:check
 
       - name: Security Vulnerability Audit
         run: |
@@ -64,13 +62,17 @@ jobs:
         node-version: [18.x, 20.x]
     env:
       NODE_ENV: test
-      USE_MOCK_REDIS: 'true'
+      USE_MOCK_REDIS: "true"
       ADMIN_KEY: ci_test_admin_key_32_bytes_long_ok
       CRON_API_KEY: ci_test_cron_key_32_bytes_long_ok
       ADMIN_SKIP_KEY: ci_test_admin_skip_key
       UNSUBSCRIBE_SECRET: ci_test_unsubscribe_secret
       PORT: 2900
       ALLOWED_RATE_LIMITER: 1000
+      LLM_PROVIDER: curated
+      VAPID_PUBLIC_KEY: ci_test_vapid_public_key_mock_string
+      VAPID_PRIVATE_KEY: ci_test_vapid_private_key_mock_string
+      VAPID_SUBJECT: mailto:ci-test@morningroutinesender.com
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -79,7 +81,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Dependencies
         run: npm ci

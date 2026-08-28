@@ -31,10 +31,10 @@ self.addEventListener("install", (event) => {
         cache.add(url).catch((err) => {
           // Non-fatal if remote CDN fails during offline install
           console.warn("[SW] Optional asset skipped:", url, err.message);
-        })
+        }),
       );
       await Promise.all(promises);
-    })
+    }),
   );
 });
 
@@ -51,10 +51,10 @@ self.addEventListener("activate", (event) => {
             .map((key) => {
               console.info("[SW] Deleting stale cache:", key);
               return caches.delete(key);
-            })
-        )
+            }),
+        ),
       )
-      .then(() => self.clients.claim())
+      .then(() => self.clients.claim()),
   );
 });
 
@@ -71,11 +71,11 @@ self.addEventListener("fetch", (event) => {
         if (path.startsWith("/admin") || path.startsWith("/verify")) {
           return new Response(
             "<!DOCTYPE html><html><body style='background:#07090e;color:#fff;font-family:sans-serif;padding:40px;text-align:center;'><h2>Admin Offline</h2><p>Administrative actions require an active internet connection.</p></body></html>",
-            { headers: { "Content-Type": "text/html" } }
+            { headers: { "Content-Type": "text/html" } },
           );
         }
         return caches.match("/offline");
-      })
+      }),
     );
     return;
   }
@@ -120,7 +120,7 @@ self.addEventListener("fetch", (event) => {
           }
           return res;
         })
-        .catch(() => caches.match(req))
+        .catch(() => caches.match(req)),
     );
     return;
   }
@@ -139,7 +139,7 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => new Response("", { status: 408, statusText: "Asset Unavailable Offline" }));
-    })
+    }),
   );
 });
 
@@ -186,7 +186,7 @@ self.addEventListener("push", (event) => {
       renotify: data.renotify !== undefined ? data.renotify : true,
       data: data.data || { url: "/routine" },
       actions: data.actions || [],
-    })
+    }),
   );
 });
 
@@ -207,22 +207,20 @@ self.addEventListener("notificationclick", (event) => {
   }
 
   event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          const clientUrl = new URL(client.url);
-          if (clientUrl.origin === location.origin && "focus" in client) {
-            return client.focus().then(() => {
-              if (client.navigate) {
-                return client.navigate(targetUrl);
-              }
-            });
-          }
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        const clientUrl = new URL(client.url);
+        if (clientUrl.origin === location.origin && "focus" in client) {
+          return client.focus().then(() => {
+            if (client.navigate) {
+              return client.navigate(targetUrl);
+            }
+          });
         }
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
-        }
-      })
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    }),
   );
 });

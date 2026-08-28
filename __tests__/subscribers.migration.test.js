@@ -28,9 +28,7 @@ describe("subscribers migration", () => {
     // rather than true/false, which isn't how a real Postgres connection
     // (via db/knex.js in the actual app) behaves. A follow-up select
     // avoids asserting on that pg-mem-specific quirk.
-    const row = await knex("subscribers")
-      .where("email", "test@example.com")
-      .first();
+    const row = await knex("subscribers").where("email", "test@example.com").first();
 
     expect(row.email).toBe("test@example.com");
     expect(row.template_type).toBe("basic"); // default applied

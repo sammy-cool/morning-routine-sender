@@ -8,7 +8,10 @@ function extractDomain(emailOrDomain) {
   if (cleaned.includes("@")) {
     return cleaned.split("@")[1].replace(/[<>]/g, "").trim();
   }
-  return cleaned.replace(/^https?:\/\//, "").split("/")[0].trim();
+  return cleaned
+    .replace(/^https?:\/\//, "")
+    .split("/")[0]
+    .trim();
 }
 
 async function auditSPF(domain) {
@@ -49,7 +52,9 @@ async function auditSPF(domain) {
     } else if (spf.endsWith("?all")) {
       status = "WARN";
       score = 20;
-      issues.push("SPF ends with '?all' (Neutral). Deliverability is higher with '~all' or '-all'.");
+      issues.push(
+        "SPF ends with '?all' (Neutral). Deliverability is higher with '~all' or '-all'.",
+      );
     }
 
     const includes = (spf.match(/include:/g) || []).length;
@@ -64,7 +69,8 @@ async function auditSPF(domain) {
       record: spf,
       issues,
       includesCount: includes,
-      recommendation: status === "PASS" ? "SPF configured properly." : "Update SPF to use '~all' or '-all'.",
+      recommendation:
+        status === "PASS" ? "SPF configured properly." : "Update SPF to use '~all' or '-all'.",
     };
   } catch (err) {
     return {
@@ -114,7 +120,10 @@ async function auditDKIM(domain, selectors = ["resend", "s1", "default", "smtp",
           dkimDomain,
           record: dkim,
           issues,
-          recommendation: status === "PASS" ? `DKIM active on selector "${selector}".` : "Verify DKIM public key.",
+          recommendation:
+            status === "PASS"
+              ? `DKIM active on selector "${selector}".`
+              : "Verify DKIM public key.",
         };
       }
     } catch {
@@ -161,7 +170,9 @@ async function auditDMARC(domain) {
     if (policy === "none") {
       status = "WARN";
       score = 15;
-      issues.push("DMARC policy is set to 'p=none' (Monitoring only). Spam filters favor 'p=quarantine' or 'p=reject'.");
+      issues.push(
+        "DMARC policy is set to 'p=none' (Monitoring only). Spam filters favor 'p=quarantine' or 'p=reject'.",
+      );
     }
 
     if (!ruaMatch) {
@@ -175,7 +186,10 @@ async function auditDMARC(domain) {
       record: dmarc,
       hasReporting: Boolean(ruaMatch),
       issues,
-      recommendation: policy === "none" ? "Upgrade policy from 'p=none' to 'p=quarantine' or 'p=reject'." : "DMARC policy configured.",
+      recommendation:
+        policy === "none"
+          ? "Upgrade policy from 'p=none' to 'p=quarantine' or 'p=reject'."
+          : "DMARC policy configured.",
     };
   } catch {
     return {
@@ -221,7 +235,9 @@ async function auditMX(domain) {
 }
 
 async function performDeliverabilityAudit(senderEmailOrDomain) {
-  const domain = extractDomain(senderEmailOrDomain || process.env.FROM_USER || "morningroutine.app");
+  const domain = extractDomain(
+    senderEmailOrDomain || process.env.FROM_USER || "morningroutine.app",
+  );
 
   logger.info(`🔍 Running DNS Deliverability Guard for domain: ${domain}`);
 
@@ -253,7 +269,10 @@ async function performDeliverabilityAudit(senderEmailOrDomain) {
       dmarc,
       mx,
     },
-    actionableFixes: allIssues.length > 0 ? allIssues : ["Your email authentication DNS records meet high deliverability standards."],
+    actionableFixes:
+      allIssues.length > 0
+        ? allIssues
+        : ["Your email authentication DNS records meet high deliverability standards."],
   };
 }
 

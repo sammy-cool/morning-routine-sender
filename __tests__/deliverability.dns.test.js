@@ -23,7 +23,8 @@ describe("DNS Guard & Deliverability Audit Unit Tests", () => {
   });
 
   test("performDeliverabilityAudit calculates 100 Health Score and Grade A when all DNS records valid", async () => {
-    const fullDkim2048Key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Y9x6k9dK8tqV6rY9jQ6xL1Zz3w8bA2nK4vL8xM5" +
+    const fullDkim2048Key =
+      "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Y9x6k9dK8tqV6rY9jQ6xL1Zz3w8bA2nK4vL8xM5" +
       "pQ7sT3w9bA2nK4vL8xM5pQ7sT3w9bA2nK4vL8xM5pQ7sT3w9bA2nK4vL8xM5pQ7sT3w9bA2nK4vL8xM5pQ7sT3w9bA2nK4vL8xM5" +
       "pQ7sT3w9bA2nK4vL8xM5pQ7sT3w9bA2nK4vL8xM5pQ7sT3w9bA2nK4vL8xM5pQ7sT3w9bA2nK4vL8xM5pQ7sT3w9bA2nK4vL8xM5" +
       "IDAQAB";

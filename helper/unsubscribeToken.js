@@ -5,7 +5,9 @@ const crypto = require("node:crypto");
 // immediately on an existing deployment, can be given its own dedicated
 // secret later without breaking anything.
 function getSecret() {
-  return process.env.UNSUBSCRIBE_SECRET || process.env.ADMIN_KEY || "mrn-fallback-unsubscribe-secret";
+  return (
+    process.env.UNSUBSCRIBE_SECRET || process.env.ADMIN_KEY || "mrn-fallback-unsubscribe-secret"
+  );
 }
 
 /**

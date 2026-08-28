@@ -43,17 +43,17 @@ An enterprise-ready **Node.js/Express** automation platform that dispatches pers
 
 ## 🏗️ Architecture & Tech Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Backend Runtime** | Node.js (v20+ LTS), Express 4 |
-| **Database & ORM** | PostgreSQL with Knex.js query builder & migrations |
-| **Cache & Sessions** | Redis via `ioredis` (with dev mock fallback) |
-| **Email Compilation** | Nodemailer (SMTP) + MJML + Handlebars |
-| **Scheduler** | `node-cron` with in-memory job registry |
-| **Frontend UI** | Modern Vanilla JS, Glassmorphism CSS, Chart.js, FontAwesome |
-| **Logging** | Winston with `winston-daily-rotate-file` & deep error serialization |
-| **Testing** | Jest + Supertest (8 test suites, 63 unit/integration tests) |
-| **Deployment** | Render (Web Service + Managed PostgreSQL + Redis) |
+| Layer                 | Technology                                                          |
+| :-------------------- | :------------------------------------------------------------------ |
+| **Backend Runtime**   | Node.js (v20+ LTS), Express 4                                       |
+| **Database & ORM**    | PostgreSQL with Knex.js query builder & migrations                  |
+| **Cache & Sessions**  | Redis via `ioredis` (with dev mock fallback)                        |
+| **Email Compilation** | Nodemailer (SMTP) + MJML + Handlebars                               |
+| **Scheduler**         | `node-cron` with in-memory job registry                             |
+| **Frontend UI**       | Modern Vanilla JS, Glassmorphism CSS, Chart.js, FontAwesome         |
+| **Logging**           | Winston with `winston-daily-rotate-file` & deep error serialization |
+| **Testing**           | Jest + Supertest (8 test suites, 63 unit/integration tests)         |
+| **Deployment**        | Render (Web Service + Managed PostgreSQL + Redis)                   |
 
 ---
 
@@ -126,38 +126,40 @@ An enterprise-ready **Node.js/Express** automation platform that dispatches pers
 ## 📡 API Reference
 
 ### 1. Public & Subscriber Portal Endpoints
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | Responsive landing page (signup + subscriber portal + admin key trigger) |
-| `GET` | `/user-dashboard` (or `/dashboard`) | Subscriber preferences & history dashboard (session-gated) |
-| `POST` | `/subscribe` | New subscriber double opt-in registration |
-| `GET` | `/confirm-subscription` | Confirm signup and establish subscriber session |
-| `POST` | `/login` | Request passwordless magic login link |
-| `GET` | `/verify-login` | Redeem magic link and initialize subscriber session |
-| `POST` | `/logout` | Terminate subscriber session |
-| `GET` | `/me` | Fetch authenticated subscriber profile |
-| `PATCH` | `/me` | Update routine schedule, timezone, or pause/resume |
-| `GET` | `/me/history` | View subscriber email delivery history |
-| `GET` | `/unsubscribe` | 1-click cryptographically signed unsubscribe confirmation |
+
+| Method  | Endpoint                            | Description                                                              |
+| :------ | :---------------------------------- | :----------------------------------------------------------------------- |
+| `GET`   | `/`                                 | Responsive landing page (signup + subscriber portal + admin key trigger) |
+| `GET`   | `/user-dashboard` (or `/dashboard`) | Subscriber preferences & history dashboard (session-gated)               |
+| `POST`  | `/subscribe`                        | New subscriber double opt-in registration                                |
+| `GET`   | `/confirm-subscription`             | Confirm signup and establish subscriber session                          |
+| `POST`  | `/login`                            | Request passwordless magic login link                                    |
+| `GET`   | `/verify-login`                     | Redeem magic link and initialize subscriber session                      |
+| `POST`  | `/logout`                           | Terminate subscriber session                                             |
+| `GET`   | `/me`                               | Fetch authenticated subscriber profile                                   |
+| `PATCH` | `/me`                               | Update routine schedule, timezone, or pause/resume                       |
+| `GET`   | `/me/history`                       | View subscriber email delivery history                                   |
+| `GET`   | `/unsubscribe`                      | 1-click cryptographically signed unsubscribe confirmation                |
 
 ### 2. Admin & Telemetry Endpoints (Gated via `mrn_role=admin`)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/admin-dashboard` | Next-Gen Admin Command Center |
-| `POST` | `/verify-admin-key` | Authenticate master `ADMIN_KEY` or temporary Redis key |
-| `GET` | `/generate-admin-key` | Generate 5-minute temporary admin key (requires `ADMIN_KEY` header) |
-| `GET` | `/admin/subscribers` | List subscribers with search & filter |
-| `POST` | `/admin/subscribers` | Manually add subscriber |
-| `PATCH` | `/admin/subscribers/:email`| Update subscriber attributes or toggle active state |
-| `DELETE`| `/admin/subscribers/:email`| Remove subscriber record |
-| `GET` | `/admin/subscriber-stats`| Aggregated metrics (total, active, paused, 7D/30D/90D growth) |
-| `POST` | `/send-test-email` | Dispatch test routine email with selected theme |
-| `POST` | `/send-bulk-now` | Trigger immediate bulk dispatch to all active subscribers |
-| `GET` | `/scheduled-jobs` | List active `node-cron` schedulers |
-| `GET` | `/read-db` | Inspect raw `email_tracker` audit logs |
-| `POST` | `/admin/cleanup-database` | Prune email audit logs older than N days |
-| `POST` | `/admin/cleanup-logs` | Purge disk log files older than 3 days |
-| `GET` | `/health` | System health check |
+
+| Method   | Endpoint                    | Description                                                         |
+| :------- | :-------------------------- | :------------------------------------------------------------------ |
+| `GET`    | `/admin-dashboard`          | Next-Gen Admin Command Center                                       |
+| `POST`   | `/verify-admin-key`         | Authenticate master `ADMIN_KEY` or temporary Redis key              |
+| `GET`    | `/generate-admin-key`       | Generate 5-minute temporary admin key (requires `ADMIN_KEY` header) |
+| `GET`    | `/admin/subscribers`        | List subscribers with search & filter                               |
+| `POST`   | `/admin/subscribers`        | Manually add subscriber                                             |
+| `PATCH`  | `/admin/subscribers/:email` | Update subscriber attributes or toggle active state                 |
+| `DELETE` | `/admin/subscribers/:email` | Remove subscriber record                                            |
+| `GET`    | `/admin/subscriber-stats`   | Aggregated metrics (total, active, paused, 7D/30D/90D growth)       |
+| `POST`   | `/send-test-email`          | Dispatch test routine email with selected theme                     |
+| `POST`   | `/send-bulk-now`            | Trigger immediate bulk dispatch to all active subscribers           |
+| `GET`    | `/scheduled-jobs`           | List active `node-cron` schedulers                                  |
+| `GET`    | `/read-db`                  | Inspect raw `email_tracker` audit logs                              |
+| `POST`   | `/admin/cleanup-database`   | Prune email audit logs older than N days                            |
+| `POST`   | `/admin/cleanup-logs`       | Purge disk log files older than 3 days                              |
+| `GET`    | `/health`                   | System health check                                                 |
 
 ---
 
@@ -198,11 +200,13 @@ LOG_LEVEL=info
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - **Node.js** `v20.0.0` or higher
 - **PostgreSQL** instance
 - **Redis** instance (optional in development; mock fallback automatically activates)
 
 ### 1. Installation
+
 ```bash
 git clone https://github.com/sammy-cool/morning-routine-sender.git
 cd morning-routine-sender
@@ -210,15 +214,18 @@ npm install
 ```
 
 ### 2. Database Migrations
+
 ```bash
 cp .env.example .env
 npm run db:migrate
 ```
 
 ### 3. Start Development Server
+
 ```bash
 npm run start_nodemon_server
 ```
+
 Visit `http://localhost:2900` in your browser.
 
 ---

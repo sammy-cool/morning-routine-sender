@@ -113,13 +113,9 @@ class EmailTracker {
         .where("sent_at", "<=", endDate)
         .select(
           db.raw("COUNT(*) as total"),
-          db.raw(
-            "SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as successful"
-          ),
-          db.raw(
-            "SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed"
-          ),
-          db.raw("AVG(retry_count) as avg_retries")
+          db.raw("SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as successful"),
+          db.raw("SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed"),
+          db.raw("AVG(retry_count) as avg_retries"),
         )
         .first();
 

@@ -87,7 +87,7 @@ describe("Subscriber /me Controller Validation & Edge Cases", () => {
       expect(res.status).toBe(200);
       expect(sharedData.updateUser).toHaveBeenCalledWith(
         "tracks@example.com",
-        expect.objectContaining({ routineTrack: track })
+        expect.objectContaining({ routineTrack: track }),
       );
     }
   });

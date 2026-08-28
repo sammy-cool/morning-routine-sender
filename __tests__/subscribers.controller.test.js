@@ -51,25 +51,19 @@ describe("subscribers admin API", () => {
     });
 
     test("blocks POST /admin/subscribers without the admin cookie", async () => {
-      const res = await request(app)
-        .post("/admin/subscribers")
-        .send({ email: "new@example.com" });
+      const res = await request(app).post("/admin/subscribers").send({ email: "new@example.com" });
       expect(res.status).toBe(403);
       expect(sharedData.addUser).not.toHaveBeenCalled();
     });
 
     test("blocks requests with an unsigned mrn_role=admin cookie", async () => {
-      const res = await request(app)
-        .get("/admin/subscribers")
-        .set("Cookie", ["mrn_role=admin"]);
+      const res = await request(app).get("/admin/subscribers").set("Cookie", ["mrn_role=admin"]);
       expect(res.status).toBe(403);
     });
 
     test("allows requests with the signed mrn_role=admin cookie through to the controller", async () => {
       sharedData.getAllUsers.mockResolvedValue([]);
-      const res = await request(app)
-        .get("/admin/subscribers")
-        .set("Cookie", adminCookie);
+      const res = await request(app).get("/admin/subscribers").set("Cookie", adminCookie);
       expect(res.status).toBe(200);
       expect(sharedData.getAllUsers).toHaveBeenCalledTimes(1);
     });
@@ -82,9 +76,7 @@ describe("subscribers admin API", () => {
         { email: "b@example.com", isActive: false },
       ]);
 
-      const res = await request(app)
-        .get("/admin/subscribers")
-        .set("Cookie", adminCookie);
+      const res = await request(app).get("/admin/subscribers").set("Cookie", adminCookie);
 
       expect(res.status).toBe(200);
       expect(res.body.count).toBe(2);

@@ -131,7 +131,9 @@ async function callGemini(promptData, timeoutMs) {
       contents: [
         {
           role: "user",
-          parts: [{ text: `${promptData.systemInstruction}\n\nContext:\n${promptData.userPrompt}` }],
+          parts: [
+            { text: `${promptData.systemInstruction}\n\nContext:\n${promptData.userPrompt}` },
+          ],
         },
       ],
       generationConfig: {

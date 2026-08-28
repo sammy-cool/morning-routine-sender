@@ -46,8 +46,8 @@ function buildRedisClient() {
       return Math.min(times * 50, 2000);
     },
   };
-  
-  if (connectionUrl && connectionUrl.startsWith('rediss://')) {
+
+  if (connectionUrl && connectionUrl.startsWith("rediss://")) {
     options.tls = {};
   }
 

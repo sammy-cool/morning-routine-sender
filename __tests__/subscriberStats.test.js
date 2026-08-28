@@ -49,8 +49,7 @@ describe("getSubscriberStats", () => {
     // `const db = require("../db/knex")` once at module load.
     jest.resetModules();
     jest.doMock("../db/knex", () => knex);
-    getSubscriberStats =
-      require("../controllers/subscriberStats.controller").getSubscriberStats;
+    getSubscriberStats = require("../controllers/subscriberStats.controller").getSubscriberStats;
   });
 
   afterEach(async () => {

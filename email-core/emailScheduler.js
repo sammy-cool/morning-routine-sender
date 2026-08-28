@@ -74,10 +74,7 @@ const cron = require("node-cron");
 const { getTransporter } = require("../config/mailTransporter");
 const emailService = require("./emailService");
 const emailTracker = require("./emailTracker");
-const {
-  cleanupOldEmailRecords,
-  optimizeDatabase,
-} = require("../helper/database-cleanup");
+const { cleanupOldEmailRecords, optimizeDatabase } = require("../helper/database-cleanup");
 const { maskEmail } = require("../helper/util");
 const suppressionService = require("./suppressionService");
 
@@ -86,11 +83,7 @@ let scheduledJobs = [];
 /**
  * Send routine email to a single user
  */
-async function sendRoutineEmail(
-  userData,
-  adminSkip = "GG!",
-  appLocals = process.env.RENDER_URL
-) {
+async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process.env.RENDER_URL) {
   try {
     const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
 
@@ -108,7 +101,7 @@ async function sendRoutineEmail(
     const alreadySent = await emailTracker.wasEmailSentToday(
       userData.email,
       userData.templateType,
-      userData.timezone
+      userData.timezone,
     );
 
     if (alreadySent) {
@@ -130,11 +123,7 @@ async function sendRoutineEmail(
     }
 
     // Send email
-    const result = await emailService.sendRoutineEmail(
-      getTransporter(),
-      appLocals,
-      userData
-    );
+    const result = await emailService.sendRoutineEmail(getTransporter(), appLocals, userData);
 
     // Dispatch Web Push Notification (non-blocking)
     try {
@@ -145,12 +134,9 @@ async function sendRoutineEmail(
     }
 
     // Record in database
-    await emailTracker.recordSend(
-      userData.email,
-      userData.templateType,
-      result.messageId,
-      { scheduled: true }
-    );
+    await emailTracker.recordSend(userData.email, userData.templateType, result.messageId, {
+      scheduled: true,
+    });
 
     logger.info("✅ Scheduled email sent successfully", {
       email: userData.email,
@@ -166,12 +152,7 @@ async function sendRoutineEmail(
     });
 
     // Record failure
-    await emailTracker.recordFailure(
-      userData.email,
-      userData.templateType,
-      error.message,
-      0
-    );
+    await emailTracker.recordFailure(userData.email, userData.templateType, error.message, 0);
 
     return { status: "failed", error: error.message };
   }
@@ -216,13 +197,13 @@ async function sendBulkEmails(adminSkip, appLocals) {
 async function sendUserWeeklyDigest(
   userData,
   adminSkip = "GG!",
-  appLocals = process.env.RENDER_URL
+  appLocals = process.env.RENDER_URL,
 ) {
   try {
     const alreadySent = await emailTracker.wasEmailSentToday(
       userData.email,
       "weekly-digest",
-      userData.timezone
+      userData.timezone,
     );
 
     const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
@@ -231,18 +212,12 @@ async function sendUserWeeklyDigest(
       return { status: "skipped", reason: "already_sent_today" };
     }
 
-    const result = await emailService.sendWeeklyDigestEmail(
-      getTransporter(),
-      appLocals,
-      userData
-    );
+    const result = await emailService.sendWeeklyDigestEmail(getTransporter(), appLocals, userData);
 
-    await emailTracker.recordSend(
-      userData.email,
-      "weekly-digest",
-      result.messageId,
-      { scheduled: true, type: "weekly_digest" }
-    );
+    await emailTracker.recordSend(userData.email, "weekly-digest", result.messageId, {
+      scheduled: true,
+      type: "weekly_digest",
+    });
 
     logger.info("✅ Sunday Weekly Digest sent successfully", {
       email: userData.email,
@@ -256,12 +231,7 @@ async function sendUserWeeklyDigest(
       error: error.message,
     });
 
-    await emailTracker.recordFailure(
-      userData.email,
-      "weekly-digest",
-      error.message,
-      0
-    );
+    await emailTracker.recordFailure(userData.email, "weekly-digest", error.message, 0);
 
     return { status: "failed", error: error.message };
   }
@@ -308,7 +278,7 @@ async function scheduleAllJobs() {
           {
             scheduled: true,
             timezone: userTz,
-          }
+          },
         );
         scheduledJobs.push({
           email: user.email,
@@ -346,7 +316,7 @@ async function scheduleAllJobs() {
         {
           scheduled: true,
           timezone: userTz,
-        }
+        },
       );
       scheduledJobs.push({
         email: user.email,
@@ -371,7 +341,7 @@ function stopAllJobs() {
 
   const remainingJobs = [];
   for (const jobData of scheduledJobs) {
-    if (jobData.email === 'system_cleanup') {
+    if (jobData.email === "system_cleanup") {
       remainingJobs.push(jobData);
     } else {
       jobData.job.stop();
@@ -402,7 +372,7 @@ function scheduleCleanupJobs() {
     "0 2 * * 0",
     async () => {
       logger.info(
-        `🧹 Running scheduled database cleanup of last ${process.env.DB_RETENTION_DAYS} days!...`
+        `🧹 Running scheduled database cleanup of last ${process.env.DB_RETENTION_DAYS} days!...`,
       );
 
       // Delete records older than 30 days
@@ -414,15 +384,15 @@ function scheduleCleanupJobs() {
     {
       scheduled: true,
       timezone: "Asia/Kolkata",
-    }
+    },
   );
 
   // logger.info("✅ Cleanup job scheduled (every sunday at 2 AM)");
 
   scheduledJobs.push({
-    email: 'system_cleanup',
+    email: "system_cleanup",
     job: cleanupJob,
-    cronPattern: '0 2 * * 0'
+    cronPattern: "0 2 * * 0",
   });
 
   return cleanupJob;

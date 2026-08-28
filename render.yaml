@@ -1,0 +1,95 @@
+# render.yaml — Render Infrastructure as Code (Blueprint)
+# https://render.com/docs/blueprint-spec
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Main Web Service
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: morning-routine-sender
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm ci
+    preDeployCommand: npm run db:migrate
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: LOG_LEVEL
+        value: info
+      - key: DATABASE_URL
+        fromDatabase:
+          name: morning-routine-db
+          property: connectionString
+      - key: DB_SSL
+        value: "true"
+      - key: USE_MOCK_REDIS
+        value: "false"
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: morning-routine-redis
+          property: connectionString
+      - key: ADMIN_KEY
+        generateValue: true
+      - key: CRON_API_KEY
+        generateValue: true
+      - key: ADMIN_SKIP_KEY
+        generateValue: true
+      - key: UNSUBSCRIBE_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: "https://morning-routine-sender.onrender.com"
+      - key: TRANSPORTER_HOST
+        value: "smtp.gmail.com"
+      - key: TRANSPORTER_PORT
+        value: "587"
+      - key: TRANSPORTER_SECURE
+        value: "false"
+      - key: TRANSPORTER_REQUIRE_TLS
+        value: "true"
+      - key: FROM_NAME
+        value: "Morning Routine Sender"
+      - key: FROM_USER
+        sync: false
+      - key: PASSWORD
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+
+  # ---------------------------------------------------------------------------
+  # 2. Weekly Database Maintenance Cron Job
+  # ---------------------------------------------------------------------------
+  - type: cron
+    name: morning-routine-db-maintenance
+    runtime: node
+    plan: starter
+    region: oregon
+    schedule: "0 2 * * 0" # Every Sunday at 02:00 UTC
+    buildCommand: npm ci
+    startCommand: node scripts/run-db-maintenance.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: morning-routine-db
+          property: connectionString
+      - key: DB_SSL
+        value: "true"
+
+# ---------------------------------------------------------------------------
+# Databases & Caching Services
+# ---------------------------------------------------------------------------
+databases:
+  - name: morning-routine-db
+    databaseName: morning_routine_db
+    user: routine_user
+    plan: starter
+    region: oregon
+    postgresMajorVersion: 16
