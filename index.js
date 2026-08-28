@@ -1,5 +1,6 @@
 // index.js
 require("dotenv").config();
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -215,10 +216,14 @@ async function gracefulShutdown(signal) {
   logger.info(`${signal} received, starting graceful shutdown...`);
 
   try {
-    server.close();
+    if (server && typeof server.close === "function") {
+      server.close();
+    }
 
     // Stop all cron jobs
-    emailScheduler.stopAllJobs();
+    if (emailScheduler && typeof emailScheduler.stopAllJobs === "function") {
+      emailScheduler.stopAllJobs();
+    }
 
     await closeTransporterConnection();
 
@@ -234,9 +239,9 @@ async function gracefulShutdown(signal) {
     }
 
     logger.info("✅ Graceful shutdown completed");
-    process.exit(0);
+    process.exit(signal === "uncaughtException" ? 1 : 0);
   } catch (error) {
-    logger.error("❌ Error during shutdown", { error: error.message });
+    logger.error("❌ Error during shutdown", { error: error.message, stack: error.stack });
     process.exit(1);
   }
 }
@@ -244,10 +249,12 @@ async function gracefulShutdown(signal) {
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("uncaughtException", (error) => {
-  logger.error("Uncaught exception", { error: error.message || error });
+  console.error("Uncaught exception:", error);
+  logger.error("Uncaught exception", { error: error.message || error, stack: error.stack });
   gracefulShutdown("uncaughtException");
 });
 process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection (non-fatal):", reason);
   logger.error("Unhandled rejection (non-fatal)", { reason });
 });
 
