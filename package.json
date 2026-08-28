@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "start_server": "node index.js",
     "start_nodemon_server": "nodemon index.js",
     "test:smtp": "node scripts/test-smtp.js",
