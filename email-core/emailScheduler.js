@@ -77,13 +77,18 @@ const emailTracker = require("./emailTracker");
 const { cleanupOldEmailRecords, optimizeDatabase } = require("../helper/database-cleanup");
 const { maskEmail } = require("../helper/util");
 const suppressionService = require("./suppressionService");
+const { retryWithBackoff } = require("../helper/retryUtil");
+const { isRetryableError } = require("../helper/errorClassifier");
 
 let scheduledJobs = [];
 
 /**
- * Send routine email to a single user
+ * Send routine email to a single user with automatic retry backoff
  */
 async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process.env.RENDER_URL) {
+  let finalAttempts = 0;
+  let finalRetries = 0;
+
   try {
     const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
 
@@ -91,7 +96,7 @@ async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process
     const eligibility = await suppressionService.checkPreSendEligibility(userData.email);
     if (eligibility.isSuppressed && !isAdminSkip) {
       logger.warn("Recipient suppressed or on bounce cooldown, skipping dispatch.", {
-        email: userData.email,
+        email: maskEmail(userData.email),
         reason: eligibility.reason,
       });
       return { status: "skipped", reason: eligibility.reason };
@@ -112,7 +117,7 @@ async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process
       const logLevel = isAdminSkip ? "warn" : "info";
 
       logger[logLevel](logMessage, {
-        email: userData.email,
+        email: maskEmail(userData.email),
         templateType: userData.templateType,
         adminOverride: isAdminSkip,
       });
@@ -122,8 +127,27 @@ async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process
       }
     }
 
-    // Send email
-    const result = await emailService.sendRoutineEmail(getTransporter(), appLocals, userData);
+    // Send email with automatic retry backoff on transient errors
+    const { result, retries, totalAttempts } = await retryWithBackoff(
+      async (attempt) => {
+        finalAttempts = attempt + 1;
+        finalRetries = attempt;
+        return await emailService.sendRoutineEmail(getTransporter(), appLocals, userData);
+      },
+      {
+        maxRetries: 3,
+        baseDelayMs: 1500,
+        onRetry: async ({ error, attempt, maxRetries, nextDelayMs }) => {
+          logger.warn(
+            `⚠️ SMTP dispatch attempt ${attempt}/${maxRetries + 1} failed for ${maskEmail(userData.email)}. Retrying in ${nextDelayMs}ms...`,
+            {
+              error: error.message,
+              code: error.code,
+            },
+          );
+        },
+      },
+    );
 
     // Dispatch Web Push Notification (non-blocking)
     try {
@@ -134,27 +158,47 @@ async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process
     }
 
     // Record in database
-    await emailTracker.recordSend(userData.email, userData.templateType, result.messageId, {
-      scheduled: true,
-    });
+    await emailTracker.recordSend(
+      userData.email,
+      userData.templateType,
+      result.messageId,
+      {
+        scheduled: true,
+        attempts: totalAttempts,
+        recovered: retries > 0,
+        routineTrack: userData.routineTrack || userData.templateType,
+      },
+      retries,
+    );
 
     logger.info("✅ Scheduled email sent successfully", {
-      email: userData.email,
+      email: maskEmail(userData.email),
       messageId: result.messageId,
       templateType: userData.templateType,
+      retries,
     });
 
-    return { status: "success", messageId: result.messageId };
+    return { status: "success", messageId: result.messageId, retries };
   } catch (error) {
+    const totalRetries = error.retriesExecuted !== undefined ? error.retriesExecuted : finalRetries;
+    const totalAttempts = error.totalAttempts !== undefined ? error.totalAttempts : finalAttempts;
+
     logger.error("❌ Failed to send scheduled email", {
-      email: userData.email,
+      email: maskEmail(userData.email),
       error: error.message,
+      totalAttempts,
     });
 
-    // Record failure
-    await emailTracker.recordFailure(userData.email, userData.templateType, error.message, 0);
+    // Record failure with rich diagnostics
+    await emailTracker.recordFailure(userData.email, userData.templateType, error, totalRetries, {
+      scheduled: true,
+      phase: "smtp_dispatch",
+      isRetryable: error.isRetryable !== undefined ? error.isRetryable : isRetryableError(error),
+      totalAttempts,
+      routineTrack: userData.routineTrack || userData.templateType,
+    });
 
-    return { status: "failed", error: error.message };
+    return { status: "failed", error: error.message, retries: totalRetries };
   }
 }
 
@@ -192,13 +236,16 @@ async function sendBulkEmails(adminSkip, appLocals) {
 }
 
 /**
- * Send Sunday Weekly Digest email to a single user
+ * Send Sunday Weekly Digest email to a single user with automatic retry backoff
  */
 async function sendUserWeeklyDigest(
   userData,
   adminSkip = "GG!",
   appLocals = process.env.RENDER_URL,
 ) {
+  let finalAttempts = 0;
+  let finalRetries = 0;
+
   try {
     const alreadySent = await emailTracker.wasEmailSentToday(
       userData.email,
@@ -208,32 +255,69 @@ async function sendUserWeeklyDigest(
 
     const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
     if (alreadySent && !isAdminSkip) {
-      logger.info("Weekly digest already sent today, skipping.", { email: userData.email });
+      logger.info("Weekly digest already sent today, skipping.", {
+        email: maskEmail(userData.email),
+      });
       return { status: "skipped", reason: "already_sent_today" };
     }
 
-    const result = await emailService.sendWeeklyDigestEmail(getTransporter(), appLocals, userData);
+    const { result, retries, totalAttempts } = await retryWithBackoff(
+      async (attempt) => {
+        finalAttempts = attempt + 1;
+        finalRetries = attempt;
+        return await emailService.sendWeeklyDigestEmail(getTransporter(), appLocals, userData);
+      },
+      {
+        maxRetries: 3,
+        baseDelayMs: 1500,
+        onRetry: async ({ error, attempt, maxRetries, nextDelayMs }) => {
+          logger.warn(
+            `⚠️ Weekly digest SMTP attempt ${attempt}/${maxRetries + 1} failed for ${maskEmail(userData.email)}. Retrying in ${nextDelayMs}ms...`,
+            { error: error.message, code: error.code },
+          );
+        },
+      },
+    );
 
-    await emailTracker.recordSend(userData.email, "weekly-digest", result.messageId, {
-      scheduled: true,
-      type: "weekly_digest",
-    });
+    await emailTracker.recordSend(
+      userData.email,
+      "weekly-digest",
+      result.messageId,
+      {
+        scheduled: true,
+        type: "weekly_digest",
+        attempts: totalAttempts,
+        recovered: retries > 0,
+      },
+      retries,
+    );
 
     logger.info("✅ Sunday Weekly Digest sent successfully", {
-      email: userData.email,
+      email: maskEmail(userData.email),
       messageId: result.messageId,
+      retries,
     });
 
-    return { status: "success", messageId: result.messageId };
+    return { status: "success", messageId: result.messageId, retries };
   } catch (error) {
+    const totalRetries = error.retriesExecuted !== undefined ? error.retriesExecuted : finalRetries;
+    const totalAttempts = error.totalAttempts !== undefined ? error.totalAttempts : finalAttempts;
+
     logger.error("❌ Failed to send Sunday weekly digest", {
-      email: userData.email,
+      email: maskEmail(userData.email),
       error: error.message,
+      totalAttempts,
     });
 
-    await emailTracker.recordFailure(userData.email, "weekly-digest", error.message, 0);
+    await emailTracker.recordFailure(userData.email, "weekly-digest", error, totalRetries, {
+      scheduled: true,
+      type: "weekly_digest",
+      phase: "weekly_digest_smtp",
+      isRetryable: error.isRetryable !== undefined ? error.isRetryable : isRetryableError(error),
+      totalAttempts,
+    });
 
-    return { status: "failed", error: error.message };
+    return { status: "failed", error: error.message, retries: totalRetries };
   }
 }
 

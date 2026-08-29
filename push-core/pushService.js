@@ -32,6 +32,10 @@ const isConfigured = initVapid();
  * Register or update a browser push subscription
  */
 async function registerSubscription(subscriberEmail, subscription, userAgent = "") {
+  if (!subscriberEmail || typeof subscriberEmail !== "string") {
+    throw new Error("Valid subscriber email is required for push registration");
+  }
+
   if (!subscription || !subscription.endpoint || !subscription.keys) {
     throw new Error("Invalid push subscription object");
   }
@@ -186,8 +190,8 @@ async function sendToSubscriptionRecord(subRecord, payloadObj) {
 
     await db("push_subscriptions")
       .where("id", subRecord.id)
-      .increment("failed_attempts", 1)
       .update({
+        failed_attempts: db.raw("failed_attempts + 1"),
         last_error_status: statusCode || 500,
         updated_at: db.fn.now(),
       });

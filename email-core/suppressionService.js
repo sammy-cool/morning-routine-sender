@@ -193,15 +193,20 @@ class SuppressionService {
         });
     }
 
-    await db("email_tracker")
+    const latestEmail = await db("email_tracker")
       .where("recipient_email", email)
       .orderBy("sent_at", "desc")
-      .limit(1)
-      .update({
-        status: "bounced",
-        error_message: `Hard Bounce: ${reason || bounceCode || "Unknown"}`,
-        updated_at: db.fn.now(),
-      });
+      .first();
+
+    if (latestEmail) {
+      await db("email_tracker")
+        .where("id", latestEmail.id)
+        .update({
+          status: "bounced",
+          error_message: `Hard Bounce: ${reason || bounceCode || "Unknown"}`,
+          updated_at: db.fn.now(),
+        });
+    }
   }
 
   async handleSoftBounce(email, provider, bounceCode, reason) {
