@@ -157,6 +157,16 @@ async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process
       logger.debug("Push notification dispatch non-fatal check", { error: pushErr.message });
     }
 
+    // Dispatch Multi-Channel Notifications (Discord / Telegram) (non-blocking)
+    try {
+      const channelDispatcher = require("../helper/channelDispatcher");
+      await channelDispatcher.dispatchChannelsForSubscriber(userData, {
+        baseUrl: appLocals || process.env.RENDER_URL,
+      });
+    } catch (channelErr) {
+      logger.debug("Multi-channel dispatch non-fatal check", { error: channelErr.message });
+    }
+
     // Record in database
     await emailTracker.recordSend(
       userData.email,

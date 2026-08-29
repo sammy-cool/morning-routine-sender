@@ -28,15 +28,30 @@ async function getSessionEmail(req) {
 }
 
 /**
- * GET /checkin
- * 1-Click Habit Streak Check-in Endpoint
+ * GET /checkin & POST /checkin
+ * 1-Click Habit Streak Check-in Endpoint (supports Web UI & PWA Background Sync)
  */
 async function checkin(req, res) {
-  const email = (req.query.email || "").trim().toLowerCase();
-  const token = req.query.token;
+  const email = (req.query.email || req.body?.email || "").trim().toLowerCase();
+  const token = req.query.token || req.body?.token;
+
+  function sendResponse(data, statusCode = 200) {
+    const isJson =
+      req.xhr ||
+      req.headers["x-offline-sync"] === "true" ||
+      (req.headers.accept && req.headers.accept.includes("application/json")) ||
+      req.query.format === "json";
+
+    if (isJson) {
+      return res
+        .status(data.success ? statusCode : statusCode === 200 ? 400 : statusCode)
+        .json(data);
+    }
+    return renderCheckinPage(res, data);
+  }
 
   if (!email || !token) {
-    return renderCheckinPage(res, {
+    return sendResponse({
       success: false,
       title: "Invalid Check-in Link",
       message: "This habit check-in link is missing required verification parameters.",
@@ -51,7 +66,7 @@ async function checkin(req, res) {
 
   if (!isValid) {
     logger.warn("Invalid checkin token attempt", { email, ip: req.ip });
-    return renderCheckinPage(res, {
+    return sendResponse({
       success: false,
       title: "Link Expired or Invalid",
       message:
@@ -63,7 +78,7 @@ async function checkin(req, res) {
   try {
     const subscriber = await sharedData.getUserByEmail(email);
     if (!subscriber) {
-      return renderCheckinPage(res, {
+      return sendResponse({
         success: false,
         title: "Subscriber Not Found",
         message: "No active subscription was found for this address.",
@@ -83,7 +98,7 @@ async function checkin(req, res) {
           : 1;
 
     if (checkinResult.alreadyCheckedInToday) {
-      return renderCheckinPage(res, {
+      return sendResponse({
         success: true,
         streakCount: finalStreak,
         title: "Already Checked In Today! ⚡",
@@ -100,7 +115,7 @@ async function checkin(req, res) {
       timezone: subscriber.timezone,
     });
 
-    return renderCheckinPage(res, {
+    return sendResponse({
       success: true,
       streakCount: finalStreak,
       title: `Day ${finalStreak} Complete! 🔥`,
@@ -111,7 +126,7 @@ async function checkin(req, res) {
     });
   } catch (err) {
     logger.error("Check-in controller error", { error: err.message, email });
-    return renderCheckinPage(res, {
+    return sendResponse({
       success: false,
       title: "Server Error",
       message: "We encountered an issue saving your check-in. Please try again in a few moments.",
@@ -380,9 +395,9 @@ async function liveRoutine(req, res) {
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer crossorigin="anonymous"></script>
+  <script src="/js/offline-sync.js?v=4.2.0" defer></script>
   <style>
     :root {
       --bg: #07090e;
@@ -587,6 +602,36 @@ async function liveRoutine(req, res) {
     .btn-checkin:hover {
       transform: translateY(-2px);
       box-shadow: 0 14px 28px -5px rgba(99, 102, 241, 0.6);
+    }
+    /* Daily Journal & Reflection Styling */
+    .journal-card {
+      background: rgba(17, 24, 39, 0.75);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .mood-btn {
+      padding: 8px;
+      font-size: 20px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mood-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      transform: scale(1.08);
+    }
+    .mood-btn.active {
+      background: rgba(99, 102, 241, 0.35);
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+    .journal-input:focus, .journal-textarea:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 2px var(--primary-glow);
     }
     /* Ambient Soundscape Studio */
     .soundscape-card {
@@ -922,7 +967,65 @@ async function liveRoutine(req, res) {
         </label>
       </div>
 
-      <a href="${checkinHref}" class="btn-checkin">
+      <!-- Daily Reflection & Morning Journal Card -->
+      <div class="card journal-card" id="journalSection">
+        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-weight:700; font-size:16px;">✍️ Morning Mindset & 3-Min Reflection</span>
+          <span id="journalSyncStatus" style="font-size: 11px; color: var(--emerald); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Auto-Saved</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+          Capture your high-leverage focus, gratitude, and intentions before beginning your day.
+        </p>
+
+        <!-- Mood Selector -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">
+            Current State & Energy
+          </label>
+          <div class="mood-selector" id="moodSelector" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;">
+            <button type="button" class="mood-btn" data-score="1" onclick="selectMood(1)">😫</button>
+            <button type="button" class="mood-btn" data-score="2" onclick="selectMood(2)">😕</button>
+            <button type="button" class="mood-btn" data-score="3" onclick="selectMood(3)">😐</button>
+            <button type="button" class="mood-btn" data-score="4" onclick="selectMood(4)">🙂</button>
+            <button type="button" class="mood-btn active" data-score="5" onclick="selectMood(5)">⚡</button>
+          </div>
+        </div>
+
+        <!-- One Big Thing -->
+        <div style="margin-bottom: 14px;">
+          <label for="oneBigThingInput" style="display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">
+            🎯 My One Big Thing (Highest-Leverage Task)
+          </label>
+          <input type="text" id="oneBigThingInput" class="journal-input" placeholder="e.g., Deliver core architecture milestone without distractions" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 10px 12px; font-size: 13px; outline: none;">
+        </div>
+
+        <!-- Gratitude -->
+        <div style="margin-bottom: 14px;">
+          <label for="gratitudeInput" style="display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">
+            🙏 1 Thing I am Grateful For
+          </label>
+          <input type="text" id="gratitudeInput" class="journal-input" placeholder="e.g., Morning sunlight and deep mental clarity" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 10px 12px; font-size: 13px; outline: none;">
+        </div>
+
+        <!-- Reflection Notes -->
+        <div style="margin-bottom: 16px;">
+          <label for="reflectionTextInput" style="display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">
+            💭 Mindset Notes & Intentions
+          </label>
+          <textarea id="reflectionTextInput" class="journal-textarea" rows="3" placeholder="Any thoughts, intentions, or Stoic reminders for today..." style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 10px 12px; font-size: 13px; outline: none; resize: vertical;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn" id="saveJournalBtn" onclick="saveMorningJournal()" style="background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+            💾 Save Reflection
+          </button>
+          <a href="/api/journal/export?format=markdown${activeEmail ? "&email=" + encodeURIComponent(activeEmail) : ""}${token ? "&token=" + token : ""}" class="btn-export-journal" style="color: var(--text-muted); text-decoration: none; font-size: 12px; font-weight: 600; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;">
+            📥 Export Journal (.md)
+          </a>
+        </div>
+      </div>
+
+      <a href="${checkinHref}" class="btn-checkin" id="routineCheckinBtn" data-action="checkin" data-email="${escapeHtml(activeEmail || "")}" data-token="${escapeHtml(token || "")}">
         ⚡ Complete Routine & Maintain Streak
       </a>
     </div>
@@ -1634,6 +1737,121 @@ async function liveRoutine(req, res) {
       timeLeft = 25 * 60;
       document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
     }
+
+    // --- Morning Mindset & Journaling State Manager ---
+    let selectedMoodScore = 5;
+    const subscriberEmail = "${escapeHtml(activeEmail || "")}";
+    const subscriberToken = "${escapeHtml(token || "")}";
+
+    function selectMood(score) {
+      selectedMoodScore = score;
+      document.querySelectorAll('.mood-btn').forEach(btn => {
+        if (parseInt(btn.getAttribute('data-score'), 10) === score) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    function fireCelebrationConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#6366f1', '#10b981', '#f59e0b', '#06b6d4']
+        });
+      }
+    }
+
+    async function loadTodayJournal() {
+      if (!subscriberEmail) return;
+      try {
+        const url = '/api/journal/today?email=' + encodeURIComponent(subscriberEmail) + (subscriberToken ? '&token=' + encodeURIComponent(subscriberToken) : '');
+        const res = await fetch(url, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.entry) {
+            if (data.entry.mood_score) selectMood(data.entry.mood_score);
+            if (data.entry.one_big_thing) document.getElementById('oneBigThingInput').value = data.entry.one_big_thing;
+            if (data.entry.gratitude) document.getElementById('gratitudeInput').value = data.entry.gratitude;
+            if (data.entry.reflection_text) document.getElementById('reflectionTextInput').value = data.entry.reflection_text;
+            const syncStatus = document.getElementById('journalSyncStatus');
+            if (syncStatus) syncStatus.textContent = 'Synced';
+          }
+        }
+      } catch (_e) {}
+    }
+
+    async function saveMorningJournal() {
+      const saveBtn = document.getElementById('saveJournalBtn');
+      const syncStatus = document.getElementById('journalSyncStatus');
+      const oneBigThing = document.getElementById('oneBigThingInput').value.trim();
+      const gratitude = document.getElementById('gratitudeInput').value.trim();
+      const reflectionText = document.getElementById('reflectionTextInput').value.trim();
+
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '⏳ Saving…';
+      }
+
+      const payload = {
+        mood_score: selectedMoodScore,
+        one_big_thing: oneBigThing,
+        gratitude: gratitude,
+        reflection_text: reflectionText,
+        track_key: "${escapeHtml(trackKey || "deep-work")}"
+      };
+
+      try {
+        const url = '/api/journal/save' + (subscriberEmail ? '?email=' + encodeURIComponent(subscriberEmail) + (subscriberToken ? '&token=' + encodeURIComponent(subscriberToken) : '') : '');
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          if (syncStatus) syncStatus.textContent = 'Saved Just Now ✓';
+          fireCelebrationConfetti();
+
+          if (typeof customizableToast !== "undefined" && typeof customizableToast.createToast === "function") {
+            customizableToast.createToast({
+              message: "✨ <b>Reflection Saved!</b> Your morning intention and mindset are locked in.",
+              type: "success",
+              allowHtml: true,
+              duration: 4000
+            });
+          }
+        } else {
+          if (syncStatus) syncStatus.textContent = 'Save Failed';
+          if (typeof customizableToast !== "undefined" && typeof customizableToast.createToast === "function") {
+            customizableToast.createToast({
+              message: data.error || "Could not save reflection. Please check your connection.",
+              type: "warning",
+              duration: 5000
+            });
+          }
+        }
+      } catch (err) {
+        if (syncStatus) syncStatus.textContent = 'Offline Saved';
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '💾 Save Reflection';
+        }
+      }
+    }
+
+    // Auto-load journal on page load
+    document.addEventListener('DOMContentLoaded', loadTodayJournal);
   </script>
 </body>
 </html>`);

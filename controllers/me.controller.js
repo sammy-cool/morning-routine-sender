@@ -149,4 +149,130 @@ async function updateMe(req, res) {
   }
 }
 
-module.exports = { getMe, getMyHistory, exportJournal, getStreakCard, updateMe };
+// POST /me/channels { discordWebhookUrl?, telegramChatId?, channelsEnabled? }
+async function updateChannels(req, res) {
+  const { discordWebhookUrl, telegramChatId, channelsEnabled } = req.body || {};
+
+  try {
+    if (discordWebhookUrl !== undefined && discordWebhookUrl !== "" && discordWebhookUrl !== null) {
+      const isDiscordUrl =
+        typeof discordWebhookUrl === "string" &&
+        /^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_-]+$/.test(
+          discordWebhookUrl.trim(),
+        );
+      if (!isDiscordUrl) {
+        return res.status(400).json({
+          error: "Invalid Discord Webhook URL. Format: https://discord.com/api/webhooks/...",
+        });
+      }
+    }
+
+    if (telegramChatId !== undefined && telegramChatId !== "" && telegramChatId !== null) {
+      const isChatId = /^-?\d{5,20}$/.test(String(telegramChatId).trim());
+      if (!isChatId) {
+        return res.status(400).json({
+          error: "Invalid Telegram Chat ID. Chat ID must be numeric (e.g. 123456789).",
+        });
+      }
+    }
+
+    let parsedChannels = "email";
+    if (channelsEnabled !== undefined) {
+      const list = Array.isArray(channelsEnabled)
+        ? channelsEnabled
+        : String(channelsEnabled).split(",");
+      const validChannels = ["email", "discord", "telegram"];
+      const filtered = list
+        .map((c) => String(c).toLowerCase().trim())
+        .filter((c) => validChannels.includes(c));
+      if (!filtered.includes("email")) filtered.unshift("email");
+      parsedChannels = filtered.join(",");
+    }
+
+    const updates = {
+      discordWebhookUrl: discordWebhookUrl ? discordWebhookUrl.trim() : null,
+      telegramChatId: telegramChatId ? String(telegramChatId).trim() : null,
+      channelsEnabled: parsedChannels,
+    };
+
+    await sharedData.updateUser(req.subscriberEmail, updates);
+    const updated = await sharedData.getUserByEmail(req.subscriberEmail);
+
+    logger.info("Subscriber updated notification channels", { email: req.subscriberEmail });
+    res.json({
+      success: true,
+      message: "Notification channels updated successfully",
+      subscriber: updated,
+    });
+  } catch (error) {
+    logger.error("Failed to update notification channels", { error: error.message });
+    res.status(500).json({ error: "Failed to update notification channels" });
+  }
+}
+
+// POST /api/channels/test { channel, webhookUrl?, chatId? }
+async function testChannel(req, res) {
+  const { channel, webhookUrl, chatId } = req.body || {};
+  const subscriberEmail = req.subscriberEmail;
+
+  if (!channel || !["discord", "telegram"].includes(channel)) {
+    return res.status(400).json({ error: "Channel must be 'discord' or 'telegram'" });
+  }
+
+  try {
+    let targetWebhook = webhookUrl;
+    let targetChatId = chatId;
+
+    if (subscriberEmail && (!targetWebhook || !targetChatId)) {
+      const sub = await sharedData.getUserByEmail(subscriberEmail);
+      if (sub) {
+        if (!targetWebhook) targetWebhook = sub.discordWebhookUrl;
+        if (!targetChatId) targetChatId = sub.telegramChatId;
+      }
+    }
+
+    if (channel === "discord" && !targetWebhook) {
+      return res.status(400).json({ error: "Discord Webhook URL is required" });
+    }
+    if (channel === "telegram" && !targetChatId) {
+      return res.status(400).json({ error: "Telegram Chat ID is required" });
+    }
+
+    const channelDispatcher = require("../helper/channelDispatcher");
+    const result = await channelDispatcher.testChannelDispatch({
+      channel,
+      webhookUrl: targetWebhook,
+      chatId: targetChatId,
+      subscriberEmail,
+      baseUrl:
+        req.app?.locals?.officialDomain ||
+        process.env.RENDER_URL ||
+        "https://morning-routine-sender.onrender.com",
+    });
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error || "Channel dispatch test failed",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Test notification delivered successfully to ${channel === "discord" ? "Discord Webhook" : "Telegram"}!`,
+    });
+  } catch (error) {
+    logger.error("Channel test endpoint error", { error: error.message });
+    res.status(500).json({ error: "Failed to test channel dispatch" });
+  }
+}
+
+module.exports = {
+  getMe,
+  getMyHistory,
+  exportJournal,
+  getStreakCard,
+  updateMe,
+  updateChannels,
+  testChannel,
+};

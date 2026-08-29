@@ -1,13 +1,13 @@
 <mjml>
   <mj-head>
-    <mj-title>Sunday Streak Digest • Weekly Recap & Week Prep</mj-title>
-    <mj-preview>🔥 {{streakBadge}} Recap • Your Sunday Persona Guidance & Upcoming Week Prep</mj-preview>
+    <mj-title>Sunday Performance &amp; Habit Digest • Weekly Recap &amp; Week Prep</mj-title>
+    <mj-preview>🔥 {{streakBadge}} • 7-Day Performance Recap, Mood Insights &amp; AI Week Kickoff</mj-preview>
     <mj-attributes>
       <mj-all font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" color="#1e293b" />
       <mj-class name="headline" font-size="28px" font-weight="800" line-height="34px" color="#0f172a" align="center" />
-      <mj-class name="subhead" font-size="16px" font-weight="600" color="#6366f1" align="center" />
-      <mj-class name="quote" font-size="16px" font-style="italic" line-height="24px" color="#334155" />
-      <mj-class name="body-text" font-size="15px" line-height="24px" color="#475569" />
+      <mj-class name="subhead" font-size="15px" font-weight="600" color="#6366f1" align="center" />
+      <mj-class name="card-title" font-size="17px" font-weight="700" color="#0f172a" />
+      <mj-class name="body-text" font-size="14px" line-height="22px" color="#475569" />
       <mj-class name="btn-primary" background-color="#6366f1" color="#ffffff" font-size="15px" font-weight="700" border-radius="12px" inner-padding="14px 28px" />
       <mj-class name="btn-streak" background-color="#10b981" color="#ffffff" font-size="14px" font-weight="700" border-radius="10px" inner-padding="12px 22px" />
     </mj-attributes>
@@ -40,33 +40,65 @@
         border-radius: 20px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
       }
-      .recap-container {
+      .metric-container {
         background-color: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 16px;
         padding: 20px;
-        margin: 10px 0 20px 0;
-        text-align: center;
+        margin: 8px 0 16px 0;
       }
-      .day-pill {
+      .day-card {
         display: inline-block;
-        width: 30px;
-        height: 30px;
-        line-height: 30px;
+        text-align: center;
+        width: 38px;
+        margin: 0 3px;
+      }
+      .day-pill-done {
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
         border-radius: 50%;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         text-align: center;
         background: #10b981;
         color: #ffffff;
-        margin: 0 2px;
+        margin: 0 auto;
       }
-      .persona-box {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(6, 182, 212, 0.05));
+      .day-pill-missed {
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: center;
+        background: #f1f5f9;
+        color: #94a3b8;
+        border: 1px dashed #cbd5e1;
+        margin: 0 auto;
+      }
+      .day-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        margin-top: 4px;
+      }
+      .spark-box {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(6, 182, 212, 0.06));
         border-left: 4px solid #6366f1;
         border-radius: 12px;
         padding: 16px;
-        margin: 12px 0 20px 0;
+        margin: 10px 0 18px 0;
+      }
+      .win-item {
+        padding: 10px 14px;
+        background-color: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        font-size: 13px;
+        color: #166534;
       }
       .prep-item {
         padding: 10px 14px;
@@ -74,7 +106,7 @@
         border: 1px solid #e2e8f0;
         border-radius: 10px;
         margin-bottom: 8px;
-        font-size: 14px;
+        font-size: 13px;
         color: #334155;
       }
     </mj-style>
@@ -92,79 +124,126 @@
             <span class="streak-badge">🔥 {{streakBadge}}</span>
           </mj-text>
           <mj-text mj-class="headline" padding="14px 0 6px 0">
-            Sunday Weekly Streak Digest
+            Weekly Performance &amp; Habit Digest
           </mj-text>
           <mj-text mj-class="subhead" padding="0">
-            Reflect, Recharge &amp; Plan with Intentionality
+            7-Day Habit Completion, Mindset Score &amp; AI Week Kickoff
           </mj-text>
-          <mj-divider border-width="1px" border-color="#f1f5f9" padding="18px 0 10px 0" width="80%" />
+          <mj-divider border-width="1px" border-color="#f1f5f9" padding="18px 0 10px 0" width="85%" />
         </mj-column>
       </mj-section>
 
-      <!-- Weekly Streak Recap Card -->
-      <mj-section padding="0 0 15px 0">
+      <!-- 7-Day Completion & Streak Summary -->
+      <mj-section padding="0 0 12px 0">
         <mj-column>
           <mj-text padding="0 10px">
-            <div class="recap-container">
-              <div style="font-size: 13px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 0.5px;">
-                📊 Weekly Momentum Summary
+            <div class="metric-container" style="text-align: center;">
+              <div style="font-size: 12px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 0.6px;">
+                📊 7-Day Habit Completion Calendar
               </div>
-              <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin: 8px 0 4px 0;">
-                {{streakCount}} Consecutive Days
+              <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin: 8px 0 2px 0;">
+                {{completedDaysCount}} / 7 Days Done ({{completionRate}}%)
               </div>
-              <div style="font-size: 14px; color: #64748b;">
+              <div style="font-size: 13px; color: #64748b; margin-bottom: 14px;">
                 {{streakEncouragement}}
               </div>
-              <div style="margin-top: 14px;">
-                <span style="font-size: 12px; font-weight: 600; color: #94a3b8;">7-Day Habit Completion:</span>
-                <div style="margin-top: 6px;">
-                  <span class="day-pill">M</span>
-                  <span class="day-pill">T</span>
-                  <span class="day-pill">W</span>
-                  <span class="day-pill">T</span>
-                  <span class="day-pill">F</span>
-                  <span class="day-pill">S</span>
-                  <span class="day-pill">S</span>
+              
+              <!-- Daily Pills Grid -->
+              <div style="margin-top: 10px; display: inline-block;">
+                {{#each completionCalendar}}
+                <div class="day-card">
+                  {{#if this.completed}}
+                  <div class="day-pill-done">✓</div>
+                  {{else}}
+                  <div class="day-pill-missed">·</div>
+                  {{/if}}
+                  <div class="day-label">{{this.dayLabel}}</div>
                 </div>
+                {{/each}}
               </div>
             </div>
           </mj-text>
         </mj-column>
       </mj-section>
 
-      <!-- Personalized Persona Guidance -->
-      <mj-section padding="0 0 15px 0">
+      <!-- Mood & Mindset Analysis -->
+      <mj-section padding="0 0 12px 0">
         <mj-column>
-          <mj-text font-size="17px" font-weight="700" color="#0f172a" padding="0 0 8px 0">
-            🧘 {{trackName}} Sunday Reflection
+          <mj-text mj-class="card-title" padding="0 0 6px 0">
+            🧠 Weekly Mood &amp; Mindset Trend
           </mj-text>
           <mj-text padding="0 10px">
-            <div class="persona-box">
-              <div style="font-size: 14px; font-weight: 700; color: #4338ca; margin-bottom: 6px;">
-                💡 Weekly Persona Focus:
+            <div class="metric-container">
+              <div>
+                <div style="font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">
+                  Average Mood Score
+                </div>
+                <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin: 4px 0;">
+                  {{avgMoodScore}} <span style="font-size: 15px; color: #94a3b8; font-weight: 600;">/ 5.0</span>
+                </div>
+                <div style="font-size: 13px; color: #4338ca; font-weight: 600;">
+                  {{moodTrendLabel}}
+                </div>
               </div>
-              <div style="font-size: 14px; line-height: 1.6; color: #1e293b; font-style: italic;">
-                “{{weeklyQuote}}”
-              </div>
-              <div style="font-size: 14px; line-height: 1.6; color: #334155; margin-top: 10px;">
-                {{weeklyReflectionGuidance}}
+              <div style="margin-top: 8px; font-size: 13px; color: #64748b; line-height: 1.5;">
+                {{moodSummaryText}}
               </div>
             </div>
           </mj-text>
         </mj-column>
       </mj-section>
 
-      <!-- Upcoming Week Prep -->
-      <mj-section padding="0 0 15px 0">
+      <!-- Highest Leverage Wins (One Big Thing) -->
+      {{#if hasWins}}
+      <mj-section padding="0 0 12px 0">
         <mj-column>
-          <mj-text font-size="17px" font-weight="700" color="#0f172a" padding="0 0 10px 0">
-            🎯 Upcoming Week Strategic Prep
+          <mj-text mj-class="card-title" padding="0 0 8px 0">
+            🏆 Highest-Leverage Wins This Week
           </mj-text>
-          <mj-text mj-class="body-text" padding="0 0 12px 0">
-            Prime your calendar and mind for maximum focus before Monday begins:
+          {{#each topWins}}
+          <mj-text padding="0 10px 6px 10px">
+            <div class="win-item">
+              <strong>📅 {{this.date}}:</strong> {{this.text}}
+            </div>
+          </mj-text>
+          {{/each}}
+        </mj-column>
+      </mj-section>
+      {{/if}}
+
+      <!-- AI Upcoming Week Kickoff Spark -->
+      <mj-section padding="0 0 12px 0">
+        <mj-column>
+          <mj-text mj-class="card-title" padding="0 0 6px 0">
+            ⚡ AI Kickoff Spark for Next Week
+          </mj-text>
+          <mj-text padding="0 10px">
+            <div class="spark-box">
+              <div style="font-size: 12px; font-weight: 700; color: #4338ca; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                💡 Focus Reflection &amp; Anchor Mantra
+              </div>
+              <div style="font-size: 14px; line-height: 1.6; color: #1e293b; font-style: italic;">
+                “{{aiSparkReflection}}”
+              </div>
+              <div style="margin-top: 10px; font-size: 13px; color: #334155;">
+                <strong>🎯 Monday Micro-Action:</strong> {{aiMicroAction}}
+              </div>
+              <div style="margin-top: 8px; font-size: 13px; color: #6366f1; font-weight: 700;">
+                ⚓ Anchor Mantra: “{{aiFocusMantra}}”
+              </div>
+            </div>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <!-- Upcoming Week Strategic Prep -->
+      <mj-section padding="0 0 12px 0">
+        <mj-column>
+          <mj-text mj-class="card-title" padding="0 0 8px 0">
+            🎯 Strategic Week Launchpad
           </mj-text>
           {{#each weeklyPrepItems}}
-          <mj-text padding="0 10px 8px 10px">
+          <mj-text padding="0 10px 6px 10px">
             <div class="prep-item">
               <strong>{{this.title}}:</strong> {{this.description}}
             </div>
@@ -173,24 +252,24 @@
         </mj-column>
       </mj-section>
 
-      <!-- Direct CTAs -->
-      <mj-section padding="10px 0 20px 0">
+      <!-- Direct Action CTAs -->
+      <mj-section padding="10px 0 16px 0">
         <mj-column>
           <mj-button mj-class="btn-primary" href="{{ctaUrl}}" align="center">
             ⚡ Open Interactive Routine &amp; Focus Timer →
           </mj-button>
           <mj-button mj-class="btn-streak" href="{{checkinUrl}}" align="center" padding="10px 0 0 0">
-            🔥 Log Sunday Routine &amp; Lock In Streak
+            🔥 Log Routine Check-in &amp; Lock In Streak
           </mj-button>
         </mj-column>
       </mj-section>
 
       <!-- Footer Note -->
-      <mj-section padding="20px 0 0 0">
+      <mj-section padding="16px 0 0 0">
         <mj-column>
           <mj-divider border-width="1px" border-color="#f1f5f9" padding="0 0 16px 0" />
           <mj-text align="center" font-size="12px" color="#94a3b8" line-height="18px" padding="0">
-            You received this Sunday digest because you subscribed to <strong>Morning Routine</strong>.<br />
+            You received this performance digest because you subscribed to <strong>Morning Routine</strong>.<br />
             <a href="{{preferencesUrl}}" style="color: #6366f1; text-decoration: none; font-weight: 600;">Manage Preferences</a>
             &nbsp;•&nbsp;
             <a href="{{unsubscribeUrl}}" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
@@ -205,3 +284,4 @@
     <mj-section padding="20px 0"></mj-section>
   </mj-body>
 </mjml>
+

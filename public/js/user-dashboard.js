@@ -229,6 +229,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         subscriptionCard.style.display = "block";
         const streakExportCard = document.getElementById("streakExportCard");
         if (streakExportCard) streakExportCard.style.display = "block";
+        const dashboardJournalCard = document.getElementById("dashboardJournalCard");
+        if (dashboardJournalCard) {
+          dashboardJournalCard.style.display = "block";
+          loadDashboardJournal();
+        }
+        renderChannels(sub);
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);
@@ -477,6 +483,303 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           showToast("Could not send test push.", "warn");
         } finally {
           testNotifBtn.disabled = false;
+        }
+      });
+    }
+
+    // --- 1-Click Checkin & Offline Sync Handler ---
+    const dashboardCheckinBtn = document.getElementById("dashboardCheckinBtn");
+    if (dashboardCheckinBtn) {
+      dashboardCheckinBtn.addEventListener("click", async function () {
+        if (!currentSubscriber?.email) return;
+
+        if (!navigator.onLine) {
+          if (globalThis.OfflineSync) {
+            globalThis.OfflineSync.queueCheckin({ email: currentSubscriber.email });
+          }
+          dashboardCheckinBtn.innerHTML =
+            '<i class="fas fa-bolt" aria-hidden="true"></i> Queued for Sync';
+          return;
+        }
+
+        dashboardCheckinBtn.disabled = true;
+        dashboardCheckinBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Checking in…';
+
+        try {
+          const res = await fetch("/checkin?email=" + encodeURIComponent(currentSubscriber.email), {
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              Accept: "application/json",
+            },
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success) {
+            showToast("🔥 " + (data.title || "Check-in logged!"), "success");
+            if (data.streakCount) {
+              streakCountTitle.textContent = `${data.streakCount}-Day Streak Active 🔥`;
+            }
+            dashboardCheckinBtn.innerHTML =
+              '<i class="fas fa-check" aria-hidden="true"></i> Streak Maintained';
+            if (typeof globalThis.confetti === "function") {
+              globalThis.confetti({
+                particleCount: 75,
+                spread: 60,
+                origin: { y: 0.6 },
+                colors: ["#10b981", "#6366f1", "#f59e0b"],
+              });
+            }
+          } else {
+            showToast(data.message || "Failed to log check-in.", "warn");
+            dashboardCheckinBtn.disabled = false;
+            dashboardCheckinBtn.innerHTML =
+              '<i class="fas fa-check-circle" aria-hidden="true"></i> 1-Click Check-in';
+          }
+        } catch (_err) {
+          if (globalThis.OfflineSync) {
+            globalThis.OfflineSync.queueCheckin({ email: currentSubscriber.email });
+          }
+          dashboardCheckinBtn.innerHTML =
+            '<i class="fas fa-bolt" aria-hidden="true"></i> Queued for Sync';
+        }
+      });
+    }
+
+    // --- Morning Mindset & Journaling State Manager ---
+    let dashSelectedMood = 5;
+
+    globalThis.setDashboardMood = function (score) {
+      dashSelectedMood = score;
+      document.querySelectorAll(".dash-mood-btn").forEach((btn) => {
+        if (parseInt(btn.getAttribute("data-score"), 10) === score) {
+          btn.style.background = "rgba(99, 102, 241, 0.35)";
+          btn.style.borderColor = "var(--primary)";
+        } else {
+          btn.style.background = "rgba(0, 0, 0, 0.3)";
+          btn.style.borderColor = "var(--border-subtle)";
+        }
+      });
+    };
+
+    async function loadDashboardJournal() {
+      if (!currentSubscriber?.email) return;
+      try {
+        const res = await fetch("/api/journal/today", {
+          headers: { Accept: "application/json" },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.entry) {
+            if (data.entry.mood_score) globalThis.setDashboardMood(data.entry.mood_score);
+            if (data.entry.one_big_thing) {
+              const el = document.getElementById("dashOneBigThing");
+              if (el) el.value = data.entry.one_big_thing;
+            }
+            if (data.entry.gratitude) {
+              const el = document.getElementById("dashGratitude");
+              if (el) el.value = data.entry.gratitude;
+            }
+            if (data.entry.reflection_text) {
+              const el = document.getElementById("dashReflectionText");
+              if (el) el.value = data.entry.reflection_text;
+            }
+            const statusEl = document.getElementById("dashJournalStatus");
+            if (statusEl) statusEl.textContent = "Synced ✓";
+          }
+        }
+      } catch (_e) {
+        // Non-fatal if journal fetch fails
+      }
+    }
+
+    globalThis.saveDashboardJournal = async function () {
+      const saveBtn = document.getElementById("saveDashJournalBtn");
+      const statusEl = document.getElementById("dashJournalStatus");
+      const oneBigThing = document.getElementById("dashOneBigThing")?.value.trim() || "";
+      const gratitude = document.getElementById("dashGratitude")?.value.trim() || "";
+      const reflectionText = document.getElementById("dashReflectionText")?.value.trim() || "";
+
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Saving…';
+      }
+
+      const payload = {
+        mood_score: dashSelectedMood,
+        one_big_thing: oneBigThing,
+        gratitude,
+        reflection_text: reflectionText,
+        track_key: currentSubscriber?.routineTrack || "deep-work",
+      };
+
+      try {
+        const res = await fetch("/api/journal/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          if (statusEl) statusEl.textContent = "Saved Just Now ✓";
+          showToast("✨ Morning reflection saved!", "success");
+          if (typeof globalThis.confetti === "function") {
+            globalThis.confetti({
+              particleCount: 60,
+              spread: 60,
+              origin: { y: 0.6 },
+              colors: ["#6366f1", "#10b981", "#f59e0b"],
+            });
+          }
+        } else {
+          showToast(data.error || "Failed to save reflection.", "warn");
+        }
+      } catch (_err) {
+        showToast("Network error. Saved locally.", "warn");
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<i class="fas fa-save" aria-hidden="true"></i> Save Reflection';
+        }
+      }
+    };
+
+    // --- Multi-Channel Dispatch Handler ---
+    const channelsCard = document.getElementById("channelsCard");
+    const channelsForm = document.getElementById("channelsForm");
+    const chanDiscord = document.getElementById("chanDiscord");
+    const chanTelegram = document.getElementById("chanTelegram");
+    const discordWebhookUrl = document.getElementById("discordWebhookUrl");
+    const telegramChatId = document.getElementById("telegramChatId");
+    const saveChannelsBtn = document.getElementById("saveChannelsBtn");
+    const channelsSaveStatus = document.getElementById("channelsSaveStatus");
+    const testDiscordBtn = document.getElementById("testDiscordBtn");
+    const testTelegramBtn = document.getElementById("testTelegramBtn");
+
+    function renderChannels(sub) {
+      if (!channelsCard) return;
+      channelsCard.style.display = "block";
+
+      const enabled = (sub.channelsEnabled || sub.channels_enabled || "email").toLowerCase();
+      if (chanDiscord) chanDiscord.checked = enabled.includes("discord");
+      if (chanTelegram) chanTelegram.checked = enabled.includes("telegram");
+      if (discordWebhookUrl)
+        discordWebhookUrl.value = sub.discordWebhookUrl || sub.discord_webhook_url || "";
+      if (telegramChatId) telegramChatId.value = sub.telegramChatId || sub.telegram_chat_id || "";
+    }
+
+    if (channelsForm) {
+      channelsForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (saveChannelsBtn) saveChannelsBtn.disabled = true;
+        if (channelsSaveStatus) channelsSaveStatus.textContent = "Saving channels...";
+
+        const enabledList = ["email"];
+        if (chanDiscord && chanDiscord.checked) enabledList.push("discord");
+        if (chanTelegram && chanTelegram.checked) enabledList.push("telegram");
+
+        try {
+          const resp = await fetch("/me/channels", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              discordWebhookUrl: discordWebhookUrl ? discordWebhookUrl.value.trim() : null,
+              telegramChatId: telegramChatId ? telegramChatId.value.trim() : null,
+              channelsEnabled: enabledList,
+            }),
+          });
+          const data = await resp.json();
+
+          if (!resp.ok) {
+            if (channelsSaveStatus)
+              channelsSaveStatus.textContent = data.error || "Failed to update channels.";
+            showToast(data.error || "Channel update failed", "error");
+            return;
+          }
+
+          if (channelsSaveStatus) channelsSaveStatus.textContent = "✅ Channels updated!";
+          showToast("🎉 Multi-channel notification settings saved!", "success");
+        } catch (err) {
+          console.error("Channels update error", err);
+          if (channelsSaveStatus) channelsSaveStatus.textContent = "Network error saving channels.";
+          showToast("Network error. Please try again.", "error");
+        } finally {
+          if (saveChannelsBtn) saveChannelsBtn.disabled = false;
+        }
+      });
+    }
+
+    if (testDiscordBtn) {
+      testDiscordBtn.addEventListener("click", async function () {
+        const url = discordWebhookUrl ? discordWebhookUrl.value.trim() : "";
+        if (!url) {
+          showToast("Please enter a Discord Webhook URL first.", "warn");
+          return;
+        }
+
+        testDiscordBtn.disabled = true;
+        testDiscordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+
+        try {
+          const resp = await fetch("/api/channels/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channel: "discord", webhookUrl: url }),
+          });
+          const data = await resp.json();
+
+          if (resp.ok && data.success) {
+            showToast(
+              "✅ Discord test embed dispatched successfully! Check your channel.",
+              "success",
+            );
+          } else {
+            showToast(`❌ Discord test failed: ${data.error || "Unknown error"}`, "error");
+          }
+        } catch (_err) {
+          showToast("Network error testing Discord dispatch.", "error");
+        } finally {
+          testDiscordBtn.disabled = false;
+          testDiscordBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Test Discord';
+        }
+      });
+    }
+
+    if (testTelegramBtn) {
+      testTelegramBtn.addEventListener("click", async function () {
+        const chat = telegramChatId ? telegramChatId.value.trim() : "";
+        if (!chat) {
+          showToast("Please enter a Telegram Chat ID first.", "warn");
+          return;
+        }
+
+        testTelegramBtn.disabled = true;
+        testTelegramBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+
+        try {
+          const resp = await fetch("/api/channels/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channel: "telegram", chatId: chat }),
+          });
+          const data = await resp.json();
+
+          if (resp.ok && data.success) {
+            showToast(
+              "✅ Telegram message dispatched successfully! Check your Telegram.",
+              "success",
+            );
+          } else {
+            showToast(`❌ Telegram test failed: ${data.error || "Unknown error"}`, "error");
+          }
+        } catch (_err) {
+          showToast("Network error testing Telegram dispatch.", "error");
+        } finally {
+          testTelegramBtn.disabled = false;
+          testTelegramBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Test Telegram';
         }
       });
     }

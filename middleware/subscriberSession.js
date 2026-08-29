@@ -73,10 +73,65 @@ async function requireSubscriberSession(req, res, next) {
   next();
 }
 
+/**
+ * Resolves subscriber email from session cookie OR magic action token
+ */
+async function getSubscriberAuthEmail(req) {
+  // 1. Check active session cookie
+  const sessionEmail = await getSessionEmail(req);
+  if (sessionEmail) return sessionEmail;
+
+  // 2. Check token from query, body, or headers
+  const email = (req.query?.email || req.body?.email || req.headers?.["x-subscriber-email"] || "")
+    .trim()
+    .toLowerCase();
+
+  const token =
+    req.query?.token ||
+    req.body?.token ||
+    req.headers?.["x-subscriber-token"] ||
+    (req.headers?.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.slice(7).trim()
+      : null);
+
+  if (email && token) {
+    const { verifyActionToken, verifyUnsubscribeToken } = require("../helper/unsubscribeToken");
+
+    const isValid =
+      verifyActionToken(email, token, "journal") ||
+      verifyActionToken(email, token, "routine") ||
+      verifyActionToken(email, token, "checkin") ||
+      verifyActionToken(email, token, "action") ||
+      verifyUnsubscribeToken(email, token);
+
+    if (isValid) {
+      return email;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Accepts either an active Redis session or a valid magic action token
+ */
+async function requireSubscriberAuth(req, res, next) {
+  const email = await getSubscriberAuthEmail(req);
+  if (!email) {
+    return res.status(401).json({
+      error: "Authentication required (valid session cookie or magic token)",
+    });
+  }
+  req.subscriberEmail = email;
+  next();
+}
+
 module.exports = {
   getSessionEmail,
   createSession,
   destroySession,
   requireSubscriberSession,
+  getSubscriberAuthEmail,
+  requireSubscriberAuth,
   SESSION_TTL_SECONDS,
 };
