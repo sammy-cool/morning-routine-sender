@@ -8,7 +8,14 @@ async function runDatabaseMaintenance() {
   const startTime = Date.now();
 
   try {
-    const tables = ["email_tracker", "job_last_run", "subscribers"];
+    const tables = [
+      "email_tracker",
+      "job_last_run",
+      "subscribers",
+      "suppression_list",
+      "email_events",
+      "push_subscriptions",
+    ];
     for (const table of tables) {
       try {
         await db.raw(`VACUUM (ANALYZE) ${table}`);
