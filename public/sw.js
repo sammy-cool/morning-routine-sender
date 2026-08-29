@@ -10,6 +10,7 @@ const STATIC_ASSETS = [
   "/assets/screenshot-desktop.png",
   "/assets/screenshot-mobile.png",
   "/offline",
+  "/js/offline-sync.js",
 ];
 
 // External CDN vendor libs to cache
@@ -19,6 +20,160 @@ const VENDOR_LIBS = [
   "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js",
   "https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js",
 ];
+
+// ---------------- INDEXEDDB OFFLINE QUEUE UTILS ----------------
+const DB_NAME = "mrn-offline-sync-db";
+const DB_VERSION = 1;
+const STORE_NAME = "checkin_queue";
+
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === "undefined") {
+      return reject(new Error("IndexedDB is not supported"));
+    }
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getQueuedCheckins(db) {
+  return new Promise((resolve, reject) => {
+    try {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+function deleteQueuedCheckin(db, id) {
+  return new Promise((resolve, reject) => {
+    try {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.delete(id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Drain offline habit check-ins and send to /checkin or /api/subscribers/checkin
+ */
+async function drainOfflineCheckinQueue() {
+  console.info("[SW] ⚡ Draining offline habit check-in queue...");
+  let db;
+  try {
+    db = await openIndexedDB();
+  } catch (err) {
+    console.warn("[SW] Could not access IndexedDB for sync:", err.message);
+    return;
+  }
+
+  try {
+    const queue = await getQueuedCheckins(db);
+    if (!queue || queue.length === 0) {
+      console.info("[SW] No pending check-ins in offline queue.");
+      return;
+    }
+
+    console.info(`[SW] Found ${queue.length} offline check-in(s) to synchronize.`);
+
+    for (const item of queue) {
+      try {
+        let requestUrl = item.url;
+        const method = item.method || (item.body ? "POST" : "GET");
+        const headers = {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-Offline-Sync": "true",
+          Accept: "application/json, text/html, */*",
+          ...(item.headers || {}),
+        };
+
+        if (!requestUrl) {
+          if (item.email && item.token) {
+            requestUrl = `/checkin?email=${encodeURIComponent(item.email)}&token=${encodeURIComponent(item.token)}`;
+          } else if (item.email) {
+            requestUrl = `/checkin?email=${encodeURIComponent(item.email)}`;
+          } else {
+            requestUrl = "/checkin";
+          }
+        }
+
+        const fetchOptions = { method, headers };
+        if (method === "POST" && item.body) {
+          headers["Content-Type"] = "application/json";
+          fetchOptions.body = typeof item.body === "string" ? item.body : JSON.stringify(item.body);
+        }
+
+        const response = await fetch(requestUrl, fetchOptions);
+        if (response.ok || response.status < 400) {
+          console.info("[SW] ✅ Check-in synced successfully for ID:", item.id);
+          await deleteQueuedCheckin(db, item.id);
+
+          // Broadcast sync success to all active client tabs
+          const clientList = await self.clients.matchAll({
+            type: "window",
+            includeUncontrolled: true,
+          });
+
+          for (const client of clientList) {
+            client.postMessage({
+              type: "SYNC_CHECKIN_SUCCESS",
+              id: item.id,
+              email: item.email,
+              timestamp: item.timestamp || Date.now(),
+              message: "Habit check-in synced successfully!",
+            });
+          }
+
+          // If no window is open, display background notification
+          if (clientList.length === 0 && self.registration?.showNotification) {
+            await self.registration
+              .showNotification("🔥 Habit Streak Synced!", {
+                body: "Your offline morning routine check-in was synchronized successfully.",
+                icon: "/assets/mrn-brand-ico.png",
+                badge: "/assets/mrn-brand-ico.png",
+                tag: "checkin-sync-success",
+                data: { url: "/user-dashboard" },
+              })
+              .catch(() => {});
+          }
+        } else {
+          console.warn("[SW] Server rejected check-in sync with status:", response.status);
+        }
+      } catch (itemError) {
+        console.warn("[SW] Network failed while syncing item; will retry next sync:", itemError);
+        throw itemError;
+      }
+    }
+  } catch (err) {
+    console.error("[SW] Fatal error in drainOfflineCheckinQueue:", err);
+    throw err;
+  }
+}
+
+// ---------------- BACKGROUND SYNC EVENT LISTENER ----------------
+self.addEventListener("sync", (event) => {
+  if (event.tag === "sync-morning-checkin") {
+    console.info("[SW] 🔄 Background Sync event received: sync-morning-checkin");
+    event.waitUntil(drainOfflineCheckinQueue());
+  }
+});
 
 // ---------------- INSTALL ----------------
 self.addEventListener("install", (event) => {

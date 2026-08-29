@@ -229,6 +229,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         subscriptionCard.style.display = "block";
         const streakExportCard = document.getElementById("streakExportCard");
         if (streakExportCard) streakExportCard.style.display = "block";
+        const dashboardJournalCard = document.getElementById("dashboardJournalCard");
+        if (dashboardJournalCard) {
+          dashboardJournalCard.style.display = "block";
+          loadDashboardJournal();
+        }
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);
@@ -480,6 +485,166 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         }
       });
     }
+
+    // --- 1-Click Checkin & Offline Sync Handler ---
+    const dashboardCheckinBtn = document.getElementById("dashboardCheckinBtn");
+    if (dashboardCheckinBtn) {
+      dashboardCheckinBtn.addEventListener("click", async function () {
+        if (!currentSubscriber?.email) return;
+
+        if (!navigator.onLine) {
+          if (globalThis.OfflineSync) {
+            globalThis.OfflineSync.queueCheckin({ email: currentSubscriber.email });
+          }
+          dashboardCheckinBtn.innerHTML =
+            '<i class="fas fa-bolt" aria-hidden="true"></i> Queued for Sync';
+          return;
+        }
+
+        dashboardCheckinBtn.disabled = true;
+        dashboardCheckinBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Checking in…';
+
+        try {
+          const res = await fetch("/checkin?email=" + encodeURIComponent(currentSubscriber.email), {
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              Accept: "application/json",
+            },
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success) {
+            showToast("🔥 " + (data.title || "Check-in logged!"), "success");
+            if (data.streakCount) {
+              streakCountTitle.textContent = `${data.streakCount}-Day Streak Active 🔥`;
+            }
+            dashboardCheckinBtn.innerHTML =
+              '<i class="fas fa-check" aria-hidden="true"></i> Streak Maintained';
+            if (typeof globalThis.confetti === "function") {
+              globalThis.confetti({
+                particleCount: 75,
+                spread: 60,
+                origin: { y: 0.6 },
+                colors: ["#10b981", "#6366f1", "#f59e0b"],
+              });
+            }
+          } else {
+            showToast(data.message || "Failed to log check-in.", "warn");
+            dashboardCheckinBtn.disabled = false;
+            dashboardCheckinBtn.innerHTML =
+              '<i class="fas fa-check-circle" aria-hidden="true"></i> 1-Click Check-in';
+          }
+        } catch (_err) {
+          if (globalThis.OfflineSync) {
+            globalThis.OfflineSync.queueCheckin({ email: currentSubscriber.email });
+          }
+          dashboardCheckinBtn.innerHTML =
+            '<i class="fas fa-bolt" aria-hidden="true"></i> Queued for Sync';
+        }
+      });
+    }
+
+    // --- Morning Mindset & Journaling State Manager ---
+    let dashSelectedMood = 5;
+
+    globalThis.setDashboardMood = function (score) {
+      dashSelectedMood = score;
+      document.querySelectorAll(".dash-mood-btn").forEach((btn) => {
+        if (parseInt(btn.getAttribute("data-score"), 10) === score) {
+          btn.style.background = "rgba(99, 102, 241, 0.35)";
+          btn.style.borderColor = "var(--primary)";
+        } else {
+          btn.style.background = "rgba(0, 0, 0, 0.3)";
+          btn.style.borderColor = "var(--border-subtle)";
+        }
+      });
+    };
+
+    async function loadDashboardJournal() {
+      if (!currentSubscriber?.email) return;
+      try {
+        const res = await fetch("/api/journal/today", {
+          headers: { Accept: "application/json" },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.entry) {
+            if (data.entry.mood_score) globalThis.setDashboardMood(data.entry.mood_score);
+            if (data.entry.one_big_thing) {
+              const el = document.getElementById("dashOneBigThing");
+              if (el) el.value = data.entry.one_big_thing;
+            }
+            if (data.entry.gratitude) {
+              const el = document.getElementById("dashGratitude");
+              if (el) el.value = data.entry.gratitude;
+            }
+            if (data.entry.reflection_text) {
+              const el = document.getElementById("dashReflectionText");
+              if (el) el.value = data.entry.reflection_text;
+            }
+            const statusEl = document.getElementById("dashJournalStatus");
+            if (statusEl) statusEl.textContent = "Synced ✓";
+          }
+        }
+      } catch (_e) {
+        // Non-fatal if journal fetch fails
+      }
+    }
+
+    globalThis.saveDashboardJournal = async function () {
+      const saveBtn = document.getElementById("saveDashJournalBtn");
+      const statusEl = document.getElementById("dashJournalStatus");
+      const oneBigThing = document.getElementById("dashOneBigThing")?.value.trim() || "";
+      const gratitude = document.getElementById("dashGratitude")?.value.trim() || "";
+      const reflectionText = document.getElementById("dashReflectionText")?.value.trim() || "";
+
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Saving…';
+      }
+
+      const payload = {
+        mood_score: dashSelectedMood,
+        one_big_thing: oneBigThing,
+        gratitude,
+        reflection_text: reflectionText,
+        track_key: currentSubscriber?.routineTrack || "deep-work",
+      };
+
+      try {
+        const res = await fetch("/api/journal/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          if (statusEl) statusEl.textContent = "Saved Just Now ✓";
+          showToast("✨ Morning reflection saved!", "success");
+          if (typeof globalThis.confetti === "function") {
+            globalThis.confetti({
+              particleCount: 60,
+              spread: 60,
+              origin: { y: 0.6 },
+              colors: ["#6366f1", "#10b981", "#f59e0b"],
+            });
+          }
+        } else {
+          showToast(data.error || "Failed to save reflection.", "warn");
+        }
+      } catch (_err) {
+        showToast("Network error. Saved locally.", "warn");
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<i class="fas fa-save" aria-hidden="true"></i> Save Reflection';
+        }
+      }
+    };
 
     loadDashboard();
     syncNotificationState();

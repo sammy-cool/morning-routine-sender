@@ -33,6 +33,8 @@ router.get("/confirm-subscription", authLimiter, signupController.confirmSignup)
 
 // 1-Click Habit Streak Check-in & Live Interactive Routine View
 router.get("/checkin", routineController.checkin);
+router.post("/checkin", routineController.checkin);
+router.post("/api/subscribers/checkin", routineController.checkin);
 router.get("/routine", routineController.liveRoutine);
 
 // Dynamic Social Streak Badge SVG

@@ -159,6 +159,7 @@ app.use(require("./routes/auth.routes"));
 app.use(require("./routes/admin.routes"));
 app.use(require("./routes/subscribers.routes"));
 app.use(require("./routes/subscriberPortal.routes"));
+app.use(require("./routes/journal.routes"));
 app.use("/api/webhooks", require("./routes/webhook.routes"));
 app.use("/admin/deliverability", require("./routes/deliverability.routes"));
 app.use(require("./routes/push.routes"));

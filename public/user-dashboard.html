@@ -40,6 +40,12 @@
       defer
       crossorigin="anonymous"
     ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"
+      defer
+      crossorigin="anonymous"
+    ></script>
+    <script defer src="/js/offline-sync.js?v=4.2.0"></script>
 
     <style>
       :root {
@@ -509,9 +515,272 @@
             </p>
           </div>
         </div>
-        <a href="/routine" class="btn btn-primary">
-          <i class="fas fa-play" aria-hidden="true"></i> Start Today's Ritual
-        </a>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap">
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="dashboardCheckinBtn"
+            data-action="checkin"
+            style="background: linear-gradient(135deg, #10b981, #059669)"
+          >
+            <i class="fas fa-check-circle" aria-hidden="true"></i> 1-Click Check-in
+          </button>
+          <a href="/routine" class="btn btn-secondary">
+            <i class="fas fa-play" aria-hidden="true"></i> Live Routine Companion
+          </a>
+        </div>
+      </div>
+
+      <!-- Daily Morning Reflection & Journaling Card -->
+      <div class="card" id="dashboardJournalCard" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+          "
+        >
+          <h2>
+            <i class="fas fa-feather-alt" style="color: var(--primary)" aria-hidden="true"></i>
+            Morning Mindset &amp; Reflection
+          </h2>
+          <span
+            id="dashJournalStatus"
+            style="font-size: 12px; color: var(--accent-emerald); font-weight: 700"
+          ></span>
+        </div>
+        <p class="meta" style="margin-bottom: 16px">
+          Set your intention, lock in your highest-leverage priority, and record your morning
+          mindset.
+        </p>
+
+        <!-- Mood Selector -->
+        <div style="margin-bottom: 16px">
+          <label
+            style="
+              display: block;
+              font-size: 13px;
+              font-weight: 600;
+              color: #cbd5e1;
+              margin-bottom: 8px;
+            "
+          >
+            Energy &amp; Mindset State
+          </label>
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px">
+            <button
+              type="button"
+              class="dash-mood-btn"
+              data-score="1"
+              onclick="setDashboardMood(1)"
+              style="
+                padding: 10px;
+                font-size: 22px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 10px;
+                cursor: pointer;
+              "
+            >
+              😫
+            </button>
+            <button
+              type="button"
+              class="dash-mood-btn"
+              data-score="2"
+              onclick="setDashboardMood(2)"
+              style="
+                padding: 10px;
+                font-size: 22px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 10px;
+                cursor: pointer;
+              "
+            >
+              😕
+            </button>
+            <button
+              type="button"
+              class="dash-mood-btn"
+              data-score="3"
+              onclick="setDashboardMood(3)"
+              style="
+                padding: 10px;
+                font-size: 22px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 10px;
+                cursor: pointer;
+              "
+            >
+              😐
+            </button>
+            <button
+              type="button"
+              class="dash-mood-btn"
+              data-score="4"
+              onclick="setDashboardMood(4)"
+              style="
+                padding: 10px;
+                font-size: 22px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 10px;
+                cursor: pointer;
+              "
+            >
+              🙂
+            </button>
+            <button
+              type="button"
+              class="dash-mood-btn active"
+              data-score="5"
+              onclick="setDashboardMood(5)"
+              style="
+                padding: 10px;
+                font-size: 22px;
+                background: rgba(99, 102, 241, 0.35);
+                border: 1px solid var(--primary);
+                border-radius: 10px;
+                cursor: pointer;
+              "
+            >
+              ⚡
+            </button>
+          </div>
+        </div>
+
+        <form
+          id="dashboardJournalForm"
+          onsubmit="
+            event.preventDefault();
+            saveDashboardJournal();
+          "
+        >
+          <div style="margin-bottom: 14px">
+            <label
+              for="dashOneBigThing"
+              style="
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #cbd5e1;
+                margin-bottom: 6px;
+              "
+            >
+              🎯 One Big Thing (Highest-Leverage Task)
+            </label>
+            <input
+              type="text"
+              id="dashOneBigThing"
+              placeholder="What #1 result will make today a victory?"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 10px;
+                color: #fff;
+                font-size: 14px;
+              "
+            />
+          </div>
+
+          <div style="margin-bottom: 14px">
+            <label
+              for="dashGratitude"
+              style="
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #cbd5e1;
+                margin-bottom: 6px;
+              "
+            >
+              🙏 Gratitude &amp; Appreciation
+            </label>
+            <input
+              type="text"
+              id="dashGratitude"
+              placeholder="One thing I am grateful for this morning..."
+              style="
+                width: 100%;
+                padding: 12px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 10px;
+                color: #fff;
+                font-size: 14px;
+              "
+            />
+          </div>
+
+          <div style="margin-bottom: 16px">
+            <label
+              for="dashReflectionText"
+              style="
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #cbd5e1;
+                margin-bottom: 6px;
+              "
+            >
+              💭 Mindset Notes &amp; Observations
+            </label>
+            <textarea
+              id="dashReflectionText"
+              rows="3"
+              placeholder="Notes, Stoic reflections, or personal thoughts..."
+              style="
+                width: 100%;
+                padding: 12px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 10px;
+                color: #fff;
+                font-size: 14px;
+                resize: vertical;
+              "
+            ></textarea>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 10px;
+            "
+          >
+            <button type="submit" class="btn btn-primary" id="saveDashJournalBtn">
+              <i class="fas fa-save" aria-hidden="true"></i> Save Reflection
+            </button>
+            <div style="display: flex; gap: 8px">
+              <a
+                href="/api/journal/export?format=markdown"
+                class="btn btn-secondary"
+                style="font-size: 12px"
+                download
+              >
+                <i class="fas fa-download" aria-hidden="true"></i> Export Markdown
+              </a>
+              <a
+                href="/api/journal/export?format=json"
+                class="btn btn-secondary"
+                style="font-size: 12px"
+                download
+              >
+                <i class="fas fa-file-code" aria-hidden="true"></i> Export JSON
+              </a>
+            </div>
+          </div>
+        </form>
       </div>
 
       <!-- Preferences Configuration Card -->
