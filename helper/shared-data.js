@@ -309,6 +309,13 @@ async function getUserByEmail(email) {
         "streak_count as streakCount",
         "last_checkin_date as lastCheckinDate",
         "routine_track as routineTrack",
+        "coach_persona as coachPersona",
+        "discord_webhook_url as discordWebhookUrl",
+        "telegram_chat_id as telegramChatId",
+        "channels_enabled as channelsEnabled",
+        "webhook_endpoint_url as webhookEndpointUrl",
+        "webhook_secret as webhookSecret",
+        "webhook_enabled as webhookEnabled",
       )
       .first();
     if (!row) return null;
@@ -317,8 +324,11 @@ async function getUserByEmail(email) {
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: Number(row.streakCount) || 0,
       routineTrack: row.routineTrack || row.templateType || "deep-work",
+      coachPersona: row.coachPersona || "stoic",
+      channelsEnabled: row.channelsEnabled || "email",
+      webhookEnabled: Boolean(row.webhookEnabled),
     };
-  } catch (err) {
+  } catch (_err) {
     const row = await db("subscribers")
       .where("email", email)
       .select(
@@ -335,6 +345,9 @@ async function getUserByEmail(email) {
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: 0,
       routineTrack: row.templateType || "deep-work",
+      coachPersona: "stoic",
+      channelsEnabled: "email",
+      webhookEnabled: false,
     };
   }
 }
@@ -353,6 +366,7 @@ async function addUser(user) {
       is_active: true,
       routine_track: track,
       streak_count: user.streakCount || 0,
+      coach_persona: user.coachPersona || "stoic",
     });
     logger.info(`✅ Subscriber added: ${user.email}`);
     return { created: true, email: user.email };
@@ -369,11 +383,12 @@ async function addUser(user) {
         });
         return { created: true, email: user.email };
       } catch (inner) {
-        return { created: false, email: user.email };
+        logger.error(`Error adding user ${user.email}`, { error: inner.message });
+        throw inner;
       }
     }
-    logger.warn(`⚠️  Subscriber already exists: ${user.email}`);
-    return { created: false, email: user.email };
+    logger.error(`Error adding user ${user.email}`, { error: error.message });
+    throw error;
   }
 }
 
@@ -404,6 +419,19 @@ async function updateUser(email, updates) {
   }
   if (updates.streakCount !== undefined) patch.streak_count = updates.streakCount;
   if (updates.lastCheckinDate !== undefined) patch.last_checkin_date = updates.lastCheckinDate;
+  if (updates.coachPersona !== undefined) patch.coach_persona = updates.coachPersona;
+  if (updates.discordWebhookUrl !== undefined)
+    patch.discord_webhook_url = updates.discordWebhookUrl;
+  if (updates.telegramChatId !== undefined) patch.telegram_chat_id = updates.telegramChatId;
+  if (updates.channelsEnabled !== undefined) {
+    patch.channels_enabled = Array.isArray(updates.channelsEnabled)
+      ? updates.channelsEnabled.join(",")
+      : updates.channelsEnabled;
+  }
+  if (updates.webhookEndpointUrl !== undefined)
+    patch.webhook_endpoint_url = updates.webhookEndpointUrl;
+  if (updates.webhookSecret !== undefined) patch.webhook_secret = updates.webhookSecret;
+  if (updates.webhookEnabled !== undefined) patch.webhook_enabled = updates.webhookEnabled;
 
   try {
     const updated = await db("subscribers").where("email", email).update(patch);
@@ -416,6 +444,13 @@ async function updateUser(email, updates) {
       delete patch.routine_track;
       delete patch.streak_count;
       delete patch.last_checkin_date;
+      delete patch.coach_persona;
+      delete patch.discord_webhook_url;
+      delete patch.telegram_chat_id;
+      delete patch.channels_enabled;
+      delete patch.webhook_endpoint_url;
+      delete patch.webhook_secret;
+      delete patch.webhook_enabled;
       const updated = await db("subscribers").where("email", email).update(patch);
       return updated > 0;
     }
@@ -453,10 +488,11 @@ async function getAllUsers() {
         "streak_count as streakCount",
         "last_checkin_date as lastCheckinDate",
         "routine_track as routineTrack",
+        "coach_persona as coachPersona",
         "created_at as createdAt",
       )
       .orderBy("created_at", "desc");
-  } catch (err) {
+  } catch (_err) {
     return await db("subscribers")
       .select(
         "id",

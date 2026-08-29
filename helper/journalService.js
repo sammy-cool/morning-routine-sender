@@ -274,6 +274,149 @@ function generateMarkdownExport(email, entries = [], subscriber = null) {
   return md;
 }
 
+/**
+ * Computes 365-day activity heatmap and analytics summary for a subscriber
+ * @param {string} email - Subscriber email
+ * @param {number} days - Number of historical days (default: 365)
+ * @returns {Promise<Object>} Heatmap payload with days array and summary metrics
+ */
+async function getActivityHeatmap(email, days = 365) {
+  const normalizedEmail = normalizeEmail(email);
+  const { subscriber, timezone } = await getSubscriberContext(normalizedEmail);
+
+  // Determine current local date for the subscriber
+  const todayStr = getTodayDateInTimezone(timezone);
+  const todayDate = new Date(`${todayStr}T00:00:00Z`);
+
+  // Calculate start date (364 days ago to include today for exactly 365 days)
+  const startDate = new Date(todayDate);
+  startDate.setUTCDate(startDate.getUTCDate() - (days - 1));
+  const startDateStr = startDate.toISOString().split("T")[0];
+
+  let entries = [];
+  try {
+    const hasTable = await db.schema.hasTable("journal_entries");
+    if (hasTable) {
+      const res = await db("journal_entries")
+        .where("subscriber_email", normalizedEmail)
+        .andWhere("entry_date", ">=", startDateStr)
+        .andWhere("entry_date", "<=", todayStr)
+        .select(
+          "entry_date",
+          "mood_score",
+          "one_big_thing",
+          "gratitude",
+          "reflection_text",
+          "created_at",
+        )
+        .orderBy("entry_date", "asc");
+      if (Array.isArray(res)) entries = res;
+    }
+  } catch (err) {
+    logger.warn("Could not query journal_entries for heatmap", { error: err.message });
+  }
+
+  // Create fast map lookup by date
+  const entryMap = new Map();
+  entries.forEach((e) => {
+    entryMap.set(e.entry_date, e);
+  });
+
+  const heatmapDays = [];
+  let totalActiveDays = 0;
+  let totalMoodSum = 0;
+  let moodCount = 0;
+  let currentStreak = 0;
+  let longestStreak = 0;
+  let tempStreak = 0;
+
+  // Generate continuous 365-day time series
+  const iterDate = new Date(startDate);
+  for (let i = 0; i < days; i++) {
+    const dStr = iterDate.toISOString().split("T")[0];
+    const entry = entryMap.get(dStr);
+    const completed = Boolean(entry);
+
+    let count = 0;
+    let moodScore = null;
+    let oneBigThingSnippet = null;
+    let intensity = 0; // 0 to 4
+
+    if (completed) {
+      count = 1;
+      totalActiveDays++;
+      tempStreak++;
+      if (tempStreak > longestStreak) longestStreak = tempStreak;
+
+      moodScore =
+        typeof entry.mood_score === "number" && entry.mood_score > 0 ? entry.mood_score : 3;
+      totalMoodSum += moodScore;
+      moodCount++;
+
+      // Intensity level mapping (0 to 4)
+      if (moodScore <= 2) intensity = 1;
+      else if (moodScore === 3) intensity = 2;
+      else if (moodScore === 4) intensity = 3;
+      else intensity = 4;
+
+      if (entry.one_big_thing) {
+        oneBigThingSnippet =
+          entry.one_big_thing.length > 60
+            ? entry.one_big_thing.slice(0, 57) + "…"
+            : entry.one_big_thing;
+      }
+    } else {
+      tempStreak = 0;
+    }
+
+    heatmapDays.push({
+      date: dStr,
+      count,
+      completed,
+      intensity,
+      moodScore,
+      oneBigThingSnippet,
+      hasGratitude: Boolean(entry?.gratitude),
+      hasReflection: Boolean(entry?.reflection_text),
+    });
+
+    iterDate.setUTCDate(iterDate.getUTCDate() + 1);
+  }
+
+  // Calculate current streak from today or yesterday backwards
+  let walkIndex = heatmapDays.length - 1;
+  if (
+    !heatmapDays[walkIndex]?.completed &&
+    walkIndex > 0 &&
+    heatmapDays[walkIndex - 1]?.completed
+  ) {
+    walkIndex--;
+  }
+  while (walkIndex >= 0 && heatmapDays[walkIndex]?.completed) {
+    currentStreak++;
+    walkIndex--;
+  }
+
+  const averageMood = moodCount > 0 ? Number((totalMoodSum / moodCount).toFixed(1)) : null;
+  const completionRate = `${((totalActiveDays / days) * 100).toFixed(1)}%`;
+
+  return {
+    subscriberEmail: normalizedEmail,
+    timezone,
+    startDate: startDateStr,
+    endDate: todayStr,
+    totalDays: days,
+    summary: {
+      totalActiveDays,
+      completionRate,
+      currentStreak: subscriber?.streakCount || currentStreak,
+      longestStreak: Math.max(subscriber?.streakCount || 0, longestStreak),
+      averageMood,
+    },
+    days: heatmapDays,
+  };
+}
+
 module.exports = {
   normalizeEmail,
   getTodayDateInTimezone,
@@ -283,4 +426,5 @@ module.exports = {
   getHistory,
   getAllEntries,
   generateMarkdownExport,
+  getActivityHeatmap,
 };

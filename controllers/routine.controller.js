@@ -115,6 +115,23 @@ async function checkin(req, res) {
       timezone: subscriber.timezone,
     });
 
+    // Non-blocking trigger of routine.completed outbound webhook
+    const outboundWebhookDispatcher = require("../helper/outboundWebhookDispatcher");
+    outboundWebhookDispatcher
+      .dispatchWebhookForSubscriber(subscriber, "routine.completed", {
+        streak: finalStreak,
+        alreadyCheckedInToday: Boolean(checkinResult.alreadyCheckedInToday),
+        checkedInAt: new Date().toISOString(),
+        track: subscriber.routineTrack || subscriber.templateType || "deep-work",
+        quote: trackInfo.quote,
+      })
+      .catch((err) => {
+        logger.error("Outbound webhook trigger failed on routine checkin", {
+          error: err.message,
+          email,
+        });
+      });
+
     return sendResponse({
       success: true,
       streakCount: finalStreak,

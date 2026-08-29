@@ -235,6 +235,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           loadDashboardJournal();
         }
         renderChannels(sub);
+        renderCoachPersona(sub);
+        renderOutboundWebhook(sub);
+        loadActivityHeatmap();
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);
@@ -781,6 +784,473 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           testTelegramBtn.disabled = false;
           testTelegramBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Test Telegram';
         }
+      });
+    }
+
+    // --- Activity Heatmap Engine & Day Drawer ---
+    const heatmapCard = document.getElementById("heatmapCard");
+    const heatmapMonths = document.getElementById("heatmapMonths");
+    const heatmapGrid = document.getElementById("heatmapGrid");
+    const heatmapActiveDaysBadge = document.getElementById("heatmapActiveDaysBadge");
+    const heatmapRateBadge = document.getElementById("heatmapRateBadge");
+    const heatmapTooltip = document.getElementById("heatmapTooltip");
+    const heatmapDrawer = document.getElementById("heatmapDrawer");
+    const drawerBackdrop = document.getElementById("drawerBackdrop");
+    const btnDrawerClose = document.getElementById("btnDrawerClose");
+    const drawerTitle = document.getElementById("drawerTitle");
+    const drawerBody = document.getElementById("drawerBody");
+
+    const MOOD_LABEL_MAP = {
+      1: "😫 Challenging (1/5)",
+      2: "😕 Low Energy (2/5)",
+      3: "😐 Steady / Balanced (3/5)",
+      4: "🙂 Energized & Focused (4/5)",
+      5: "⚡ Peak Flow & Momentum (5/5)",
+    };
+
+    function openHeatmapDrawer(dayData) {
+      if (!heatmapDrawer) return;
+      if (drawerTitle) drawerTitle.textContent = dayData.date;
+
+      let html;
+      if (!dayData.completed) {
+        html = `
+          <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 12px; padding: 18px; text-align: center;">
+            <div style="font-size: 28px; margin-bottom: 8px;">⏸️</div>
+            <div style="font-weight: 700; color: #fff; font-size: 15px;">No Reflection Logged</div>
+            <div class="small" style="color: var(--text-muted); margin-top: 4px;">No routine check-in or reflection was recorded for this date.</div>
+          </div>
+        `;
+      } else {
+        const moodText = MOOD_LABEL_MAP[dayData.moodScore] || `${dayData.moodScore}/5`;
+        html = `
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Energy & Mindset State</span>
+            <span class="status-badge active" style="font-size: 12px;">${moodText}</span>
+          </div>
+        `;
+
+        if (dayData.oneBigThingSnippet) {
+          html += `
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px;">
+              <div style="font-size: 12px; font-weight: 700; color: #818cf8; text-transform: uppercase; margin-bottom: 6px;">🎯 Highest-Leverage Win</div>
+              <div style="font-size: 14.5px; color: #fff; line-height: 1.45;">${dayData.oneBigThingSnippet}</div>
+            </div>
+          `;
+        }
+
+        if (dayData.hasGratitude) {
+          html += `
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px;">
+              <div style="font-size: 12px; font-weight: 700; color: #34d399; text-transform: uppercase; margin-bottom: 6px;">🙏 Gratitude</div>
+              <div style="font-size: 14px; color: #cbd5e1; font-style: italic;">Recorded gratitude entry logged.</div>
+            </div>
+          `;
+        }
+
+        if (dayData.hasReflection) {
+          html += `
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px;">
+              <div style="font-size: 12px; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px;">💭 Mindset Notes</div>
+              <div style="font-size: 14px; color: #cbd5e1;">Detailed reflection notes recorded.</div>
+            </div>
+          `;
+        }
+      }
+
+      if (drawerBody) drawerBody.innerHTML = html;
+      heatmapDrawer.classList.add("open");
+      heatmapDrawer.setAttribute("aria-hidden", "false");
+    }
+
+    function closeHeatmapDrawer() {
+      if (!heatmapDrawer) return;
+      heatmapDrawer.classList.remove("open");
+      heatmapDrawer.setAttribute("aria-hidden", "true");
+    }
+
+    if (btnDrawerClose) btnDrawerClose.addEventListener("click", closeHeatmapDrawer);
+    if (drawerBackdrop) drawerBackdrop.addEventListener("click", closeHeatmapDrawer);
+
+    async function loadActivityHeatmap() {
+      if (!heatmapCard) return;
+      try {
+        const res = await fetch("/api/journal/heatmap?days=365", {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success) return;
+
+        heatmapCard.style.display = "block";
+        if (heatmapActiveDaysBadge && data.summary) {
+          heatmapActiveDaysBadge.textContent = `🔥 ${data.summary.totalActiveDays} Active Days`;
+        }
+        if (heatmapRateBadge && data.summary) {
+          heatmapRateBadge.textContent = `📊 ${data.summary.completionRate} Consistency`;
+        }
+
+        renderHeatmapGrid(data.days || []);
+      } catch (_err) {
+        // Non-fatal
+      }
+    }
+
+    function renderHeatmapGrid(days) {
+      if (!heatmapGrid || !days.length) return;
+      heatmapGrid.innerHTML = "";
+
+      // Render Month Headers across 52 weeks
+      if (heatmapMonths) {
+        heatmapMonths.innerHTML = "<span></span>";
+        let lastMonth = -1;
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+
+        for (let i = 0; i < days.length; i += 7) {
+          const d = new Date(`${days[i].date}T00:00:00Z`);
+          const m = d.getUTCMonth();
+          const span = document.createElement("span");
+          if (m !== lastMonth) {
+            span.textContent = monthNames[m];
+            lastMonth = m;
+          }
+          heatmapMonths.appendChild(span);
+        }
+      }
+
+      // Render Day Cells
+      days.forEach((day) => {
+        const cell = document.createElement("div");
+        cell.className = `heatmap-cell level-${day.intensity || 0}`;
+        cell.setAttribute("tabindex", "0");
+        cell.setAttribute("role", "gridcell");
+        cell.setAttribute(
+          "aria-label",
+          `${day.date}: ${day.completed ? `Active (Mood ${day.moodScore}/5)` : "No check-in"}`,
+        );
+
+        cell.addEventListener("mouseenter", (e) => {
+          if (!heatmapTooltip) return;
+          const moodText = day.completed ? ` • Mood: ${day.moodScore}/5` : " • Inactive";
+          const snippetText = day.oneBigThingSnippet ? `<br/>🎯 ${day.oneBigThingSnippet}` : "";
+          heatmapTooltip.innerHTML = `<strong>${day.date}</strong>${moodText}${snippetText}`;
+          heatmapTooltip.style.display = "block";
+          heatmapTooltip.style.opacity = "1";
+
+          const rect = cell.getBoundingClientRect();
+          heatmapTooltip.style.left = `${rect.left + rect.width / 2}px`;
+          heatmapTooltip.style.top = `${rect.top - 8}px`;
+        });
+
+        cell.addEventListener("mouseleave", () => {
+          if (!heatmapTooltip) return;
+          heatmapTooltip.style.opacity = "0";
+          heatmapTooltip.style.display = "none";
+        });
+
+        cell.addEventListener("click", () => openHeatmapDrawer(day));
+        cell.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openHeatmapDrawer(day);
+          }
+        });
+
+        heatmapGrid.appendChild(cell);
+      });
+    }
+
+    // --- AI Coach Persona Manager ---
+    const coachPersonaCard = document.getElementById("coachPersonaCard");
+    const personaGrid = document.getElementById("personaGrid");
+    const prefCoachPersona = document.getElementById("prefCoachPersona");
+    const activePersonaBadge = document.getElementById("activePersonaBadge");
+    const saveCoachPersonaBtn = document.getElementById("saveCoachPersonaBtn");
+    const coachPersonaSaveStatus = document.getElementById("coachPersonaSaveStatus");
+
+    const PERSONA_BADGE_MAP = {
+      stoic: "🏛️ Stoic Sage",
+      relentless: "⚡ Relentless Operator",
+      zen: "🧘 Zen Master",
+      "tech-lead": "💻 Principal Architect",
+      optimist: "☀️ Momentum Catalyst",
+    };
+
+    function selectCoachPersona(personaKey) {
+      if (!personaKey) return;
+      const norm = personaKey.toLowerCase().trim();
+      if (prefCoachPersona) prefCoachPersona.value = norm;
+      if (activePersonaBadge) {
+        activePersonaBadge.textContent = PERSONA_BADGE_MAP[norm] || "🏛️ Stoic Sage";
+      }
+
+      document.querySelectorAll(".persona-card").forEach((card) => {
+        const isMatch = card.getAttribute("data-persona") === norm;
+        card.classList.toggle("selected", isMatch);
+        card.setAttribute("aria-checked", isMatch ? "true" : "false");
+        card.style.borderColor = isMatch ? "var(--primary)" : "var(--border-subtle)";
+        card.style.boxShadow = isMatch ? "0 0 15px -3px var(--primary-glow)" : "none";
+      });
+    }
+
+    function renderCoachPersona(sub) {
+      if (!coachPersonaCard) return;
+      coachPersonaCard.style.display = "block";
+      const currentPersona = sub.coachPersona || sub.coach_persona || "stoic";
+      selectCoachPersona(currentPersona);
+    }
+
+    if (personaGrid) {
+      personaGrid.addEventListener("click", function (e) {
+        const card = e.target.closest(".persona-card");
+        if (card) selectCoachPersona(card.getAttribute("data-persona"));
+      });
+      personaGrid.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          const card = e.target.closest(".persona-card");
+          if (card) {
+            e.preventDefault();
+            selectCoachPersona(card.getAttribute("data-persona"));
+          }
+        }
+      });
+    }
+
+    if (saveCoachPersonaBtn) {
+      saveCoachPersonaBtn.addEventListener("click", async function () {
+        const persona = prefCoachPersona ? prefCoachPersona.value : "stoic";
+        saveCoachPersonaBtn.disabled = true;
+        if (coachPersonaSaveStatus)
+          coachPersonaSaveStatus.textContent = "Updating coach persona...";
+
+        try {
+          const resp = await fetch("/me/coach-persona", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ coachPersona: persona }),
+          });
+          const data = await resp.json();
+
+          if (!resp.ok) {
+            if (coachPersonaSaveStatus)
+              coachPersonaSaveStatus.textContent = data.error || "Failed to update.";
+            showToast(data.error || "Persona update failed", "error");
+            return;
+          }
+
+          if (coachPersonaSaveStatus) coachPersonaSaveStatus.textContent = "✅ Persona updated!";
+          showToast(`🧠 AI Coach set to ${PERSONA_BADGE_MAP[persona] || persona}!`, "success");
+        } catch (err) {
+          console.error("Coach persona update error", err);
+          if (coachPersonaSaveStatus) coachPersonaSaveStatus.textContent = "Network error.";
+          showToast("Network error saving coach persona.", "error");
+        } finally {
+          saveCoachPersonaBtn.disabled = false;
+        }
+      });
+    }
+
+    // --- Outbound Webhook Automation Manager ---
+    const outboundWebhookCard = document.getElementById("outboundWebhookCard");
+    const outboundWebhookForm = document.getElementById("outboundWebhookForm");
+    const outboundWebhookUrl = document.getElementById("outboundWebhookUrl");
+    const outboundWebhookSecret = document.getElementById("outboundWebhookSecret");
+    const outboundWebhookEnabled = document.getElementById("outboundWebhookEnabled");
+    const saveWebhookBtn = document.getElementById("saveWebhookBtn");
+    const testWebhookBtn = document.getElementById("testWebhookBtn");
+    const webhookSaveStatus = document.getElementById("webhookSaveStatus");
+
+    function renderOutboundWebhook(sub) {
+      if (!outboundWebhookCard) return;
+      outboundWebhookCard.style.display = "block";
+      if (outboundWebhookUrl)
+        outboundWebhookUrl.value = sub.webhookEndpointUrl || sub.webhook_endpoint_url || "";
+      if (outboundWebhookSecret)
+        outboundWebhookSecret.value = sub.webhookSecret || sub.webhook_secret || "";
+      if (outboundWebhookEnabled) {
+        outboundWebhookEnabled.checked = Boolean(
+          sub.webhookEnabled !== undefined ? sub.webhookEnabled : sub.webhook_enabled,
+        );
+      }
+    }
+
+    if (outboundWebhookForm) {
+      outboundWebhookForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (saveWebhookBtn) saveWebhookBtn.disabled = true;
+        if (webhookSaveStatus) webhookSaveStatus.textContent = "Saving webhook settings...";
+
+        const url = outboundWebhookUrl ? outboundWebhookUrl.value.trim() : "";
+        const secret = outboundWebhookSecret ? outboundWebhookSecret.value.trim() : "";
+        const enabled = outboundWebhookEnabled ? outboundWebhookEnabled.checked : false;
+
+        try {
+          const resp = await fetch("/me/outbound-webhook", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              webhookEndpointUrl: url || null,
+              webhookSecret: secret || null,
+              webhookEnabled: enabled,
+            }),
+          });
+          const data = await resp.json();
+
+          if (!resp.ok) {
+            if (webhookSaveStatus)
+              webhookSaveStatus.textContent = data.error || "Failed to update webhook.";
+            showToast(data.error || "Webhook update failed", "error");
+            return;
+          }
+
+          if (webhookSaveStatus) webhookSaveStatus.textContent = "✅ Webhook settings saved!";
+          showToast("🔌 Outbound webhook automation configured!", "success");
+        } catch (err) {
+          console.error("Outbound webhook update error", err);
+          if (webhookSaveStatus) webhookSaveStatus.textContent = "Network error.";
+          showToast("Network error saving webhook settings.", "error");
+        } finally {
+          if (saveWebhookBtn) saveWebhookBtn.disabled = false;
+        }
+      });
+    }
+
+    if (testWebhookBtn) {
+      testWebhookBtn.addEventListener("click", async function () {
+        const url = outboundWebhookUrl ? outboundWebhookUrl.value.trim() : "";
+        const secret = outboundWebhookSecret ? outboundWebhookSecret.value.trim() : "";
+
+        if (!url) {
+          showToast("Please provide a Webhook Destination URL first.", "warn");
+          return;
+        }
+
+        testWebhookBtn.disabled = true;
+        testWebhookBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ping...';
+
+        try {
+          const resp = await fetch("/api/outbound-webhook/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ webhookEndpointUrl: url, webhookSecret: secret }),
+          });
+          const data = await resp.json();
+
+          if (resp.ok && data.success) {
+            showToast("✅ Outbound webhook test ping delivered successfully!", "success");
+          } else {
+            showToast(`❌ Webhook ping failed: ${data.error || "Unknown error"}`, "error");
+          }
+        } catch (_err) {
+          showToast("Network error testing webhook ping.", "error");
+        } finally {
+          testWebhookBtn.disabled = false;
+          testWebhookBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Test Ping';
+        }
+      });
+    }
+
+    // --- Social Streak Share Modal Controller ---
+    const streakShareModal = document.getElementById("streakShareModal");
+    const openShareModalBtn = document.getElementById("openShareModalBtn");
+    const closeShareModalBtn = document.getElementById("closeShareModalBtn");
+    const shareCardPreviewImg = document.getElementById("shareCardPreviewImg");
+    const shareTwitterBtn = document.getElementById("shareTwitterBtn");
+    const shareLinkedinBtn = document.getElementById("shareLinkedinBtn");
+    const copyShareLinkBtn = document.getElementById("copyShareLinkBtn");
+    const copyMarkdownBadgeBtn = document.getElementById("copyMarkdownBadgeBtn");
+
+    function openStreakShareModal() {
+      if (!streakShareModal) return;
+      const streak = currentSubscriber?.streakCount || 1;
+      const email = currentSubscriber?.email || "subscriber";
+      const track = currentSubscriber?.routineTrack || "deep-work";
+      const officialDomain = window.location.origin;
+
+      const svgCardUrl = `${officialDomain}/api/streak-card.svg?email=${encodeURIComponent(email)}&streak=${streak}&track=${encodeURIComponent(track)}`;
+
+      if (shareCardPreviewImg) {
+        shareCardPreviewImg.src = svgCardUrl;
+      }
+
+      const tweetText = encodeURIComponent(
+        `🔥 Locked in a ${streak}-day unbroken morning routine streak on Morning Routine Sender! ⚡ Leveling up deep work & mental clarity every single morning. Check out your morning focus routine:`,
+      );
+      const routineUrl = encodeURIComponent(`${officialDomain}/routine`);
+
+      if (shareTwitterBtn) {
+        shareTwitterBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${routineUrl}&hashtags=MorningRoutine,DeepWork,Habits,Discipline`;
+      }
+
+      if (shareLinkedinBtn) {
+        shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${routineUrl}`;
+      }
+
+      streakShareModal.style.display = "flex";
+      streakShareModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeStreakShareModal() {
+      if (!streakShareModal) return;
+      streakShareModal.style.display = "none";
+      streakShareModal.setAttribute("aria-hidden", "true");
+    }
+
+    if (openShareModalBtn) openShareModalBtn.addEventListener("click", openStreakShareModal);
+    if (closeShareModalBtn) closeShareModalBtn.addEventListener("click", closeStreakShareModal);
+    if (streakShareModal) {
+      streakShareModal.addEventListener("click", function (e) {
+        if (e.target === streakShareModal) closeStreakShareModal();
+      });
+    }
+
+    if (copyShareLinkBtn) {
+      copyShareLinkBtn.addEventListener("click", function () {
+        const streak = currentSubscriber?.streakCount || 1;
+        const email = currentSubscriber?.email || "subscriber";
+        const track = currentSubscriber?.routineTrack || "deep-work";
+        const svgUrl = `${window.location.origin}/api/streak-card.svg?email=${encodeURIComponent(email)}&streak=${streak}&track=${encodeURIComponent(track)}`;
+
+        navigator.clipboard
+          .writeText(svgUrl)
+          .then(() => {
+            showToast("📋 SVG Streak Card link copied to clipboard!", "success");
+          })
+          .catch(() => {
+            showToast("Failed to copy link.", "warn");
+          });
+      });
+    }
+
+    if (copyMarkdownBadgeBtn) {
+      copyMarkdownBadgeBtn.addEventListener("click", function () {
+        const streak = currentSubscriber?.streakCount || 1;
+        const email = currentSubscriber?.email || "subscriber";
+        const track = currentSubscriber?.routineTrack || "deep-work";
+        const svgUrl = `${window.location.origin}/api/streak-card.svg?email=${encodeURIComponent(email)}&streak=${streak}&track=${encodeURIComponent(track)}`;
+        const markdownBadge = `[![Morning Routine Streak](${svgUrl})](${window.location.origin}/routine)`;
+
+        navigator.clipboard
+          .writeText(markdownBadge)
+          .then(() => {
+            showToast("📋 GitHub Markdown badge code copied to clipboard!", "success");
+          })
+          .catch(() => {
+            showToast("Failed to copy badge.", "warn");
+          });
       });
     }
 

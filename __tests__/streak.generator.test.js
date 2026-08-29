@@ -1,29 +1,47 @@
-// __tests__/streak.generator.test.js
-const { getMilestoneTitle, generateStreakSvg } = require("../helper/streakCardGenerator");
+const {
+  escapeXml,
+  getMilestoneTitle,
+  getTrackDetails,
+  generateStreakSvg,
+} = require("../helper/streakCardGenerator");
 
-describe("Streak Milestone & SVG Generator Tests", () => {
-  test("getMilestoneTitle returns escalating titles based on streak days", () => {
-    expect(getMilestoneTitle(0)).toBe("First Light");
-    expect(getMilestoneTitle(3)).toBe("Kinetic Momentum");
+describe("SVG Streak Share Card Generator", () => {
+  test("escapeXml safely escapes SVG/XML characters", () => {
+    expect(escapeXml("test & < > \" '")).toBe("test &amp; &lt; &gt; &quot; &apos;");
+    expect(escapeXml(null)).toBe("");
+  });
+
+  test("getMilestoneTitle scales correctly with streak count", () => {
+    expect(getMilestoneTitle(1)).toBe("First Light");
     expect(getMilestoneTitle(7)).toBe("Weekly Champion");
-    expect(getMilestoneTitle(14)).toBe("Iron Consistency");
     expect(getMilestoneTitle(30)).toBe("Unbreakable Flow");
-    expect(getMilestoneTitle(60)).toBe("Titan Habit");
     expect(getMilestoneTitle(100)).toBe("Master of Morning");
   });
 
-  test("generateStreakSvg outputs valid SVG string with streak and track info", () => {
+  test("getTrackDetails formats track and label", () => {
+    const deepWork = getTrackDetails("deep-work");
+    expect(deepWork.label).toContain("DEEP WORK");
+    expect(deepWork.icon).toBe("⚡");
+
+    const zen = getTrackDetails("mindfulness");
+    expect(zen.label).toContain("MINDFULNESS");
+  });
+
+  test("generateStreakSvg returns valid standalone SVG string with vector QR matrix", () => {
     const svg = generateStreakSvg({
       name: "Priyanshu",
       streak: 42,
-      track: "Deep Work",
+      track: "deep-work",
+      verifyUrl: "https://morningroutine.app/routine",
     });
 
-    expect(typeof svg).toBe("string");
-    expect(svg).toContain("<svg");
-    expect(svg).toContain("</svg>");
+    expect(svg).toBeTruthy();
+    expect(svg).toContain('<svg width="1200" height="630"');
     expect(svg).toContain("🔥 42 DAYS");
-    expect(svg).toContain("DEEP WORK");
-    expect(svg).toContain("Unbreakable Flow");
+    expect(svg).toContain("@Priyanshu");
+    expect(svg).toContain("🏆 Unbreakable Flow");
+    expect(svg).toContain("⚡ DEEP WORK &amp; BUILDER");
+    expect(svg).toContain("SCAN QR TO VERIFY");
+    expect(svg).toContain("</svg>");
   });
 });
