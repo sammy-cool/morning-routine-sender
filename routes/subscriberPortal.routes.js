@@ -46,5 +46,7 @@ router.get("/me", requireSubscriberSession, meController.getMe);
 router.get("/me/history", requireSubscriberSession, meController.getMyHistory);
 router.get("/me/export-journal", requireSubscriberSession, meController.exportJournal);
 router.patch("/me", requireSubscriberSession, meController.updateMe);
+router.post("/me/channels", requireSubscriberSession, meController.updateChannels);
+router.post("/api/channels/test", requireSubscriberSession, meController.testChannel);
 
 module.exports = router;

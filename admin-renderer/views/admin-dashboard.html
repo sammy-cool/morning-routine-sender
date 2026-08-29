@@ -1003,6 +1003,125 @@
         background: rgba(99, 102, 241, 0.15);
         color: #fff;
       }
+
+      /* Provider Chips */
+      .provider-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-main);
+        transition: var(--transition);
+      }
+      .provider-chip:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--border-hover);
+      }
+      .provider-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .dot-resend {
+        background: #6366f1;
+        box-shadow: 0 0 8px #6366f1;
+      }
+      .dot-sendgrid {
+        background: #06b6d4;
+        box-shadow: 0 0 8px #06b6d4;
+      }
+      .dot-brevo {
+        background: #10b981;
+        box-shadow: 0 0 8px #10b981;
+      }
+      .dot-generic {
+        background: #f59e0b;
+        box-shadow: 0 0 8px #f59e0b;
+      }
+      .provider-count {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-subtle);
+      }
+
+      /* Event Status Badges */
+      .badge-event-delivered {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .badge-event-opened {
+        background: rgba(168, 85, 247, 0.15);
+        color: #c084fc;
+        border: 1px solid rgba(168, 85, 247, 0.3);
+      }
+      .badge-event-clicked {
+        background: rgba(6, 182, 212, 0.15);
+        color: #22d3ee;
+        border: 1px solid rgba(6, 182, 212, 0.3);
+      }
+      .badge-event-bounced {
+        background: rgba(244, 63, 94, 0.15);
+        color: #fb7185;
+        border: 1px solid rgba(244, 63, 94, 0.3);
+      }
+      .badge-event-complaint {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      /* Auto Poll Toggle Switch */
+      .auto-poll-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      .auto-poll-toggle input {
+        display: none;
+      }
+      .toggle-track {
+        width: 34px;
+        height: 18px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        position: relative;
+        transition: var(--transition);
+      }
+      .toggle-thumb {
+        width: 14px;
+        height: 14px;
+        background: #fff;
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: var(--transition);
+      }
+      .auto-poll-toggle input:checked + .toggle-track {
+        background: var(--primary);
+      }
+      .auto-poll-toggle input:checked + .toggle-track .toggle-thumb {
+        transform: translateX(16px);
+      }
+      .btn-warning {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      .btn-warning:hover {
+        background: rgba(245, 158, 11, 0.25);
+        color: #fff;
+      }
     </style>
   </head>
 
@@ -1054,6 +1173,17 @@
           >
             <i class="fas fa-paper-plane"></i>
             <span>Email Studio</span>
+          </a>
+          <a
+            href="#section-telemetry"
+            class="nav-link"
+            onclick="
+              scrollToSection('section-telemetry');
+              return false;
+            "
+          >
+            <i class="fas fa-satellite-dish"></i>
+            <span>Live Telemetry</span>
           </a>
           <a
             href="#section-diagnostics"
@@ -1688,6 +1818,415 @@
         </div>
       </section>
 
+      <!-- ==================== DELIVERY TELEMETRY & LIVE WEBHOOK AUDIT STREAM ==================== -->
+      <section class="card" id="section-telemetry" style="margin-bottom: 28px">
+        <!-- Header with Refresh & Global Controls -->
+        <div class="card-header" style="flex-wrap: wrap; gap: 16px">
+          <div class="card-title">
+            <i class="fas fa-satellite-dish" style="color: var(--primary)"></i>
+            <span>Delivery Telemetry &amp; Webhook Stream</span>
+            <span class="brand-badge" id="telemetryStatusBadge">Connected</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+            <div class="timeframe-toggle-group">
+              <button
+                type="button"
+                class="btn btn-sm btn-glass active"
+                id="btnTimeframe7d"
+                onclick="switchTelemetryTimeframe(7)"
+              >
+                7 Days
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-glass"
+                id="btnTimeframe30d"
+                onclick="switchTelemetryTimeframe(30)"
+              >
+                30 Days
+              </button>
+            </div>
+            <button class="btn btn-glass btn-sm" onclick="loadAllTelemetryData()">
+              <i class="fas fa-sync-alt" id="telemetryRefreshIcon"></i> Refresh Telemetry
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Telemetry KPI Grid (Dispatches, Delivery Rate, Open Rate, Bounce Rate) -->
+        <div
+          class="telemetry-kpi-grid"
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+          "
+        >
+          <!-- Total Dispatches Card -->
+          <div class="stat-card" style="--stat-accent: var(--primary)">
+            <div class="stat-header">
+              <span class="stat-label">Total Dispatched</span>
+              <div class="stat-icon-wrap"><i class="fas fa-paper-plane"></i></div>
+            </div>
+            <div class="stat-value" id="telemetryTotalDispatches">0</div>
+            <div
+              class="stat-footer"
+              style="font-size: 11px; color: var(--text-subtle); margin-top: 6px"
+              id="telemetrySentSuccessLabel"
+            >
+              0 sent • 0 failed
+            </div>
+          </div>
+
+          <!-- Deliverability Rate Card -->
+          <div class="stat-card" style="--stat-accent: var(--accent-emerald)">
+            <div class="stat-header">
+              <span class="stat-label">Deliverability Rate</span>
+              <div class="stat-icon-wrap" style="color: var(--accent-emerald)">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+            </div>
+            <div
+              class="stat-value"
+              id="telemetryDeliverabilityRate"
+              style="color: var(--accent-emerald)"
+            >
+              100.00%
+            </div>
+            <div
+              class="stat-footer"
+              style="font-size: 11px; color: var(--text-subtle); margin-top: 6px"
+              id="telemetryDeliveredCountLabel"
+            >
+              0 delivered events
+            </div>
+          </div>
+
+          <!-- Open Rate Card -->
+          <div class="stat-card" style="--stat-accent: #a855f7">
+            <div class="stat-header">
+              <span class="stat-label">Unique Open Rate</span>
+              <div class="stat-icon-wrap" style="color: #a855f7">
+                <i class="fas fa-envelope-open-text"></i>
+              </div>
+            </div>
+            <div class="stat-value" id="telemetryOpenRate" style="color: #c084fc">0.00%</div>
+            <div
+              class="stat-footer"
+              style="font-size: 11px; color: var(--text-subtle); margin-top: 6px"
+              id="telemetryOpenedCountLabel"
+            >
+              0 opened • 0 clicked
+            </div>
+          </div>
+
+          <!-- Bounce & Suppression Rate Card -->
+          <div class="stat-card" style="--stat-accent: var(--accent-rose)">
+            <div class="stat-header">
+              <span class="stat-label">Bounce Rate</span>
+              <div class="stat-icon-wrap" style="color: var(--accent-rose)">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+            </div>
+            <div class="stat-value" id="telemetryBounceRateVal" style="color: var(--accent-rose)">
+              0.00%
+            </div>
+            <div
+              class="stat-footer"
+              style="font-size: 11px; color: var(--text-subtle); margin-top: 6px"
+              id="telemetryBounceCountLabel"
+            >
+              0 soft / 0 hard bounces
+            </div>
+          </div>
+        </div>
+
+        <!-- Provider Breakdown Chips -->
+        <div
+          style="
+            background: rgba(15, 23, 42, 0.45);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 24px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+              flex-wrap: wrap;
+              gap: 8px;
+            "
+          >
+            <div
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                letter-spacing: 0.5px;
+              "
+            >
+              <i class="fas fa-server" style="color: var(--accent-cyan); margin-right: 6px"></i>
+              Dispatch Providers Distribution
+            </div>
+            <div style="font-size: 11px; color: var(--text-subtle)">
+              Real-time multi-provider routing telemetry
+            </div>
+          </div>
+          <div id="providerChipsContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+            <div class="provider-chip" data-provider="resend">
+              <span class="provider-dot dot-resend"></span>
+              <span class="provider-name">Resend</span>
+              <span class="provider-count" id="chipCountResend">0 evt</span>
+            </div>
+            <div class="provider-chip" data-provider="sendgrid">
+              <span class="provider-dot dot-sendgrid"></span>
+              <span class="provider-name">SendGrid</span>
+              <span class="provider-count" id="chipCountSendGrid">0 evt</span>
+            </div>
+            <div class="provider-chip" data-provider="brevo">
+              <span class="provider-dot dot-brevo"></span>
+              <span class="provider-name">Brevo</span>
+              <span class="provider-count" id="chipCountBrevo">0 evt</span>
+            </div>
+            <div class="provider-chip" data-provider="generic">
+              <span class="provider-dot dot-generic"></span>
+              <span class="provider-name">Generic SMTP</span>
+              <span class="provider-count" id="chipCountGeneric">0 evt</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Dead-Letter Retry Command Panel -->
+        <div
+          style="
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px dashed rgba(99, 102, 241, 0.35);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            margin-bottom: 24px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 14px;
+            "
+          >
+            <div>
+              <div
+                style="
+                  font-weight: 700;
+                  font-size: 14px;
+                  color: #fff;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                "
+              >
+                <i class="fas fa-redo-alt" style="color: var(--accent-amber)"></i> Dead-Letter
+                Dispatch Recovery
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px">
+                Replay undelivered or dropped routine messages with circuit-breaker deduplication.
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+              <select
+                id="deadLetterTimeframeSelect"
+                class="form-input"
+                style="width: auto; padding: 7px 12px; font-size: 13px"
+              >
+                <option value="24">Last 24 Hours</option>
+                <option value="48">Last 48 Hours</option>
+                <option value="168">Last 7 Days (168h)</option>
+              </select>
+              <button
+                type="button"
+                class="btn btn-warning btn-sm"
+                id="btnRetryFailedDispatches"
+                onclick="promptRetryFailedDispatches()"
+              >
+                <i class="fas fa-bolt" id="retryActionIcon"></i> Retry Failed Dispatches
+              </button>
+            </div>
+          </div>
+
+          <!-- Dead Letter Result Feedback Box -->
+          <div
+            id="retryFeedbackContainer"
+            style="
+              display: none;
+              margin-top: 14px;
+              padding: 12px 16px;
+              border-radius: var(--radius-sm);
+              background: rgba(15, 23, 42, 0.8);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 12px;
+              "
+            >
+              <span id="retryFeedbackSummary" style="font-weight: 600; color: #fff"></span>
+              <button
+                type="button"
+                class="action-icon-btn"
+                onclick="document.getElementById('retryFeedbackContainer').style.display = 'none'"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div
+              id="retryFeedbackBadges"
+              style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap"
+            ></div>
+          </div>
+        </div>
+
+        <!-- 3. Live Webhook Feed / Audit Stream -->
+        <div
+          class="webhook-feed-header"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 16px;
+          "
+        >
+          <div>
+            <div
+              style="
+                font-size: 15px;
+                font-weight: 700;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <i class="fas fa-stream" style="color: var(--accent-cyan)"></i> Live Webhook Event
+              Stream
+              <span class="brand-badge" id="webhookCountBadge">0 Events</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-subtle); margin-top: 2px">
+              Inbound delivery, engagement, and bounce webhooks from active email providers.
+            </div>
+          </div>
+
+          <!-- Stream Controls (Filter & Auto-poll switch) -->
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+            <!-- Provider Filter -->
+            <select
+              id="webhookFilterProvider"
+              class="form-input"
+              style="width: auto; padding: 6px 10px; font-size: 12px"
+              onchange="loadRecentWebhookEvents()"
+            >
+              <option value="">All Providers</option>
+              <option value="resend">Resend</option>
+              <option value="sendgrid">SendGrid</option>
+              <option value="brevo">Brevo</option>
+              <option value="generic">Generic SMTP</option>
+            </select>
+
+            <!-- Event Type Filter -->
+            <select
+              id="webhookFilterEventType"
+              class="form-input"
+              style="width: auto; padding: 6px 10px; font-size: 12px"
+              onchange="loadRecentWebhookEvents()"
+            >
+              <option value="">All Event Types</option>
+              <option value="delivered">Delivered</option>
+              <option value="opened">Opened</option>
+              <option value="clicked">Clicked</option>
+              <option value="soft_bounce">Soft Bounce</option>
+              <option value="hard_bounce">Hard Bounce</option>
+              <option value="spam_complaint">Spam Complaint</option>
+            </select>
+
+            <!-- Auto Poll Toggle Switch -->
+            <label class="auto-poll-toggle" title="Auto-refresh stream every 10 seconds">
+              <input
+                type="checkbox"
+                id="webhookAutoPollToggle"
+                onchange="toggleWebhookAutoPoll(this.checked)"
+                checked
+              />
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+              <span class="toggle-label"
+                ><span
+                  class="pulse-dot"
+                  id="autoPollDot"
+                  style="display: inline-block; margin-right: 4px"
+                ></span
+                >Auto-Poll (10s)</span
+              >
+            </label>
+
+            <!-- Manual Refresh Button -->
+            <button
+              type="button"
+              class="action-icon-btn"
+              title="Refresh Feed"
+              onclick="loadRecentWebhookEvents()"
+            >
+              <i class="fas fa-redo-alt" id="webhookFeedRefreshIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Webhook Table / Activity Stream Container -->
+        <div
+          class="table-container"
+          style="
+            max-height: 420px;
+            overflow-y: auto;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+          "
+        >
+          <table class="data-table" style="width: 100%; border-collapse: collapse">
+            <thead style="position: sticky; top: 0; background: #0f172a; z-index: 10">
+              <tr>
+                <th style="width: 170px">Timestamp</th>
+                <th style="width: 140px">Event</th>
+                <th style="width: 110px">Provider</th>
+                <th>Recipient</th>
+                <th>Metadata / Diagnostics</th>
+              </tr>
+            </thead>
+            <tbody id="webhookEventsTableBody">
+              <tr>
+                <td
+                  colspan="5"
+                  style="text-align: center; color: var(--text-subtle); padding: 32px"
+                >
+                  <i class="fas fa-spinner fa-spin" style="margin-right: 8px"></i> Loading real-time
+                  webhook events...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- Diagnostics & Database Maintenance -->
       <section class="card" id="section-diagnostics">
         <div class="card-header">
@@ -2147,6 +2686,7 @@ Loading records…</pre>
           loadDatabaseStats(),
           loadScheduledJobs(),
           loadDeliverabilityTelemetry(),
+          loadAllTelemetryData(),
         ]);
 
         if (icon) icon.classList.remove("fa-spin");
@@ -2721,6 +3261,320 @@ Loading records…</pre>
         }
       }
 
+      /* ==========================================================================
+         ADMIN TELEMETRY, DEAD-LETTER RETRY & LIVE WEBHOOK STREAM CONTROLLER
+         ========================================================================== */
+
+      let telemetryActiveDays = 7;
+      let webhookAutoPollIntervalId = null;
+      const WEBHOOK_POLL_INTERVAL_MS = 10000;
+
+      function switchTelemetryTimeframe(days) {
+        telemetryActiveDays = days;
+        const btn7 = document.getElementById("btnTimeframe7d");
+        const btn30 = document.getElementById("btnTimeframe30d");
+
+        if (days === 7) {
+          btn7?.classList.add("active");
+          btn30?.classList.remove("active");
+        } else {
+          btn30?.classList.add("active");
+          btn7?.classList.remove("active");
+        }
+
+        loadTelemetryOverview();
+      }
+
+      async function loadTelemetryOverview() {
+        const icon = document.getElementById("telemetryRefreshIcon");
+        if (icon) icon.classList.add("fa-spin");
+
+        try {
+          const res = await apiCall(
+            `/admin/deliverability/telemetry-overview?days=${telemetryActiveDays}`,
+          );
+          if (!res.ok || !res.data?.success) {
+            return;
+          }
+
+          const { overview, byProvider, comparison } = res.data;
+          const currentData =
+            telemetryActiveDays === 30 ? comparison?.last30Days : comparison?.last7Days;
+
+          const totalDispatched = overview.totalDispatched ?? currentData?.tracker?.total ?? 0;
+          const totalSent = overview.totalSent ?? currentData?.tracker?.success ?? 0;
+          const failedCount = overview.failedDispatches ?? currentData?.tracker?.failed ?? 0;
+          const rates = currentData?.rates || overview.rates || {};
+
+          const elTotal = document.getElementById("telemetryTotalDispatches");
+          const elSuccessLabel = document.getElementById("telemetrySentSuccessLabel");
+          const elDeliverability = document.getElementById("telemetryDeliverabilityRate");
+          const elDeliveredLabel = document.getElementById("telemetryDeliveredCountLabel");
+          const elOpenRate = document.getElementById("telemetryOpenRate");
+          const elOpenedLabel = document.getElementById("telemetryOpenedCountLabel");
+          const elBounceRate = document.getElementById("telemetryBounceRateVal");
+          const elBounceLabel = document.getElementById("telemetryBounceCountLabel");
+
+          if (elTotal) elTotal.textContent = totalDispatched.toLocaleString();
+          if (elSuccessLabel)
+            elSuccessLabel.textContent = `${totalSent} sent • ${failedCount} failed (${telemetryActiveDays}d)`;
+
+          if (elDeliverability) elDeliverability.textContent = rates.deliveryRate || "100.00%";
+          if (elDeliveredLabel)
+            elDeliveredLabel.textContent = `${overview.delivered ?? 0} delivered events`;
+
+          if (elOpenRate) elOpenRate.textContent = rates.openRate || "0.00%";
+          if (elOpenedLabel)
+            elOpenedLabel.textContent = `${overview.opened ?? 0} opened • ${overview.clicked ?? 0} clicked`;
+
+          if (elBounceRate) elBounceRate.textContent = rates.bounceRate || "0.00%";
+          if (elBounceLabel)
+            elBounceLabel.textContent = `${overview.softBounced ?? 0} soft / ${overview.hardBounced ?? 0} hard bounces`;
+
+          renderProviderChips(byProvider || {});
+        } catch (err) {
+          console.error("loadTelemetryOverview error:", err);
+        } finally {
+          if (icon) icon.classList.remove("fa-spin");
+        }
+      }
+
+      function renderProviderChips(byProvider) {
+        const providers = [
+          { key: "resend", label: "Resend", elId: "chipCountResend" },
+          { key: "sendgrid", label: "SendGrid", elId: "chipCountSendGrid" },
+          { key: "brevo", label: "Brevo", elId: "chipCountBrevo" },
+          { key: "generic", label: "Generic SMTP", elId: "chipCountGeneric" },
+        ];
+
+        providers.forEach(({ key, elId }) => {
+          const data = byProvider[key] || {};
+          const totalEvents = data.total_events || data.delivered || 0;
+          const chipEl = document.getElementById(elId);
+          if (chipEl) {
+            chipEl.textContent = `${totalEvents} evt`;
+          }
+        });
+      }
+
+      async function loadRecentWebhookEvents() {
+        const icon = document.getElementById("webhookFeedRefreshIcon");
+        if (icon) icon.classList.add("fa-spin");
+
+        const providerFilter = document.getElementById("webhookFilterProvider")?.value || "";
+        const eventTypeFilter = document.getElementById("webhookFilterEventType")?.value || "";
+
+        const queryParams = new URLSearchParams({ limit: "50" });
+        if (providerFilter) queryParams.set("provider", providerFilter);
+        if (eventTypeFilter) queryParams.set("event_type", eventTypeFilter);
+
+        try {
+          const res = await apiCall(
+            `/admin/deliverability/recent-events?${queryParams.toString()}`,
+          );
+          if (!res.ok || !res.data?.success) {
+            renderWebhookErrorRow("Failed to load live webhook stream");
+            return;
+          }
+
+          const events = res.data.events || [];
+          renderWebhookEventsTable(events);
+
+          const countBadge = document.getElementById("webhookCountBadge");
+          if (countBadge) countBadge.textContent = `${events.length} Events`;
+        } catch (err) {
+          console.error("loadRecentWebhookEvents error:", err);
+          renderWebhookErrorRow(err.message);
+        } finally {
+          if (icon) icon.classList.remove("fa-spin");
+        }
+      }
+
+      function renderWebhookEventsTable(events) {
+        const tbody = document.getElementById("webhookEventsTableBody");
+        if (!tbody) return;
+
+        if (events.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-subtle); padding: 36px;">
+                <i class="fas fa-inbox" style="margin-right: 6px;"></i> No webhook events match the selected filters.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = events
+          .map((evt) => {
+            const dateStr = evt.occurred_at || evt.created_at || new Date().toISOString();
+            const formattedDate = new Date(dateStr).toLocaleString("en-US", {
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            });
+
+            const type = (evt.event_type || "unknown").toLowerCase();
+            let badgeClass = "badge-event-delivered";
+            let icon = "fa-check";
+
+            if (type === "delivered") {
+              badgeClass = "badge-event-delivered";
+              icon = "fa-check-circle";
+            } else if (type === "opened") {
+              badgeClass = "badge-event-opened";
+              icon = "fa-envelope-open";
+            } else if (type === "clicked") {
+              badgeClass = "badge-event-clicked";
+              icon = "fa-mouse-pointer";
+            } else if (type.includes("bounce")) {
+              badgeClass = "badge-event-bounced";
+              icon = "fa-exclamation-circle";
+            } else if (type.includes("complaint")) {
+              badgeClass = "badge-event-complaint";
+              icon = "fa-radiation";
+            }
+
+            let metaDetails = "";
+            if (evt.bounce_description || evt.bounce_code) {
+              metaDetails = `<span style="color: #fb7185;">[${escapeHtml(evt.bounce_code || "BOUNCE")}] ${escapeHtml(evt.bounce_description || "")}</span>`;
+            } else if (evt.click_url) {
+              metaDetails = `<a href="${escapeHtml(evt.click_url)}" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: none;"><i class="fas fa-link"></i> ${escapeHtml(evt.click_url.slice(0, 35))}...</a>`;
+            } else if (evt.message_id) {
+              metaDetails = `<code style="font-size: 11px; color: var(--text-subtle);">${escapeHtml(evt.message_id.slice(0, 22))}...</code>`;
+            } else {
+              metaDetails = `<span style="color: var(--text-subtle); font-size: 11px;">Standard dispatch</span>`;
+            }
+
+            const providerName = (evt.provider || "generic").toUpperCase();
+
+            return `
+              <tr>
+                <td style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
+                  ${formattedDate}
+                </td>
+                <td>
+                  <span class="brand-badge ${badgeClass}" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fas ${icon}"></i> ${escapeHtml(type.replace("_", " "))}
+                  </span>
+                </td>
+                <td>
+                  <span style="font-size: 11px; font-weight: 600; color: #cbd5e1;">${escapeHtml(providerName)}</span>
+                </td>
+                <td>
+                  <div style="font-weight: 500; color: #fff; font-size: 13px;">${escapeHtml(evt.recipient_email || "unknown")}</div>
+                </td>
+                <td style="font-size: 12px;">
+                  ${metaDetails}
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function renderWebhookErrorRow(msg) {
+        const tbody = document.getElementById("webhookEventsTableBody");
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#fb7185; padding:24px;">${escapeHtml(msg)}</td></tr>`;
+        }
+      }
+
+      function toggleWebhookAutoPoll(enabled) {
+        if (webhookAutoPollIntervalId) {
+          clearInterval(webhookAutoPollIntervalId);
+          webhookAutoPollIntervalId = null;
+        }
+
+        const dot = document.getElementById("autoPollDot");
+        if (enabled) {
+          if (dot) dot.style.display = "inline-block";
+          loadRecentWebhookEvents();
+          webhookAutoPollIntervalId = setInterval(
+            loadRecentWebhookEvents,
+            WEBHOOK_POLL_INTERVAL_MS,
+          );
+        } else {
+          if (dot) dot.style.display = "none";
+        }
+      }
+
+      async function promptRetryFailedDispatches() {
+        const timeframeHours = parseInt(
+          document.getElementById("deadLetterTimeframeSelect")?.value || "24",
+          10,
+        );
+        const timeframeLabel = timeframeHours >= 168 ? "7 days" : `${timeframeHours} hours`;
+
+        const confirmed = await showConfirmDialog({
+          title: "Retry Failed Dispatches",
+          message: `Are you sure you want to scan for failed dispatches in the last ${timeframeLabel} and trigger automatic recovery?`,
+          confirmText: "Execute Retry Batch",
+          confirmVariant: "btn-warning",
+        });
+        if (!confirmed) return;
+
+        const btn = document.getElementById("btnRetryFailedDispatches");
+        const icon = document.getElementById("retryActionIcon");
+        if (btn) btn.disabled = true;
+        if (icon) icon.className = "fas fa-spinner fa-spin";
+
+        ToastManager.info(`Initiating dead-letter dispatch replay for past ${timeframeLabel}...`);
+
+        try {
+          const res = await apiCall("/admin/api/retry-failed", {
+            method: "POST",
+            body: JSON.stringify({ hours: timeframeHours }),
+          });
+
+          if (res.ok && res.data?.success) {
+            const summary = res.data.summary || {};
+            ToastManager.success(res.data.message || "Retry batch completed successfully!");
+            ActivityLogger.log(
+              `Dead-letter replay: ${summary.succeeded || 0} succeeded, ${summary.failed || 0} failed out of ${summary.uniqueRecipients || 0} recipients.`,
+              "success",
+            );
+
+            renderDeadLetterFeedback(res.data);
+            loadAllTelemetryData();
+          } else {
+            ToastManager.error(res.data?.error || "Failed to retry dispatches.");
+            ActivityLogger.log(
+              `Dead-letter replay error: ${res.data?.error || "Unknown"}`,
+              "error",
+            );
+          }
+        } catch (err) {
+          ToastManager.error("Retry failed: " + err.message);
+        } finally {
+          if (btn) btn.disabled = false;
+          if (icon) icon.className = "fas fa-bolt";
+        }
+      }
+
+      function renderDeadLetterFeedback(data) {
+        const container = document.getElementById("retryFeedbackContainer");
+        const summaryEl = document.getElementById("retryFeedbackSummary");
+        const badgesEl = document.getElementById("retryFeedbackBadges");
+        if (!container || !summaryEl || !badgesEl) return;
+
+        const sum = data.summary || {};
+        summaryEl.textContent = data.message;
+        badgesEl.innerHTML = `
+          <span class="brand-badge badge-event-delivered"><i class="fas fa-check"></i> ${sum.succeeded || 0} Succeeded</span>
+          <span class="brand-badge badge-event-bounced"><i class="fas fa-times"></i> ${sum.failed || 0} Failed</span>
+          <span class="brand-badge" style="background: rgba(255,255,255,0.08); color:#cbd5e1;"><i class="fas fa-forward"></i> ${sum.skipped || 0} Skipped</span>
+        `;
+        container.style.display = "block";
+      }
+
+      async function loadAllTelemetryData() {
+        await Promise.allSettled([loadTelemetryOverview(), loadRecentWebhookEvents()]);
+      }
+
       /* ==================== CSV Export ==================== */
       function exportSubscribersCSV() {
         if (!allSubscribers.length) {
@@ -2885,6 +3739,14 @@ Loading records…</pre>
       // Initialize on Load
       window.addEventListener("DOMContentLoaded", () => {
         refreshAllData();
+        toggleWebhookAutoPoll(true);
+      });
+
+      // Cleanup on Unload
+      window.addEventListener("beforeunload", () => {
+        if (webhookAutoPollIntervalId) {
+          clearInterval(webhookAutoPollIntervalId);
+        }
       });
     </script>
   </body>

@@ -234,6 +234,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           dashboardJournalCard.style.display = "block";
           loadDashboardJournal();
         }
+        renderChannels(sub);
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);
@@ -645,6 +646,143 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         }
       }
     };
+
+    // --- Multi-Channel Dispatch Handler ---
+    const channelsCard = document.getElementById("channelsCard");
+    const channelsForm = document.getElementById("channelsForm");
+    const chanDiscord = document.getElementById("chanDiscord");
+    const chanTelegram = document.getElementById("chanTelegram");
+    const discordWebhookUrl = document.getElementById("discordWebhookUrl");
+    const telegramChatId = document.getElementById("telegramChatId");
+    const saveChannelsBtn = document.getElementById("saveChannelsBtn");
+    const channelsSaveStatus = document.getElementById("channelsSaveStatus");
+    const testDiscordBtn = document.getElementById("testDiscordBtn");
+    const testTelegramBtn = document.getElementById("testTelegramBtn");
+
+    function renderChannels(sub) {
+      if (!channelsCard) return;
+      channelsCard.style.display = "block";
+
+      const enabled = (sub.channelsEnabled || sub.channels_enabled || "email").toLowerCase();
+      if (chanDiscord) chanDiscord.checked = enabled.includes("discord");
+      if (chanTelegram) chanTelegram.checked = enabled.includes("telegram");
+      if (discordWebhookUrl)
+        discordWebhookUrl.value = sub.discordWebhookUrl || sub.discord_webhook_url || "";
+      if (telegramChatId) telegramChatId.value = sub.telegramChatId || sub.telegram_chat_id || "";
+    }
+
+    if (channelsForm) {
+      channelsForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (saveChannelsBtn) saveChannelsBtn.disabled = true;
+        if (channelsSaveStatus) channelsSaveStatus.textContent = "Saving channels...";
+
+        const enabledList = ["email"];
+        if (chanDiscord && chanDiscord.checked) enabledList.push("discord");
+        if (chanTelegram && chanTelegram.checked) enabledList.push("telegram");
+
+        try {
+          const resp = await fetch("/me/channels", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              discordWebhookUrl: discordWebhookUrl ? discordWebhookUrl.value.trim() : null,
+              telegramChatId: telegramChatId ? telegramChatId.value.trim() : null,
+              channelsEnabled: enabledList,
+            }),
+          });
+          const data = await resp.json();
+
+          if (!resp.ok) {
+            if (channelsSaveStatus)
+              channelsSaveStatus.textContent = data.error || "Failed to update channels.";
+            showToast(data.error || "Channel update failed", "error");
+            return;
+          }
+
+          if (channelsSaveStatus) channelsSaveStatus.textContent = "✅ Channels updated!";
+          showToast("🎉 Multi-channel notification settings saved!", "success");
+        } catch (err) {
+          console.error("Channels update error", err);
+          if (channelsSaveStatus) channelsSaveStatus.textContent = "Network error saving channels.";
+          showToast("Network error. Please try again.", "error");
+        } finally {
+          if (saveChannelsBtn) saveChannelsBtn.disabled = false;
+        }
+      });
+    }
+
+    if (testDiscordBtn) {
+      testDiscordBtn.addEventListener("click", async function () {
+        const url = discordWebhookUrl ? discordWebhookUrl.value.trim() : "";
+        if (!url) {
+          showToast("Please enter a Discord Webhook URL first.", "warn");
+          return;
+        }
+
+        testDiscordBtn.disabled = true;
+        testDiscordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+
+        try {
+          const resp = await fetch("/api/channels/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channel: "discord", webhookUrl: url }),
+          });
+          const data = await resp.json();
+
+          if (resp.ok && data.success) {
+            showToast(
+              "✅ Discord test embed dispatched successfully! Check your channel.",
+              "success",
+            );
+          } else {
+            showToast(`❌ Discord test failed: ${data.error || "Unknown error"}`, "error");
+          }
+        } catch (_err) {
+          showToast("Network error testing Discord dispatch.", "error");
+        } finally {
+          testDiscordBtn.disabled = false;
+          testDiscordBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Test Discord';
+        }
+      });
+    }
+
+    if (testTelegramBtn) {
+      testTelegramBtn.addEventListener("click", async function () {
+        const chat = telegramChatId ? telegramChatId.value.trim() : "";
+        if (!chat) {
+          showToast("Please enter a Telegram Chat ID first.", "warn");
+          return;
+        }
+
+        testTelegramBtn.disabled = true;
+        testTelegramBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+
+        try {
+          const resp = await fetch("/api/channels/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channel: "telegram", chatId: chat }),
+          });
+          const data = await resp.json();
+
+          if (resp.ok && data.success) {
+            showToast(
+              "✅ Telegram message dispatched successfully! Check your Telegram.",
+              "success",
+            );
+          } else {
+            showToast(`❌ Telegram test failed: ${data.error || "Unknown error"}`, "error");
+          }
+        } catch (_err) {
+          showToast("Network error testing Telegram dispatch.", "error");
+        } finally {
+          testTelegramBtn.disabled = false;
+          testTelegramBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Test Telegram';
+        }
+      });
+    }
 
     loadDashboard();
     syncNotificationState();

@@ -967,6 +967,229 @@
         <p id="actionStatus" class="small" aria-live="polite" style="color: #60a5fa"></p>
       </div>
 
+      <!-- Multi-Channel Notification Engine Card -->
+      <div class="card" id="channelsCard" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+          "
+        >
+          <div>
+            <h2>
+              <i
+                class="fas fa-satellite-dish"
+                style="color: var(--accent-cyan)"
+                aria-hidden="true"
+              ></i>
+              Multi-Channel Dispatch Engine
+            </h2>
+            <p class="meta" style="font-size: 13px; margin-top: 4px; color: var(--text-muted)">
+              Receive rich interactive morning routines directly in Discord and Telegram alongside
+              your daily email.
+            </p>
+          </div>
+        </div>
+
+        <form id="channelsForm" style="margin-top: 14px">
+          <!-- Enabled Channels Toggles -->
+          <div style="margin-bottom: 18px">
+            <label
+              style="
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #cbd5e1;
+                margin-bottom: 8px;
+              "
+            >
+              Active Notification Channels
+            </label>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 10px;
+              "
+            >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 10px 14px;
+                  background: rgba(0, 0, 0, 0.3);
+                  border: 1px solid var(--border-subtle);
+                  border-radius: 10px;
+                  cursor: pointer;
+                "
+              >
+                <input type="checkbox" id="chanEmail" checked disabled />
+                <span style="font-size: 13.5px; font-weight: 600">✉️ Email (Base)</span>
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 10px 14px;
+                  background: rgba(0, 0, 0, 0.3);
+                  border: 1px solid var(--border-subtle);
+                  border-radius: 10px;
+                  cursor: pointer;
+                "
+              >
+                <input type="checkbox" id="chanDiscord" />
+                <span style="font-size: 13.5px; font-weight: 600"
+                  ><i class="fab fa-discord" style="color: #5865f2"></i> Discord</span
+                >
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 10px 14px;
+                  background: rgba(0, 0, 0, 0.3);
+                  border: 1px solid var(--border-subtle);
+                  border-radius: 10px;
+                  cursor: pointer;
+                "
+              >
+                <input type="checkbox" id="chanTelegram" />
+                <span style="font-size: 13.5px; font-weight: 600"
+                  ><i class="fab fa-telegram" style="color: #229ed9"></i> Telegram</span
+                >
+              </label>
+            </div>
+          </div>
+
+          <!-- Discord Configuration -->
+          <div
+            style="
+              margin-bottom: 18px;
+              padding: 14px;
+              background: rgba(15, 23, 42, 0.4);
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+              "
+            >
+              <label
+                for="discordWebhookUrl"
+                style="font-weight: 700; color: #fff; margin-bottom: 0"
+              >
+                <i class="fab fa-discord" style="color: #5865f2"></i> Discord Webhook URL
+              </label>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                id="testDiscordBtn"
+                style="padding: 4px 10px; font-size: 12px"
+              >
+                <i class="fas fa-paper-plane"></i> Test Discord
+              </button>
+            </div>
+            <input
+              type="url"
+              id="discordWebhookUrl"
+              placeholder="https://discord.com/api/webhooks/123456789/abcdef..."
+              style="
+                width: 100%;
+                padding: 10px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 8px;
+                color: #fff;
+                font-size: 13px;
+              "
+            />
+            <div class="small" style="margin-top: 4px; color: var(--text-muted); font-size: 11.5px">
+              Channel Settings ➔ Integrations ➔ Webhooks ➔ Copy Webhook URL.
+            </div>
+          </div>
+
+          <!-- Telegram Configuration -->
+          <div
+            style="
+              margin-bottom: 18px;
+              padding: 14px;
+              background: rgba(15, 23, 42, 0.4);
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+              "
+            >
+              <label for="telegramChatId" style="font-weight: 700; color: #fff; margin-bottom: 0">
+                <i class="fab fa-telegram-plane" style="color: #229ed9"></i> Telegram Chat ID
+              </label>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                id="testTelegramBtn"
+                style="padding: 4px 10px; font-size: 12px"
+              >
+                <i class="fas fa-paper-plane"></i> Test Telegram
+              </button>
+            </div>
+            <input
+              type="text"
+              id="telegramChatId"
+              placeholder="e.g. 123456789"
+              style="
+                width: 100%;
+                padding: 10px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-subtle);
+                border-radius: 8px;
+                color: #fff;
+                font-size: 13px;
+              "
+            />
+            <div class="small" style="margin-top: 4px; color: var(--text-muted); font-size: 11.5px">
+              Start <code>@userinfobot</code> in Telegram to obtain your numeric Chat ID.
+            </div>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 10px;
+            "
+          >
+            <button type="submit" class="btn btn-primary" id="saveChannelsBtn">
+              <i class="fas fa-save" aria-hidden="true"></i> Save Channels
+            </button>
+            <span
+              id="channelsSaveStatus"
+              class="small"
+              aria-live="polite"
+              style="color: #34d399; font-weight: 600"
+            ></span>
+          </div>
+        </form>
+      </div>
+
       <!-- Push Notifications Configuration Card -->
       <div class="card" id="notificationCard" style="display: none">
         <div
