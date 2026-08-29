@@ -104,29 +104,31 @@
       <!-- Weekly Streak Recap Card -->
       <mj-section padding="0 0 15px 0">
         <mj-column>
-          <div class="recap-container">
-            <div style="font-size: 13px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 0.5px;">
-              📊 Weekly Momentum Summary
-            </div>
-            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin: 8px 0 4px 0;">
-              {{streakCount}} Consecutive Days
-            </div>
-            <div style="font-size: 14px; color: #64748b;">
-              {{streakEncouragement}}
-            </div>
-            <div style="margin-top: 14px;">
-              <span style="font-size: 12px; font-weight: 600; color: #94a3b8;">7-Day Habit Completion:</span>
-              <div style="margin-top: 6px;">
-                <span class="day-pill">M</span>
-                <span class="day-pill">T</span>
-                <span class="day-pill">W</span>
-                <span class="day-pill">T</span>
-                <span class="day-pill">F</span>
-                <span class="day-pill">S</span>
-                <span class="day-pill">S</span>
+          <mj-text padding="0 10px">
+            <div class="recap-container">
+              <div style="font-size: 13px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 0.5px;">
+                📊 Weekly Momentum Summary
+              </div>
+              <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin: 8px 0 4px 0;">
+                {{streakCount}} Consecutive Days
+              </div>
+              <div style="font-size: 14px; color: #64748b;">
+                {{streakEncouragement}}
+              </div>
+              <div style="margin-top: 14px;">
+                <span style="font-size: 12px; font-weight: 600; color: #94a3b8;">7-Day Habit Completion:</span>
+                <div style="margin-top: 6px;">
+                  <span class="day-pill">M</span>
+                  <span class="day-pill">T</span>
+                  <span class="day-pill">W</span>
+                  <span class="day-pill">T</span>
+                  <span class="day-pill">F</span>
+                  <span class="day-pill">S</span>
+                  <span class="day-pill">S</span>
+                </div>
               </div>
             </div>
-          </div>
+          </mj-text>
         </mj-column>
       </mj-section>
 
@@ -136,17 +138,19 @@
           <mj-text font-size="17px" font-weight="700" color="#0f172a" padding="0 0 8px 0">
             🧘 {{trackName}} Sunday Reflection
           </mj-text>
-          <div class="persona-box">
-            <div style="font-size: 14px; font-weight: 700; color: #4338ca; margin-bottom: 6px;">
-              💡 Weekly Persona Focus:
+          <mj-text padding="0 10px">
+            <div class="persona-box">
+              <div style="font-size: 14px; font-weight: 700; color: #4338ca; margin-bottom: 6px;">
+                💡 Weekly Persona Focus:
+              </div>
+              <div style="font-size: 14px; line-height: 1.6; color: #1e293b; font-style: italic;">
+                “{{weeklyQuote}}”
+              </div>
+              <div style="font-size: 14px; line-height: 1.6; color: #334155; margin-top: 10px;">
+                {{weeklyReflectionGuidance}}
+              </div>
             </div>
-            <div style="font-size: 14px; line-height: 1.6; color: #1e293b; font-style: italic;">
-              “{{weeklyQuote}}”
-            </div>
-            <div style="font-size: 14px; line-height: 1.6; color: #334155; margin-top: 10px;">
-              {{weeklyReflectionGuidance}}
-            </div>
-          </div>
+          </mj-text>
         </mj-column>
       </mj-section>
 
@@ -160,9 +164,11 @@
             Prime your calendar and mind for maximum focus before Monday begins:
           </mj-text>
           {{#each weeklyPrepItems}}
-          <div class="prep-item">
-            <strong>{{this.title}}:</strong> {{this.description}}
-          </div>
+          <mj-text padding="0 10px 8px 10px">
+            <div class="prep-item">
+              <strong>{{this.title}}:</strong> {{this.description}}
+            </div>
+          </mj-text>
           {{/each}}
         </mj-column>
       </mj-section>
