@@ -2458,20 +2458,364 @@
       </div>
     </div>
 
-    <!-- Modal: Raw DB Inspector -->
+    <!-- Enhanced Modal: Database Records & Audit Inspector -->
     <div class="modal-backdrop" id="dbInspectorModal">
-      <div class="modal-dialog" style="max-width: 900px">
-        <div class="modal-header">
-          <div class="modal-title">Raw Database Records (email_tracker)</div>
-          <button class="close-btn" onclick="closeModal('dbInspectorModal')">&times;</button>
+      <div
+        class="modal-dialog"
+        style="
+          max-width: 1080px;
+          width: 95vw;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <!-- Modal Header -->
+        <div
+          class="modal-header"
+          style="
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 14px;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 10px">
+            <div
+              class="stat-icon-wrap"
+              style="
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: rgba(99, 102, 241, 0.15);
+                color: var(--primary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <i class="fas fa-database"></i>
+            </div>
+            <div>
+              <div class="modal-title" style="margin-bottom: 2px">
+                Database Records Inspector
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500"
+                  >(email_tracker)</span
+                >
+              </div>
+              <div style="font-size: 11.5px; color: var(--text-subtle)">
+                Auditing PostgreSQL / Knex dispatch records with real-time payload inspection
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <!-- View Mode Switcher -->
+            <div class="timeframe-toggle-group" style="background: rgba(0, 0, 0, 0.4)">
+              <button
+                type="button"
+                class="btn btn-sm btn-glass active"
+                id="btnDbViewVisual"
+                onclick="switchDbInspectorView('visual')"
+              >
+                <i class="fas fa-table"></i> Visual Grid
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-glass"
+                id="btnDbViewRaw"
+                onclick="switchDbInspectorView('raw')"
+              >
+                <i class="fas fa-code"></i> Raw JSON
+              </button>
+            </div>
+            <button class="action-icon-btn" title="Refresh records" onclick="inspectDatabaseRows()">
+              <i class="fas fa-sync-alt" id="dbInspectorRefreshIcon"></i>
+            </button>
+            <button class="close-btn" onclick="closeModal('dbInspectorModal')">&times;</button>
+          </div>
         </div>
+
+        <!-- KPI Summary Cards Strip -->
         <div
           style="
-            max-height: 480px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin: 14px 0 10px 0;
+          "
+        >
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.6);
+              padding: 10px 14px;
+              border-radius: var(--radius-sm);
+              border: 1px solid var(--border-subtle);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <div
+                style="
+                  font-size: 10.5px;
+                  text-transform: uppercase;
+                  color: var(--text-muted);
+                  font-weight: 700;
+                "
+              >
+                Total Rows
+              </div>
+              <div
+                id="dbSummaryTotal"
+                style="font-size: 18px; font-weight: 800; color: #fff; margin-top: 2px"
+              >
+                0
+              </div>
+            </div>
+            <i class="fas fa-list" style="color: var(--primary); font-size: 16px"></i>
+          </div>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.6);
+              padding: 10px 14px;
+              border-radius: var(--radius-sm);
+              border: 1px solid var(--border-subtle);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <div
+                style="
+                  font-size: 10.5px;
+                  text-transform: uppercase;
+                  color: var(--text-muted);
+                  font-weight: 700;
+                "
+              >
+                Delivered
+              </div>
+              <div
+                id="dbSummarySuccess"
+                style="
+                  font-size: 18px;
+                  font-weight: 800;
+                  color: var(--accent-emerald);
+                  margin-top: 2px;
+                "
+              >
+                0
+              </div>
+            </div>
+            <i
+              class="fas fa-check-circle"
+              style="color: var(--accent-emerald); font-size: 16px"
+            ></i>
+          </div>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.6);
+              padding: 10px 14px;
+              border-radius: var(--radius-sm);
+              border: 1px solid var(--border-subtle);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <div
+                style="
+                  font-size: 10.5px;
+                  text-transform: uppercase;
+                  color: var(--text-muted);
+                  font-weight: 700;
+                "
+              >
+                Failed
+              </div>
+              <div
+                id="dbSummaryFailed"
+                style="
+                  font-size: 18px;
+                  font-weight: 800;
+                  color: var(--accent-rose);
+                  margin-top: 2px;
+                "
+              >
+                0
+              </div>
+            </div>
+            <i class="fas fa-times-circle" style="color: var(--accent-rose); font-size: 16px"></i>
+          </div>
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.6);
+              padding: 10px 14px;
+              border-radius: var(--radius-sm);
+              border: 1px solid var(--border-subtle);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <div
+                style="
+                  font-size: 10.5px;
+                  text-transform: uppercase;
+                  color: var(--text-muted);
+                  font-weight: 700;
+                "
+              >
+                Success Rate
+              </div>
+              <div
+                id="dbSummaryRate"
+                style="
+                  font-size: 18px;
+                  font-weight: 800;
+                  color: var(--accent-cyan);
+                  margin-top: 2px;
+                "
+              >
+                100%
+              </div>
+            </div>
+            <i class="fas fa-percentage" style="color: var(--accent-cyan); font-size: 16px"></i>
+          </div>
+        </div>
+
+        <!-- Filter / Search Toolbar -->
+        <div
+          style="
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding: 6px 0;
+          "
+        >
+          <!-- Search input -->
+          <div style="position: relative; flex: 1; min-width: 200px">
+            <i
+              class="fas fa-search"
+              style="
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-subtle);
+                font-size: 12px;
+              "
+            ></i>
+            <input
+              type="text"
+              id="dbInspectorSearch"
+              placeholder="Search recipient, message ID, or error..."
+              class="form-input"
+              style="padding-left: 32px; font-size: 12.5px"
+              oninput="filterDbInspectorRows()"
+            />
+          </div>
+          <!-- Status filter -->
+          <select
+            id="dbInspectorStatusFilter"
+            class="form-input"
+            style="width: auto; padding: 7px 12px; font-size: 12.5px"
+            onchange="filterDbInspectorRows()"
+          >
+            <option value="">All Statuses</option>
+            <option value="success">Success</option>
+            <option value="failed">Failed</option>
+          </select>
+          <!-- Template type filter -->
+          <select
+            id="dbInspectorTemplateFilter"
+            class="form-input"
+            style="width: auto; padding: 7px 12px; font-size: 12.5px"
+            onchange="filterDbInspectorRows()"
+          >
+            <option value="">All Templates</option>
+            <option value="deep-work">Deep Work</option>
+            <option value="mindfulness">Mindfulness</option>
+            <option value="executive">Executive</option>
+            <option value="learning">Learning</option>
+            <option value="classic">Classic</option>
+            <option value="weekly-digest">Weekly Digest</option>
+          </select>
+          <!-- Copy & Export -->
+          <button
+            type="button"
+            class="btn btn-glass btn-sm"
+            onclick="copyDbInspectorJson()"
+            title="Copy all records as JSON"
+          >
+            <i class="fas fa-copy"></i> Copy JSON
+          </button>
+          <button
+            type="button"
+            class="btn btn-glass btn-sm"
+            onclick="downloadDbInspectorJson()"
+            title="Download JSON export"
+          >
+            <i class="fas fa-download"></i> Export
+          </button>
+        </div>
+
+        <!-- Body 1: Visual Table View -->
+        <div
+          id="dbInspectorVisualContainer"
+          style="
+            flex: 1;
             overflow-y: auto;
-            background: rgba(0, 0, 0, 0.5);
+            max-height: 440px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+          "
+        >
+          <table class="data-table" style="width: 100%; border-collapse: collapse">
+            <thead style="position: sticky; top: 0; background: #0f172a; z-index: 10">
+              <tr>
+                <th style="width: 60px">ID</th>
+                <th style="width: 150px">Sent At</th>
+                <th>Recipient</th>
+                <th style="width: 130px">Template</th>
+                <th style="width: 95px">Status</th>
+                <th style="width: 75px">Retries</th>
+                <th>Details / Diagnostics</th>
+              </tr>
+            </thead>
+            <tbody id="dbInspectorTableBody">
+              <tr>
+                <td
+                  colspan="7"
+                  style="text-align: center; color: var(--text-subtle); padding: 36px"
+                >
+                  <i class="fas fa-spinner fa-spin" style="margin-right: 8px"></i> Querying database
+                  records...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Body 2: Raw JSON View (Hidden by default, toggleable as an option) -->
+        <div
+          id="dbInspectorRawContainer"
+          style="
+            display: none;
+            flex: 1;
+            max-height: 440px;
+            overflow-y: auto;
+            background: #050811;
             padding: 14px;
             border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            position: relative;
           "
         >
           <pre
@@ -2481,11 +2825,26 @@
               font-size: 12px;
               color: #a5f3fc;
               white-space: pre-wrap;
+              margin: 0;
             "
           >
 Loading records…</pre>
         </div>
-        <div style="display: flex; justify-content: flex-end">
+
+        <!-- Modal Footer -->
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+          "
+        >
+          <div style="font-size: 11.5px; color: var(--text-subtle)" id="dbInspectorFooterCount">
+            Showing 0 records
+          </div>
           <button class="btn btn-glass btn-sm" onclick="closeModal('dbInspectorModal')">
             Close
           </button>
@@ -3157,18 +3516,311 @@ Loading records…</pre>
         }
       }
 
+      /* ==================== Enhanced Database Inspector ==================== */
+      let allDbRows = [];
+      let currentDbViewMode = "visual";
+
+      function switchDbInspectorView(mode) {
+        currentDbViewMode = mode;
+        const btnVisual = document.getElementById("btnDbViewVisual");
+        const btnRaw = document.getElementById("btnDbViewRaw");
+        const visualCont = document.getElementById("dbInspectorVisualContainer");
+        const rawCont = document.getElementById("dbInspectorRawContainer");
+
+        if (mode === "visual") {
+          btnVisual?.classList.add("active");
+          btnRaw?.classList.remove("active");
+          if (visualCont) visualCont.style.display = "block";
+          if (rawCont) rawCont.style.display = "none";
+        } else {
+          btnRaw?.classList.add("active");
+          btnVisual?.classList.remove("active");
+          if (visualCont) visualCont.style.display = "none";
+          if (rawCont) rawCont.style.display = "block";
+        }
+      }
+
       async function inspectDatabaseRows() {
         openModal("dbInspectorModal");
-        const container = document.getElementById("dbInspectorContent");
-        container.textContent = "Querying database records…";
+        const icon = document.getElementById("dbInspectorRefreshIcon");
+        if (icon) icon.classList.add("fa-spin");
 
-        const res = await apiCall("/read-db");
-        if (res.ok && res.data?.data?.rows) {
-          container.textContent = JSON.stringify(res.data.data.rows.slice(0, 50), null, 2);
-        } else {
-          container.textContent =
-            "Failed to load database records: " + (res.data?.error || "Error");
+        const rawContainer = document.getElementById("dbInspectorContent");
+        const tbody = document.getElementById("dbInspectorTableBody");
+        if (rawContainer) rawContainer.textContent = "Querying database records…";
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-subtle); padding:36px;"><i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Querying database records...</td></tr>`;
         }
+
+        try {
+          const res = await apiCall("/read-db");
+          if (res.ok && res.data?.data?.rows) {
+            allDbRows = res.data.data.rows || [];
+
+            // Update KPI counters
+            const total = allDbRows.length;
+            const successCount = allDbRows.filter((r) => r.status === "success").length;
+            const failedCount = allDbRows.filter((r) => r.status === "failed").length;
+            const rate = total > 0 ? ((successCount / total) * 100).toFixed(1) : "100.0";
+
+            document.getElementById("dbSummaryTotal").textContent = total.toLocaleString();
+            document.getElementById("dbSummarySuccess").textContent = successCount.toLocaleString();
+            document.getElementById("dbSummaryFailed").textContent = failedCount.toLocaleString();
+            document.getElementById("dbSummaryRate").textContent = `${rate}%`;
+
+            // Populate Raw View
+            if (rawContainer) {
+              rawContainer.textContent = JSON.stringify(allDbRows, null, 2);
+            }
+
+            // Render Visual View
+            filterDbInspectorRows();
+          } else {
+            const errMsg = res.data?.error || "Error querying database";
+            if (rawContainer) rawContainer.textContent = "Failed to load records: " + errMsg;
+            if (tbody) {
+              tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#fb7185; padding:28px;">${escapeHtml(errMsg)}</td></tr>`;
+            }
+          }
+        } catch (err) {
+          console.error("inspectDatabaseRows error:", err);
+          if (rawContainer) rawContainer.textContent = "Failed to query database: " + err.message;
+        } finally {
+          if (icon) icon.classList.remove("fa-spin");
+        }
+      }
+
+      function filterDbInspectorRows() {
+        const query = (document.getElementById("dbInspectorSearch")?.value || "")
+          .toLowerCase()
+          .trim();
+        const statusFilter = document.getElementById("dbInspectorStatusFilter")?.value || "";
+        const templateFilter = document.getElementById("dbInspectorTemplateFilter")?.value || "";
+
+        let filtered = allDbRows;
+
+        if (statusFilter) {
+          filtered = filtered.filter(
+            (r) => (r.status || "").toLowerCase() === statusFilter.toLowerCase(),
+          );
+        }
+
+        if (templateFilter) {
+          filtered = filtered.filter((r) => {
+            const t = (r.template_type || "").toLowerCase();
+            return t.includes(templateFilter.toLowerCase());
+          });
+        }
+
+        if (query) {
+          filtered = filtered.filter((r) => {
+            const email = (r.recipient_email || "").toLowerCase();
+            const msgId = (r.message_id || "").toLowerCase();
+            const errMsg = (r.error_message || "").toLowerCase();
+            const meta =
+              typeof r.metadata === "object"
+                ? JSON.stringify(r.metadata).toLowerCase()
+                : (r.metadata || "").toLowerCase();
+            return (
+              email.includes(query) ||
+              msgId.includes(query) ||
+              errMsg.includes(query) ||
+              meta.includes(query)
+            );
+          });
+        }
+
+        renderDbInspectorTable(filtered);
+      }
+
+      function renderDbInspectorTable(rows) {
+        const tbody = document.getElementById("dbInspectorTableBody");
+        const footerCount = document.getElementById("dbInspectorFooterCount");
+        if (footerCount) {
+          footerCount.textContent = `Showing ${rows.length} of ${allDbRows.length} records`;
+        }
+
+        if (!tbody) return;
+
+        if (rows.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-subtle); padding: 36px;">
+                <i class="fas fa-search" style="margin-right: 6px;"></i> No database records match your filter criteria.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = rows
+          .map((r, index) => {
+            const rowId = r.id || `row-${index}`;
+            const isSuccess = r.status === "success";
+            const dateStr = r.sent_at || r.created_at || "";
+            const formattedDate = dateStr
+              ? new Date(dateStr).toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  hour12: false,
+                })
+              : "n/a";
+
+            const badgeClass = isSuccess ? "badge-event-delivered" : "badge-event-bounced";
+            const icon = isSuccess ? "fa-check-circle" : "fa-exclamation-circle";
+            const statusLabel = isSuccess ? "Success" : "Failed";
+
+            // Parse metadata
+            let metadataObj = null;
+            if (typeof r.metadata === "object" && r.metadata !== null) {
+              metadataObj = r.metadata;
+            } else if (typeof r.metadata === "string" && r.metadata.trim().startsWith("{")) {
+              try {
+                metadataObj = JSON.parse(r.metadata);
+              } catch (_e) {}
+            }
+
+            let detailPreview = "";
+            if (r.error_message) {
+              detailPreview = `<span style="color: #fb7185; font-size: 11.5px;"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(r.error_message.slice(0, 50))}${r.error_message.length > 50 ? "…" : ""}</span>`;
+            } else if (r.message_id) {
+              detailPreview = `<code style="font-size: 11px; color: var(--text-subtle);">${escapeHtml(r.message_id.slice(0, 24))}…</code>`;
+            } else if (metadataObj) {
+              detailPreview = `<span style="font-size: 11.5px; color: var(--text-muted);">${escapeHtml(JSON.stringify(metadataObj).slice(0, 45))}…</span>`;
+            } else {
+              detailPreview = `<span style="color: var(--text-subtle); font-size: 11.5px;">Standard payload</span>`;
+            }
+
+            const rawJsonEscaped = escapeHtml(JSON.stringify(r, null, 2));
+
+            return `
+              <tr style="cursor: pointer;" onclick="toggleDbRowDetails('${rowId}')">
+                <td style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-muted);">
+                  #${r.id ?? index + 1}
+                </td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
+                  ${formattedDate}
+                </td>
+                <td>
+                  <div style="font-weight: 600; color: #fff; font-size: 13px;">${escapeHtml(r.recipient_email || "Unknown")}</div>
+                </td>
+                <td>
+                  <span class="brand-badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 11px;">
+                    ${escapeHtml(r.template_type || "default")}
+                  </span>
+                </td>
+                <td>
+                  <span class="brand-badge ${badgeClass}" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fas ${icon}"></i> ${statusLabel}
+                  </span>
+                </td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-size: 11px; text-align: center; color: ${r.retries > 0 ? "var(--accent-amber)" : "var(--text-subtle)"};">
+                  ${r.retries ?? 0}
+                </td>
+                <td>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>${detailPreview}</div>
+                    <button type="button" class="action-icon-btn" title="Toggle payload details" style="padding: 2px 6px;">
+                      <i class="fas fa-chevron-down" id="chevron-${rowId}"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Expandable Row Details Container -->
+              <tr id="details-${rowId}" style="display: none; background: rgba(0, 0, 0, 0.35);">
+                <td colspan="7" style="padding: 12px 16px;">
+                  <div style="background: #050811; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); padding: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                      <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--accent-cyan);">
+                        <i class="fas fa-info-circle"></i> Complete Record Payload (#${r.id ?? index + 1})
+                      </span>
+                      <button type="button" class="btn btn-glass btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="event.stopPropagation(); copyTextToClipboard(\`${rawJsonEscaped.replace(/`/g, "\\`")}\`)">
+                        <i class="fas fa-copy"></i> Copy Row
+                      </button>
+                    </div>
+                    <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #a5f3fc; white-space: pre-wrap; word-break: break-all;">${rawJsonEscaped}</pre>
+                  </div>
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function toggleDbRowDetails(rowId) {
+        const detailsRow = document.getElementById(`details-${rowId}`);
+        const chevron = document.getElementById(`chevron-${rowId}`);
+        if (!detailsRow) return;
+
+        if (detailsRow.style.display === "none" || detailsRow.style.display === "") {
+          detailsRow.style.display = "table-row";
+          if (chevron) chevron.className = "fas fa-chevron-up";
+        } else {
+          detailsRow.style.display = "none";
+          if (chevron) chevron.className = "fas fa-chevron-down";
+        }
+      }
+
+      function copyDbInspectorJson() {
+        if (!allDbRows.length) {
+          ToastManager.warn("No database records to copy.");
+          return;
+        }
+        const jsonStr = JSON.stringify(allDbRows, null, 2);
+        copyTextToClipboard(jsonStr);
+      }
+
+      function downloadDbInspectorJson() {
+        if (!allDbRows.length) {
+          ToastManager.warn("No database records to export.");
+          return;
+        }
+        const jsonStr = JSON.stringify(allDbRows, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `email_tracker_audit_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        ToastManager.success("Downloaded email_tracker audit JSON export!");
+      }
+
+      function copyTextToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              ToastManager.success("Copied to clipboard!");
+            })
+            .catch(() => {
+              fallbackCopyText(text);
+            });
+        } else {
+          fallbackCopyText(text);
+        }
+      }
+
+      function fallbackCopyText(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand("copy");
+          ToastManager.success("Copied to clipboard!");
+        } catch (_err) {
+          ToastManager.error("Failed to copy to clipboard.");
+        }
+        document.body.removeChild(textArea);
       }
 
       /* ==================== DNS Guard & Telemetry ==================== */
