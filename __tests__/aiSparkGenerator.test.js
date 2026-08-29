@@ -56,7 +56,7 @@ describe("AI Morning Spark & Curated Sparks Engine", () => {
         todayDate: "2026-08-28",
       });
 
-      expect(prompt.systemInstruction).toContain("AI Morning Spark engine");
+      expect(prompt.systemInstruction).toContain("AI Morning Coach");
       expect(prompt.userPrompt).toContain("Priyanshu");
       expect(prompt.userPrompt).toContain("7 consecutive days");
       expect(prompt.userPrompt).toContain("Weekly Champion");

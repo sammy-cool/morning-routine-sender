@@ -40,13 +40,25 @@ router.get("/routine", routineController.liveRoutine);
 // Dynamic Social Streak Badge SVG
 router.get("/api/streak-card", meController.getStreakCard);
 router.get("/api/streak-card.svg", meController.getStreakCard);
+router.get("/api/streak-card/:email/card.svg", meController.getStreakCard);
+
+// Public AI Coach Personas Registry
+router.get("/api/coach-personas", meController.getCoachPersonas);
 
 // Authenticated Subscriber Portal Endpoints
 router.get("/me", requireSubscriberSession, meController.getMe);
 router.get("/me/history", requireSubscriberSession, meController.getMyHistory);
 router.get("/me/export-journal", requireSubscriberSession, meController.exportJournal);
+router.get("/me/streak-card", requireSubscriberSession, meController.getMyStreakCard);
 router.patch("/me", requireSubscriberSession, meController.updateMe);
+router.post("/me/coach-persona", requireSubscriberSession, meController.updateCoachPersona);
 router.post("/me/channels", requireSubscriberSession, meController.updateChannels);
 router.post("/api/channels/test", requireSubscriberSession, meController.testChannel);
+router.post("/me/outbound-webhook", requireSubscriberSession, meController.updateOutboundWebhook);
+router.post(
+  "/api/outbound-webhook/test",
+  requireSubscriberSession,
+  meController.testOutboundWebhook,
+);
 
 module.exports = router;

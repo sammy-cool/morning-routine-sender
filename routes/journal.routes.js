@@ -8,6 +8,7 @@ const journalController = require("../controllers/journal.controller");
 router.get("/api/journal/today", requireSubscriberAuth, journalController.getTodayJournal);
 router.post("/api/journal/save", requireSubscriberAuth, journalController.saveTodayJournal);
 router.get("/api/journal/history", requireSubscriberAuth, journalController.getJournalHistory);
+router.get("/api/journal/heatmap", requireSubscriberAuth, journalController.getJournalHeatmap);
 router.get("/api/journal/export", requireSubscriberAuth, journalController.exportJournal);
 
 module.exports = router;

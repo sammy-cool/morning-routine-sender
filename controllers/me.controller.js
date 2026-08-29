@@ -81,18 +81,129 @@ async function getStreakCard(req, res) {
       ? subscriber.routineTrack || subscriber.templateType
       : req.query.track || "deep-work";
 
+    const officialDomain =
+      req.app?.locals?.officialDomain ||
+      process.env.RENDER_URL ||
+      "https://morning-routine-sender.onrender.com";
+
     const svg = generateStreakSvg({
-      name: email ? email.split("@")[0] : "Morning Builder",
+      name: email ? email.split("@")[0] : req.query.name || "Morning Builder",
       streak,
       track,
+      verifyUrl: `${officialDomain}/routine`,
     });
 
-    res.setHeader("Content-Type", "image/svg+xml");
-    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=1800, s-maxage=3600, stale-while-revalidate=86400",
+    );
     res.send(svg);
   } catch (error) {
     logger.error("Failed to generate streak card SVG", { error: error.message });
-    res.status(500).send("<svg><text>Error generating streak card</text></svg>");
+    res
+      .status(500)
+      .send(
+        '<svg width="800" height="450" xmlns="http://www.w3.org/2000/svg"><rect width="800" height="450" fill="#07090e"/><text x="400" y="225" fill="#f43f5e" text-anchor="middle" font-family="sans-serif">Error generating streak card</text></svg>',
+      );
+  }
+}
+
+// GET /me/streak-card (authenticated)
+async function getMyStreakCard(req, res) {
+  try {
+    const subscriber = await sharedData.getUserByEmail(req.subscriberEmail);
+    if (!subscriber) {
+      return res.status(404).json({ error: "Subscriber not found" });
+    }
+
+    const streak = subscriber.streakCount ?? 1;
+    const track = subscriber.routineTrack || subscriber.templateType || "deep-work";
+    const name = subscriber.email.split("@")[0];
+    const officialDomain =
+      req.app?.locals?.officialDomain ||
+      process.env.RENDER_URL ||
+      "https://morning-routine-sender.onrender.com";
+
+    const svg = generateStreakSvg({
+      name,
+      streak,
+      track,
+      verifyUrl: `${officialDomain}/routine`,
+    });
+
+    res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
+    if (req.query.download === "true" || req.query.download === "1") {
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="morning-routine-streak-${streak}-days.svg"`,
+      );
+    }
+    return res.send(svg);
+  } catch (error) {
+    logger.error("Failed to fetch authenticated streak card", { error: error.message });
+    res.status(500).json({ error: "Failed to generate your streak card" });
+  }
+}
+
+// GET /api/coach-personas
+async function getCoachPersonas(_req, res) {
+  try {
+    const { COACH_PERSONAS_METADATA } = require("../helper/curatedSparks");
+    const personas = Object.values(COACH_PERSONAS_METADATA);
+    res.json({
+      success: true,
+      defaultPersona: "stoic",
+      personas,
+    });
+  } catch (error) {
+    logger.error("Failed to list coach personas", { error: error.message });
+    res.status(500).json({ error: "Failed to load coach personas metadata" });
+  }
+}
+
+// POST /me/coach-persona { coachPersona }
+async function updateCoachPersona(req, res) {
+  const { coachPersona } = req.body || {};
+
+  if (!coachPersona || typeof coachPersona !== "string") {
+    return res.status(400).json({
+      error:
+        "coachPersona field is required (e.g. 'stoic', 'relentless', 'zen', 'tech-lead', 'optimist')",
+    });
+  }
+
+  const normalized = coachPersona.toLowerCase().trim();
+  const validPersonas = ["stoic", "relentless", "zen", "tech-lead", "optimist"];
+
+  if (!validPersonas.includes(normalized)) {
+    return res.status(400).json({
+      error: `Invalid coach persona '${coachPersona}'. Valid options: ${validPersonas.join(", ")}`,
+    });
+  }
+
+  try {
+    const { COACH_PERSONAS_METADATA } = require("../helper/curatedSparks");
+    await sharedData.updateUser(req.subscriberEmail, { coachPersona: normalized });
+    const updated = await sharedData.getUserByEmail(req.subscriberEmail);
+
+    logger.info("Subscriber updated AI Coach Persona", {
+      email: req.subscriberEmail,
+      coachPersona: normalized,
+    });
+
+    res.json({
+      success: true,
+      message: `AI Coach Persona set to '${COACH_PERSONAS_METADATA[normalized]?.title || normalized}'`,
+      coachPersona: normalized,
+      subscriber: updated,
+    });
+  } catch (error) {
+    logger.error("Failed to update coach persona", {
+      error: error.message,
+      email: req.subscriberEmail,
+    });
+    res.status(500).json({ error: "Failed to update AI coach persona" });
   }
 }
 
@@ -267,12 +378,115 @@ async function testChannel(req, res) {
   }
 }
 
+// POST /me/outbound-webhook { webhookEndpointUrl?, webhookUrl?, webhookSecret?, webhookEnabled? }
+async function updateOutboundWebhook(req, res) {
+  const { webhookEndpointUrl, webhookUrl, webhookSecret, webhookEnabled } = req.body || {};
+  const url = webhookEndpointUrl !== undefined ? webhookEndpointUrl : webhookUrl;
+
+  try {
+    if (url !== undefined && url !== "" && url !== null) {
+      if (typeof url !== "string" || !/^https?:\/\/.+/i.test(url.trim())) {
+        return res.status(400).json({
+          error: "Invalid webhook endpoint URL. Must start with http:// or https://",
+        });
+      }
+    }
+
+    const updates = {};
+    if (url !== undefined) {
+      updates.webhookEndpointUrl = url ? url.trim() : null;
+    }
+    if (webhookSecret !== undefined) {
+      updates.webhookSecret = webhookSecret ? String(webhookSecret).trim() : null;
+    }
+    if (webhookEnabled !== undefined) {
+      updates.webhookEnabled = Boolean(webhookEnabled);
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No fields provided to update" });
+    }
+
+    await sharedData.updateUser(req.subscriberEmail, updates);
+    const updated = await sharedData.getUserByEmail(req.subscriberEmail);
+
+    logger.info("Subscriber updated outbound webhook configuration", {
+      email: req.subscriberEmail,
+    });
+
+    res.json({
+      success: true,
+      message: "Outbound webhook settings updated successfully",
+      webhook: {
+        endpointUrl: updated?.webhookEndpointUrl || updates.webhookEndpointUrl || null,
+        secretConfigured: Boolean(updated?.webhookSecret || updates.webhookSecret),
+        enabled:
+          updated?.webhookEnabled !== undefined ? updated.webhookEnabled : updates.webhookEnabled,
+      },
+    });
+  } catch (error) {
+    logger.error("Failed to update outbound webhook settings", { error: error.message });
+    res.status(500).json({ error: "Failed to update outbound webhook settings" });
+  }
+}
+
+// POST /api/outbound-webhook/test { webhookEndpointUrl?, webhookUrl?, webhookSecret? }
+async function testOutboundWebhook(req, res) {
+  const { webhookEndpointUrl, webhookUrl, webhookSecret } = req.body || {};
+  const subscriberEmail = req.subscriberEmail;
+
+  try {
+    let targetUrl = webhookEndpointUrl || webhookUrl;
+    let targetSecret = webhookSecret;
+
+    if (subscriberEmail && (!targetUrl || targetSecret === undefined)) {
+      const sub = await sharedData.getUserByEmail(subscriberEmail);
+      if (sub) {
+        if (!targetUrl) targetUrl = sub.webhookEndpointUrl;
+        if (targetSecret === undefined) targetSecret = sub.webhookSecret;
+      }
+    }
+
+    if (!targetUrl) {
+      return res.status(400).json({ error: "Webhook endpoint URL is required to test dispatch" });
+    }
+
+    const outboundWebhookDispatcher = require("../helper/outboundWebhookDispatcher");
+    const result = await outboundWebhookDispatcher.testOutboundWebhook({
+      webhookUrl: targetUrl,
+      webhookSecret: targetSecret,
+      subscriberEmail,
+    });
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error || "Outbound webhook test failed",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Test outbound webhook delivered successfully!",
+      status: result.status,
+    });
+  } catch (error) {
+    logger.error("Outbound webhook test endpoint error", { error: error.message });
+    res.status(500).json({ error: "Failed to test outbound webhook dispatch" });
+  }
+}
+
 module.exports = {
   getMe,
   getMyHistory,
   exportJournal,
   getStreakCard,
+  getMyStreakCard,
+  getCoachPersonas,
+  updateCoachPersona,
   updateMe,
   updateChannels,
   testChannel,
+  updateOutboundWebhook,
+  testOutboundWebhook,
 };

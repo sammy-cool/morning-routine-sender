@@ -1,6 +1,105 @@
 // helper/curatedSparks.js
 
 /**
+ * 5 Coach Persona Specifications & Metadata Registry
+ */
+const COACH_PERSONAS_METADATA = {
+  stoic: {
+    id: "stoic",
+    name: "Marcus Aurelius & Stoic Sage",
+    title: "The Stoic Sage",
+    badge: "🏛️ Stoic Sage",
+    archetype: "Roman Emperor & Stoic Philosopher",
+    tagline: "Master your internal citadel & cultivate unshakable tranquility.",
+    icon: "fa-monument",
+    color: "#6366f1",
+    tone: "Grounded, serene, introspective, unshakable, objective, dignified",
+    focusDomains:
+      "Dichotomy of control, amor fati, memento mori, emotional equanimity, virtue under pressure",
+    philosophy:
+      "You have power over your mind, not outside events. Meet every obstacle as raw fuel for virtue.",
+    sampleQuote:
+      "You have power over your mind - not outside events. Realize this, and you will find strength. — Marcus Aurelius",
+    sampleSpark:
+      "External turbulence has no power over your calm mind unless you grant it permission. Ground your judgment in reason and command your morning.",
+  },
+  relentless: {
+    id: "relentless",
+    name: "Relentless Operator",
+    title: "The Relentless Operator",
+    badge: "⚡ Relentless Operator",
+    archetype: "High-Performance Disciplinarian & Extreme Operator",
+    tagline: "Zero excuses, radical accountability & uncompromising execution.",
+    icon: "fa-bolt",
+    color: "#f43f5e",
+    tone: "Direct, intense, uncompromising, accountability-driven, gritty, electrifying",
+    focusDomains:
+      "Zero excuses, extreme ownership, friction destruction, discomfort tolerance, discipline equals freedom",
+    philosophy:
+      "Discipline is the only bridge between vision and reality. Stop negotiating with weakness—attack the day.",
+    sampleQuote: "Discipline equals freedom. The only easy day was yesterday. — Jocko Willink",
+    sampleSpark:
+      "Stop negotiating with comfort. Attack your #1 hardest deliverable before the rest of the world wakes up. Momentum is seized, never given.",
+  },
+  zen: {
+    id: "zen",
+    name: "Zen Master",
+    title: "The Zen Master",
+    badge: "🧘 Zen Master",
+    archetype: "Mindfulness Teacher & Calibrated Peace Sage",
+    tagline: "Conscious breath, deep presence & calibrated stillness.",
+    icon: "fa-spa",
+    color: "#10b981",
+    tone: "Tranquil, gentle, spacious, breathing-centered, deeply present, poetic",
+    focusDomains:
+      "Beginner's mind (Shoshin), conscious breathwork, radical acceptance, non-attachment, stillness in motion",
+    philosophy:
+      "Quiet the turbulent waters of the mind to reflect truth. Every moment is a clean slate to begin in peace.",
+    sampleQuote: "Peace comes from within. Do not seek it without. — Buddha",
+    sampleSpark:
+      "Drop the burden of yesterday and the worries of tomorrow. In this single conscious breath, you have everything needed to step forward with ease.",
+  },
+  "tech-lead": {
+    id: "tech-lead",
+    name: "Principal Architect",
+    title: "The Principal Architect",
+    badge: "💻 Principal Architect",
+    archetype: "Staff Engineering Lead & Systems Optimizer",
+    tagline: "High engineering leverage, modular thinking & systematic execution.",
+    icon: "fa-terminal",
+    color: "#06b6d4",
+    tone: "Analytical, crisp, high-signal, modular, pragmatic, first-principles",
+    focusDomains:
+      "80/20 leverage, technical debt elimination, single-tasking flow states, architecture sprints, systematic execution",
+    philosophy:
+      "Simplicity is prerequisite for reliability. Optimize the critical path, eliminate friction, and build for compounding leverage.",
+    sampleQuote:
+      "Simplicity is prerequisite for reliability. Measure twice, commit once. — Edsger W. Dijkstra",
+    sampleSpark:
+      "Identify your single highest-leverage bottleneck and eliminate it. Guard your morning 90-minute architecture sprint with zero context switching.",
+  },
+  optimist: {
+    id: "optimist",
+    name: "Momentum Catalyst",
+    title: "The Momentum Catalyst",
+    badge: "☀️ Momentum Catalyst",
+    archetype: "Vibrant Energy Coach & Radical Optimism Champion",
+    tagline: "Electrifying enthusiasm, radical gratitude & 1% daily compounding.",
+    icon: "fa-sun",
+    color: "#f59e0b",
+    tone: "Uplifting, electrifying, infectious enthusiasm, radical gratitude, growth-igniting",
+    focusDomains:
+      "1% daily compounding, celebrating micro-wins, contagious positive energy, abundance mindset, joy in execution",
+    philosophy:
+      "Energy is a conscious choice. Greet every challenge with profound gratitude, infectious optimism, and unstoppable drive.",
+    sampleQuote:
+      "The secret of your future is hidden in your daily routine. Rise with joy and make today count! — Mike Murdock",
+    sampleSpark:
+      "Today is an extraordinary canvas of opportunity. Bring vibrant energy to your craft, celebrate your consistency, and ignite compounding momentum!",
+  },
+};
+
+/**
  * Maps streak count to psychological streak milestone tiers
  */
 function getStreakTier(streak) {
@@ -55,324 +154,339 @@ function getStreakTier(streak) {
   };
 }
 
+/**
+ * Curated Sparks Matrix organized by Coach Persona & Milestone Tiers
+ */
 const CURATED_SPARK_MATRIX = {
-  "deep-work": {
+  stoic: {
     "tier-1": [
       {
         sparkReflection:
-          "The hardest line of code is always the first one written. Silence all alerts and enter your first 45-minute sprint with single-minded craft.",
+          "You have power over your mind, not outside events. Greet this morning with unshakeable calm and clear judgment.",
         microAction:
-          "Close all messaging apps and open only the single source file you need for your #1 priority.",
-        focusMantra: "Silence the noise, master the signal.",
+          "Identify the single biggest external stressor on your mind and consciously classify it as outside your control.",
+        focusMantra: "Control the controllable.",
       },
       {
         sparkReflection:
-          "Momentum is built by doing, not by planning to do. Take immediate action on your hardest technical problem.",
-        microAction:
-          "Write down the exact 3-step test case for your next commit before opening your inbox.",
-        focusMantra: "Start fast, eliminate friction.",
+          "The obstacle in the path becomes the path. Never forget, within every difficulty lies a chance to practice virtue.",
+        microAction: "Take 3 deep, slow breaths before touching any screen or notification.",
+        focusMantra: "Turn obstacle into fuel.",
       },
     ],
     "tier-3": [
       {
         sparkReflection:
-          "Three days in, cognitive resistance begins to drop. Your brain is adapting to morning deep work sprints.",
+          "Day 3 of discipline. When you arise in the morning, think of what a privilege it is to be alive, to think, to enjoy, to love.",
         microAction:
-          "Block 90 uninterrupted minutes in your calendar right now before anyone asks for a sync.",
-        focusMantra: "Protect your prime focus hours.",
+          "Write down 1 Stoic intention for how you will respond when interrupted today.",
+        focusMantra: "Stillness amidst turbulence.",
       },
     ],
     "tier-7": [
       {
         sparkReflection:
-          "7 days of pure engineering focus! The compound interest of distraction-free builder hours is now tangible.",
+          "One full unbroken week of Stoic alignment. Inner fortress is built not in quiet solitude, but through consistent daily practice.",
         microAction:
-          "Review your git log from this week and identify your single cleanest architectural breakthrough.",
-        focusMantra: "Consistency compounds engineering mastery.",
+          "Perform a 60-second negative visualization (premeditatio malorum) to inoculate your mind against surprise disruptions.",
+        focusMantra: "Unshakable internal citadel.",
       },
     ],
     "tier-14": [
       {
         sparkReflection:
-          "Two unbroken weeks of deep work. You are no longer just practicing focus; you are an engineer who lives in flow.",
+          "Two weeks of Stoic mastery. Your thoughts dye your soul. Color them with reason, equanimity, and courageous action.",
         microAction:
-          "Identify the one piece of tech debt or complexity you can ruthlessly simplify today.",
-        focusMantra: "Simplicity is prerequisite for reliability.",
+          "Review your morning priorities through the lens of timeless virtue: Wisdom, Courage, Justice, Moderation.",
+        focusMantra: "Virtue is the sole good.",
       },
     ],
     "tier-30": [
       {
         sparkReflection:
-          "30-day Deep Work milestone! You operate in the top decile of single-tasking flow and mental endurance.",
+          "30-day Stoic milestone. You have forged an impregnable sanctuary of calm. Let no external storm shake your grounded resolve.",
         microAction:
-          "Design today's core sprint with zero context switching. 1 deliverable, 100% presence.",
-        focusMantra: "Mastery through uninterrupted focus.",
+          "Pause for 2 minutes before starting your first major task and recommit to single-minded purpose.",
+        focusMantra: "Master of my mind.",
       },
     ],
     "tier-60": [
       {
         sparkReflection:
-          "60 consecutive days of builder momentum. Your focus is an unshakeable competitive moat.",
-        microAction:
-          "Tackle the most intimidating architectural challenge on your backlog first thing this morning.",
-        focusMantra: "Relentless execution, world-class craft.",
+          "60 consecutive days of Stoic discipline. You respond with measured wisdom rather than reactive impulse.",
+        microAction: "Mentor or inspire one peer today with patient presence and calm judgment.",
+        focusMantra: "Wisdom through equanimity.",
       },
     ],
     "tier-100": [
       {
         sparkReflection:
-          "100+ Days of Deep Work mastery! Unbroken craftsmanship and legendary consistency.",
-        microAction: "Mentor or inspire one peer today on how you protect your focus rituals.",
-        focusMantra: "Master of the morning craft.",
+          "100+ Days of Stoic Century Mastery. You stand as a lighthouse in any storm, unmoving and serene.",
+        microAction: "Reflect on how your reactions have transformed over the last 100 mornings.",
+        focusMantra: "Eternal inner peace.",
       },
     ],
   },
-  mindfulness: {
+  relentless: {
     "tier-1": [
       {
         sparkReflection:
-          "You have power over your mind, not outside events. Take three grounding breaths and greet this day with stillness.",
-        microAction: "Complete 2 minutes of 4-7-8 box breathing before touching any screen.",
-        focusMantra: "Present in this moment.",
+          "No excuses. No negotiations with weakness. Attack your morning with pure savage discipline.",
+        microAction:
+          "Drink 500ml water and complete 25 pushups immediately to shatter morning lethargy.",
+        focusMantra: "Zero excuses, all execution.",
+      },
+      {
+        sparkReflection:
+          "Don't count the days; make the days count. The standard you walk past is the standard you accept.",
+        microAction:
+          "Identify the #1 task you've been procrastinating on and schedule it for your first 45 minutes.",
+        focusMantra: "Attack the hardest first.",
       },
     ],
     "tier-3": [
       {
         sparkReflection:
-          "Notice the subtle shift when you start your day with intention rather than digital reactivity.",
-        microAction: "Jot down 3 specific things you are grateful for this morning.",
+          "Day 3! The initial excitement fades; now real discipline begins. Stay hard when comfort calls.",
+        microAction:
+          "Turn your phone on Do Not Disturb and lock in a 60-minute non-negotiable execution block.",
+        focusMantra: "Discipline over emotion.",
+      },
+    ],
+    "tier-7": [
+      {
+        sparkReflection:
+          "7 days unbroken! You are building an undeniable reputation with yourself. Keep raising the standard.",
+        microAction:
+          "Review today's goals and increase your output target on your top priority by 10%.",
+        focusMantra: "Relentless forward pressure.",
+      },
+    ],
+    "tier-14": [
+      {
+        sparkReflection:
+          "Two weeks of relentless grit. While others hit snooze, you compound undeniable competitive advantage.",
+        microAction:
+          "Eliminate one comfortable distraction that has crept into your morning routine.",
+        focusMantra: "Outwork your yesterday self.",
+      },
+    ],
+    "tier-30": [
+      {
+        sparkReflection:
+          "30-Day Relentless Titan! Extreme ownership has become your default operating system.",
+        microAction:
+          "Set a grueling sprint deliverable for this morning and execute without a single glance at social feeds.",
+        focusMantra: "Unbreakable mental armor.",
+      },
+    ],
+    "tier-60": [
+      {
+        sparkReflection:
+          "60 days of absolute execution. You don't hope for results; you manufacture them through savage daily consistency.",
+        microAction: "Tackle the most intimidating problem on your plate before lunch.",
+        focusMantra: "Dominate the standard.",
+      },
+    ],
+    "tier-100": [
+      {
+        sparkReflection:
+          "100-Day Relentless Legend! You have rewired your identity into an unstoppable execution machine.",
+        microAction:
+          "Write down your next 100-day impossible goal and take the first step right now.",
+        focusMantra: "Master of relentless grit.",
+      },
+    ],
+  },
+  zen: {
+    "tier-1": [
+      {
+        sparkReflection:
+          "Quiet the mind, and the soul will speak. Begin this day with an open heart and deep, conscious presence.",
+        microAction:
+          "Close your eyes and complete 5 cycles of mindful box breathing (4s in, 4s hold, 4s out, 4s hold).",
+        focusMantra: "Present in this breath.",
+      },
+    ],
+    "tier-3": [
+      {
+        sparkReflection:
+          "Notice how returning to the breath instantly dissolves morning hurry. Peace is not elsewhere; it is right here.",
+        microAction:
+          "Drink your morning tea or coffee in complete silence without looking at any device.",
+        focusMantra: "Mindful in every sip.",
+      },
+    ],
+    "tier-7": [
+      {
+        sparkReflection:
+          "7 days of mindful presence. Like still water that reflects the moon, a calm mind sees all things clearly.",
+        microAction: "Take a 5-minute silent morning walk with gentle awareness of your senses.",
+        focusMantra: "Stillness reflects clarity.",
+      },
+    ],
+    "tier-14": [
+      {
+        sparkReflection:
+          "Two unbroken weeks of Zen clarity. You no longer carry the weight of rushing through your mornings.",
+        microAction:
+          "Perform a 60-second mindful body scan, letting tension melt from your neck and shoulders.",
+        focusMantra: "Calm within, clear without.",
+      },
+    ],
+    "tier-30": [
+      {
+        sparkReflection:
+          "30-Day Zen Milestone. In the beginner's mind there are many possibilities, but in the expert's mind there are few.",
+        microAction:
+          "Approach your hardest challenge today with the fresh curiosity of beginner's mind (Shoshin).",
+        focusMantra: "Fresh mind, boundless peace.",
+      },
+    ],
+    "tier-60": [
+      {
+        sparkReflection:
+          "60 days of tranquil strength. You move through chaotic environments without losing your center.",
+        microAction:
+          "Pause before opening your inbox and set an intention of mindful presence for your communications.",
+        focusMantra: "Unshakable inner calm.",
+      },
+    ],
+    "tier-100": [
+      {
+        sparkReflection:
+          "100+ Days of Zen Mastery. You embody living meditation in every action, word, and breath.",
+        microAction: "Share a moment of unconditional gratitude with someone you value today.",
+        focusMantra: "Master of Zen harmony.",
+      },
+    ],
+  },
+  "tech-lead": {
+    "tier-1": [
+      {
+        sparkReflection:
+          "Simplicity is prerequisite for reliability. Strip away low-signal noise and direct all bandwidth to high-leverage architecture.",
+        microAction:
+          "Close all Slack/Discord channels and open only the single repository/spec needed for your #1 ticket.",
+        focusMantra: "Maximize signal, minimize noise.",
+      },
+    ],
+    "tier-3": [
+      {
+        sparkReflection:
+          "Three days of engineering leverage. The best code is the code you never have to write—design for elegance and simplicity.",
+        microAction:
+          "Write out the 3 core invariants for today's technical deliverable before writing implementation code.",
+        focusMantra: "Design cleanly, execute fast.",
+      },
+    ],
+    "tier-7": [
+      {
+        sparkReflection:
+          "7 days of structured engineering discipline! Systematic compounding turns complex systems into modular masterpieces.",
+        microAction:
+          "Audit your tech debt backlog and schedule 30 minutes to refactor one high-friction module.",
+        focusMantra: "Compounding code craft.",
+      },
+    ],
+    "tier-14": [
+      {
+        sparkReflection:
+          "Two weeks of flow-state engineering. Protect your prime focus hours with rigorous calendar defense.",
+        microAction:
+          "Decline or delegate at least one synchronous status meeting that could be an asynchronous PR.",
+        focusMantra: "Protect prime focus hours.",
+      },
+    ],
+    "tier-30": [
+      {
+        sparkReflection:
+          "30-Day Principal Architect milestone! You operate with staff-level leverage, clarity, and rapid execution velocity.",
+        microAction:
+          "Draft a 1-page architecture decision record (ADR) for your next major system improvement.",
+        focusMantra: "Systematic high-leverage impact.",
+      },
+    ],
+    "tier-60": [
+      {
+        sparkReflection:
+          "60 days of relentless architectural rigor. You build resilient systems by mastering your daily development rituals.",
+        microAction:
+          "Automate or script one repetitive manual workflow that steals 10 minutes from your team daily.",
+        focusMantra: "Automate friction away.",
+      },
+    ],
+    "tier-100": [
+      {
+        sparkReflection:
+          "100-Day Staff Architect Titan. Legendary craftsmanship, impeccable system design, and unbroken focus discipline.",
+        microAction:
+          "Mentor an engineer on how you organize your mornings for uninterrupted deep flow state.",
+        focusMantra: "Master of engineering leverage.",
+      },
+    ],
+  },
+  optimist: {
+    "tier-1": [
+      {
+        sparkReflection:
+          "Today is full of unlimited possibilities! Greet the morning with electrifying energy, a big smile, and radical gratitude.",
+        microAction:
+          "Write down 3 things you are genuinely excited about creating or experiencing today.",
+        focusMantra: "Rise with joy and purpose.",
+      },
+    ],
+    "tier-3": [
+      {
+        sparkReflection:
+          "Day 3 of vibrant momentum! Feel how positive expectation primes your brain for creative breakthroughs and serendipity.",
+        microAction:
+          "Step into the morning sunlight for 3 minutes and take 3 deep revitalizing breaths.",
+        focusMantra: "Bright light, vibrant mind.",
+      },
+    ],
+    "tier-7": [
+      {
+        sparkReflection:
+          "One full week of unstoppable enthusiasm! Your radiant morning energy is an infectious force for good in the world.",
+        microAction:
+          "Send a genuine 1-sentence note of encouragement or appreciation to a teammate or loved one.",
+        focusMantra: "Radiate positive power.",
+      },
+    ],
+    "tier-14": [
+      {
+        sparkReflection:
+          "Two weeks of high-energy mornings! You are waking up primed for joy, enthusiastic action, and compounding micro-wins.",
+        microAction:
+          "Celebrate your consistency with a proud victory fist pump and your favorite morning music.",
+        focusMantra: "Unstoppable daily joy.",
+      },
+    ],
+    "tier-30": [
+      {
+        sparkReflection:
+          "30-Day Momentum Catalyst milestone! You prove that choosing optimism and gratitude transforms every single morning.",
+        microAction:
+          "Plan an energizing reward or healthy celebration for reaching your 30-day streak!",
         focusMantra: "Gratitude unlocks abundance.",
       },
     ],
-    "tier-7": [
-      {
-        sparkReflection:
-          "One full week of morning equanimity. Inner peace is not an accident; it is a discipline you are mastering.",
-        microAction:
-          "Identify one external trigger you anticipate today and consciously decide to remain calm.",
-        focusMantra: "Equanimity in every circumstance.",
-      },
-    ],
-    "tier-14": [
-      {
-        sparkReflection:
-          "14 days of mindfulness. As the morning stabilizes, your entire day responds with clarity and grace.",
-        microAction: "Take a 5-minute silent morning walk with zero headphones or notifications.",
-        focusMantra: "Calm mind, clear direction.",
-      },
-    ],
-    "tier-30": [
-      {
-        sparkReflection:
-          "30 days of Stoic resilience. You have built an impenetrable sanctuary of inner peace.",
-        microAction:
-          "Perform a 60-second morning body scan and release tension in your shoulders and jaw.",
-        focusMantra: "Unshakable stillness within.",
-      },
-    ],
     "tier-60": [
       {
         sparkReflection:
-          "60 days of mindful living. You respond with wisdom rather than reacting with impulse.",
+          "60 days of radiant energy. Your optimism isn't luck—it's a high-performance superpower you've mastered.",
         microAction:
-          "Pause before your first meeting and set a compassionate intention for your interactions.",
-        focusMantra: "Wisdom through presence.",
+          "Turn one minor annoyance from yesterday into an opportunity for growth and laughter today.",
+        focusMantra: "Every obstacle is opportunity.",
       },
     ],
     "tier-100": [
       {
         sparkReflection:
-          "Centurion of Mindfulness! 100+ days of unwavering presence and tranquil strength.",
-        microAction: "Reflect on how much lighter your thoughts feel compared to Day 1.",
-        focusMantra: "Master of inner peace.",
-      },
-    ],
-  },
-  executive: {
-    "tier-1": [
-      {
-        sparkReflection:
-          "High performers do not manage time; they manage energy and execute the vital few high-leverage outcomes.",
+          "100+ Days of Radiant Energy! A true master of daily positivity, physical activation, and unstoppable optimism.",
         microAction:
-          "Define your #1 high-leverage outcome before opening any inbound messaging channels.",
-        focusMantra: "Lead with decisive clarity.",
-      },
-    ],
-    "tier-3": [
-      {
-        sparkReflection:
-          "Momentum is accelerating. Protect your morning calendar aggressively from low-value meetings.",
-        microAction:
-          "Audit today's calendar and delegate or decline at least one non-essential sync.",
-        focusMantra: "Focus on strategic leverage.",
-      },
-    ],
-    "tier-7": [
-      {
-        sparkReflection:
-          "7 days of executive rigor! Consistent morning alignment drives compounding organizational clarity.",
-        microAction:
-          "Review your top quarterly KPI and ensure today's schedule directly moves that needle.",
-        focusMantra: "Strategy dictates execution.",
-      },
-    ],
-    "tier-14": [
-      {
-        sparkReflection:
-          "Two full weeks of high-leverage discipline. You operate with decisive clarity and zero reactive drift.",
-        microAction: "Draft the 3 strategic decisions you need to finalize before 12:00 PM.",
-        focusMantra: "Clarity breeds speed.",
-      },
-    ],
-    "tier-30": [
-      {
-        sparkReflection:
-          "30-day executive streak. Your discipline sets the standard for everyone in your orbit.",
-        microAction:
-          "Spend 5 uninterrupted minutes thinking through 2nd and 3rd order consequences of your top initiative.",
-        focusMantra: "Vision backed by relentless action.",
-      },
-    ],
-    "tier-60": [
-      {
-        sparkReflection:
-          "60 days of relentless strategic execution. High leverage has become your natural operating baseline.",
-        microAction: "Eliminate one recurring organizational bottleneck today.",
-        focusMantra: "Relentless executive leverage.",
-      },
-    ],
-    "tier-100": [
-      {
-        sparkReflection:
-          "100-Day Executive Titan. Master of high-stakes focus, ruthless prioritization, and peak performance.",
-        microAction:
-          "Review the trajectory of your greatest accomplishment over the last 100 mornings.",
-        focusMantra: "Master of strategic velocity.",
-      },
-    ],
-  },
-  learning: {
-    "tier-1": [
-      {
-        sparkReflection:
-          "Knowledge compounds faster than capital when paired with active recall and daily curiosity.",
-        microAction: "Read 10 pages of a dense non-fiction or technical book before social feeds.",
-        focusMantra: "Learn deeply, synthesize clearly.",
-      },
-    ],
-    "tier-3": [
-      {
-        sparkReflection:
-          "3 days of mental growth. Applying the Feynman technique transforms passive information into active insight.",
-        microAction:
-          "Explain yesterday's key learning out loud in 60 seconds as if explaining to a beginner.",
-        focusMantra: "Teach to master.",
-      },
-    ],
-    "tier-7": [
-      {
-        sparkReflection:
-          "A full week of rapid synthesis! Continuous daily learning is an unassailable competitive advantage.",
-        microAction:
-          "Select one mental model (e.g., Inversion, First Principles) to apply to today's top problem.",
-        focusMantra: "First principles thinking.",
-      },
-    ],
-    "tier-14": [
-      {
-        sparkReflection:
-          "14 days of dedicated intellectual expansion. Your mental models are interconnecting rapidly.",
-        microAction: "Capture 1 profound insight in your permanent note-taking system.",
-        focusMantra: "Compound knowledge daily.",
-      },
-    ],
-    "tier-30": [
-      {
-        sparkReflection:
-          "30 days of polymath curiosity! Your ability to cross-pollinate ideas across domains is sharpening.",
-        microAction:
-          "Formulate one counter-intuitive hypothesis to explore during your deep reading session.",
-        focusMantra: "Curiosity without limits.",
-      },
-    ],
-    "tier-60": [
-      {
-        sparkReflection:
-          "60 days of relentless knowledge acquisition. You are building an expansive intellectual moat.",
-        microAction:
-          "Write a 3-bullet synthesis of the most valuable concept you've learned this month.",
-        focusMantra: "Synthesize, innovate, master.",
-      },
-    ],
-    "tier-100": [
-      {
-        sparkReflection:
-          "100-Day Centurion of Lifelong Learning! You embody the pursuit of timeless wisdom and technical mastery.",
-        microAction:
-          "Share one mental model with a colleague or friend that unlocked a breakthrough for you.",
-        focusMantra: "Master of perpetual curiosity.",
-      },
-    ],
-  },
-  classic: {
-    "tier-1": [
-      {
-        sparkReflection:
-          "Every morning is a clean slate. Hydrate, get natural sunlight in your eyes, and step into today with vibrant energy.",
-        microAction:
-          "Drink 500ml of water and do 20 jumping jacks to activate your nervous system.",
-        focusMantra: "Rise with energy and purpose.",
-      },
-    ],
-    "tier-3": [
-      {
-        sparkReflection:
-          "Three consecutive days of energized mornings! Feel the physical and mental momentum taking root.",
-        microAction: "Write down one positive intention that will define your attitude today.",
-        focusMantra: "Energy flows where intention goes.",
-      },
-    ],
-    "tier-7": [
-      {
-        sparkReflection:
-          "7 days unbroken! Your morning routine has transformed into a fountain of daily optimism and energy.",
-        microAction:
-          "Smile, take 3 deep belly breaths, and commit to being 1% better than yesterday.",
-        focusMantra: "Unstoppable daily momentum.",
-      },
-    ],
-    "tier-14": [
-      {
-        sparkReflection:
-          "Two weeks of vibrant mornings. You are waking up primed for success and enthusiastic execution.",
-        microAction:
-          "Step outside for 3 minutes of natural morning sunlight before sitting at your desk.",
-        focusMantra: "Bright light, energized mind.",
-      },
-    ],
-    "tier-30": [
-      {
-        sparkReflection:
-          "30-day Energizer milestone! Waking up with drive and clarity has become second nature.",
-        microAction: "Celebrate your consistency and plan an energizing healthy lunch.",
-        focusMantra: "Living with vitality and joy.",
-      },
-    ],
-    "tier-60": [
-      {
-        sparkReflection:
-          "60 days of positive morning power. Your vibrant energy radiates into everything you build.",
-        microAction:
-          "Send a quick note of encouragement or gratitude to someone who energizes you.",
-        focusMantra: "Radiate energy and excellence.",
-      },
-    ],
-    "tier-100": [
-      {
-        sparkReflection:
-          "100+ Days of Energized Mornings! A true master of daily positivity, physical priming, and unstoppable momentum.",
-        microAction:
-          "Look in the mirror, celebrate your 100-day transformation, and step boldly into the day.",
+          "Look in the mirror, celebrate your 100-day transformation, and step boldly into the day with a smile!",
         focusMantra: "Master of radiant energy.",
       },
     ],
@@ -380,20 +494,26 @@ const CURATED_SPARK_MATRIX = {
 };
 
 /**
- * Deterministic selection based on track, streak tier, and date hash
+ * Deterministic selection based on coach persona / track, streak tier, and date hash
  */
-function getCuratedSpark({ track = "deep-work", streakCount = 0, dateStr = "", email = "" }) {
-  const normTrack = (track || "deep-work").toLowerCase().trim();
-  const trackMatrix = CURATED_SPARK_MATRIX[normTrack] || CURATED_SPARK_MATRIX["deep-work"];
+function getCuratedSpark({
+  coachPersona = "stoic",
+  track: _track = "deep-work",
+  streakCount = 0,
+  dateStr = "",
+  email = "",
+}) {
+  const normPersona = (coachPersona || "stoic").toLowerCase().trim();
+  const personaMatrix = CURATED_SPARK_MATRIX[normPersona] || CURATED_SPARK_MATRIX["stoic"];
   const tier = getStreakTier(streakCount);
 
-  let candidates = trackMatrix[tier.tierKey];
+  let candidates = personaMatrix[tier.tierKey];
   if (!candidates || !candidates.length) {
-    candidates = trackMatrix["tier-1"] || CURATED_SPARK_MATRIX["deep-work"]["tier-1"];
+    candidates = personaMatrix["tier-1"] || CURATED_SPARK_MATRIX["stoic"]["tier-1"];
   }
 
-  // Deterministic seed based on date + email
-  const seedString = `${dateStr}_${email || normTrack}_${streakCount}`;
+  // Deterministic seed based on date + email + persona
+  const seedString = `${dateStr}_${email || normPersona}_${streakCount}_${normPersona}`;
   let hash = 0;
   for (let i = 0; i < seedString.length; i++) {
     hash = (hash << 5) - hash + seedString.charCodeAt(i);
@@ -404,6 +524,7 @@ function getCuratedSpark({ track = "deep-work", streakCount = 0, dateStr = "", e
 }
 
 module.exports = {
+  COACH_PERSONAS_METADATA,
   getStreakTier,
   getCuratedSpark,
   CURATED_SPARK_MATRIX,

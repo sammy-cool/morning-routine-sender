@@ -58,6 +58,25 @@ async function saveTodayJournal(req, res) {
 
     const savedEntry = await journalService.saveEntry(email, body);
 
+    // Non-blocking trigger of journal.logged outbound webhook
+    const outboundWebhookDispatcher = require("../helper/outboundWebhookDispatcher");
+    outboundWebhookDispatcher
+      .dispatchWebhookForSubscriber(email, "journal.logged", {
+        entryDate: savedEntry.entry_date,
+        trackKey: savedEntry.track_key,
+        moodScore: savedEntry.mood_score,
+        oneBigThing: savedEntry.one_big_thing,
+        gratitude: savedEntry.gratitude,
+        reflectionText: savedEntry.reflection_text,
+        savedAt: new Date().toISOString(),
+      })
+      .catch((err) => {
+        logger.error("Outbound webhook trigger failed on journal save", {
+          error: err.message,
+          email,
+        });
+      });
+
     return res.json({
       success: true,
       message: "Journal entry saved successfully",
@@ -97,6 +116,30 @@ async function getJournalHistory(req, res) {
       error: error.message,
     });
     return res.status(500).json({ error: "Failed to load journal history" });
+  }
+}
+
+/**
+ * GET /api/journal/heatmap
+ * Returns past 365 days of activity & reflections for the authenticated subscriber
+ */
+async function getJournalHeatmap(req, res) {
+  try {
+    const email = req.subscriberEmail;
+    const days = parseInt(req.query.days, 10) || 365;
+
+    const data = await journalService.getActivityHeatmap(email, days);
+
+    return res.json({
+      success: true,
+      ...data,
+    });
+  } catch (error) {
+    logger.error("Error in getJournalHeatmap", {
+      email: req.subscriberEmail,
+      error: error.message,
+    });
+    return res.status(500).json({ error: "Failed to load activity heatmap" });
   }
 }
 
@@ -145,5 +188,6 @@ module.exports = {
   getTodayJournal,
   saveTodayJournal,
   getJournalHistory,
+  getJournalHeatmap,
   exportJournal,
 };
