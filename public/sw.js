@@ -11,6 +11,7 @@ const STATIC_ASSETS = [
   "/assets/screenshot-mobile.png",
   "/offline",
   "/js/offline-sync.js",
+  "/js/app-badging.js",
 ];
 
 // External CDN vendor libs to cache
@@ -302,6 +303,19 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
+  } else if (event.data && event.data.type === "UPDATE_APP_BADGE") {
+    const count = parseInt(event.data.streakCount || event.data.streak || 0, 10);
+    if (typeof navigator !== "undefined" && typeof navigator.setAppBadge === "function") {
+      if (count > 0) {
+        navigator.setAppBadge(count).catch(() => {});
+      } else if (typeof navigator.clearAppBadge === "function") {
+        navigator.clearAppBadge().catch(() => {});
+      }
+    }
+  } else if (event.data && event.data.type === "CLEAR_APP_BADGE") {
+    if (typeof navigator !== "undefined" && typeof navigator.clearAppBadge === "function") {
+      navigator.clearAppBadge().catch(() => {});
+    }
   }
 });
 
@@ -332,17 +346,25 @@ self.addEventListener("push", (event) => {
     }
   }
 
-  event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: data.icon || "/assets/mrn-brand-ico.png",
-      badge: data.badge || "/assets/mrn-brand-ico.png",
-      tag: data.tag || "morning-routine-reminder",
-      renotify: data.renotify !== undefined ? data.renotify : true,
-      data: data.data || { url: "/routine" },
-      actions: data.actions || [],
-    }),
-  );
+  // Update native app badge to current streak
+  const streak =
+    parseInt(data.streak || data.streakCount || (data.data && data.data.streak) || 1, 10) || 1;
+  const badgePromise =
+    typeof navigator !== "undefined" && typeof navigator.setAppBadge === "function"
+      ? navigator.setAppBadge(streak).catch(() => {})
+      : Promise.resolve();
+
+  const notifPromise = self.registration.showNotification(data.title, {
+    body: data.body,
+    icon: data.icon || "/assets/mrn-brand-ico.png",
+    badge: data.badge || "/assets/mrn-brand-ico.png",
+    tag: data.tag || "morning-routine-reminder",
+    renotify: data.renotify !== undefined ? data.renotify : true,
+    data: data.data || { url: "/routine" },
+    actions: data.actions || [],
+  });
+
+  event.waitUntil(Promise.all([badgePromise, notifPromise]));
 });
 
 // ---------------- NOTIFICATION CLICK EVENT LISTENER ----------------

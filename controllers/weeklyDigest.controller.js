@@ -108,8 +108,31 @@ async function sendSingle(req, res) {
   }
 }
 
+/**
+ * POST /admin/api/trigger-weekly-digest
+ * Admin trigger endpoint executing batch Sunday weekly digest
+ */
+async function triggerWeeklyDigest(req, res) {
+  try {
+    const { runWeeklyDigestJob } = require("../email-core/emailJobs");
+    const force = req.body?.force === true || req.query?.force === "true";
+    const email = req.body?.email || req.query?.email;
+
+    const result = await runWeeklyDigestJob({ force, email });
+    return res.json({
+      success: true,
+      message: `Weekly digest processed for ${result.total} subscriber(s).`,
+      results: result,
+    });
+  } catch (error) {
+    logger.error("Admin trigger weekly digest failed:", { error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
+  }
+}
+
 module.exports = {
   previewWeeklyDigest,
   dispatchBatch,
   sendSingle,
+  triggerWeeklyDigest,
 };

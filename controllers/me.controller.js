@@ -68,13 +68,29 @@ async function exportJournal(req, res) {
   }
 }
 
-// GET /api/streak-card.svg
+// GET /api/streak-card.svg & GET /api/streak-card/:email/card.svg
 async function getStreakCard(req, res) {
   try {
-    const email = req.query.email || req.subscriberEmail;
+    const rawEmail = req.params?.email || req.query?.email || req.subscriberEmail;
     let subscriber = null;
-    if (email) {
-      subscriber = await sharedData.getUserByEmail(email);
+    if (rawEmail) {
+      const cleanEmail = rawEmail.trim().toLowerCase();
+      if (cleanEmail.includes("@")) {
+        subscriber = await sharedData.getUserByEmail(cleanEmail);
+      } else {
+        const db = require("../db/knex");
+        const row = await db("subscribers")
+          .where("email", cleanEmail)
+          .orWhere("email", "like", `${cleanEmail}@%`)
+          .first();
+        if (row) {
+          subscriber = {
+            ...row,
+            streakCount: Number(row.streak_count) || 0,
+            routineTrack: row.routine_track || row.template_type || "deep-work",
+          };
+        }
+      }
     }
     const streak = subscriber ? subscriber.streakCount : Number(req.query.streak) || 1;
     const track = subscriber
@@ -86,8 +102,14 @@ async function getStreakCard(req, res) {
       process.env.RENDER_URL ||
       "https://morning-routine-sender.onrender.com";
 
+    const name = subscriber?.email
+      ? subscriber.email.split("@")[0]
+      : rawEmail
+        ? rawEmail.split("@")[0]
+        : req.query.name || "Morning Builder";
+
     const svg = generateStreakSvg({
-      name: email ? email.split("@")[0] : req.query.name || "Morning Builder",
+      name,
       streak,
       track,
       verifyUrl: `${officialDomain}/routine`,
