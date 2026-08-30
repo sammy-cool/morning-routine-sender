@@ -344,6 +344,14 @@ function renderCheckinPage(res, data) {
       <a href="/user-dashboard" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">👤 Dashboard</a>
     </div>
   </div>
+  <script src="/js/app-badging.js?v=4.2.0" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (window.AppBadging) {
+        window.AppBadging.updateStreakBadge(${data.streakCount || 0});
+      }
+    });
+  </script>
 </body>
 </html>`);
 }
@@ -415,6 +423,7 @@ async function liveRoutine(req, res) {
   <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer crossorigin="anonymous"></script>
   <script src="/js/offline-sync.js?v=4.2.0" defer></script>
+  <script src="/js/app-badging.js?v=4.2.0" defer></script>
   <style>
     :root {
       --bg: #07090e;
@@ -1868,7 +1877,12 @@ async function liveRoutine(req, res) {
     }
 
     // Auto-load journal on page load
-    document.addEventListener('DOMContentLoaded', loadTodayJournal);
+    document.addEventListener('DOMContentLoaded', function () {
+      loadTodayJournal();
+      if (window.AppBadging) {
+        window.AppBadging.updateStreakBadge(${streakCount || 0});
+      }
+    });
   </script>
 </body>
 </html>`);

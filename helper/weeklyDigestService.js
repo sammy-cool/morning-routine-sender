@@ -420,5 +420,6 @@ module.exports = {
   buildWeeklyDigestPayload,
   renderWeeklyDigestHtml,
   sendWeeklyDigestToSubscriber,
+  dispatchWeeklyDigest: sendWeeklyDigestToSubscriber,
   dispatchWeeklyDigestBatch,
 };

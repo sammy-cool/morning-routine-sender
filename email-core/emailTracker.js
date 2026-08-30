@@ -118,6 +118,33 @@ class EmailTracker {
   }
 
   /**
+   * Check if weekly digest was already sent this week (idempotency)
+   */
+  async wasEmailSentThisWeek(recipient, templateType = "weekly_digest", daysBack = 6) {
+    try {
+      const normalizedRecipient = (recipient || "").toLowerCase().trim();
+      const cutoff = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+
+      const result = await db("email_tracker")
+        .where({
+          recipient_email: normalizedRecipient,
+          template_type: templateType,
+          status: "success",
+        })
+        .where("sent_at", ">=", cutoff)
+        .first();
+
+      return Boolean(result);
+    } catch (error) {
+      logger.error("Failed to check weekly email history", {
+        error: error.message,
+        recipient,
+      });
+      return false;
+    }
+  }
+
+  /**
    * Get send history for a recipient with parsed metadata
    */
   async getHistory(recipient, limit = 10) {

@@ -4,6 +4,7 @@ const router = express.Router();
 const { sendEmailLimiter } = require("../middleware/rateLimiters");
 const adminController = require("../controllers/admin.controller");
 const deliverabilityController = require("../controllers/deliverability.controller");
+const weeklyDigestController = require("../controllers/weeklyDigest.controller");
 const { requireAdmin } = require("../middleware/requireAdmin");
 
 router.get("/read-db", sendEmailLimiter, adminController.readDb);
@@ -22,6 +23,11 @@ router.post(
   "/admin/api/retry-failed",
   requireAdmin,
   deliverabilityController.retryFailedDispatches,
+);
+router.post(
+  "/admin/api/trigger-weekly-digest",
+  requireAdmin,
+  weeklyDigestController.triggerWeeklyDigest,
 );
 
 module.exports = router;

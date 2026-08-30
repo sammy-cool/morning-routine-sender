@@ -130,8 +130,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       subStatusBadge.textContent = isActive ? "Active" : "Paused";
       subStatusBadge.className = "status-badge " + (isActive ? "active" : "paused");
 
-      // Streak Banner
+      // Streak Banner & Native App Badge Sync
       const streak = Number(sub.streakCount) || 0;
+      if (globalThis.AppBadging) {
+        globalThis.AppBadging.updateStreakBadge(streak);
+      }
       if (streakHeroCard) {
         streakHeroCard.style.display = "flex";
         streakCountTitle.textContent = `${streak}-Day Streak Active 🔥`;
@@ -519,8 +522,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           const data = await res.json().catch(() => ({}));
           if (res.ok && data.success) {
             showToast("🔥 " + (data.title || "Check-in logged!"), "success");
-            if (data.streakCount) {
+            if (data.streakCount !== undefined) {
               streakCountTitle.textContent = `${data.streakCount}-Day Streak Active 🔥`;
+              if (globalThis.AppBadging) {
+                globalThis.AppBadging.updateStreakBadge(data.streakCount);
+              }
             }
             dashboardCheckinBtn.innerHTML =
               '<i class="fas fa-check" aria-hidden="true"></i> Streak Maintained';
@@ -1181,22 +1187,23 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       const officialDomain = window.location.origin;
 
       const svgCardUrl = `${officialDomain}/api/streak-card.svg?email=${encodeURIComponent(email)}&streak=${streak}&track=${encodeURIComponent(track)}`;
+      const streakShareUrl = `${officialDomain}/streak/${encodeURIComponent(email)}`;
 
       if (shareCardPreviewImg) {
         shareCardPreviewImg.src = svgCardUrl;
       }
 
       const tweetText = encodeURIComponent(
-        `🔥 Locked in a ${streak}-day unbroken morning routine streak on Morning Routine Sender! ⚡ Leveling up deep work & mental clarity every single morning. Check out your morning focus routine:`,
+        `🔥 Locked in a ${streak}-day unbroken morning routine streak on Morning Routine Sender! ⚡ Leveling up deep work & mental clarity every single morning. Check out my streak:`,
       );
-      const routineUrl = encodeURIComponent(`${officialDomain}/routine`);
+      const encodedShareUrl = encodeURIComponent(streakShareUrl);
 
       if (shareTwitterBtn) {
-        shareTwitterBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${routineUrl}&hashtags=MorningRoutine,DeepWork,Habits,Discipline`;
+        shareTwitterBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodedShareUrl}&hashtags=MorningRoutine,DeepWork,Habits,Discipline`;
       }
 
       if (shareLinkedinBtn) {
-        shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${routineUrl}`;
+        shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`;
       }
 
       streakShareModal.style.display = "flex";
@@ -1219,15 +1226,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     if (copyShareLinkBtn) {
       copyShareLinkBtn.addEventListener("click", function () {
-        const streak = currentSubscriber?.streakCount || 1;
         const email = currentSubscriber?.email || "subscriber";
-        const track = currentSubscriber?.routineTrack || "deep-work";
-        const svgUrl = `${window.location.origin}/api/streak-card.svg?email=${encodeURIComponent(email)}&streak=${streak}&track=${encodeURIComponent(track)}`;
+        const streakShareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}`;
 
         navigator.clipboard
-          .writeText(svgUrl)
+          .writeText(streakShareUrl)
           .then(() => {
-            showToast("📋 SVG Streak Card link copied to clipboard!", "success");
+            showToast("📋 Public Streak Share link copied to clipboard!", "success");
           })
           .catch(() => {
             showToast("Failed to copy link.", "warn");
@@ -1237,11 +1242,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     if (copyMarkdownBadgeBtn) {
       copyMarkdownBadgeBtn.addEventListener("click", function () {
-        const streak = currentSubscriber?.streakCount || 1;
         const email = currentSubscriber?.email || "subscriber";
-        const track = currentSubscriber?.routineTrack || "deep-work";
-        const svgUrl = `${window.location.origin}/api/streak-card.svg?email=${encodeURIComponent(email)}&streak=${streak}&track=${encodeURIComponent(track)}`;
-        const markdownBadge = `[![Morning Routine Streak](${svgUrl})](${window.location.origin}/routine)`;
+        const svgUrl = `${window.location.origin}/api/streak-card/${encodeURIComponent(email)}/card.svg`;
+        const streakShareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}`;
+        const markdownBadge = `[![Morning Routine Streak](${svgUrl})](${streakShareUrl})`;
 
         navigator.clipboard
           .writeText(markdownBadge)

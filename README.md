@@ -4,38 +4,41 @@
 [![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Knex-336791?style=flat-square&logo=postgresql&logoColor=white)](https://knexjs.org)
 [![Redis](https://img.shields.io/badge/Redis-ioredis-dc382d?style=flat-square&logo=redis&logoColor=white)](https://redis.io)
-[![Tests](https://img.shields.io/badge/Tests-63%2F63%20Passing-10b981?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io)
+[![Tests](https://img.shields.io/badge/Tests-201%2F201%20Passing-10b981?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io)
+[![Version](https://img.shields.io/badge/Version-v2.1.0-6366f1?style=flat-square)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-6366f1?style=flat-square)](./LICENSE)
 
-An enterprise-ready **Node.js/Express** automation platform that dispatches personalized, responsive morning routine emails (powered by **MJML**, daily motivation quotes, and curated tech news) on custom cron schedules. Equipped with a next-gen **Obsidian Glassmorphism Admin Command Center**, a passwordless **Subscriber Magic-Link Portal**, and a high-performance **Winston Telemetry Logger**.
+An enterprise-ready **Node.js/Express** automation platform that dispatches personalized, responsive morning routine emails (powered by **MJML**, daily motivation quotes, and curated tech news) on custom cron schedules. Equipped with a next-gen **Obsidian Glassmorphism Admin Command Center**, a passwordless **Subscriber Magic-Link Portal**, **365-Day Activity Heatmaps**, **AI Morning Coach Personas**, **Outbound Webhooks**, **Dynamic Streak Share Cards**, **Sunday Weekly Digests**, and a high-performance **Winston Telemetry Logger**.
 
 ---
 
 ## ⚡ Key Features
 
+- 📊 **365-Day Activity & Reflection Heatmap (GitHub-Style)**:
+  - 52-week responsive CSS Grid visualization tracking daily habit consistency over 365 days.
+  - Interactive hover tooltips and slide-in reflection inspection drawer to review past wins, gratitude, and mindset notes.
+- 🧠 **5 AI Morning Coach Personas**:
+  - Persona archetypes (`Stoic`, `Relentless`, `Zen`, `Tech Lead`, `Optimist`) with dynamic prompt engineering and multi-LLM dispatching (Gemini, OpenAI, Ollama, Curated fallback).
+- 🔌 **Outbound Automation Webhooks (Zapier / Make / Slack / Notion)**:
+  - HMAC-SHA256 signature verification (`X-MorningRoutine-Signature`), timestamp headers, and non-blocking 5s timeout protection.
+- 🎨 **Dynamic SVG Streak Share Cards & OpenGraph Landing Page**:
+  - High-DPI 1200x630 vector SVG share cards with glowing flame streak badges and deterministic vector QR code matrices.
+  - Public social landing route `GET /streak/:handleOrEmail` with rich OpenGraph and Twitter card previews.
+- 📅 **Sunday Weekly Performance Digest & Automated Cron**:
+  - Automated weekly cron job running Sunday at 18:00 (6:00 PM) in each subscriber's local timezone.
+  - Responsive Sunday MJML digest template aggregating 7-day completion calendar, mood trends, and upcoming week AI spark.
+- 📱 **PWA Native App Icon Badging & Offline Sync**:
+  - W3C App Badging API (`navigator.setAppBadge`) setting OS taskbar/dock icons to active habit streaks.
+  - Offline sync engine queueing habit check-ins in IndexedDB and syncing via Service Worker Background Sync API.
+- 💬 **Multi-Channel Dispatch Engine**:
+  - Parallel Discord Webhook embeds and Telegram Bot messages dispatched with morning routine emails.
 - 💎 **Next-Gen Admin Command Center (`/admin-dashboard`)**:
-  - Live KPI stats (active/paused subscribers, delivery health, active cron schedulers, retention counts).
-  - Interactive **Chart.js** analytics (Growth trends & Routine template distributions).
-  - Real-time subscriber management with inline search, filter, edit, and CSV export.
-  - **Email Studio**: Live routine test dispatcher with 6 routine themes and 1-click bulk campaign trigger.
-  - Global Command Palette (`⌘K` / `Ctrl+K`) for rapid keyboard navigation.
+  - Live KPI telemetry, interactive Chart.js analytics, raw database inspector modal with visual grid & JSON toggles, and 1-click dead-letter retry.
 - 📬 **Mobile-First Responsive MJML Templates**:
   - Pixel-perfect rendering across Apple Mail, Gmail iOS/Android, Outlook, and web clients.
-  - Sunrise header pills, daily focus quote callouts, actionable daily rituals, and trending dev news cards.
-  - Working 1-click cryptographically signed unsubscribe and preference links.
 - 🔐 **Secure Dual Authentication**:
   - **Admin**: Instant master `ADMIN_KEY` direct login or Redis-backed temporary 5-minute keys with 24-hour signed cookie sessions.
   - **Subscriber Portal**: Passwordless, one-time signed magic links (`POST /login` → 15-min token → `/user-dashboard`).
-- ⏱️ **Timezone-Aware Cron Engine (`node-cron`)**:
-  - Individual subscriber cron patterns and timezones saved in PostgreSQL.
-- 🛡️ **Enterprise Security & Reliability**:
-  - Strict **Helmet Content Security Policy** whitelisting necessary CDNs, fonts, and scripts.
-  - Anti-spam honeypot inputs on public signup forms.
-  - Rate limiting on sensitive auth and dispatch routes.
-- 🪵 **Pro Structured Telemetry Logger**:
-  - Deep error stack unwrapping (no empty `[object Object]` logs).
-  - Express HTTP request latency tracking (`+12ms`), IP, and User-Agent capture.
-  - Daily rotating compressed file logs (`app-%DATE%.log`, `error-%DATE%.log`).
 - 🍞 **Personal Toast Engine**:
   - Integrated with [`customizable-toast-notification@latest`](https://www.npmjs.com/package/customizable-toast-notification).
 
@@ -43,17 +46,17 @@ An enterprise-ready **Node.js/Express** automation platform that dispatches pers
 
 ## 🏗️ Architecture & Tech Stack
 
-| Layer                 | Technology                                                          |
-| :-------------------- | :------------------------------------------------------------------ |
-| **Backend Runtime**   | Node.js (v20+ LTS), Express 4                                       |
-| **Database & ORM**    | PostgreSQL with Knex.js query builder & migrations                  |
-| **Cache & Sessions**  | Redis via `ioredis` (with dev mock fallback)                        |
-| **Email Compilation** | Nodemailer (SMTP) + MJML + Handlebars                               |
-| **Scheduler**         | `node-cron` with in-memory job registry                             |
-| **Frontend UI**       | Modern Vanilla JS, Glassmorphism CSS, Chart.js, FontAwesome         |
-| **Logging**           | Winston with `winston-daily-rotate-file` & deep error serialization |
-| **Testing**           | Jest + Supertest (8 test suites, 63 unit/integration tests)         |
-| **Deployment**        | Render (Web Service + Managed PostgreSQL + Redis)                   |
+| Layer                 | Technology                                                                      |
+| :-------------------- | :------------------------------------------------------------------------------ |
+| **Backend Runtime**   | Node.js (v20+ LTS), Express 4                                                   |
+| **Database & ORM**    | PostgreSQL with Knex.js query builder & migrations                              |
+| **Cache & Sessions**  | Redis via `ioredis` (with dev mock fallback)                                    |
+| **Email Compilation** | Nodemailer (SMTP) + MJML + Handlebars                                           |
+| **Scheduler**         | `node-cron` with in-memory job registry & timezone-aware triggers               |
+| **Frontend UI**       | Modern Vanilla JS, Glassmorphism CSS, Chart.js, FontAwesome                     |
+| **Logging**           | Winston with `winston-daily-rotate-file` & deep error serialization             |
+| **Testing & Quality** | Jest + Supertest (33 test suites, 201 unit/integration tests), ESLint, Prettier |
+| **Deployment**        | Render (Web Service + Managed PostgreSQL + Redis)                               |
 
 ---
 
