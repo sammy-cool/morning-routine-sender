@@ -799,38 +799,30 @@
     return voices[0] || null;
   }
 
+  let activeUtterance = null;
+
   function startVisualizerLoop() {
     if (!voiceVisualizerHook) return;
+    if (voiceVisualizerRaf) {
+      cancelAnimationFrame(voiceVisualizerRaf);
+      voiceVisualizerRaf = null;
+    }
 
     let phase = 0;
     const updateBars = () => {
       if (!voiceIsSpeaking) {
         if (voiceVisualizerHook) voiceVisualizerHook([0, 0, 0, 0, 0]);
+        voiceVisualizerRaf = null;
         return;
       }
 
       phase += 0.18;
       const bars = [
-        Math.max(
-          0.15,
-          Math.min(1.0, 0.45 + 0.45 * Math.sin(phase * 1.4) + (Math.random() * 0.1 - 0.05)),
-        ),
-        Math.max(
-          0.2,
-          Math.min(1.0, 0.65 + 0.35 * Math.sin(phase * 2.1 + 0.8) + (Math.random() * 0.1 - 0.05)),
-        ),
-        Math.max(
-          0.3,
-          Math.min(1.0, 0.8 + 0.2 * Math.sin(phase * 1.7 + 1.6) + (Math.random() * 0.1 - 0.05)),
-        ),
-        Math.max(
-          0.2,
-          Math.min(1.0, 0.6 + 0.35 * Math.sin(phase * 2.5 + 2.4) + (Math.random() * 0.1 - 0.05)),
-        ),
-        Math.max(
-          0.15,
-          Math.min(1.0, 0.4 + 0.4 * Math.sin(phase * 1.2 + 3.2) + (Math.random() * 0.1 - 0.05)),
-        ),
+        Math.max(0.15, Math.min(1.0, 0.45 + 0.45 * Math.sin(phase * 1.4))),
+        Math.max(0.2, Math.min(1.0, 0.65 + 0.35 * Math.sin(phase * 2.1 + 0.8))),
+        Math.max(0.3, Math.min(1.0, 0.8 + 0.2 * Math.sin(phase * 1.7 + 1.6))),
+        Math.max(0.2, Math.min(1.0, 0.6 + 0.35 * Math.sin(phase * 2.5 + 2.4))),
+        Math.max(0.15, Math.min(1.0, 0.4 + 0.4 * Math.sin(phase * 1.2 + 3.2))),
       ];
 
       try {
@@ -839,15 +831,15 @@
         /* Non-fatal visualizer hook error */
       }
 
-      voiceVisualizerRaf = setTimeout(updateBars, 50);
+      voiceVisualizerRaf = requestAnimationFrame(updateBars);
     };
 
-    updateBars();
+    voiceVisualizerRaf = requestAnimationFrame(updateBars);
   }
 
   function stopVisualizerLoop() {
     if (voiceVisualizerRaf) {
-      clearTimeout(voiceVisualizerRaf);
+      cancelAnimationFrame(voiceVisualizerRaf);
       voiceVisualizerRaf = null;
     }
     if (voiceVisualizerHook) {
@@ -864,6 +856,31 @@
       return typeof window !== "undefined" && "speechSynthesis" in window;
     },
 
+    isSpeaking() {
+      if (!this.isSupported()) return false;
+      return voiceIsSpeaking || window.speechSynthesis.speaking;
+    },
+
+    setVisualizer(callback) {
+      voiceVisualizerHook = typeof callback === "function" ? callback : null;
+    },
+
+    setVoice(voiceName) {
+      voicePreferredName = voiceName ? String(voiceName) : null;
+    },
+
+    setRate(rate) {
+      voiceSpeechRate = Math.max(0.5, Math.min(2.0, Number(rate) || 1.0));
+    },
+
+    setPitch(pitch) {
+      voicePitch = Math.max(0.5, Math.min(1.5, Number(pitch) || 1.0));
+    },
+
+    getVoices() {
+      return loadSpeechVoices();
+    },
+
     speak(text, onEnd, onBoundary) {
       if (!this.isSupported() || !text) {
         if (typeof onEnd === "function") onEnd();
@@ -874,22 +891,22 @@
 
       try {
         const synth = window.speechSynthesis;
-        const utterance = new SpeechSynthesisUtterance(String(text));
+        activeUtterance = new SpeechSynthesisUtterance(String(text));
 
-        utterance.rate = voiceSpeechRate;
-        utterance.pitch = voicePitch;
+        activeUtterance.rate = voiceSpeechRate;
+        activeUtterance.pitch = voicePitch;
 
         const matchedVoice = resolveBestVoice(voicePreferredName);
         if (matchedVoice) {
-          utterance.voice = matchedVoice;
+          activeUtterance.voice = matchedVoice;
         }
 
-        utterance.onstart = () => {
+        activeUtterance.onstart = () => {
           voiceIsSpeaking = true;
           startVisualizerLoop();
         };
 
-        utterance.onboundary = (event) => {
+        activeUtterance.onboundary = (event) => {
           if (typeof onBoundary === "function") {
             try {
               onBoundary(event);
@@ -901,10 +918,11 @@
 
         const cleanup = () => {
           voiceIsSpeaking = false;
+          activeUtterance = null;
           stopVisualizerLoop();
         };
 
-        utterance.onend = () => {
+        activeUtterance.onend = () => {
           cleanup();
           if (typeof onEnd === "function") {
             try {
@@ -915,7 +933,7 @@
           }
         };
 
-        utterance.onerror = () => {
+        activeUtterance.onerror = () => {
           cleanup();
           if (typeof onEnd === "function") {
             try {
@@ -926,10 +944,11 @@
           }
         };
 
-        synth.speak(utterance);
+        synth.speak(activeUtterance);
         return true;
       } catch (_err) {
         voiceIsSpeaking = false;
+        activeUtterance = null;
         stopVisualizerLoop();
         if (typeof onEnd === "function") onEnd();
         return false;
@@ -966,27 +985,6 @@
           /* Non-fatal resume */
         }
       }
-    },
-
-    isSpeaking() {
-      if (!this.isSupported()) return false;
-      return voiceIsSpeaking || window.speechSynthesis.speaking;
-    },
-
-    setRate(rate) {
-      voiceSpeechRate = Math.max(0.5, Math.min(2.0, Number(rate) || 1.0));
-    },
-
-    setVoice(voiceName) {
-      voicePreferredName = voiceName ? String(voiceName) : null;
-    },
-
-    getVoices() {
-      return loadSpeechVoices();
-    },
-
-    setVisualizer(callback) {
-      voiceVisualizerHook = typeof callback === "function" ? callback : null;
     },
   };
 

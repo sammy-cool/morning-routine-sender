@@ -1106,32 +1106,40 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         }
 
         renderHeatmapGrid(data.days || []);
-      } catch (_err) {
+} catch (_err) {
         // Non-fatal
       }
     }
 
-    function renderHeatmapGrid(days) {
-      if (!heatmapGrid || !days.length) return;
-      heatmapGrid.innerHTML = "";
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
-      // Render Month Headers across 52 weeks
+    let cachedHeatmapData = null;
+
+    function renderHeatmapGrid(days) {
+      if (!heatmapGrid || !Array.isArray(days) || days.length === 0) return;
+
+      const dataSignature = `${days.length}_${days[0]?.date}_${days[days.length - 1]?.date}_${days[days.length - 1]?.intensity}`;
+      if (cachedHeatmapData === dataSignature && heatmapGrid.children.length > 0) return;
+      cachedHeatmapData = dataSignature;
+
+      // Render Month Headers using DocumentFragment
       if (heatmapMonths) {
-        heatmapMonths.innerHTML = "<span></span>";
+        const monthFragment = document.createDocumentFragment();
+        const leadingSpacer = document.createElement("span");
+        monthFragment.appendChild(leadingSpacer);
+
         let lastMonth = -1;
         const monthNames = [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
         ];
 
         for (let i = 0; i < days.length; i += 7) {
@@ -1142,50 +1150,90 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             span.textContent = monthNames[m];
             lastMonth = m;
           }
-          heatmapMonths.appendChild(span);
+          monthFragment.appendChild(span);
         }
+        heatmapMonths.replaceChildren(monthFragment);
       }
 
-      // Render Day Cells
-      days.forEach((day) => {
+      // Render Day Cells using DocumentFragment & Lookup Map
+      const gridFragment = document.createDocumentFragment();
+      const dayLookup = new Map();
+
+      days.forEach((day, index) => {
+        dayLookup.set(day.date, day);
         const cell = document.createElement("div");
         cell.className = `heatmap-cell level-${day.intensity || 0}`;
         cell.setAttribute("tabindex", "0");
         cell.setAttribute("role", "gridcell");
+        cell.setAttribute("data-date", day.date);
+        cell.setAttribute("data-idx", String(index));
         cell.setAttribute(
           "aria-label",
           `${day.date}: ${day.completed ? `Active (Mood ${day.moodScore}/5)` : "No check-in"}`,
         );
+        gridFragment.appendChild(cell);
+      });
 
-        cell.addEventListener("mouseenter", (e) => {
-          if (!heatmapTooltip) return;
+      heatmapGrid.replaceChildren(gridFragment);
+
+      // Single Delegated Event Handler on parent container (0 closures allocated per cell)
+      if (!heatmapGrid._delegatedBound) {
+        heatmapGrid._delegatedBound = true;
+
+        let activeTooltipCell = null;
+        let tooltipRafId = null;
+
+        heatmapGrid.addEventListener("mouseover", (e) => {
+          const cell = e.target.closest(".heatmap-cell");
+          if (!cell || cell === activeTooltipCell || !heatmapTooltip) return;
+          activeTooltipCell = cell;
+
+          const date = cell.getAttribute("data-date");
+          const day = dayLookup.get(date);
+          if (!day) return;
+
           const moodText = day.completed ? ` • Mood: ${day.moodScore}/5` : " • Inactive";
-          const snippetText = day.oneBigThingSnippet ? `<br/>🎯 ${day.oneBigThingSnippet}` : "";
-          heatmapTooltip.innerHTML = `<strong>${day.date}</strong>${moodText}${snippetText}`;
-          heatmapTooltip.style.display = "block";
-          heatmapTooltip.style.opacity = "1";
+          const snippetText = day.oneBigThingSnippet ? `<br/>🎯 ${escapeHtml(day.oneBigThingSnippet)}` : "";
 
-          const rect = cell.getBoundingClientRect();
-          heatmapTooltip.style.left = `${rect.left + rect.width / 2}px`;
-          heatmapTooltip.style.top = `${rect.top - 8}px`;
+          if (tooltipRafId) cancelAnimationFrame(tooltipRafId);
+          tooltipRafId = requestAnimationFrame(() => {
+            heatmapTooltip.innerHTML = `<strong>${day.date}</strong>${moodText}${snippetText}`;
+            const rect = cell.getBoundingClientRect();
+            heatmapTooltip.style.left = `${rect.left + rect.width / 2}px`;
+            heatmapTooltip.style.top = `${rect.top - 8}px`;
+            heatmapTooltip.style.display = "block";
+            heatmapTooltip.style.opacity = "1";
+          });
         });
 
-        cell.addEventListener("mouseleave", () => {
-          if (!heatmapTooltip) return;
+        heatmapGrid.addEventListener("mouseout", (e) => {
+          const cell = e.target.closest(".heatmap-cell");
+          if (!cell || !heatmapTooltip) return;
+          activeTooltipCell = null;
+          if (tooltipRafId) cancelAnimationFrame(tooltipRafId);
           heatmapTooltip.style.opacity = "0";
           heatmapTooltip.style.display = "none";
         });
 
-        cell.addEventListener("click", () => openHeatmapDrawer(day));
-        cell.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openHeatmapDrawer(day);
-          }
+        heatmapGrid.addEventListener("click", (e) => {
+          const cell = e.target.closest(".heatmap-cell");
+          if (!cell) return;
+          const date = cell.getAttribute("data-date");
+          const day = dayLookup.get(date);
+          if (day) openHeatmapDrawer(day);
         });
 
-        heatmapGrid.appendChild(cell);
-      });
+        heatmapGrid.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            const cell = e.target.closest(".heatmap-cell");
+            if (!cell) return;
+            e.preventDefault();
+            const date = cell.getAttribute("data-date");
+            const day = dayLookup.get(date);
+            if (day) openHeatmapDrawer(day);
+          }
+        });
+      }
     }
 
     // --- AI Coach Persona Manager ---
@@ -1744,6 +1792,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     // ==========================================
     // 3. Mobile Bottom Navigation Controller
     // ==========================================
+    // ==========================================
+    // 3. Mobile Bottom Navigation Controller
+    // ==========================================
     const navTabs = document.querySelectorAll(".mobile-nav-tab[data-target]");
     navTabs.forEach((tab) => {
       tab.addEventListener("click", () => {
@@ -1763,33 +1814,26 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    window.addEventListener(
-      "scroll",
-      () => {
-        if (window.innerWidth >= 768) return;
-        const scrollPos = window.scrollY + 200;
+    if (typeof IntersectionObserver !== "undefined") {
+      const sectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && window.innerWidth < 768) {
+              const targetId = entry.target.id;
+              navTabs.forEach((tab) => {
+                tab.classList.toggle("active", tab.getAttribute("data-target") === targetId);
+              });
+            }
+          });
+        },
+        { rootMargin: "-20% 0px -70% 0px", threshold: 0.1 },
+      );
 
-        const heatmapCard = document.getElementById("heatmapCard");
-        const journalCard = document.getElementById("dashboardJournalCard");
-
-        let currentSection = "dashboardMain";
-
-        if (journalCard && journalCard.offsetTop <= scrollPos) {
-          currentSection = "dashboardJournalCard";
-        } else if (heatmapCard && heatmapCard.offsetTop <= scrollPos) {
-          currentSection = "heatmapCard";
-        }
-
-        navTabs.forEach((tab) => {
-          if (tab.getAttribute("data-target") === currentSection) {
-            tab.classList.add("active");
-          } else {
-            tab.classList.remove("active");
-          }
-        });
-      },
-      { passive: true },
-    );
+      ["dashboardMain", "heatmapCard", "dashboardJournalCard"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) sectionObserver.observe(el);
+      });
+    }
 
     // ==========================================
     // 4. Voice Briefing & Visualizer Controller
@@ -1799,14 +1843,18 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const voiceBriefingText = document.getElementById("voiceBriefingText");
     const voiceWaveVisualizer = document.getElementById("voiceWaveVisualizer");
 
+    const cachedVisualizerBars = [0, 1, 2, 3, 4].map((idx) =>
+      document.getElementById(`vbar-${idx}`),
+    );
+
     if (globalThis.UXCore?.voice) {
       globalThis.UXCore.voice.setVisualizer((bars) => {
-        bars.forEach((heightRatio, idx) => {
-          const target = document.getElementById(`vbar-${idx}`);
-          if (target) {
-            target.style.transform = `scaleY(${Math.max(0.2, heightRatio)})`;
+        for (let i = 0; i < 5; i++) {
+          const barEl = cachedVisualizerBars[i];
+          if (barEl) {
+            barEl.style.transform = `scaleY(${Math.max(0.2, bars[i] || 0)})`;
           }
-        });
+        }
       });
     }
 
@@ -1911,18 +1959,25 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    let journalInputTimer = null;
+    const journalStatusEl = document.getElementById("dashJournalStatus");
+
     [reflectionTextarea].forEach((ta) => {
       if (!ta) return;
       ta.addEventListener("input", function () {
-        this.style.height = "auto";
-        this.style.height = Math.max(80, this.scrollHeight) + "px";
-
-        const text = this.value.trim();
-        const words = text ? text.split(/\s+/).length : 0;
-        const statusEl = document.getElementById("dashJournalStatus");
-        if (statusEl && words > 10) {
-          statusEl.textContent = "Thoughtful Reflection ✓";
-        }
+        const el = this;
+        if (journalInputTimer) clearTimeout(journalInputTimer);
+        journalInputTimer = setTimeout(() => {
+          requestAnimationFrame(() => {
+            el.style.height = "auto";
+            el.style.height = `${Math.max(80, el.scrollHeight)}px`;
+            const text = el.value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            if (journalStatusEl && words > 10) {
+              journalStatusEl.textContent = "Thoughtful Reflection ✓";
+            }
+          });
+        }, 100);
       });
 
       ta.addEventListener("keydown", function (e) {

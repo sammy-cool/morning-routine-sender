@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.1] - 2026-08-31
+
+### ⚡ Comprehensive Full-App GPU & Rendering Performance Optimization
+
+- **Admin Dashboard High-Frequency Rendering & Bottleneck Elimination (`admin-renderer/views/admin-dashboard.html`)**:
+  - **Eliminated Continuous Full-Viewport Rasterization**: Replaced infinite `@keyframes gradient-shift` and `background-attachment: fixed` on `body` with static, pre-rendered multi-radial gradient surfaces.
+  - **Overlapping Gaussian Blur Elimination**: Removed heavy `backdrop-filter: blur(24px)` across sidebar and all cards; applied high-opacity obsidian surfaces (`rgba(13, 18, 30, 0.92)`), `contain: layout paint;`, and hardware compositing `transform: translateZ(0)`.
+  - **Chart.js In-Place Memory & Canvas Updates**: Refactored `loadGrowthStats` and `renderTemplateDistributionChart` to mutate existing datasets in-place with `chart.update('none')`, preventing continuous canvas destruction and WebGL/2D context recreation.
+  - **DOM & Memory Capping**: Capped live `ActivityLogger` to 50 items and DB Inspector query visualization to 50 paginated rows.
+  - **Debounced Search & Command Palette**: Debounced live subscriber search, logs filtering, and Command Palette queries (150ms).
+  - **Visibility-Aware Webhook Auto-Polling**: Integrated `isWebhookFetching` concurrency lock, increased poll interval to 20s, and attached `visibilitychange` listener to sleep background polling when tabs are hidden.
+  - **Idempotent Offline Check Guard (`admin-renderer/js/admin-dashboard.js`)**: Added banner deduplication guard preventing redundant DOM node creation.
+
+- **User Dashboard & Heatmap Optimization (`public/js/user-dashboard.js` & `public/user-dashboard.html`)**:
+  - **Batch Heatmap Rendering**: Refactored `renderHeatmapGrid(days)` to construct 52-week month headers and 365 day cells into single `DocumentFragment` batches, replacing 365 consecutive DOM reflows with 1 single batch commit (`replaceChildren`).
+  - **Single Delegated Event Listener**: Replaced 1,460 individual cell event listeners ($365 \times 4$) with 1 delegated listener on `#heatmapGrid`, cutting memory closures to zero.
+  - **Layout Thrashing Elimination**: Wrapped tooltip reads/writes in `requestAnimationFrame` to eliminate forced synchronous reflows.
+  - **IntersectionObserver Mobile Scroll Spy**: Replaced layout-measuring `scroll` listener with zero-overhead `IntersectionObserver`.
+  - **Speech Visualizer Node Caching & rAF**: Pre-cached voice visualizer bar elements and converted visualizer update loop in `public/js/ux-core.js` to `requestAnimationFrame`.
+  - **Debounced Journal Textarea**: Added 100ms debouncing to journal auto-expand input handler with rAF height calculation.
+
+- **Public Landing, About, Offline & Loader Compositing Optimization**:
+  - **`public/main-index.html`**: Reduced background mesh blob blur radii from 80px to 40px with `contain: strict; will-change: transform;`, optimized navbar blur to 10px, converted 6 Bento feature cards to solid high-opacity surfaces, and added `content-visibility: auto` to offscreen sections.
+  - **`public/about.html`**: Removed expensive `blur(28px)` from 30+ story, track, feature, tech, and creator cards; added `content-visibility: auto` and GPU layer containment across all section blocks.
+  - **`public/offline.html`**: Removed continuous 15s body keyframe gradient animations and converted offline card to hardware-accelerated solid obsidian surface.
+  - **`public/css/loader.css`**: Replaced CPU `filter: drop-shadow` with `box-shadow` on rotating logo ring and upgraded skeleton shimmer from `background-position` animations to zero-paint GPU `transform: translateX()`.
+
+- **Verification & Test Suite Integrity**:
+  - All 34 test suites passing (220 tests, zero regressions).
+  - Zero ESLint errors across the entire codebase (`npm run lint`).
+  - Strict syntax validation passed for all JS files.
+
+---
+
 ## [2.6.0] - 2026-08-31
 
 ### 🌟 Revolutionary 2026/2027 Full-App UI/UX Redesign & Brand Transformation

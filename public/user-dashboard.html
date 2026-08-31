@@ -394,12 +394,13 @@
         padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 16px
           max(20px, env(safe-area-inset-left));
         border-bottom: 1px solid var(--border-subtle);
-        background: rgba(11, 15, 25, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: rgba(11, 15, 25, 0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         position: sticky;
         top: 0;
         z-index: 40;
+        transform: translateZ(0);
       }
 
       .nav-wrap {
@@ -444,40 +445,36 @@
         flex: 1;
       }
 
-      @keyframes cardEntrance {
-        from {
-          opacity: 0;
-          transform: translateY(16px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
       .card {
-        background: var(--bg-card);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
+        background: rgba(13, 18, 30, 0.94);
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
         padding: 28px;
-        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.5);
         display: flex;
         flex-direction: column;
         gap: 18px;
         position: relative;
         overflow: hidden;
-        animation: cardEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-        transition: var(--transition);
+        contain: layout paint;
+        transform: translateZ(0);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                    border-color 0.2s ease,
+                    box-shadow 0.2s ease;
       }
 
       .card:hover {
         border-color: var(--border-hover);
         box-shadow:
-          0 20px 50px -10px rgba(0, 0, 0, 0.7),
-          0 0 30px var(--primary-glow);
+          0 16px 36px -8px rgba(0, 0, 0, 0.6),
+          0 0 20px var(--primary-glow);
         transform: translateY(-2px);
+      }
+
+      .heatmap-container {
+        contain: content;
+        content-visibility: auto;
+        contain-intrinsic-size: 0 180px;
       }
 
       @media (max-width: 520px) {

@@ -40,14 +40,14 @@
     <style>
       :root {
         --bg-main: #050608;
-        --bg-sidebar: rgba(8, 12, 22, 0.95);
-        --bg-surface: rgba(12, 17, 29, 0.8);
-        --bg-surface-elevated: rgba(15, 20, 35, 0.75);
-        --bg-card: rgba(12, 17, 29, 0.8);
-        --border-subtle: rgba(255, 255, 255, 0.06);
+        --bg-sidebar: #080c16;
+        --bg-surface: #0c111d;
+        --bg-surface-elevated: #0f1423;
+        --bg-card: #0c111d;
+        --border-subtle: rgba(255, 255, 255, 0.07);
         --border-hover: rgba(124, 58, 237, 0.4);
         --primary: #7c3aed;
-        --primary-glow: rgba(124, 58, 237, 0.4);
+        --primary-glow: rgba(124, 58, 237, 0.3);
         --primary-hover: #6d28d9;
         --accent-cyan: #22d3ee;
         --accent-emerald: #34d399;
@@ -60,7 +60,7 @@
         --radius-md: 14px;
         --radius-lg: 20px;
         --shadow-glow: 0 0 25px -5px var(--primary-glow);
-        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
       }
 
       * {
@@ -75,29 +75,6 @@
         -webkit-font-smoothing: antialiased;
       }
 
-      @keyframes gradient-shift {
-        0% {
-          background-position: 0% 50%;
-        }
-        50% {
-          background-position: 100% 50%;
-        }
-        100% {
-          background-position: 0% 50%;
-        }
-      }
-
-      @keyframes card-enter {
-        0% {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
       body {
         background-color: var(--bg-main);
         color: var(--text-main);
@@ -105,11 +82,9 @@
         display: flex;
         overflow-x: hidden;
         background-image:
-          radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
-          radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.12) 0px, transparent 50%),
-          radial-gradient(at 50% 100%, rgba(251, 113, 133, 0.1) 0px, transparent 50%);
-        background-size: 200% 200%;
-        animation: gradient-shift 15s ease infinite;
+          radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.12) 0%, transparent 40%),
+          radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.09) 0%, transparent 40%),
+          radial-gradient(circle at 50% 90%, rgba(251, 113, 133, 0.07) 0%, transparent 50%);
         background-attachment: fixed;
       }
 
@@ -132,8 +107,7 @@
       /* Sidebar */
       aside.sidebar {
         width: 280px;
-        background: linear-gradient(180deg, var(--bg-sidebar) 0%, rgba(5, 6, 8, 0.98) 100%);
-        backdrop-filter: blur(24px);
+        background: var(--bg-sidebar);
         border-right: 1px solid var(--border-subtle);
         padding: 24px 18px;
         display: flex;
@@ -143,7 +117,8 @@
         top: 0;
         height: 100vh;
         z-index: 40;
-        transition: var(--transition);
+        contain: paint layout;
+        transform: translateZ(0);
       }
 
       .brand {
@@ -434,25 +409,26 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 20px;
+        contain: layout;
       }
 
       .stat-card {
         background: var(--bg-card);
-        backdrop-filter: blur(24px);
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
         padding: 22px 24px;
         position: relative;
         overflow: hidden;
-        transition: var(--transition);
-        animation: card-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+        contain: content;
+        transform: translateZ(0);
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
       }
 
       .stat-card:hover {
         transform: translateY(-2px);
         border-color: var(--primary-glow);
         box-shadow:
-          0 10px 30px -10px rgba(0, 0, 0, 0.5),
+          0 10px 30px -10px rgba(0, 0, 0, 0.6),
           0 0 15px var(--primary-glow);
       }
 
@@ -537,6 +513,8 @@
         display: grid;
         grid-template-columns: 2fr 1fr;
         gap: 24px;
+        content-visibility: auto;
+        contain-intrinsic-size: 0 400px;
       }
 
       @media (max-width: 1100px) {
@@ -553,15 +531,15 @@
 
       .card {
         background: var(--bg-card);
-        backdrop-filter: blur(24px);
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
         padding: 24px;
         display: flex;
         flex-direction: column;
         gap: 18px;
-        transition: var(--transition);
-        animation: card-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+        contain: content;
+        transform: translateZ(0);
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
       }
 
       .card:hover {
@@ -3103,6 +3081,10 @@ Loading records…</pre>
           const stream = document.getElementById("activityStream");
           if (!stream) return;
 
+          while (stream.children.length >= 50) {
+            stream.removeChild(stream.lastElementChild);
+          }
+
           const item = document.createElement("div");
           item.className = "activity-item";
 
@@ -3120,6 +3102,14 @@ Loading records…</pre>
 
           stream.prepend(item);
         }
+      }
+
+      function debounce(fn, delay = 200) {
+        let timeoutId;
+        return function (...args) {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => fn.apply(this, args), delay);
+        };
       }
 
       function escapeHtml(str) {
@@ -3267,6 +3257,8 @@ Loading records…</pre>
         renderSubscribersTable(filtered);
       }
 
+      const debouncedFilterSubscribers = debounce(filterSubscribersTable, 180);
+
       function updateKPICounters() {
         const total = allSubscribers.length;
         const active = allSubscribers.filter((s) => s.isActive !== false).length;
@@ -3279,7 +3271,7 @@ Loading records…</pre>
         if (breakdownEl) breakdownEl.textContent = `${active} active • ${paused} paused`;
       }
 
-      // 2. Growth Stats & Chart
+      // 2. Growth Stats & Chart (In-Place Update)
       async function loadGrowthStats(days = 7, buttonEl = null) {
         if (buttonEl) {
           document.querySelectorAll(".range-btn").forEach((btn) => btn.classList.remove("active"));
@@ -3296,7 +3288,12 @@ Loading records…</pre>
         const ctx = document.getElementById("subscriberGrowthChart");
         if (!ctx || typeof Chart === "undefined") return;
 
-        if (growthChartInstance) growthChartInstance.destroy();
+        if (growthChartInstance) {
+          growthChartInstance.data.labels = labels;
+          growthChartInstance.data.datasets[0].data = data;
+          growthChartInstance.update("none");
+          return;
+        }
 
         growthChartInstance = new Chart(ctx, {
           type: "line",
@@ -3306,12 +3303,12 @@ Loading records…</pre>
               {
                 label: "New Subscribers",
                 data,
-                borderColor: "#6366f1",
-                backgroundColor: "rgba(99, 102, 241, 0.15)",
+                borderColor: "#7c3aed",
+                backgroundColor: "rgba(124, 58, 237, 0.15)",
                 fill: true,
                 tension: 0.35,
                 borderWidth: 2,
-                pointBackgroundColor: "#818cf8",
+                pointBackgroundColor: "#a78bfa",
                 pointRadius: 4,
               },
             ],
@@ -3319,10 +3316,11 @@ Loading records…</pre>
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
               legend: { display: false },
               tooltip: {
-                backgroundColor: "rgba(15, 23, 42, 0.9)",
+                backgroundColor: "rgba(15, 23, 42, 0.95)",
                 titleColor: "#fff",
                 bodyColor: "#a5b4fc",
                 borderColor: "rgba(255, 255, 255, 0.1)",
@@ -3344,7 +3342,7 @@ Loading records…</pre>
         });
       }
 
-      // 3. Template Distribution Donut Chart
+      // 3. Template Distribution Donut Chart (In-Place Update)
       function renderTemplateDistributionChart(subscribers) {
         const counts = {};
         subscribers.forEach((s) => {
@@ -3358,7 +3356,12 @@ Loading records…</pre>
         const ctx = document.getElementById("templateDistributionChart");
         if (!ctx || typeof Chart === "undefined") return;
 
-        if (templateChartInstance) templateChartInstance.destroy();
+        if (templateChartInstance) {
+          templateChartInstance.data.labels = labels;
+          templateChartInstance.data.datasets[0].data = data.length ? data : [1];
+          templateChartInstance.update("none");
+          return;
+        }
 
         templateChartInstance = new Chart(ctx, {
           type: "doughnut",
@@ -3367,8 +3370,8 @@ Loading records…</pre>
             datasets: [
               {
                 data: data.length ? data : [1],
-                backgroundColor: ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#f43f5e", "#8b5cf6"],
-                borderColor: "#07090e",
+                backgroundColor: ["#7c3aed", "#22d3ee", "#34d399", "#fbbf24", "#fb7185", "#8b5cf6"],
+                borderColor: "#050608",
                 borderWidth: 3,
               },
             ],
@@ -3376,6 +3379,7 @@ Loading records…</pre>
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
               legend: {
                 position: "bottom",
@@ -3751,11 +3755,15 @@ Loading records…</pre>
         renderDbInspectorTable(filtered);
       }
 
+      const debouncedFilterDbInspector = debounce(filterDbInspectorRows, 180);
+
       function renderDbInspectorTable(rows) {
         const tbody = document.getElementById("dbInspectorTableBody");
         const footerCount = document.getElementById("dbInspectorFooterCount");
+        const DB_MAX_RENDER = 50;
+
         if (footerCount) {
-          footerCount.textContent = `Showing ${rows.length} of ${allDbRows.length} records`;
+          footerCount.textContent = `Showing ${Math.min(rows.length, DB_MAX_RENDER)} of ${rows.length} records (${allDbRows.length} total)`;
         }
 
         if (!tbody) return;
@@ -3771,7 +3779,9 @@ Loading records…</pre>
           return;
         }
 
-        tbody.innerHTML = rows
+        const pageRows = rows.slice(0, DB_MAX_RENDER);
+
+        tbody.innerHTML = pageRows
           .map((r, index) => {
             const rowId = r.id || `row-${index}`;
             const isSuccess = r.status === "success";
@@ -4127,7 +4137,12 @@ Loading records…</pre>
         });
       }
 
+      let isWebhookFetching = false;
+
       async function loadRecentWebhookEvents() {
+        if (isWebhookFetching || (typeof document !== "undefined" && document.hidden)) return;
+        isWebhookFetching = true;
+
         const icon = document.getElementById("webhookFeedRefreshIcon");
         if (icon) icon.classList.add("fa-spin");
 
@@ -4156,6 +4171,7 @@ Loading records…</pre>
           console.error("loadRecentWebhookEvents error:", err);
           renderWebhookErrorRow(err.message);
         } finally {
+          isWebhookFetching = false;
           if (icon) icon.classList.remove("fa-spin");
         }
       }
@@ -4253,7 +4269,7 @@ Loading records…</pre>
         }
       }
 
-      function toggleWebhookAutoPoll(enabled) {
+      function toggleWebhookAutoPoll(enabled, triggerImmediately = false) {
         if (webhookAutoPollIntervalId) {
           clearInterval(webhookAutoPollIntervalId);
           webhookAutoPollIntervalId = null;
@@ -4262,7 +4278,7 @@ Loading records…</pre>
         const dot = document.getElementById("autoPollDot");
         if (enabled) {
           if (dot) dot.style.display = "inline-block";
-          loadRecentWebhookEvents();
+          if (triggerImmediately) loadRecentWebhookEvents();
           webhookAutoPollIntervalId = setInterval(
             loadRecentWebhookEvents,
             WEBHOOK_POLL_INTERVAL_MS,
@@ -4271,6 +4287,13 @@ Loading records…</pre>
           if (dot) dot.style.display = "none";
         }
       }
+
+      // Pause/resume polling on visibility change to save CPU & battery
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && webhookAutoPollIntervalId) {
+          loadRecentWebhookEvents();
+        }
+      });
 
       async function promptRetryFailedDispatches() {
         const timeframeHours = parseInt(
@@ -4461,6 +4484,8 @@ Loading records…</pre>
         });
       }
 
+      const debouncedFilterCommandPalette = debounce(filterCommandPalette, 150);
+
       function executeCommand(cmd) {
         closeModal("commandPaletteModal");
         if (cmd === "add-sub") openAddSubscriberModal();
@@ -4509,7 +4534,7 @@ Loading records…</pre>
       // Initialize on Load
       window.addEventListener("DOMContentLoaded", () => {
         refreshAllData();
-        toggleWebhookAutoPoll(true);
+        toggleWebhookAutoPoll(true, false);
       });
 
       // Cleanup on Unload

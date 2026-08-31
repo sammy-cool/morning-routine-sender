@@ -1,7 +1,7 @@
 // Block admin UI if offline safely (Priority-1)
 function checkAdminOnlineStatus() {
   if (typeof navigator !== "undefined" && !navigator.onLine) {
-    if (document.body) {
+    if (document.body && !document.getElementById("adminOfflineBanner")) {
       const banner = document.createElement("div");
       banner.id = "adminOfflineBanner";
       banner.style.cssText =

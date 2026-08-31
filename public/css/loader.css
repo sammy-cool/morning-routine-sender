@@ -38,8 +38,10 @@
   border: 6px solid transparent;
   border-top-color: #7c3aed;
   border-right-color: #22d3ee;
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+  will-change: transform;
+  transform: translateZ(0);
   animation: rotate 1.4s linear infinite;
-  filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.6));
 }
 @keyframes rotate {
   from {
@@ -155,9 +157,21 @@
 .skeleton {
   height: 2rem;
   border-radius: 10px;
-  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s infinite;
+  background: #1e293b;
+  position: relative;
+  overflow: hidden;
+  contain: strict;
+  transform: translateZ(0);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  will-change: transform;
+  animation: shimmerGPU 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .skeleton.header {
@@ -171,12 +185,9 @@
   width: 100%;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
+@keyframes shimmerGPU {
   100% {
-    background-position: 200% 0;
+    transform: translateX(100%);
   }
 }
 
