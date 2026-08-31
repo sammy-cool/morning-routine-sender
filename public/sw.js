@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4.2.0";
+const CACHE_VERSION = "v4.3.0";
 const CACHE_NAME = `mrn-pwa-${CACHE_VERSION}`;
 
 // STATIC ASSETS ONLY (NO HTML, NO AUTH, NO SUBSCRIBER DATA)
@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
   "/offline",
   "/js/offline-sync.js",
   "/js/app-badging.js",
+  "/js/ux-core.js",
 ];
 
 // External CDN vendor libs to cache

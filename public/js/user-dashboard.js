@@ -197,6 +197,24 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     }
 
     async function loadDashboard() {
+      // 1. Stale-While-Revalidate (SWR): Instant Cache Hit (<10ms)
+      if (globalThis.UXCore?.cache) {
+        const cachedProfile = globalThis.UXCore.cache.get("subscriber_profile", 45000);
+        if (cachedProfile?.data) {
+          renderSubscription(cachedProfile.data);
+          loadingCard.style.display = "none";
+          subscriptionCard.style.display = "block";
+          const streakExportCard = document.getElementById("streakExportCard");
+          if (streakExportCard) streakExportCard.style.display = "block";
+          const dashboardJournalCard = document.getElementById("dashboardJournalCard");
+          if (dashboardJournalCard) dashboardJournalCard.style.display = "block";
+          renderChannels(cachedProfile.data);
+          renderCoachPersona(cachedProfile.data);
+          renderOutboundWebhook(cachedProfile.data);
+          historyCard.style.display = "block";
+        }
+      }
+
       try {
         const [meResp, historyResp] = await Promise.all([
           fetch("/me", {
@@ -219,6 +237,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           return;
         }
         const sub = await meResp.json();
+
+        // Update SWR Cache
+        if (globalThis.UXCore?.cache) {
+          globalThis.UXCore.cache.set("subscriber_profile", sub);
+        }
+
         renderSubscription(sub);
 
         if (historyResp && historyResp.ok) {
@@ -244,7 +268,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);
-        showError("Network error while loading your dashboard.");
+        if (!currentSubscriber) {
+          showError("Network error while loading your dashboard.");
+        }
       }
     }
 
@@ -499,18 +525,49 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       dashboardCheckinBtn.addEventListener("click", async function () {
         if (!currentSubscriber?.email) return;
 
+        // 1. Optimistic UI State
+        const prevStreak = Number(currentSubscriber.streakCount) || 0;
+        const optimisticStreak = prevStreak + 1;
+
+        if (streakCountTitle) {
+          streakCountTitle.textContent = `${optimisticStreak}-Day Streak Active 🔥`;
+        }
+        if (streakSubtext) {
+          streakSubtext.textContent = `You're on day ${optimisticStreak} of building your daily morning routine. Consistency creates mastery!`;
+        }
+        dashboardCheckinBtn.innerHTML =
+          '<i class="fas fa-check" aria-hidden="true"></i> Streak Maintained';
+        dashboardCheckinBtn.disabled = true;
+
+        // 2. Multi-sensory Feedback: Haptic + Audio + Confetti
+        if (globalThis.UXCore?.haptics) {
+          globalThis.UXCore.haptics.success();
+        }
+        if (globalThis.UXCore?.sound) {
+          globalThis.UXCore.sound.playSuccess();
+        }
+        if (typeof globalThis.confetti === "function") {
+          globalThis.confetti({
+            particleCount: 80,
+            spread: 65,
+            origin: { y: 0.6 },
+            colors: ["#10b981", "#6366f1", "#f59e0b"],
+          });
+        }
+        if (globalThis.AppBadging) {
+          globalThis.AppBadging.updateStreakBadge(optimisticStreak);
+        }
+
+        // 3. Offline Handling
         if (!navigator.onLine) {
           if (globalThis.OfflineSync) {
             globalThis.OfflineSync.queueCheckin({ email: currentSubscriber.email });
           }
           dashboardCheckinBtn.innerHTML =
             '<i class="fas fa-bolt" aria-hidden="true"></i> Queued for Sync';
+          showToast("⚡ Check-in saved offline! Will sync automatically when reconnected.", "info");
           return;
         }
-
-        dashboardCheckinBtn.disabled = true;
-        dashboardCheckinBtn.innerHTML =
-          '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Checking in…';
 
         try {
           const res = await fetch("/checkin?email=" + encodeURIComponent(currentSubscriber.email), {
@@ -522,27 +579,39 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           const data = await res.json().catch(() => ({}));
           if (res.ok && data.success) {
             showToast("🔥 " + (data.title || "Check-in logged!"), "success");
-            if (data.streakCount !== undefined) {
-              streakCountTitle.textContent = `${data.streakCount}-Day Streak Active 🔥`;
-              if (globalThis.AppBadging) {
-                globalThis.AppBadging.updateStreakBadge(data.streakCount);
-              }
+            const finalStreak =
+              data.streakCount !== undefined ? data.streakCount : optimisticStreak;
+            currentSubscriber.streakCount = finalStreak;
+
+            if (streakCountTitle) {
+              streakCountTitle.textContent = `${finalStreak}-Day Streak Active 🔥`;
             }
-            dashboardCheckinBtn.innerHTML =
-              '<i class="fas fa-check" aria-hidden="true"></i> Streak Maintained';
-            if (typeof globalThis.confetti === "function") {
-              globalThis.confetti({
-                particleCount: 75,
-                spread: 60,
-                origin: { y: 0.6 },
-                colors: ["#10b981", "#6366f1", "#f59e0b"],
-              });
+            if (globalThis.AppBadging) {
+              globalThis.AppBadging.updateStreakBadge(finalStreak);
+            }
+
+            // Invalidate SWR caches so fresh data is loaded
+            if (globalThis.UXCore?.cache) {
+              globalThis.UXCore.cache.invalidate("subscriber_profile");
+              globalThis.UXCore.cache.invalidate("activity_heatmap_365");
+            }
+
+            // Trigger Milestone Celebration if milestone reached
+            if (typeof globalThis.checkAndTriggerMilestoneCelebration === "function") {
+              globalThis.checkAndTriggerMilestoneCelebration(finalStreak);
             }
           } else {
-            showToast(data.message || "Failed to log check-in.", "warn");
+            // Rollback optimistic state gracefully
+            showToast(
+              data.message || "Check-in already completed today or verification failed.",
+              "info",
+            );
             dashboardCheckinBtn.disabled = false;
             dashboardCheckinBtn.innerHTML =
               '<i class="fas fa-check-circle" aria-hidden="true"></i> 1-Click Check-in';
+            if (streakCountTitle) {
+              streakCountTitle.textContent = `${prevStreak}-Day Streak Active 🔥`;
+            }
           }
         } catch (_err) {
           if (globalThis.OfflineSync) {
@@ -572,12 +641,31 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     async function loadDashboardJournal() {
       if (!currentSubscriber?.email) return;
+
+      // SWR Cache Instant Hit
+      if (globalThis.UXCore?.cache) {
+        const cachedJournal = globalThis.UXCore.cache.get("journal_today", 30000);
+        if (cachedJournal?.data?.entry) {
+          const e = cachedJournal.data.entry;
+          if (e.mood_score) globalThis.setDashboardMood(e.mood_score);
+          const obt = document.getElementById("dashOneBigThing");
+          if (obt && !obt.value) obt.value = e.one_big_thing || "";
+          const grat = document.getElementById("dashGratitude");
+          if (grat && !grat.value) grat.value = e.gratitude || "";
+          const ref = document.getElementById("dashReflectionText");
+          if (ref && !ref.value) ref.value = e.reflection_text || "";
+        }
+      }
+
       try {
         const res = await fetch("/api/journal/today", {
           headers: { Accept: "application/json" },
         });
         if (res.ok) {
           const data = await res.json();
+          if (globalThis.UXCore?.cache) {
+            globalThis.UXCore.cache.set("journal_today", data);
+          }
           if (data.entry) {
             if (data.entry.mood_score) globalThis.setDashboardMood(data.entry.mood_score);
             if (data.entry.one_big_thing) {
@@ -621,6 +709,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         track_key: currentSubscriber?.routineTrack || "deep-work",
       };
 
+      // Optimistic Haptic & Audio Feedback
+      if (globalThis.UXCore?.haptics) {
+        globalThis.UXCore.haptics.light();
+      }
+
       try {
         const res = await fetch("/api/journal/save", {
           method: "POST",
@@ -635,6 +728,16 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         if (res.ok && data.success) {
           if (statusEl) statusEl.textContent = "Saved Just Now ✓";
           showToast("✨ Morning reflection saved!", "success");
+
+          if (globalThis.UXCore?.sound) {
+            globalThis.UXCore.sound.playSuccess();
+          }
+
+          if (globalThis.UXCore?.cache) {
+            globalThis.UXCore.cache.set("journal_today", { entry: payload });
+            globalThis.UXCore.cache.invalidate("activity_heatmap_365");
+          }
+
           if (typeof globalThis.confetti === "function") {
             globalThis.confetti({
               particleCount: 60,
@@ -880,6 +983,23 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     async function loadActivityHeatmap() {
       if (!heatmapCard) return;
+
+      // SWR Cache Instant Hit
+      if (globalThis.UXCore?.cache) {
+        const cachedHeatmap = globalThis.UXCore.cache.get("activity_heatmap_365", 60000);
+        if (cachedHeatmap?.data) {
+          const d = cachedHeatmap.data;
+          heatmapCard.style.display = "block";
+          if (heatmapActiveDaysBadge && d.summary) {
+            heatmapActiveDaysBadge.textContent = `🔥 ${d.summary.totalActiveDays} Active Days`;
+          }
+          if (heatmapRateBadge && d.summary) {
+            heatmapRateBadge.textContent = `📊 ${d.summary.completionRate} Consistency`;
+          }
+          renderHeatmapGrid(d.days || []);
+        }
+      }
+
       try {
         const res = await fetch("/api/journal/heatmap?days=365", {
           headers: { Accept: "application/json" },
@@ -887,6 +1007,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         if (!res.ok) return;
         const data = await res.json();
         if (!data.success) return;
+
+        if (globalThis.UXCore?.cache) {
+          globalThis.UXCore.cache.set("activity_heatmap_365", data);
+        }
 
         heatmapCard.style.display = "block";
         if (heatmapActiveDaysBadge && data.summary) {
@@ -1257,6 +1381,332 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           });
       });
     }
+
+    // ==========================================
+    // 1. Milestone Celebration Controller
+    // ==========================================
+    const MILESTONE_TIERS = {
+      3: {
+        title: "3-Day Ignition Spark",
+        subtitle:
+          "The spark has caught fire! You've broken inertia and begun your daily morning ritual.",
+        tierName: "Spark Initiate",
+        tierMultiplier: "Top 40%",
+        icon: "fa-bolt",
+        flame: "⚡",
+        colors: ["#f59e0b", "#fbbf24", "#ef4444"],
+      },
+      7: {
+        title: "7-Day Routine Warrior",
+        subtitle:
+          "One full unbroken week! You've successfully established neurological morning rhythm.",
+        tierName: "Week 1 Champion",
+        tierMultiplier: "Top 25%",
+        icon: "fa-shield-halved",
+        flame: "🛡️",
+        colors: ["#3b82f6", "#06b6d4", "#60a5fa"],
+      },
+      14: {
+        title: "14-Day Habit Builder",
+        subtitle:
+          "Two solid weeks of continuous momentum. Discipline is rapidly transforming into second nature.",
+        tierName: "Habit Vanguard",
+        tierMultiplier: "Top 15%",
+        icon: "fa-seedling",
+        flame: "⚔️",
+        colors: ["#10b981", "#34d399", "#059669"],
+      },
+      30: {
+        title: "30-Day Spartan Master",
+        subtitle:
+          "A whole month of unwavering dedication! You belong to the top 5% of elite morning ritualists.",
+        tierName: "Monthly Spartan",
+        tierMultiplier: "Top 5%",
+        icon: "fa-trophy",
+        flame: "🏆",
+        colors: ["#f59e0b", "#f97316", "#ef4444"],
+      },
+      60: {
+        title: "60-Day Unstoppable Force",
+        subtitle:
+          "Two months of daily discipline. Your morning routine is now your primary unfair competitive advantage.",
+        tierName: "Diamond Titan",
+        tierMultiplier: "Top 2%",
+        icon: "fa-gem",
+        flame: "💎",
+        colors: ["#06b6d4", "#a855f7", "#3b82f6"],
+      },
+      100: {
+        title: "100-Day Centurion Legend",
+        subtitle:
+          "Triple-digit mastery achieved! 100 intentional mornings designed for peak clarity and purpose.",
+        tierName: "Centurion Master",
+        tierMultiplier: "Top 1%",
+        icon: "fa-crown",
+        flame: "👑",
+        colors: ["#f43f5e", "#fb7185", "#e11d48"],
+      },
+      365: {
+        title: "365-Day Immortal Grandmaster",
+        subtitle:
+          "A complete 365-day solar orbit of unbroken discipline. You have ascended to legendary habit immortality!",
+        tierName: "Immortal Legend",
+        tierMultiplier: "Top 0.1%",
+        icon: "fa-star",
+        flame: "🌟",
+        colors: ["#a855f7", "#ec4899", "#f59e0b", "#10b981"],
+      },
+    };
+
+    const milestoneModal = document.getElementById("milestoneModal");
+    const closeMilestoneModalBtn = document.getElementById("closeMilestoneModalBtn");
+    const milestoneDismissBtn = document.getElementById("milestoneDismissBtn");
+    const milestoneShareBtn = document.getElementById("milestoneShareBtn");
+
+    function fireMilestoneConfetti(colors) {
+      if (typeof globalThis.confetti !== "function") return;
+      const confettiColors = colors || ["#f59e0b", "#10b981", "#6366f1"];
+
+      globalThis.confetti({
+        particleCount: 80,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.7 },
+        colors: confettiColors,
+      });
+
+      globalThis.confetti({
+        particleCount: 80,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.7 },
+        colors: confettiColors,
+      });
+
+      setTimeout(() => {
+        globalThis.confetti({
+          particleCount: 100,
+          spread: 100,
+          origin: { y: 0.4 },
+          colors: confettiColors,
+        });
+      }, 250);
+    }
+
+    function openMilestoneCelebration(streakCount) {
+      const config = MILESTONE_TIERS[streakCount];
+      if (!config || !milestoneModal) return;
+
+      const titleEl = document.getElementById("milestoneTitle");
+      const descEl = document.getElementById("milestoneDescription");
+      const tierNameEl = document.getElementById("milestoneTierName");
+      const countEl = document.getElementById("milestoneStreakCount");
+      const multEl = document.getElementById("milestoneTierMultiplier");
+      const flameEl = document.getElementById("milestoneFlameIcon");
+      const tierIcon = document.getElementById("milestoneTierIcon");
+
+      if (titleEl) titleEl.textContent = config.title;
+      if (descEl) descEl.textContent = config.subtitle;
+      if (tierNameEl) tierNameEl.textContent = config.tierName;
+      if (countEl) countEl.textContent = streakCount;
+      if (multEl) multEl.textContent = config.tierMultiplier;
+      if (flameEl) flameEl.textContent = config.flame;
+      if (tierIcon) tierIcon.className = `fas ${config.icon}`;
+
+      milestoneModal.style.display = "flex";
+      requestAnimationFrame(() => {
+        milestoneModal.classList.add("active");
+        milestoneModal.setAttribute("aria-hidden", "false");
+      });
+
+      fireMilestoneConfetti(config.colors);
+      if (globalThis.UXCore?.sound) {
+        globalThis.UXCore.sound.playMilestone();
+      }
+      if (globalThis.UXCore?.haptics) {
+        globalThis.UXCore.haptics.celebration();
+      }
+    }
+
+    function closeMilestoneModal() {
+      if (!milestoneModal) return;
+      milestoneModal.classList.remove("active");
+      milestoneModal.setAttribute("aria-hidden", "true");
+      setTimeout(() => {
+        milestoneModal.style.display = "none";
+      }, 300);
+    }
+
+    if (closeMilestoneModalBtn)
+      closeMilestoneModalBtn.addEventListener("click", closeMilestoneModal);
+    if (milestoneDismissBtn) milestoneDismissBtn.addEventListener("click", closeMilestoneModal);
+    if (milestoneModal) {
+      milestoneModal.addEventListener("click", (e) => {
+        if (e.target === milestoneModal) closeMilestoneModal();
+      });
+    }
+
+    if (milestoneShareBtn) {
+      milestoneShareBtn.addEventListener("click", () => {
+        closeMilestoneModal();
+        openStreakShareModal();
+      });
+    }
+
+    globalThis.checkAndTriggerMilestoneCelebration = function (streakCount) {
+      const streak = Number(streakCount);
+      if (!MILESTONE_TIERS[streak]) return;
+
+      const storageKey = `mrn_milestone_celebrated_${streak}`;
+      try {
+        if (localStorage.getItem(storageKey)) return;
+        localStorage.setItem(storageKey, new Date().toISOString());
+      } catch (_e) {
+        // Non-fatal storage error
+      }
+      openMilestoneCelebration(streak);
+    };
+
+    // ==========================================
+    // 2. Keyboard Shortcuts Cheat Sheet Controller
+    // ==========================================
+    const shortcutsModal = document.getElementById("shortcutsModal");
+    const closeShortcutsModalBtn = document.getElementById("closeShortcutsModalBtn");
+
+    function openShortcutsModal() {
+      if (!shortcutsModal) return;
+      shortcutsModal.style.display = "flex";
+      requestAnimationFrame(() => {
+        shortcutsModal.classList.add("active");
+        shortcutsModal.setAttribute("aria-hidden", "false");
+      });
+    }
+
+    function closeShortcutsModal() {
+      if (!shortcutsModal) return;
+      shortcutsModal.classList.remove("active");
+      shortcutsModal.setAttribute("aria-hidden", "true");
+      setTimeout(() => {
+        shortcutsModal.style.display = "none";
+      }, 250);
+    }
+
+    function closeAllModals() {
+      closeShortcutsModal();
+      closeMilestoneModal();
+      closeStreakShareModal();
+      const sideDrawer = document.getElementById("sideDrawer");
+      if (sideDrawer) {
+        sideDrawer.classList.remove("active");
+        sideDrawer.style.display = "none";
+      }
+    }
+
+    if (closeShortcutsModalBtn)
+      closeShortcutsModalBtn.addEventListener("click", closeShortcutsModal);
+    if (shortcutsModal) {
+      shortcutsModal.addEventListener("click", (e) => {
+        if (e.target === shortcutsModal) closeShortcutsModal();
+      });
+    }
+
+    function scrollToSection(targetId) {
+      const el = document.getElementById(targetId);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.classList.remove("section-flash-highlight");
+      void el.offsetWidth;
+      el.classList.add("section-flash-highlight");
+    }
+
+    // Initialize UXCore shortcuts
+    if (globalThis.UXCore?.shortcuts) {
+      globalThis.UXCore.shortcuts.init({
+        " ": () => {
+          if (dashboardCheckinBtn && !dashboardCheckinBtn.disabled) {
+            dashboardCheckinBtn.click();
+          }
+        },
+        c: () => {
+          if (dashboardCheckinBtn && !dashboardCheckinBtn.disabled) {
+            dashboardCheckinBtn.click();
+          }
+        },
+        j: () => {
+          scrollToSection("dashboardJournalCard");
+          const input =
+            document.getElementById("dashOneBigThing") ||
+            document.getElementById("dashReflectionText");
+          if (input) setTimeout(() => input.focus(), 350);
+        },
+        h: () => {
+          scrollToSection("heatmapCard");
+        },
+        s: () => {
+          openStreakShareModal();
+        },
+        "?": () => {
+          if (shortcutsModal && shortcutsModal.classList.contains("active")) {
+            closeShortcutsModal();
+          } else {
+            openShortcutsModal();
+          }
+        },
+        Escape: () => {
+          closeAllModals();
+        },
+      });
+    }
+
+    // ==========================================
+    // 3. Mobile Bottom Navigation Controller
+    // ==========================================
+    const navTabs = document.querySelectorAll(".mobile-nav-tab[data-target]");
+    navTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const targetId = tab.getAttribute("data-target");
+        if (globalThis.UXCore?.haptics) {
+          globalThis.UXCore.haptics.light();
+        }
+
+        navTabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+
+        if (targetId === "dashboardMain") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          scrollToSection(targetId);
+        }
+      });
+    });
+
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (window.innerWidth >= 768) return;
+        const scrollPos = window.scrollY + 200;
+
+        const heatmapCard = document.getElementById("heatmapCard");
+        const journalCard = document.getElementById("dashboardJournalCard");
+
+        let currentSection = "dashboardMain";
+
+        if (journalCard && journalCard.offsetTop <= scrollPos) {
+          currentSection = "dashboardJournalCard";
+        } else if (heatmapCard && heatmapCard.offsetTop <= scrollPos) {
+          currentSection = "heatmapCard";
+        }
+
+        navTabs.forEach((tab) => {
+          if (tab.getAttribute("data-target") === currentSection) {
+            tab.classList.add("active");
+          } else {
+            tab.classList.remove("active");
+          }
+        });
+      },
+      { passive: true },
+    );
 
     loadDashboard();
     syncNotificationState();

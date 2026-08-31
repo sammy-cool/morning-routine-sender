@@ -4,16 +4,25 @@
 [![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Knex-336791?style=flat-square&logo=postgresql&logoColor=white)](https://knexjs.org)
 [![Redis](https://img.shields.io/badge/Redis-ioredis-dc382d?style=flat-square&logo=redis&logoColor=white)](https://redis.io)
-[![Tests](https://img.shields.io/badge/Tests-201%2F201%20Passing-10b981?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io)
-[![Version](https://img.shields.io/badge/Version-v2.1.0-6366f1?style=flat-square)](./CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-211%2F211%20Passing-10b981?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io)
+[![Version](https://img.shields.io/badge/Version-v2.2.0-6366f1?style=flat-square)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-6366f1?style=flat-square)](./LICENSE)
 
-An enterprise-ready **Node.js/Express** automation platform that dispatches personalized, responsive morning routine emails (powered by **MJML**, daily motivation quotes, and curated tech news) on custom cron schedules. Equipped with a next-gen **Obsidian Glassmorphism Admin Command Center**, a passwordless **Subscriber Magic-Link Portal**, **365-Day Activity Heatmaps**, **AI Morning Coach Personas**, **Outbound Webhooks**, **Dynamic Streak Share Cards**, **Sunday Weekly Digests**, and a high-performance **Winston Telemetry Logger**.
+An enterprise-ready **Node.js/Express** automation platform that dispatches personalized, responsive morning routine emails (powered by **MJML**, daily motivation quotes, and curated tech news) on custom cron schedules. Equipped with a next-gen **Obsidian Glassmorphism Admin Command Center**, a passwordless **Subscriber Magic-Link Portal**, **SWR Caching & Optimistic UI**, **Procedural Web Audio synthesis**, **Mobile Haptic Feedback**, **365-Day Activity Heatmaps**, **AI Morning Coach Personas**, **Outbound Webhooks**, **Dynamic Streak Share Cards**, **Sunday Weekly Digests**, and a high-performance **Winston Telemetry Logger**.
 
 ---
 
 ## ⚡ Key Features
 
+- ⚡ **Next-Gen Client UX Engine (`UXCore`)**:
+  - **SWR (Stale-While-Revalidate) Caching**: `<10ms` instant page renders for subscriber profiles, 365-day heatmaps, and journal notes.
+  - **Optimistic UI Updates**: Instant streak increment and reflection status indicators with resilient auto-rollback.
+  - **Procedural Web Audio Synthesis**: Zero external audio files; pure browser oscillator audio synthesis for pleasant check-in chimes and celebratory milestone fanfares.
+  - **Mobile Haptic Feedback**: Tactile vibration rhythms (`light`, `success`, `celebration`) for mobile devices.
+  - **Accessible Keyboard Hotkeys**: Global shortcuts (`Space`/`C` for check-in, `J` for journal, `H` for heatmap, `S` for share card, `?` for shortcuts guide, `Esc` to dismiss).
+  - **Mobile Bottom Navigation Bar (< 768px)**: Fixed glassmorphic navigation dock with active scroll-spy tracking.
+- 🏆 **Gamification & Milestone Celebrations**:
+  - Multi-tier milestone celebrations (Day 3, 7, 14, 30, 60, 100, 365) with custom consistency tiers, multi-cannon confetti bursts, animated flickering flame aura, and 1-click social sharing.
 - 📊 **365-Day Activity & Reflection Heatmap (GitHub-Style)**:
   - 52-week responsive CSS Grid visualization tracking daily habit consistency over 365 days.
   - Interactive hover tooltips and slide-in reflection inspection drawer to review past wins, gratitude, and mindset notes.

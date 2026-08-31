@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-08-30
+
+### 🚀 Added
+
+- **Unified Client UX Core Subsystem (`public/js/ux-core.js`)**:
+  - **SWR (Stale-While-Revalidate) Cache Engine**: Instant `<10ms` cache hits for subscriber profile, 365-day heatmap data, and today's reflection journal, backed by localStorage fallback and memory Map.
+  - **Optimistic UI Updates**: Immediate streak increment and instant reflection save indicators with automatic, graceful rollback if network requests fail.
+  - **Procedural Web Audio Synthesis Engine**: Zero external audio files/CDNs; synthesizes pleasant rising C Major triad chimes (`playSuccess`) and harmonic arpeggio fanfares (`playMilestone`) with exponential volume envelope decays.
+  - **Mobile Haptic Feedback Engine**: Multi-pattern vibration feedback (`light`, `success`, `celebration`) using the Web Vibration API with resilient device guards.
+  - **Accessible Keyboard Shortcuts Dispatcher**: Power-user global hotkeys (`Space`/`C` for habit check-in, `J` for reflection journal, `H` for 365-day heatmap, `S` for SVG streak share card, `?` for shortcuts guide, `Esc` to close all modals) with smart input exclusion.
+  - **Real-Time Network Status Monitor**: Floating glassmorphic offline/online status banner with auto-sync status and smooth transition dismissal.
+
+- **Interactive Gamification & Milestone Celebration Modal**:
+  - Multi-tier milestone celebrations (Day 3, 7, 14, 30, 60, 100, 365) with custom consistency tiers (_Spark Initiate_, _Week 1 Champion_, _Habit Vanguard_, _Monthly Spartan_, _Diamond Titan_, _Centurion Master_, _Immortal Legend_).
+  - Multi-cannon celebratory confetti bursts, animated flickering flame aura, Web Audio milestone fanfares, and 1-click social card share button.
+
+- **Mobile Bottom Navigation Bar (< 768px)**:
+  - Fixed glassmorphic navigation dock optimized for mobile viewports with 4 quick-action tabs (Dashboard, Heatmap, Journal, Live Companion).
+  - Scroll-spy active section indicator and tactile haptic tap feedback.
+
+---
+
 ## [2.1.0] - 2026-08-30
 
 ### 🚀 Added

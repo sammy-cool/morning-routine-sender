@@ -344,11 +344,18 @@ function renderCheckinPage(res, data) {
       <a href="/user-dashboard" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">👤 Dashboard</a>
     </div>
   </div>
-  <script src="/js/app-badging.js?v=4.2.0" defer></script>
+  <script src="/js/app-badging.js?v=4.3.0" defer></script>
+  <script src="/js/ux-core.js?v=4.3.0" defer></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       if (window.AppBadging) {
         window.AppBadging.updateStreakBadge(${data.streakCount || 0});
+      }
+      if (window.UXCore) {
+        if (${data.success ? "true" : "false"}) {
+          if (window.UXCore.sound) window.UXCore.sound.playSuccess();
+          if (window.UXCore.haptics) window.UXCore.haptics.success();
+        }
       }
     });
   </script>
@@ -422,8 +429,9 @@ async function liveRoutine(req, res) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer crossorigin="anonymous"></script>
-  <script src="/js/offline-sync.js?v=4.2.0" defer></script>
-  <script src="/js/app-badging.js?v=4.2.0" defer></script>
+  <script src="/js/offline-sync.js?v=4.3.0" defer></script>
+  <script src="/js/app-badging.js?v=4.3.0" defer></script>
+  <script src="/js/ux-core.js?v=4.3.0" defer></script>
   <style>
     :root {
       --bg: #07090e;
