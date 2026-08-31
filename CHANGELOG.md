@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.5] - 2026-08-31
+
+### 🛡️ Complete 11-Migration Symmetric Rollback, Outbound HMAC Webhooks, Multi-Channel Failovers & SMTP Matrix Testing
+
+- **Database Migrations Reversibility & Integrity Matrix (`__tests__/db.migrations.complete.test.js`)**:
+  - Added comprehensive test suite executing full schema creation across all 11 Knex migrations (`20251009153643` through `20260831000000`).
+  - Validated symmetric full rollbacks (`down()` 11 through 1) and granular step-by-step rollbacks verifying all 7 tables (`email_tracker`, `job_last_run`, `subscribers`, `suppression_list`, `email_events`, `push_subscriptions`, `journal_entries`).
+  - Tested 23 cumulative `subscribers` column defaults, foreign key cascades (`ON DELETE CASCADE` on `push_subscriptions` and `journal_entries`), and unique constraints (`email`, `job_name`, `endpoint`, composite `[subscriber_email, entry_date]`).
+- **Cryptographic Outbound Webhooks & Multi-Channel Failovers (`__tests__/outbound.analytics.channels.test.js`)**:
+  - Validated HMAC SHA-256 signatures (`X-MorningRoutine-Signature`), payload structure, and 5000ms AbortController timeout boundaries.
+  - Validated exponential backoff retries on network/5xx errors and fail-fast aborts on 4xx client errors.
+  - Verified `Promise.allSettled` channel isolation: Discord webhook failures do not cascade or block Telegram bot notifications.
+  - Verified subscriber analytics calculation: window clamping (`?days=1..365`), active/paused ratios, and streak distribution cohorts.
+- **Security Utilities, CSPRNG Token Generator & Error Serialization (`__tests__/helpers.security.serializer.test.js`)**:
+  - Validated Error serialization for database logging (Axios HTTP codes, Postgres codes, native exceptions, circular references, and 5-frame stack trace truncation).
+  - Validated constant-time `safeCompare` pre-hashed SHA-256 comparison preventing timing side-channel attacks across mismatched buffer lengths.
+  - Exported `generateRandomString` from [`helper/util.js`](file:///home/smarty/projects/morning-routine-sender/helper/util.js) and verified CSPRNG Shannon entropy ($> 3.5$ bits/char) and collision resistance across 10,000 generated tokens.
+  - Verified DNS Deliverability Guard (`auditSPF`, `auditDMARC`, `auditMX`, `auditDKIM`, and DNS timeout error resilience).
+- **Core Express Middlewares (`__tests__/middleware.core.test.js`)**:
+  - Added test suite for `requireAdmin` cookie guards, `setApiBase` URL resolution, `checkHoneypot` bot suppression, `rateLimiters`, and `subscriberSession` Redis/token authentications.
+- **SMTP Provider Presets & Transporter Pool Lifecycle (`__tests__/config.smtp.providers.test.js`)**:
+  - Validated standard provider presets (Gmail, SendGrid, AWS SES, Mailgun, Zoho, Outlook, Office365) and port/TLS defaults.
+  - Verified Redis mock/live client switches, TLS options, and exponential retry strategy.
+  - Verified Nodemailer pooled connection defaults and singleton lifecycle teardown.
+- **Test Suite Expansion**:
+  - Added 5 new comprehensive test suites.
+  - Total test suites expanded to **43 passed, 43 total** (**372 tests, 100% green**).
+
+---
+
 ## [2.6.4] - 2026-08-31
 
 ### 🚀 Enterprise CI/CD Pipeline, Multi-Platform SEO & Rich Email Plain-Text Integration

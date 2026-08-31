@@ -305,6 +305,7 @@ async function dispatchChannelsForSubscriber(subscriber, options = {}) {
       dispatchTasks.push(
         sendTelegramNotification({
           chatId,
+          botToken: options.botToken || process.env.TELEGRAM_BOT_TOKEN,
           subscriber,
           trackContent,
           quote,

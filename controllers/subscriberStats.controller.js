@@ -13,7 +13,9 @@ async function getSubscriberStats(req, res) {
   const db = require("../db/knex");
 
   try {
-    const days = Math.min(Math.max(Number(req.query.days) || 30, 1), 365);
+    const rawDays =
+      req.query.days !== undefined && req.query.days !== "" ? Number(req.query.days) : 30;
+    const days = Math.min(Math.max(Number.isFinite(rawDays) ? rawDays : 30, 1), 365);
 
     const [{ count: total }] = await db("subscribers").count("* as count");
     const [{ count: active }] = await db("subscribers")

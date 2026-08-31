@@ -104,6 +104,7 @@ function setRoleCookie(res, role) {
 module.exports = {
   setRoleCookie,
   generateRandomMessageID,
+  generateRandomString,
   maskEmail,
   todayUTCYYYYMMDD,
   dailyDevNews,
