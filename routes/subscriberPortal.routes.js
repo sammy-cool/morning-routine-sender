@@ -52,8 +52,11 @@ router.get("/me/export-journal", requireSubscriberSession, meController.exportJo
 router.get("/me/export", requireSubscriberSession, meController.exportJournal);
 router.get("/me/streak-card", requireSubscriberSession, meController.getMyStreakCard);
 router.patch("/me", requireSubscriberSession, meController.updateMe);
+router.patch("/me/preferences", requireSubscriberSession, meController.updateMe);
+router.post("/me/preferences", requireSubscriberSession, meController.updateMe);
 router.post("/me/coach-persona", requireSubscriberSession, meController.updateCoachPersona);
 router.post("/me/channels", requireSubscriberSession, meController.updateChannels);
+router.patch("/me/channels", requireSubscriberSession, meController.updateChannels);
 router.post("/api/channels/test", requireSubscriberSession, meController.testChannel);
 router.post("/me/outbound-webhook", requireSubscriberSession, meController.updateOutboundWebhook);
 router.post(
@@ -69,5 +72,6 @@ router.get(
   meController.getStreakFreezeStatus,
 );
 router.post("/me/streak-freeze/use", requireSubscriberSession, meController.useStreakFreeze);
+router.post("/me/use-streak-freeze", requireSubscriberSession, meController.useStreakFreeze);
 
 module.exports = router;

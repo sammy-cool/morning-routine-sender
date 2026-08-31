@@ -5,6 +5,8 @@ const { performDeliverabilityAudit } = require("../helper/dnsGuard");
 const suppressionService = require("../email-core/suppressionService");
 const sharedData = require("../helper/shared-data");
 
+let isRetryingDeadLetters = false;
+
 // GET /admin/deliverability/dns-audit
 async function getDnsAudit(req, res) {
   try {
@@ -414,6 +416,14 @@ async function getRecentEvents(req, res) {
 
 // POST /admin/api/retry-failed & POST /admin/deliverability/retry-failed
 async function retryFailedDispatches(req, res) {
+  if (isRetryingDeadLetters) {
+    return res.status(429).json({
+      success: false,
+      error: "A dead-letter retry job is already in progress. Please wait for it to complete.",
+    });
+  }
+
+  isRetryingDeadLetters = true;
   try {
     const rawHours = parseInt(req.body.hours || req.query.hours || "24", 10);
     const hours = Number.isFinite(rawHours) && rawHours > 0 ? Math.min(rawHours, 168) : 24;
@@ -546,6 +556,8 @@ async function retryFailedDispatches(req, res) {
   } catch (error) {
     logger.error("Failed to retry failed dispatches", { error: error.message });
     return res.status(500).json({ success: false, error: error.message });
+  } finally {
+    isRetryingDeadLetters = false;
   }
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "morning-routine-sender",
   "description": "Automated morning routine email sender",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

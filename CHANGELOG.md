@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.3] - 2026-08-31
+
+### 🌟 Comprehensive End-to-End Testing, Concurrency Guards, Track Configs & UI Audio Polish
+
+- **Full-App Scenario & E2E Integration Suite (`__tests__/full.app.scenarios.e2e.test.js`)**:
+  - Added full end-to-end integration test suite verifying the complete multi-platform loop:
+    - Double opt-in signup with track preservation -> Confirmation & session issuance -> Preferences customization (`PATCH /me/preferences`) -> AI Coach Persona assignment (`POST /me/coach-persona`) -> Multi-channel notification dispatch -> 1-Click Habit Streak check-in (`GET /checkin`) -> Streak freeze shield usage (`POST /me/use-streak-freeze`) -> Multi-format Journal data export (`CSV`, `JSON`, `Markdown`).
+  - Added parallel check-in concurrency test verifying absolute updates prevent streak race conditions.
+  - Added procedural Web Audio and SWR LRU cache eviction unit assertions.
+  - Test suite coverage expanded to **35 test suites / 233 tests** (100% passing).
+- **Procedural Soundscape & Audio Interface Polish (`public/js/ux-core.js`)**:
+  - Implemented `UXCore.sound.playClick()` (800 Hz triangle wave tone, 30ms) eliminating runtime `TypeError` when clicking theme options and UI controls.
+  - Safeguarded `window.addEventListener("pagehide")` / `beforeunload` registration with `typeof window.addEventListener === 'function'` for universal Node / SSR / test runner execution.
+- **Signup Track Selection Retention (`controllers/signup.controller.js`)**:
+  - Retained custom `routineTrack` and `templateType` selections in Redis token payloads during double opt-in signup, guaranteeing user-selected tracks persist through subscription confirmation.
+- **Rich Persona Track Config Coverage (`helper/shared-data.js`)**:
+  - Added dedicated first-class configurations for `career` (_Career & Executive Growth_) and `reflection` (_Evening & Daily Reflection_) tracks, featuring personalized badges, taglines, quotes, rituals, and morning checklists.
+- **Dead-Letter Retry Mutex Concurrency Lock (`controllers/deliverability.controller.js`)**:
+  - Integrated `isRetryingDeadLetters` in-memory lock flag returning `429 Too Many Requests` during active retry jobs to prevent concurrent duplicate email and webhook dispatches from simultaneous admin triggers.
+- **Resilient Timezone Fallback (`controllers/me.controller.js`)**:
+  - Wrapped `Intl.DateTimeFormat` evaluations in safe try/catch blocks with automatic `"UTC"` fallback to prevent unhandled 500 errors on invalid subscriber timezone strings.
+- **Versatile REST Route Aliasing (`routes/subscriberPortal.routes.js`)**:
+  - Mounted convenience route aliases: `PATCH /me/preferences`, `POST /me/preferences`, `PATCH /me/channels`, and `POST /me/use-streak-freeze`.
+  - Supported `persona` parameter alias in `POST /me/coach-persona`.
+
+---
+
 ## [2.6.2] - 2026-08-31
 
 ### 🛡️ Permissions Policy, Service Worker Graceful Network Fallback, and WAI-ARIA Modal Accessibility Fixes

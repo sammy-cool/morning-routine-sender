@@ -341,6 +341,18 @@
     },
 
     /**
+     * Subtle tactile click tone (800 Hz triangle wave, 30ms):
+     * @returns {boolean}
+     */
+    playClick() {
+      if (this.isMuted()) return false;
+      const ctx = getAudioContext();
+      if (!ctx) return false;
+      synthesizeTone(ctx, 800, ctx.currentTime, 0.03, 0.08, "triangle");
+      return true;
+    },
+
+    /**
      * Procedural pleasant rising chime:
      * C5 (523.25 Hz) -> E5 (659.25 Hz) -> G5 (783.99 Hz)
      * @returns {boolean}
@@ -1767,7 +1779,7 @@
   let boundOfflineHandler = null;
 
   // Global page unload audio & voice teardown
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
     const onPageUnload = () => {
       ambient.stop(0);
       voice.stop();

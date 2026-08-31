@@ -19,13 +19,19 @@ const SIGNUP_KEY_TTL_SECONDS = 24 * 60 * 60; // 24h -- generous, a signup confir
 // same pattern virtually every mailing list product uses.
 async function requestSignup(req, res) {
   const email = (req.body?.email || "").trim().toLowerCase();
-  const { cronPattern, timezone } = req.body || {};
+  const { cronPattern, timezone, routineTrack, templateType } = req.body || {};
+  const selectedTrack = routineTrack || templateType;
 
   // Format-level validation gets a real error response -- unlike /login,
   // this doesn't leak anything about EXISTING subscribers (it only says
   // whether the submitted input itself is well-formed), so there's no
   // enumeration concern here.
-  const errors = validateSubscriberInput({ email, cronPattern, timezone });
+  const errors = validateSubscriberInput({
+    email,
+    cronPattern,
+    timezone,
+    routineTrack: selectedTrack,
+  });
   if (errors.length > 0) {
     return res.status(400).json({ errors });
   }
@@ -44,9 +50,12 @@ async function requestSignup(req, res) {
     }
 
     const token = crypto.randomBytes(32).toString("hex");
+    const payload = { email, cronPattern, timezone };
+    if (selectedTrack) payload.routineTrack = selectedTrack;
+
     await redis.set(
       SIGNUP_KEY_PREFIX + token,
-      JSON.stringify({ email, cronPattern, timezone }),
+      JSON.stringify(payload),
       "EX",
       SIGNUP_KEY_TTL_SECONDS,
     );

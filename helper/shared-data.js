@@ -136,6 +136,52 @@ const TRACK_CONFIGS = {
       "Today is full of unlimited possibilities. Make it count.",
     ],
   },
+  career: {
+    name: "Career & Executive Growth",
+    badge: "💼 Career & Executive Growth",
+    tagline: "Strategic leverage, professional mastery & high-impact leadership",
+    rituals: [
+      "Identify your highest-leverage career deliverable and block uninterrupted morning focus.",
+      "Review your top quarterly career objectives and align today's priorities accordingly.",
+      "Prepare key communication points for today's high-stakes discussions.",
+      "Dedicate 15 minutes to deliberate skill refinement and industry mastery.",
+    ],
+    checklist: [
+      "Review Top Career Milestone",
+      "Plan High-Impact Deliverables",
+      "Streamline Calendar Commitments",
+      "Execute Focused Deep Sprint",
+    ],
+    quotes: [
+      "The best way to predict the future is to create it. - Peter Drucker",
+      "Opportunities don't happen, you create them. - Chris Grosser",
+      "Continuous learning is the minimum requirement for success in any field. - Brian Tracy",
+      "Focus on being productive instead of busy. - Tim Ferriss",
+    ],
+  },
+  reflection: {
+    name: "Evening & Daily Reflection",
+    badge: "🌙 Daily Reflection & Wind-Down",
+    tagline: "Thoughtful self-review, gratitude & intentional closure",
+    rituals: [
+      "Record your top 3 wins and personal breakthroughs from today.",
+      "Reflect on one lesson learned and how you can apply it tomorrow.",
+      "Write down 3 moments of gratitude before disconnecting for the evening.",
+      "Organize your workspace and set your top priority for tomorrow morning.",
+    ],
+    checklist: [
+      "Log Daily Wins & Progress",
+      "Record 1 Key Lesson Learned",
+      "Evening Gratitude Journaling",
+      "Prepare Tomorrow's #1 Focus",
+    ],
+    quotes: [
+      "We do not learn from experience... we learn from reflecting on experience. - John Dewey",
+      "Reflect upon your present blessings, of which every man has many. - Charles Dickens",
+      "Self-reflection is the gateway to intentional living and mastery.",
+      "Close the day with a grateful heart and a clear mind.",
+    ],
+  },
 };
 
 function getTrackContent(trackKey = "deep-work") {

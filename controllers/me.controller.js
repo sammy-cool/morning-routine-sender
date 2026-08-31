@@ -196,21 +196,22 @@ async function getCoachPersonas(_req, res) {
 
 // POST /me/coach-persona { coachPersona }
 async function updateCoachPersona(req, res) {
-  const { coachPersona } = req.body || {};
+  const { coachPersona, persona } = req.body || {};
+  const targetPersona = coachPersona || persona;
 
-  if (!coachPersona || typeof coachPersona !== "string") {
+  if (!targetPersona || typeof targetPersona !== "string") {
     return res.status(400).json({
       error:
         "coachPersona field is required (e.g. 'stoic', 'relentless', 'zen', 'tech-lead', 'optimist')",
     });
   }
 
-  const normalized = coachPersona.toLowerCase().trim();
+  const normalized = targetPersona.toLowerCase().trim();
   const validPersonas = ["stoic", "relentless", "zen", "tech-lead", "optimist"];
 
   if (!validPersonas.includes(normalized)) {
     return res.status(400).json({
-      error: `Invalid coach persona '${coachPersona}'. Valid options: ${validPersonas.join(", ")}`,
+      error: `Invalid coach persona '${targetPersona}'. Valid options: ${validPersonas.join(", ")}`,
     });
   }
 
@@ -546,8 +547,14 @@ async function useStreakFreeze(req, res) {
       });
     }
 
-    const tz = subscriber.timezone || "UTC";
-    const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
+    let todayStr;
+    try {
+      todayStr = new Intl.DateTimeFormat("en-CA", {
+        timeZone: subscriber.timezone || "UTC",
+      }).format(new Date());
+    } catch (_err) {
+      todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: "UTC" }).format(new Date());
+    }
 
     const history = Array.isArray(subscriber.freezeHistory) ? [...subscriber.freezeHistory] : [];
     const alreadyFrozenToday = history.some((h) => h.date === todayStr);
