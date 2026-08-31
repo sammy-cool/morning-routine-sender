@@ -13,7 +13,7 @@
     />
     <meta
       name="keywords"
-      content="email automation, morning routine, daily habits, deep work, productivity, self improvement, habit streak, newsletter, timezone aware, focus timer"
+      content="email automation, morning routine, daily habits, deep work, productivity, self improvement, habit streak, newsletter, timezone aware, focus timer, ambient soundscapes, ai coach"
     />
     <meta name="author" content="Morning Routine Sender" />
     <meta
@@ -23,6 +23,7 @@
     <link rel="canonical" href="__DOMAIN__/" />
 
     <!-- Favicons, Icons & Web Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/mrn-brand-ico.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="/assets/mrn-brand-ico.png" />
@@ -78,7 +79,7 @@
     <meta name="twitter:image" content="__DOMAIN__/assets/screenshot-desktop.png" />
     <meta name="twitter:image:alt" content="Morning Routine Sender Preview" />
 
-    <!-- Schema.org Multi-Entity JSON-LD Graph -->
+    <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -94,92 +95,26 @@
             "browserRequirements": "Requires JavaScript. Requires HTML5.",
             "inLanguage": "en-US",
             "image": "__DOMAIN__/assets/screenshot-desktop.png",
-            "screenshot": "__DOMAIN__/assets/screenshot-desktop.png",
             "offers": {
               "@type": "Offer",
               "price": "0",
-              "priceCurrency": "USD",
-              "availability": "https://schema.org/InStock"
-            },
-            "featureList": [
-              "Timezone-Aware Automated Email Delivery",
-              "5 Focus Personas (Deep Work, Stoic Mindfulness, Exec, Learner, Energizer)",
-              "Daily Habit Streak Tracking",
-              "Interactive 25-Minute Pomodoro Focus Companion & Ambient Soundscapes",
-              "Zero Ad Tracking Privacy and 1-Click Unsubscribe"
-            ],
-            "creator": {
-              "@id": "__DOMAIN__/#organization"
+              "priceCurrency": "USD"
             }
-          },
-          {
-            "@type": "Organization",
-            "@id": "__DOMAIN__/#organization",
-            "name": "Morning Routine Sender",
-            "url": "__DOMAIN__/",
-            "logo": {
-              "@type": "ImageObject",
-              "url": "__DOMAIN__/assets/mrn-brand-ico.png",
-              "width": "512",
-              "height": "512"
-            }
-          },
-          {
-            "@type": "FAQPage",
-            "@id": "__DOMAIN__/#faq",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "How does Morning Routine Sender deliver emails at my exact wake-up time?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Our automated cron scheduling engine computes your local IANA timezone and dispatches your selected morning ritual right when you wake up."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "What persona tracks are available?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Subscribers can choose between 5 curated tracks: Deep Work & Builder, Mindfulness & Stoic, High-Performance Exec, Lifelong Learner, and Morning Energizer."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Is Morning Routine Sender free to use?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Yes, Morning Routine Sender is 100% free with zero advertisements or third-party tracking pixels."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "How does the habit streak check-in work?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Every morning email includes a secure 1-click check-in button. Tapping it logs your daily consistency and launches your interactive 25-minute Pomodoro focus ritual."
-                }
-              }
-            ]
           }
         ]
       }
     </script>
 
-    <!-- Performance Hints, Google Fonts & CDNs -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+    <!-- Performance & Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="/css/loader.css" />
@@ -205,14 +140,39 @@
         --accent-cyan: #06b6d4;
         --accent-emerald: #10b981;
         --accent-amber: #f59e0b;
+        --accent-rose: #f43f5e;
         --text-main: #f8fafc;
         --text-muted: #94a3b8;
-        --text-subtle: #94a3b8;
+        --text-subtle: #64748b;
         --radius-sm: 8px;
         --radius-md: 14px;
         --radius-lg: 22px;
+        --radius-xl: 28px;
         --shadow-glow: 0 0 25px -5px var(--primary-glow);
-        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      /* Theme Override Classes */
+      body.theme-solar {
+        --bg-main: #0c0a06;
+        --bg-card: rgba(26, 19, 12, 0.85);
+        --primary: #f59e0b;
+        --primary-glow: rgba(245, 158, 11, 0.4);
+        --primary-hover: #d97706;
+      }
+      body.theme-emerald {
+        --bg-main: #060e0a;
+        --bg-card: rgba(6, 28, 18, 0.85);
+        --primary: #10b981;
+        --primary-glow: rgba(16, 185, 129, 0.4);
+        --primary-hover: #059669;
+      }
+      body.theme-cyberpunk {
+        --bg-main: #0c0517;
+        --bg-card: rgba(25, 10, 42, 0.85);
+        --primary: #d946ef;
+        --primary-glow: rgba(217, 70, 239, 0.45);
+        --primary-hover: #c026d3;
       }
 
       * {
@@ -235,32 +195,32 @@
         flex-direction: column;
         overflow-x: hidden;
         background-image:
-          radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-          radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
-          radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+          radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.18) 0px, transparent 55%),
+          radial-gradient(circle at 85% 20%, rgba(6, 182, 212, 0.14) 0px, transparent 50%),
+          radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
         background-attachment: fixed;
         padding-top: env(safe-area-inset-top, 0);
         padding-bottom: env(safe-area-inset-bottom, 0);
       }
 
       .container {
-        max-width: 1180px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 0 20px;
         width: 100%;
       }
 
-      /* Top Navbar */
+      /* Navigation Header */
       header.navbar {
         padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 16px
           max(20px, env(safe-area-inset-left));
         border-bottom: 1px solid var(--border-subtle);
-        background: rgba(11, 15, 25, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: rgba(11, 15, 25, 0.82);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         position: sticky;
         top: 0;
-        z-index: 40;
+        z-index: 50;
       }
 
       .nav-wrap {
@@ -273,29 +233,33 @@
       .brand-logo {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         text-decoration: none;
         flex-shrink: 0;
       }
 
       .brand-icon {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+        width: 40px;
+        height: 40px;
         border-radius: var(--radius-md);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 17px;
-        color: #fff;
-        box-shadow: 0 4px 14px var(--primary-glow);
+        box-shadow: 0 4px 16px var(--primary-glow);
+        transition: var(--transition);
+      }
+
+      .brand-icon:hover {
+        transform: scale(1.05) rotate(5deg);
       }
 
       .brand-name {
-        font-size: 17px;
-        font-weight: 800;
-        letter-spacing: -0.3px;
-        color: #fff;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
 
       .nav-links {
@@ -303,6 +267,41 @@
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
+      }
+
+      .live-hud-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
+        font-family: "JetBrains Mono", monospace;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--accent-cyan);
+      }
+
+      .live-hud-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        box-shadow: 0 0 8px var(--accent-emerald);
+        animation: pulseLive 2s infinite ease-in-out;
+      }
+
+      @keyframes pulseLive {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.4;
+          transform: scale(0.85);
+        }
       }
 
       /* Buttons */
@@ -314,280 +313,427 @@
         padding: 10px 18px;
         border-radius: var(--radius-md);
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
         transition: var(--transition);
         border: 1px solid transparent;
         text-decoration: none;
-        white-space: nowrap;
-        touch-action: manipulation;
-        min-height: 44px;
       }
 
       .btn-sm {
-        padding: 8px 14px;
+        padding: 7px 14px;
         font-size: 13px;
-        min-height: 40px;
+        border-radius: 10px;
       }
 
       .btn-primary {
         background: linear-gradient(135deg, var(--primary), var(--primary-hover));
         color: #ffffff;
-        box-shadow: 0 4px 15px -3px var(--primary-glow);
+        box-shadow: 0 4px 16px var(--primary-glow);
       }
 
       .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px -4px var(--primary-glow);
-        filter: brightness(1.08);
+        box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
       }
 
       .btn-glass {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.06);
+        color: #f1f5f9;
         border: 1px solid var(--border-subtle);
-        color: #fff;
-        backdrop-filter: blur(10px);
       }
 
       .btn-glass:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: var(--border-hover);
-        transform: translateY(-2px);
-      }
-
-      .btn-install {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
-        border: 1px solid rgba(16, 185, 129, 0.4);
-        color: #34d399;
-      }
-
-      .btn-install:hover {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(6, 182, 212, 0.3));
-        border-color: #34d399;
-        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
       }
 
       /* Hero Section */
       .hero-section {
-        padding: clamp(36px, 7vw, 72px) 0 clamp(24px, 4vw, 40px);
+        padding: 64px 0 40px;
         text-align: center;
-        max-width: 800px;
-        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
       }
 
-      .hero-pill {
+      .hero-badge-pill {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 16px;
+        padding: 8px 18px;
+        border-radius: 9999px;
         background: rgba(99, 102, 241, 0.12);
         border: 1px solid rgba(99, 102, 241, 0.3);
-        border-radius: 9999px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #a5b4fc;
-        margin-bottom: 20px;
+        color: #c7d2fe;
+        font-size: 13.5px;
+        font-weight: 700;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
       }
 
       .hero-title {
-        font-size: clamp(28px, 5.5vw, 48px);
-        font-weight: 800;
-        line-height: 1.15;
-        letter-spacing: -0.025em;
-        background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+        font-size: clamp(34px, 5.5vw, 64px);
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        max-width: 900px;
+        background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 70%, #38bdf8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 16px;
       }
 
       .hero-subtitle {
-        font-size: clamp(15px, 2.5vw, 17px);
-        line-height: 1.6;
+        font-size: clamp(16px, 2vw, 19px);
         color: var(--text-muted);
-        max-width: 640px;
-        margin: 0 auto 36px;
+        max-width: 680px;
+        line-height: 1.6;
+        font-weight: 400;
       }
 
-      /* Portals Grid (Signup & Login) */
-      .portal-grid {
+      /* Bento Grid Container */
+      .bento-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(12, 1fr);
         gap: 24px;
-        margin-bottom: 56px;
+        margin: 40px 0 64px;
       }
 
-      @media (max-width: 480px) {
-        .portal-grid {
-          grid-template-columns: 1fr;
-          gap: 16px;
-        }
-      }
-
-      .portal-card {
+      .bento-card {
         background: var(--bg-card);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-lg);
-        padding: 32px 28px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        border-radius: var(--radius-xl);
+        padding: 30px;
+        box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6);
         transition: var(--transition);
         position: relative;
         overflow: hidden;
       }
 
-      @media (max-width: 480px) {
+      .bento-card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-3px);
+        box-shadow:
+          0 20px 50px -10px rgba(0, 0, 0, 0.7),
+          0 0 25px var(--primary-glow);
+      }
+
+      /* Live Interactive Email Simulator Card */
+      .simulator-card {
+        grid-column: span 12;
+        background: linear-gradient(180deg, rgba(17, 24, 39, 0.9) 0%, rgba(11, 15, 25, 0.95) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        box-shadow:
+          0 25px 60px -12px rgba(0, 0, 0, 0.7),
+          0 0 35px rgba(99, 102, 241, 0.2);
+        padding: 32px;
+      }
+
+      .sim-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+
+      .sim-title-group h3 {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .sim-title-group p {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      .sim-track-tabs {
+        display: flex;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow-x: auto;
+      }
+
+      .sim-tab-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+      }
+
+      .sim-tab-btn.active {
+        background: var(--primary);
+        color: #ffffff;
+        box-shadow: 0 4px 12px var(--primary-glow);
+      }
+
+      /* Mockup Email Frame */
+      .email-mock-window {
+        background: #080c14;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .email-mock-bar {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .mac-dots {
+        display: flex;
+        gap: 6px;
+      }
+
+      .mac-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .email-mock-body {
+        padding: 28px;
+      }
+
+      .mock-quote-box {
+        background: rgba(99, 102, 241, 0.08);
+        border-left: 4px solid var(--primary);
+        border-radius: 0 14px 14px 0;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+      }
+
+      .mock-quote-text {
+        font-size: 16px;
+        font-style: italic;
+        color: #e2e8f0;
+        line-height: 1.6;
+      }
+
+      .mock-quote-author {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent-cyan);
+        margin-top: 8px;
+      }
+
+      .mock-checklist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .mock-check-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .mock-check-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: var(--primary);
+      }
+
+      .mock-check-item.done {
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+
+      .mock-cta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 20px;
+      }
+
+      /* Dual Onboarding Portals */
+      .portal-card {
+        grid-column: span 6;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      @media (max-width: 900px) {
         .portal-card {
-          padding: 24px 18px;
-          border-radius: 18px;
+          grid-column: span 12;
         }
       }
 
-      .portal-card:hover {
-        border-color: var(--border-hover);
-        box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
-      }
-
       .portal-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: var(--radius-md);
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 18px;
       }
 
       .portal-title {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 800;
-        color: #fff;
         letter-spacing: -0.01em;
       }
 
       .portal-desc {
-        font-size: 14px;
+        font-size: 14.5px;
         color: var(--text-muted);
-        line-height: 1.5;
-        margin-top: 4px;
-      }
-
-      .portal-form {
-        margin-top: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+        line-height: 1.6;
       }
 
       .input-group {
         display: flex;
         gap: 10px;
-      }
-
-      @media (max-width: 480px) {
-        .input-group {
-          flex-direction: column;
-        }
+        margin-top: 8px;
       }
 
       .input-text {
         flex: 1;
-        background: rgba(10, 15, 29, 0.8);
-        border: 1px solid var(--border-subtle);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: var(--radius-md);
-        padding: 12px 14px;
-        color: #fff;
-        font-size: 14px;
-        outline: none;
+        padding: 13px 18px;
+        color: #ffffff;
+        font-size: 14.5px;
         transition: var(--transition);
-        min-height: 44px;
+        outline: none;
       }
 
       .input-text:focus {
         border-color: var(--primary);
-        box-shadow: 0 0 15px -3px var(--primary-glow);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+        background: rgba(255, 255, 255, 0.07);
       }
 
       .form-status {
         font-size: 13px;
         min-height: 20px;
-        margin-top: 4px;
+        margin-top: 6px;
       }
 
-      /* Features Showcase */
-      .features-section {
-        margin-bottom: 56px;
+      /* 6-Card Bento Grid Ecosystem */
+      .bento-col-4 {
+        grid-column: span 4;
+      }
+      .bento-col-6 {
+        grid-column: span 6;
+      }
+      .bento-col-8 {
+        grid-column: span 8;
       }
 
-      .features-header {
-        text-align: center;
-        margin-bottom: 28px;
+      @media (max-width: 1024px) {
+        .bento-col-4,
+        .bento-col-6,
+        .bento-col-8 {
+          grid-column: span 12;
+        }
       }
 
-      .features-header h2 {
-        font-size: 24px;
-        font-weight: 800;
-        color: #fff;
-        letter-spacing: -0.01em;
-      }
-
-      .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 18px;
-      }
-
-      .feature-card {
-        background: rgba(15, 23, 42, 0.4);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-md);
-        padding: 22px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        transition: var(--transition);
-      }
-
-      .feature-card:hover {
-        background: rgba(15, 23, 42, 0.65);
-        border-color: var(--border-hover);
-        transform: translateY(-2px);
-      }
-
-      .feature-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: var(--radius-sm);
-        background: rgba(99, 102, 241, 0.15);
-        color: #818cf8;
+      .feature-mini-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 18px;
+        margin-bottom: 16px;
       }
 
-      .feature-title {
+      .feature-mini-title {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+
+      .feature-mini-desc {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.6;
+      }
+
+      /* FAQ Accordion */
+      .faq-section {
+        margin: 50px 0 80px;
+      }
+
+      .faq-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        transition: var(--transition);
+      }
+
+      .faq-question {
+        padding: 18px 24px;
         font-size: 16px;
         font-weight: 700;
-        color: #fff;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
-      .feature-desc {
-        font-size: 13px;
+      .faq-answer {
+        padding: 0 24px 18px;
         color: var(--text-muted);
-        line-height: 1.5;
+        font-size: 14.5px;
+        line-height: 1.6;
+        display: none;
+      }
+
+      .faq-item.open .faq-answer {
+        display: block;
+      }
+
+      .faq-item.open .faq-icon {
+        transform: rotate(180deg);
       }
 
       /* Footer */
       footer.footer {
-        margin-top: auto;
-        padding: 24px max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))
-          max(20px, env(safe-area-inset-left));
         border-top: 1px solid var(--border-subtle);
-        background: rgba(7, 9, 14, 0.95);
-        font-size: 13px;
+        padding: 32px 0 40px;
+        background: rgba(11, 15, 25, 0.9);
+        font-size: 13.5px;
         color: var(--text-muted);
       }
 
@@ -595,8 +741,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 16px;
         flex-wrap: wrap;
-        gap: 12px;
       }
 
       /* Floating PWA Banner */
@@ -632,70 +778,13 @@
         transform: translateY(0);
       }
 
-      @media (max-width: 640px) {
-        .pwa-banner {
-          left: 16px;
-          right: 16px;
-          bottom: max(16px, env(safe-area-inset-bottom));
-          width: calc(100% - 32px);
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 12px;
-        }
-        .pwa-banner-actions {
-          width: 100%;
-          display: flex;
-          justify-content: flex-end;
-          gap: 8px;
-        }
-      }
-
-      .pwa-banner-content {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .pwa-banner-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 18px;
-        flex-shrink: 0;
-      }
-
-      .pwa-banner-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: #fff;
-      }
-
-      .pwa-banner-desc {
-        font-size: 12px;
-        color: var(--text-muted);
-        line-height: 1.3;
-        margin-top: 2px;
-      }
-
-      .pwa-banner-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-shrink: 0;
-      }
-
-      /* Modal Backdrop */
+      /* Modals */
       .modal-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -715,44 +804,6 @@
         gap: 14px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         position: relative;
-        animation: modalEntrance 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      @keyframes modalEntrance {
-        from {
-          opacity: 0;
-          transform: translateY(12px) scale(0.97);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      .modal h2 {
-        font-size: 20px;
-        font-weight: 800;
-        color: #fff;
-      }
-
-      .modal p.meta {
-        font-size: 13px;
-        color: var(--text-muted);
-        line-height: 1.5;
-      }
-
-      .modal .small {
-        font-size: 12px;
-        color: var(--text-muted);
-      }
-
-      .modal .small a {
-        color: #818cf8;
-        text-decoration: none;
-      }
-
-      .modal .small a:hover {
-        text-decoration: underline;
       }
     </style>
   </head>
@@ -762,57 +813,32 @@
     <header class="navbar" id="mainRootHeader">
       <div class="container nav-wrap">
         <a href="/" class="brand-logo" aria-label="Morning Routine Sender Home">
-          <div class="brand-icon" aria-hidden="true"><i class="fas fa-sun"></i></div>
+          <div class="brand-icon">
+            <img src="/assets/logo.svg" alt="Logo" width="34" height="34" />
+          </div>
           <span class="brand-name">Morning Routine</span>
         </a>
 
-        <nav class="nav-links" aria-label="Main Navigation">
-          <a
-            href="/about"
-            class="nav-link-item"
-            style="
-              color: var(--text-muted);
-              text-decoration: none;
-              font-size: 13.5px;
-              font-weight: 600;
-              padding: 6px 10px;
-            "
-            >About</a
-          >
-          <a
-            href="/routine"
-            class="nav-link-item"
-            style="
-              color: var(--text-muted);
-              text-decoration: none;
-              font-size: 13.5px;
-              font-weight: 600;
-              padding: 6px 10px;
-            "
-            >Focus Companion</a
-          >
-          <button
-            id="pwaNavInstallBtn"
-            class="btn btn-install btn-sm"
-            style="display: none"
-            aria-label="Install Morning Routine App"
-          >
-            <i class="fas fa-arrow-down-to-bracket" aria-hidden="true"></i> Install App
+        <div class="nav-links">
+          <div class="live-hud-pill">
+            <span class="live-hud-dot"></span>
+            <span id="liveClockBadge">08:00 AM</span>
+          </div>
+
+          <a href="/about" class="btn btn-glass btn-sm">About</a>
+          <a href="/routine" class="btn btn-glass btn-sm">
+            <i class="fas fa-compass" style="color: var(--accent-cyan)"></i> Focus Companion
+          </a>
+          <button id="pwaNavInstallBtn" class="btn btn-glass btn-sm" style="display: none">
+            <i class="fas fa-download"></i> Install App
           </button>
-          <button
-            type="button"
-            class="btn btn-glass btn-sm"
-            id="openModalBtn"
-            aria-haspopup="dialog"
-            aria-controls="keyModal"
-            aria-expanded="false"
-          >
-            <i class="fas fa-key" aria-hidden="true"></i> Admin Access
+          <button type="button" class="btn btn-glass btn-sm" id="openModalBtn">
+            <i class="fas fa-key"></i> Admin
           </button>
           <a class="btn btn-primary btn-sm" href="#signupView">
-            <i class="fas fa-paper-plane" aria-hidden="true"></i> Subscribe Free
+            <i class="fas fa-bolt"></i> Subscribe Free
           </a>
-        </nav>
+        </div>
       </div>
     </header>
 
@@ -820,35 +846,162 @@
     <main class="container" id="mainRoot">
       <!-- Hero Section -->
       <section class="hero-section" aria-labelledby="hero-title">
-        <div class="hero-pill">
-          <i class="fas fa-sparkles" aria-hidden="true"></i>
-          <span>Automated Daily Rituals • Powered by SMTP Engine</span>
+        <div class="hero-badge-pill">
+          <i class="fas fa-bolt" style="color: var(--accent-amber)"></i>
+          <span>Timezone-Aware Rituals • 100% Distraction Free</span>
         </div>
         <h1 class="hero-title" id="hero-title">
-          Start Every Single Morning Inspired &amp; Aligned
+          Start Every Morning Inspired, Aligned &amp; Unshakable
         </h1>
         <p class="hero-subtitle">
-          Receive curated morning routines, deep work reflections, habit streak tracking, and
-          tailored wisdom delivered right when you wake up in your local timezone.
+          Curated morning routines, deep work reflections, habit streak shields, and tailored wisdom
+          delivered right when you wake up.
         </p>
       </section>
 
-      <!-- Portals Grid: Signup + Subscriber Login -->
-      <section class="portal-grid" aria-label="Subscriber Access and Onboarding">
-        <!-- New Subscriber Signup Card -->
-        <article class="portal-card" id="signupView" aria-labelledby="signupTitle">
-          <div
-            class="portal-icon"
-            style="background: rgba(99, 102, 241, 0.15); color: #818cf8"
-            aria-hidden="true"
-          >
+      <!-- Interactive Live Email Simulator -->
+      <section class="bento-grid" aria-label="Interactive Simulator">
+        <div class="bento-card simulator-card">
+          <div class="sim-header-row">
+            <div class="sim-title-group">
+              <h3>
+                <i class="fas fa-sparkles" style="color: var(--accent-cyan); margin-right: 8px"></i>
+                Interactive Routine Simulator
+              </h3>
+              <p>Preview how your morning kickoff email looks across different discipline tracks</p>
+            </div>
+            <div class="sim-track-tabs">
+              <button
+                type="button"
+                class="sim-tab-btn active"
+                data-track="deep-work"
+                onclick="switchSimTrack('deep-work')"
+              >
+                ⚡ Deep Work
+              </button>
+              <button
+                type="button"
+                class="sim-tab-btn"
+                data-track="mindfulness"
+                onclick="switchSimTrack('mindfulness')"
+              >
+                🧘 Stoic Zen
+              </button>
+              <button
+                type="button"
+                class="sim-tab-btn"
+                data-track="exec"
+                onclick="switchSimTrack('exec')"
+              >
+                🚀 Exec Leader
+              </button>
+              <button
+                type="button"
+                class="sim-tab-btn"
+                data-track="learner"
+                onclick="switchSimTrack('learner')"
+              >
+                📚 Lifelong Learner
+              </button>
+              <button
+                type="button"
+                class="sim-tab-btn"
+                data-track="energizer"
+                onclick="switchSimTrack('energizer')"
+              >
+                🔥 Energizer
+              </button>
+            </div>
+          </div>
+
+          <div class="email-mock-window">
+            <div class="email-mock-bar">
+              <div class="mac-dots">
+                <span class="mac-dot" style="background: #ff5f56"></span>
+                <span class="mac-dot" style="background: #ffbd2e"></span>
+                <span class="mac-dot" style="background: #27c93f"></span>
+              </div>
+              <span id="simEmailSubject"
+                >⚡ Deep Work Routine: Day 42 • Crafting the Unbreakable Flow</span
+              >
+              <span
+                style="
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  font-size: 11px;
+                  color: var(--accent-emerald);
+                "
+                >● 06:30 AM (Your Local Time)</span
+              >
+            </div>
+
+            <div class="email-mock-body">
+              <div class="mock-quote-box">
+                <div class="mock-quote-text" id="simQuoteText">
+                  "The ability to perform deep work is becoming increasingly rare at exactly the
+                  same time it is becoming increasingly valuable."
+                </div>
+                <div class="mock-quote-author" id="simQuoteAuthor">— Cal Newport, Deep Work</div>
+              </div>
+
+              <div
+                style="
+                  font-size: 13px;
+                  font-weight: 700;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  margin-bottom: 12px;
+                "
+              >
+                🎯 Morning Habit Checklist (Click to test):
+              </div>
+
+              <div class="mock-checklist-grid" id="simChecklistGrid">
+                <div class="mock-check-item" onclick="this.classList.toggle('done')">
+                  <i class="fas fa-check-circle" style="color: var(--accent-cyan)"></i>
+                  <span>Zero Phone / Email for first 60 min</span>
+                </div>
+                <div class="mock-check-item" onclick="this.classList.toggle('done')">
+                  <i class="fas fa-check-circle" style="color: var(--accent-cyan)"></i>
+                  <span>500ml Hydration + 10 min Sunshine</span>
+                </div>
+                <div class="mock-check-item" onclick="this.classList.toggle('done')">
+                  <i class="fas fa-check-circle" style="color: var(--accent-cyan)"></i>
+                  <span>Define Top 1 Highest Leverage Deliverable</span>
+                </div>
+                <div class="mock-check-item" onclick="this.classList.toggle('done')">
+                  <i class="fas fa-check-circle" style="color: var(--accent-cyan)"></i>
+                  <span>Initiate 25-min Pomodoro Deep Work Block</span>
+                </div>
+              </div>
+
+              <div class="mock-cta-row">
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <a href="#signupView" class="btn btn-primary btn-sm">
+                    <i class="fas fa-check-double"></i> 1-Click Habit Check-in Demo
+                  </a>
+                  <a href="/routine" class="btn btn-glass btn-sm">
+                    <i class="fas fa-stopwatch"></i> Launch Focus Sprint (25:00)
+                  </a>
+                </div>
+                <span style="font-size: 12px; color: var(--text-subtle)"
+                  >🔥 Current Momentum: 42-Day Streak Active</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portals Grid: Signup + Subscriber Login -->
+        <article class="bento-card portal-card" id="signupView" aria-labelledby="signupTitle">
+          <div class="portal-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8">
             <i class="fas fa-user-plus"></i>
           </div>
           <div>
             <h2 class="portal-title" id="signupTitle">Join Daily Routine</h2>
             <p class="portal-desc">
-              Get an inspiring morning routine email daily. We send a quick confirmation link to
-              verify your inbox.
+              Get an inspiring morning routine email daily at your wake-up time. 100% free with zero
+              ads.
             </p>
           </div>
 
@@ -887,27 +1040,22 @@
           </form>
         </article>
 
-        <!-- Existing Subscriber Magic Link Login -->
-        <article class="portal-card" id="userView" aria-labelledby="loginTitle">
-          <div
-            class="portal-icon"
-            style="background: rgba(6, 182, 212, 0.15); color: #22d3ee"
-            aria-hidden="true"
-          >
+        <article class="bento-card portal-card" id="userView" aria-labelledby="loginTitle">
+          <div class="portal-icon" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee">
             <i class="fas fa-magic"></i>
           </div>
           <div>
             <h2 class="portal-title" id="loginTitle">Subscriber Portal</h2>
             <p class="portal-desc">
-              Already subscribed? Enter your email to receive an instant magic login link to manage
-              send times, streak, or pause anytime.
+              Access your personalized dashboard, 365-day consistency heatmap, AI coach settings,
+              and reflection journal.
             </p>
           </div>
 
           <form
             id="subscriberLoginForm"
             class="portal-form"
-            aria-label="Subscriber magic link login"
+            aria-label="Send subscriber access magic link"
           >
             <input
               type="text"
@@ -922,59 +1070,144 @@
                 id="subscriberLoginEmail"
                 type="email"
                 class="input-text"
-                placeholder="your.email@example.com"
+                placeholder="subscriber@example.com"
                 required
-                aria-label="Email address for magic link login"
+                aria-label="Email address for subscriber access"
               />
               <button type="submit" class="btn btn-glass" id="subscriberLoginBtn">
-                <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login Link
+                <i class="fas fa-key" aria-hidden="true"></i> Send Link
               </button>
             </div>
             <p
               id="subscriberLoginStatus"
               class="form-status"
-              style="color: #60a5fa"
+              style="color: #22d3ee"
               aria-live="polite"
             ></p>
           </form>
         </article>
+
+        <!-- 6 Bento Feature Cards -->
+        <div class="bento-card bento-col-4">
+          <div
+            class="feature-mini-icon"
+            style="background: rgba(99, 102, 241, 0.15); color: #818cf8"
+          >
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3 class="feature-mini-title">5 AI Coach Personas</h3>
+          <p class="feature-mini-desc">
+            Tailor daily sparks to your archetype: Stoic Philosopher, Relentless Achiever, Zen
+            Minimalist, Tech Lead, or Optimist.
+          </p>
+        </div>
+
+        <div class="bento-card bento-col-4">
+          <div
+            class="feature-mini-icon"
+            style="background: rgba(16, 185, 129, 0.15); color: #34d399"
+          >
+            <i class="fas fa-fire"></i>
+          </div>
+          <h3 class="feature-mini-title">365-Day Heatmap &amp; Freezes</h3>
+          <p class="feature-mini-desc">
+            Track daily consistency visually like a GitHub commit graph. Missed a day? Streak Freeze
+            shields automatically protect your momentum.
+          </p>
+        </div>
+
+        <div class="bento-card bento-col-4">
+          <div
+            class="feature-mini-icon"
+            style="background: rgba(6, 182, 212, 0.15); color: #38bdf8"
+          >
+            <i class="fas fa-headphones"></i>
+          </div>
+          <h3 class="feature-mini-title">Procedural Soundscapes</h3>
+          <p class="feature-mini-desc">
+            Synthesized Web Audio alpha waves (40Hz binaural beats), rainstorm, and ocean swells
+            with zero external MP3s.
+          </p>
+        </div>
+
+        <div class="bento-card bento-col-4">
+          <div
+            class="feature-mini-icon"
+            style="background: rgba(245, 158, 11, 0.15); color: #fbbf24"
+          >
+            <i class="fas fa-paper-plane"></i>
+          </div>
+          <h3 class="feature-mini-title">Multi-Channel Telegram &amp; Discord</h3>
+          <p class="feature-mini-desc">
+            Receive morning briefings right in Discord webhooks or Telegram bots alongside your
+            inbox.
+          </p>
+        </div>
+
+        <div class="bento-card bento-col-4">
+          <div
+            class="feature-mini-icon"
+            style="background: rgba(217, 70, 239, 0.15); color: #e879f9"
+          >
+            <i class="fas fa-volume-high"></i>
+          </div>
+          <h3 class="feature-mini-title">Voice Briefing Engine</h3>
+          <p class="feature-mini-desc">
+            Listen to your morning spark aloud with natural SpeechSynthesis and animated 5-bar wave
+            visualizer.
+          </p>
+        </div>
+
+        <div class="bento-card bento-col-4">
+          <div
+            class="feature-mini-icon"
+            style="background: rgba(59, 130, 246, 0.15); color: #60a5fa"
+          >
+            <i class="fas fa-envelope-open-text"></i>
+          </div>
+          <h3 class="feature-mini-title">Sunday Weekly Digest</h3>
+          <p class="feature-mini-desc">
+            Automated Sunday performance wrap-up celebrating weekly milestones, mood scores, and
+            highest-leverage wins.
+          </p>
+        </div>
       </section>
 
-      <!-- Features Showcase Section -->
-      <section class="features-section" aria-labelledby="features-title">
-        <div class="features-header">
-          <h2 id="features-title">Engineered for Precision &amp; Clarity</h2>
+      <!-- FAQ Section -->
+      <section class="faq-section">
+        <h2 style="text-align: center; font-size: 28px; font-weight: 800; margin-bottom: 24px">
+          Frequently Asked Questions
+        </h2>
+        <div class="faq-item">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            <span>How does Morning Routine Sender deliver emails at my exact wake-up time?</span>
+            <i class="fas fa-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            Our automated scheduling engine computes your local IANA timezone and dispatches your
+            selected morning ritual right when you wake up (e.g. 6:30 AM local time).
+          </div>
         </div>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true"><i class="fas fa-clock"></i></div>
-            <h3 class="feature-title">Timezone Aware</h3>
-            <p class="feature-desc">
-              Automated cron scheduling ensures your routine lands exactly when you wake up.
-            </p>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            <span>Is Morning Routine Sender free?</span>
+            <i class="fas fa-chevron-down faq-icon"></i>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true"><i class="fas fa-brain"></i></div>
-            <h3 class="feature-title">5 Tailored Tracks</h3>
-            <p class="feature-desc">
-              Choose from Deep Work, Mindfulness &amp; Stoic, High-Performance Exec, or Lifelong
-              Learner.
-            </p>
+          <div class="faq-answer">
+            Yes, Morning Routine Sender is 100% free with zero advertisements or third-party
+            tracking pixels.
           </div>
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true"><i class="fas fa-fire"></i></div>
-            <h3 class="feature-title">Daily Streak Tracking</h3>
-            <p class="feature-desc">
-              1-Click habit check-in from your email with built-in 25-minute Pomodoro focus
-              companion.
-            </p>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            <span>What happens if I miss a habit check-in day?</span>
+            <i class="fas fa-chevron-down faq-icon"></i>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true"><i class="fas fa-shield-alt"></i></div>
-            <h3 class="feature-title">Privacy First</h3>
-            <p class="feature-desc">
-              Zero ad tracking pixels, self-service preferences, and instant 1-click unsubscribe.
-            </p>
+          <div class="faq-answer">
+            Every subscriber receives 2 Streak Freeze Shields. If you miss a day, a freeze shield is
+            automatically consumed to preserve your unbroken streak count.
           </div>
         </div>
       </section>
@@ -983,10 +1216,9 @@
     <!-- Footer -->
     <footer class="footer" id="mainRootFooter">
       <div class="container footer-wrap">
-        <div>&copy; 2026 Morning Routine Sender • All rights reserved.</div>
+        <div>&copy; 2026 Morning Routine Sender • Unshakable Morning Discipline Architecture</div>
         <nav
           class="footer-links"
-          aria-label="Footer Navigation"
           style="display: flex; gap: 18px; align-items: center; flex-wrap: wrap"
         >
           <a href="/" style="color: var(--text-muted); text-decoration: none">Home</a>
@@ -998,7 +1230,7 @@
             >Dashboard</a
           >
           <a href="/unsubscribe" style="color: var(--text-muted); text-decoration: none"
-            >Unsubscribe / Manage</a
+            >Preferences</a
           >
           <button
             type="button"
@@ -1009,7 +1241,6 @@
               color: var(--text-muted);
               cursor: pointer;
               font-size: 13px;
-              font-family: inherit;
             "
           >
             Admin Access
@@ -1020,21 +1251,21 @@
 
     <!-- PWA Bottom Floating Install Banner -->
     <div id="pwaInstallBanner" class="pwa-banner" style="display: none">
-      <div class="pwa-banner-content">
-        <div class="pwa-banner-icon" aria-hidden="true">
-          <i class="fas fa-sun"></i>
-        </div>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <img src="/assets/logo.svg" alt="PWA Logo" width="36" height="36" />
         <div>
-          <div class="pwa-banner-title">Install Morning Routine App</div>
-          <div class="pwa-banner-desc">
-            Get fast 1-click habit check-in &amp; focus companion on your device.
+          <div style="font-size: 14px; font-weight: 700; color: #fff">
+            Install Morning Routine App
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted)">
+            Get 1-click habit check-in &amp; offline companion on your device.
           </div>
         </div>
       </div>
-      <div class="pwa-banner-actions">
+      <div style="display: flex; gap: 8px">
         <button id="pwaBannerDismissBtn" class="btn btn-glass btn-sm">Later</button>
         <button id="pwaBannerInstallBtn" class="btn btn-primary btn-sm">
-          <i class="fas fa-arrow-down-to-bracket" aria-hidden="true"></i> Install
+          <i class="fas fa-download"></i> Install
         </button>
       </div>
     </div>
@@ -1043,16 +1274,17 @@
     <div id="pwaIosModal" class="modal-backdrop" style="display: none">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="iosModalTitle">
         <h2 id="iosModalTitle">Install on iPhone / iPad</h2>
-        <p class="meta">To install Morning Routine on iOS Safari:</p>
+        <p style="color: var(--text-muted); font-size: 14px">
+          To install Morning Routine on iOS Safari:
+        </p>
         <ol style="margin-left: 20px; font-size: 14px; color: var(--text-muted); line-height: 1.8">
           <li>
             Tap the <strong>Share</strong> button
-            <i class="fas fa-arrow-up-from-bracket" style="color: #818cf8" aria-hidden="true"></i>
-            in Safari's bottom toolbar.
+            <i class="fas fa-arrow-up-from-bracket" style="color: #818cf8"></i> in Safari toolbar.
           </li>
           <li>
             Scroll down and tap <strong>Add to Home Screen</strong>
-            <i class="fas fa-plus-square" style="color: #34d399" aria-hidden="true"></i>.
+            <i class="fas fa-plus-square" style="color: #34d399"></i>.
           </li>
           <li>Tap <strong>Add</strong> in the top right corner.</li>
         </ol>
@@ -1073,30 +1305,28 @@
     >
       <div class="modal" role="document" aria-labelledby="modalTitle">
         <h2 id="modalTitle">Admin Access</h2>
-        <p class="meta">
-          Enter your admin master key or one-time access key to open the Admin Command Center.
+        <p style="color: var(--text-muted); font-size: 13.5px">
+          Enter your admin master key to open the Command Center.
         </p>
-
-        <label for="adminKey" style="font-size: 13px; font-weight: 600; color: var(--text-muted)"
-          >Access Key</label
-        >
         <input
           id="adminKey"
           type="password"
           class="input-text"
           autocomplete="one-time-code"
-          placeholder="Enter ADMIN_KEY or generated key"
+          placeholder="Enter ADMIN_KEY"
         />
-
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px">
           <button id="cancelBtn" class="btn btn-glass">Cancel</button>
           <button id="submitBtn" class="btn btn-primary">Login to Admin</button>
         </div>
-
         <p class="small" style="margin-top: 8px">
-          <a href="#" id="toggleGenerate">Are you the admin? Generate a key instead</a>
+          <a
+            href="#"
+            id="toggleGenerate"
+            style="color: #818cf8; font-size: 12px; text-decoration: none"
+            >Are you the admin? Generate a key instead</a
+          >
         </p>
-
         <div
           id="generateSection"
           style="
@@ -1106,18 +1336,12 @@
             border-top: 1px solid var(--border-subtle);
           "
         >
-          <label
-            for="adminSecret"
-            style="font-size: 13px; font-weight: 600; color: var(--text-muted)"
-            >Admin Master Secret</label
-          >
           <input
             id="adminSecret"
             type="password"
             class="input-text"
             autocomplete="off"
             placeholder="Enter ADMIN_KEY"
-            style="margin-top: 6px"
           />
           <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px">
             <button id="generateBtn" class="btn btn-primary">Generate &amp; Continue</button>
@@ -1126,11 +1350,66 @@
             id="generateStatus"
             class="small"
             aria-live="polite"
-            style="margin-top: 6px; color: #818cf8"
+            style="margin-top: 6px; color: #818cf8; font-size: 12px"
           ></p>
         </div>
       </div>
     </div>
+
+    <!-- Client Simulator Script -->
+    <script>
+      const TRACK_DATA = {
+        "deep-work": {
+          subject: "⚡ Deep Work Routine: Day 42 • Crafting the Unbreakable Flow",
+          quote:
+            '"The ability to perform deep work is becoming increasingly rare at exactly the same time it is becoming increasingly valuable."',
+          author: "— Cal Newport, Deep Work",
+        },
+        mindfulness: {
+          subject: "🧘 Stoic Morning: Day 42 • Calm Clarity & Intentional Peace",
+          quote:
+            '"When you arise in the morning think of what a privilege it is to be alive, to think, to enjoy, to love."',
+          author: "— Marcus Aurelius, Meditations",
+        },
+        exec: {
+          subject: "🚀 High-Performance Exec: Day 42 • High-Leverage Strategic Execution",
+          quote:
+            '"Focusing on the high-leverage activities produces an outsized return relative to the effort expended."',
+          author: "— Andy Grove, High Output Management",
+        },
+        learner: {
+          subject: "📚 Lifelong Learner: Day 42 • Compounding Daily Wisdom & Insights",
+          quote: '"Live as if you were to die tomorrow. Learn as if you were to live forever."',
+          author: "— Mahatma Gandhi",
+        },
+        energizer: {
+          subject: "🔥 Morning Energizer: Day 42 • High Energy, Movement & Vitality",
+          quote: '"Energy flows where attention goes. Awaken your physiology to conquer the day."',
+          author: "— High Vitality Protocol",
+        },
+      };
+
+      function switchSimTrack(trackKey) {
+        document.querySelectorAll(".sim-tab-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.track === trackKey);
+        });
+        const data = TRACK_DATA[trackKey];
+        if (!data) return;
+        document.getElementById("simEmailSubject").textContent = data.subject;
+        document.getElementById("simQuoteText").textContent = data.quote;
+        document.getElementById("simQuoteAuthor").textContent = data.author;
+      }
+
+      // Live Clock HUD
+      function updateLiveClock() {
+        const el = document.getElementById("liveClockBadge");
+        if (!el) return;
+        const now = new Date();
+        el.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      }
+      setInterval(updateLiveClock, 1000);
+      updateLiveClock();
+    </script>
 
     <!-- Client Scripts -->
     <script defer src="/js/landing-page-modal.js?v=4.2.0"></script>

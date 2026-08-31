@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.1] - 2026-08-31
+
+### 🚀 Visual Polish & Interactive Simulator
+
+- **Interactive Live Email Simulator (`public/main-index.html`)**:
+  - Live 3D-styled macOS email preview card with 5 interactive persona tabs (Deep Work, Stoic, Exec, Learner, Energizer).
+  - Dynamic real-time updates for subject lines, curated quotes, and interactive habit checklist toggles.
+- **Brand SVG Logo Deployment Across All Pages**:
+  - Embedded high-DPI vector SVG brand logo (`public/assets/logo.svg`) across landing navbar, user dashboard, about page, and admin sidebar.
+- **Real-Time Live HUD Clock**:
+  - Pulsing status indicator displaying local user time and synchronization status.
+
+---
+
 ## [2.4.0] - 2026-08-31
 
 ### 🎨 Visual & UI/UX Redesign Overhaul
