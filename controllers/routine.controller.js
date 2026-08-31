@@ -444,14 +444,36 @@ async function liveRoutine(req, res) {
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
+    html.theme-solar, [data-theme="theme-solar"] {
+      --bg: #0d0b08;
+      --card-bg: rgba(30, 24, 15, 0.85);
+      --primary: #f59e0b;
+      --primary-glow: rgba(245, 158, 11, 0.35);
+      --border: rgba(245, 158, 11, 0.15);
+    }
+    html.theme-emerald, [data-theme="theme-emerald"] {
+      --bg: #060f0c;
+      --card-bg: rgba(10, 33, 25, 0.85);
+      --primary: #10b981;
+      --primary-glow: rgba(16, 185, 129, 0.35);
+      --border: rgba(16, 185, 129, 0.15);
+    }
+    html.theme-cyberpunk, [data-theme="theme-cyberpunk"] {
+      --bg: #0a0414;
+      --card-bg: rgba(26, 11, 46, 0.85);
+      --primary: #d946ef;
+      --primary-glow: rgba(217, 70, 239, 0.45);
+      --border: rgba(217, 70, 239, 0.2);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 60%),
+        radial-gradient(circle at 50% 0%, var(--primary-glow) 0%, transparent 60%),
         radial-gradient(circle at 100% 50%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
       color: var(--text-main);
       min-height: 100vh;
+      transition: background-color 0.3s ease;
       padding: max(32px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
     .container {

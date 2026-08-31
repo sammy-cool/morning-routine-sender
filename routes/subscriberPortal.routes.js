@@ -61,4 +61,12 @@ router.post(
   meController.testOutboundWebhook,
 );
 
+// Streak Freeze Shield Endpoints
+router.get(
+  "/me/streak-freeze/status",
+  requireSubscriberSession,
+  meController.getStreakFreezeStatus,
+);
+router.post("/me/streak-freeze/use", requireSubscriberSession, meController.useStreakFreeze);
+
 module.exports = router;

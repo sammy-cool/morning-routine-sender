@@ -45,6 +45,16 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
     global.document = {
       readyState: "complete",
       getElementById: jest.fn(() => null),
+      querySelectorAll: jest.fn(() => []),
+      querySelector: jest.fn(() => null),
+      documentElement: {
+        classList: {
+          add: jest.fn(),
+          remove: jest.fn(),
+          contains: jest.fn(() => false),
+        },
+        setAttribute: jest.fn(),
+      },
       createElement: jest.fn(() => {
         const el = {
           id: "",
@@ -56,6 +66,7 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
           setAttribute: jest.fn(),
           appendChild: jest.fn(),
           querySelector: jest.fn(() => ({ textContent: "" })),
+          querySelectorAll: jest.fn(() => []),
           innerHTML: "",
           tagName: "DIV",
         };
@@ -232,6 +243,58 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
       expect(listener).toHaveBeenCalledWith(true);
 
       UXCore.network.removeListener(listener);
+    });
+  });
+
+  describe("6. Procedural Ambient Soundscapes Engine", () => {
+    test("defines supported modes and reports initial inactive state", () => {
+      expect(UXCore.ambient.SUPPORTED_MODES).toEqual(["binaural", "rain", "zen-waves"]);
+      expect(UXCore.ambient.isPlaying()).toBe(false);
+      expect(UXCore.ambient.getCurrentMode()).toBeNull();
+    });
+
+    test("stops ambient sound cleanly", () => {
+      UXCore.ambient.stop();
+      expect(UXCore.ambient.isPlaying()).toBe(false);
+    });
+  });
+
+  describe("7. Voice Briefing Engine", () => {
+    test("safely stops and checks speaking state", () => {
+      UXCore.voice.stop();
+      expect(UXCore.voice.isSpeaking()).toBe(false);
+      UXCore.voice.setRate(1.2);
+      UXCore.voice.setVoice("Google US English");
+    });
+  });
+
+  describe("8. Dynamic 4-Theme Switcher Engine", () => {
+    test("provides 4 themes and gets/sets current theme", () => {
+      const themes = UXCore.theme.getAvailableThemes();
+      expect(themes.length).toBe(4);
+      expect(themes.map((t) => t.name)).toContain("theme-obsidian");
+      expect(themes.map((t) => t.name)).toContain("theme-solar");
+      expect(themes.map((t) => t.name)).toContain("theme-emerald");
+      expect(themes.map((t) => t.name)).toContain("theme-cyberpunk");
+
+      UXCore.theme.set("theme-solar");
+      expect(UXCore.theme.get()).toBe("theme-solar");
+      expect(global.localStorage.getItem("mrn_theme_preference")).toBe("theme-solar");
+
+      UXCore.theme.set("theme-cyberpunk");
+      expect(UXCore.theme.get()).toBe("theme-cyberpunk");
+    });
+  });
+
+  describe("9. Interactive Spotlight Onboarding Tour", () => {
+    test("manages tour completion and reset state", () => {
+      expect(UXCore.tour.isCompleted()).toBe(false);
+      UXCore.tour.skip();
+      expect(UXCore.tour.isCompleted()).toBe(true);
+      expect(global.localStorage.getItem("mrn_tour_completed")).toBe("true");
+
+      UXCore.tour.reset();
+      expect(UXCore.tour.isCompleted()).toBe(false);
     });
   });
 });

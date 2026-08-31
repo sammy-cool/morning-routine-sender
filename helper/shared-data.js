@@ -204,37 +204,84 @@ async function recordCheckin(email, timezone = "UTC") {
 
   const lastCheckin = subscriber.lastCheckinDate;
   const currentStreak = Number(subscriber.streakCount) || 0;
+  let streakFreezes = subscriber.streakFreezes !== undefined ? Number(subscriber.streakFreezes) : 2;
+  const freezeHistory = Array.isArray(subscriber.freezeHistory)
+    ? [...subscriber.freezeHistory]
+    : [];
 
   if (lastCheckin === todayStr) {
     return {
       success: true,
       email,
       streak: currentStreak,
+      streakCount: currentStreak,
       alreadyCheckedInToday: true,
       today: todayStr,
+      streakFreezes,
+      freezeUsed: false,
     };
   }
 
   let newStreak = 1;
+  let freezeUsed = false;
+
   if (lastCheckin === yesterdayStr) {
     newStreak = currentStreak + 1;
+  } else if (lastCheckin) {
+    const dLast = new Date(lastCheckin + "T00:00:00Z");
+    const dToday = new Date(todayStr + "T00:00:00Z");
+    const diffDays = Math.round((dToday - dLast) / (24 * 60 * 60 * 1000));
+
+    if (diffDays === 2 && streakFreezes > 0) {
+      streakFreezes -= 1;
+      freezeUsed = true;
+      newStreak = currentStreak + 1;
+      freezeHistory.push({
+        date: yesterdayStr,
+        usedAt: new Date().toISOString(),
+        reason: "auto-freeze-gap",
+      });
+      logger.info("🛡️ Streak freeze auto-consumed to preserve streak", {
+        email,
+        missedDate: yesterdayStr,
+        freezesRemaining: streakFreezes,
+        preservedStreak: newStreak,
+      });
+    } else {
+      newStreak = 1;
+    }
   }
 
   try {
-    await db("subscribers").where("email", email).update({
-      streak_count: newStreak,
-      last_checkin_date: todayStr,
-      updated_at: db.fn.now(),
-    });
+    await db("subscribers")
+      .where("email", email)
+      .update({
+        streak_count: newStreak,
+        last_checkin_date: todayStr,
+        streak_freezes: streakFreezes,
+        freeze_history: JSON.stringify(freezeHistory),
+        updated_at: db.fn.now(),
+      });
 
-    logger.info("🔥 Streak checkin recorded", { email, newStreak, todayStr });
+    logger.info("🔥 Streak checkin recorded", {
+      email,
+      newStreak,
+      todayStr,
+      freezeUsed,
+      streakFreezes,
+    });
     return {
       success: true,
       email,
       streak: newStreak,
+      streakCount: newStreak,
       alreadyCheckedInToday: false,
       isNewStreak: newStreak > 1,
       today: todayStr,
+      freezeUsed,
+      streakFreezes,
+      freezeHistory,
+      shieldBadge: freezeUsed ? "🛡️ Streak Shield Saved Your Streak!" : undefined,
     };
   } catch (err) {
     logger.error("Error recording checkin", { error: err.message, email });
@@ -242,8 +289,11 @@ async function recordCheckin(email, timezone = "UTC") {
       success: true,
       email,
       streak: newStreak,
+      streakCount: newStreak,
       alreadyCheckedInToday: false,
       today: todayStr,
+      freezeUsed,
+      streakFreezes,
     };
   }
 }
@@ -316,13 +366,31 @@ async function getUserByEmail(email) {
         "webhook_endpoint_url as webhookEndpointUrl",
         "webhook_secret as webhookSecret",
         "webhook_enabled as webhookEnabled",
+        "streak_freezes as streakFreezes",
+        "freeze_history as freezeHistory",
       )
       .first();
     if (!row) return null;
+
+    let parsedFreezeHistory = [];
+    try {
+      parsedFreezeHistory =
+        typeof row.freezeHistory === "string"
+          ? JSON.parse(row.freezeHistory || "[]")
+          : row.freezeHistory || [];
+    } catch (_e) {
+      parsedFreezeHistory = [];
+    }
+
     return {
       ...row,
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: Number(row.streakCount) || 0,
+      streakFreezes:
+        row.streakFreezes !== undefined && row.streakFreezes !== null
+          ? Number(row.streakFreezes)
+          : 2,
+      freezeHistory: parsedFreezeHistory,
       routineTrack: row.routineTrack || row.templateType || "deep-work",
       coachPersona: row.coachPersona || "stoic",
       channelsEnabled: row.channelsEnabled || "email",
@@ -344,6 +412,8 @@ async function getUserByEmail(email) {
       ...row,
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: 0,
+      streakFreezes: 2,
+      freezeHistory: [],
       routineTrack: row.templateType || "deep-work",
       coachPersona: "stoic",
       channelsEnabled: "email",
@@ -367,6 +437,8 @@ async function addUser(user) {
       routine_track: track,
       streak_count: user.streakCount || 0,
       coach_persona: user.coachPersona || "stoic",
+      streak_freezes: user.streakFreezes !== undefined ? user.streakFreezes : 2,
+      freeze_history: JSON.stringify(user.freezeHistory || []),
     });
     logger.info(`✅ Subscriber added: ${user.email}`);
     return { created: true, email: user.email };
@@ -432,6 +504,13 @@ async function updateUser(email, updates) {
     patch.webhook_endpoint_url = updates.webhookEndpointUrl;
   if (updates.webhookSecret !== undefined) patch.webhook_secret = updates.webhookSecret;
   if (updates.webhookEnabled !== undefined) patch.webhook_enabled = updates.webhookEnabled;
+  if (updates.streakFreezes !== undefined) patch.streak_freezes = updates.streakFreezes;
+  if (updates.freezeHistory !== undefined) {
+    patch.freeze_history =
+      typeof updates.freezeHistory === "string"
+        ? updates.freezeHistory
+        : JSON.stringify(updates.freezeHistory);
+  }
 
   try {
     const updated = await db("subscribers").where("email", email).update(patch);
@@ -451,6 +530,8 @@ async function updateUser(email, updates) {
       delete patch.webhook_endpoint_url;
       delete patch.webhook_secret;
       delete patch.webhook_enabled;
+      delete patch.streak_freezes;
+      delete patch.freeze_history;
       const updated = await db("subscribers").where("email", email).update(patch);
       return updated > 0;
     }

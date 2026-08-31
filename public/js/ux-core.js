@@ -378,7 +378,986 @@
   };
 
   // =========================================================================
-  // 4. KEYBOARD SHORTCUTS DISPATCHER
+  // 4. PROCEDURAL WEB AUDIO AMBIENT SOUNDSCAPES ENGINE
+  // =========================================================================
+  let ambientMasterGain = null;
+  let ambientCurrentMode = null;
+  let ambientActiveNodes = [];
+  let ambientIntervalTimers = [];
+  let ambientVolume = 0.5;
+
+  function createPinkNoiseBuffer(ctx, duration = 4.0) {
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+
+    for (let channel = 0; channel < 2; channel++) {
+      const output = buffer.getChannelData(channel);
+      let b0 = 0,
+        b1 = 0,
+        b2 = 0,
+        b3 = 0,
+        b4 = 0,
+        b5 = 0,
+        b6 = 0;
+
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.969 * b2 + white * 0.153852;
+        b3 = 0.8665 * b3 + white * 0.3104856;
+        b4 = 0.55 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.016898;
+        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.07;
+        b6 = white * 0.115926;
+      }
+    }
+    return buffer;
+  }
+
+  const ambient = {
+    SUPPORTED_MODES: ["binaural", "rain", "zen-waves"],
+
+    isSupported() {
+      return (
+        typeof window !== "undefined" &&
+        Boolean(
+          window.AudioContext ||
+          window.webkitAudioContext ||
+          (typeof globalThis !== "undefined" && globalThis.AudioContext),
+        )
+      );
+    },
+
+    play(mode, volume) {
+      if (!this.isSupported()) return false;
+      if (!this.SUPPORTED_MODES.includes(mode)) return false;
+
+      const ctx = getAudioContext();
+      if (!ctx) return false;
+
+      if (typeof volume === "number") {
+        ambientVolume = Math.max(0, Math.min(1, volume));
+      }
+
+      this.stop(0.3);
+      ambientCurrentMode = mode;
+
+      ambientMasterGain = ctx.createGain();
+      ambientMasterGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      ambientMasterGain.gain.exponentialRampToValueAtTime(
+        Math.max(0.001, ambientVolume),
+        ctx.currentTime + 0.8,
+      );
+      ambientMasterGain.connect(ctx.destination);
+
+      try {
+        if (mode === "binaural") {
+          this._startBinaural(ctx, ambientMasterGain);
+        } else if (mode === "rain") {
+          this._startRain(ctx, ambientMasterGain);
+        } else if (mode === "zen-waves") {
+          this._startZenWaves(ctx, ambientMasterGain);
+        }
+        return true;
+      } catch (_err) {
+        this.stop(0);
+        return false;
+      }
+    },
+
+    _startBinaural(ctx, destinationGain) {
+      const now = ctx.currentTime;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(320, now);
+      filter.Q.setValueAtTime(1.0, now);
+      filter.connect(destinationGain);
+      ambientActiveNodes.push(filter);
+
+      const oscLeft = ctx.createOscillator();
+      const gainLeft = ctx.createGain();
+      oscLeft.type = "sine";
+      oscLeft.frequency.setValueAtTime(200, now);
+      gainLeft.gain.setValueAtTime(0.18, now);
+
+      const oscRight = ctx.createOscillator();
+      const gainRight = ctx.createGain();
+      oscRight.type = "sine";
+      oscRight.frequency.setValueAtTime(210, now);
+      gainRight.gain.setValueAtTime(0.18, now);
+
+      const oscSub = ctx.createOscillator();
+      const gainSub = ctx.createGain();
+      oscSub.type = "sine";
+      oscSub.frequency.setValueAtTime(100, now);
+      gainSub.gain.setValueAtTime(0.06, now);
+
+      if (typeof ctx.createStereoPanner === "function") {
+        const panLeft = ctx.createStereoPanner();
+        panLeft.pan.setValueAtTime(-0.85, now);
+        oscLeft.connect(gainLeft);
+        gainLeft.connect(panLeft);
+        panLeft.connect(filter);
+
+        const panRight = ctx.createStereoPanner();
+        panRight.pan.setValueAtTime(0.85, now);
+        oscRight.connect(gainRight);
+        gainRight.connect(panRight);
+        panRight.connect(filter);
+        ambientActiveNodes.push(panLeft, panRight);
+      } else {
+        oscLeft.connect(gainLeft);
+        gainLeft.connect(filter);
+        oscRight.connect(gainRight);
+        gainRight.connect(filter);
+      }
+
+      oscSub.connect(gainSub);
+      gainSub.connect(filter);
+
+      oscLeft.start(now);
+      oscRight.start(now);
+      oscSub.start(now);
+
+      ambientActiveNodes.push(oscLeft, gainLeft, oscRight, gainRight, oscSub, gainSub);
+    },
+
+    _startRain(ctx, destinationGain) {
+      const now = ctx.currentTime;
+      const noiseBuffer = createPinkNoiseBuffer(ctx, 4.0);
+
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      noiseSource.loop = true;
+
+      const rainFilter = ctx.createBiquadFilter();
+      rainFilter.type = "bandpass";
+      rainFilter.frequency.setValueAtTime(950, now);
+      rainFilter.Q.setValueAtTime(0.7, now);
+
+      const rainGain = ctx.createGain();
+      rainGain.gain.setValueAtTime(0.28, now);
+
+      noiseSource.connect(rainFilter);
+      rainFilter.connect(rainGain);
+      rainGain.connect(destinationGain);
+
+      noiseSource.start(now);
+      ambientActiveNodes.push(noiseSource, rainFilter, rainGain);
+
+      const dropletTimer = setInterval(() => {
+        if (!ambientCurrentMode || ambientCurrentMode !== "rain") return;
+        try {
+          const t = ctx.currentTime;
+          const dropOsc = ctx.createOscillator();
+          const dropGain = ctx.createGain();
+          const dropFilter = ctx.createBiquadFilter();
+
+          const freq = 1200 + Math.random() * 1400;
+          dropOsc.type = "sine";
+          dropOsc.frequency.setValueAtTime(freq, t);
+          dropOsc.frequency.exponentialRampToValueAtTime(freq * 0.6, t + 0.06);
+
+          dropFilter.type = "bandpass";
+          dropFilter.frequency.setValueAtTime(freq, t);
+          dropFilter.Q.setValueAtTime(4.0, t);
+
+          const dropVolume = 0.02 + Math.random() * 0.04;
+          dropGain.gain.setValueAtTime(0.0001, t);
+          dropGain.gain.linearRampToValueAtTime(dropVolume, t + 0.005);
+          dropGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+
+          dropOsc.connect(dropFilter);
+          dropFilter.connect(dropGain);
+          dropGain.connect(destinationGain);
+
+          dropOsc.start(t);
+          dropOsc.stop(t + 0.065);
+
+          dropOsc.onended = () => {
+            try {
+              dropOsc.disconnect();
+              dropFilter.disconnect();
+              dropGain.disconnect();
+            } catch (_e) {
+              /* Non-fatal cleanup */
+            }
+          };
+        } catch (_e) {
+          /* Droplet synth error */
+        }
+      }, 120);
+
+      ambientIntervalTimers.push(dropletTimer);
+    },
+
+    _startZenWaves(ctx, destinationGain) {
+      const now = ctx.currentTime;
+      const noiseBuffer = createPinkNoiseBuffer(ctx, 5.0);
+
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      noiseSource.loop = true;
+
+      const waveFilter = ctx.createBiquadFilter();
+      waveFilter.type = "lowpass";
+      waveFilter.frequency.setValueAtTime(250, now);
+      waveFilter.Q.setValueAtTime(2.0, now);
+
+      const waveGain = ctx.createGain();
+      waveGain.gain.setValueAtTime(0.25, now);
+
+      const lfo = ctx.createOscillator();
+      lfo.type = "sine";
+      lfo.frequency.setValueAtTime(0.09, now);
+
+      const lfoFilterGain = ctx.createGain();
+      lfoFilterGain.gain.setValueAtTime(260, now);
+
+      const lfoAmpGain = ctx.createGain();
+      lfoAmpGain.gain.setValueAtTime(0.12, now);
+
+      lfo.connect(lfoFilterGain);
+      lfoFilterGain.connect(waveFilter.frequency);
+
+      lfo.connect(lfoAmpGain);
+      lfoAmpGain.connect(waveGain.gain);
+
+      noiseSource.connect(waveFilter);
+      waveFilter.connect(waveGain);
+      waveGain.connect(destinationGain);
+
+      noiseSource.start(now);
+      lfo.start(now);
+
+      ambientActiveNodes.push(noiseSource, waveFilter, waveGain, lfo, lfoFilterGain, lfoAmpGain);
+    },
+
+    stop(fadeDuration = 0.8) {
+      ambientIntervalTimers.forEach((timer) => clearInterval(timer));
+      ambientIntervalTimers = [];
+
+      const prevMaster = ambientMasterGain;
+      const nodesToCleanup = [...ambientActiveNodes];
+      ambientActiveNodes = [];
+      ambientCurrentMode = null;
+      ambientMasterGain = null;
+
+      if (prevMaster && sharedAudioCtx && sharedAudioCtx.state === "running") {
+        try {
+          const now = sharedAudioCtx.currentTime;
+          prevMaster.gain.cancelScheduledValues(now);
+          prevMaster.gain.setValueAtTime(prevMaster.gain.value, now);
+          prevMaster.gain.exponentialRampToValueAtTime(0.0001, now + fadeDuration);
+
+          setTimeout(
+            () => {
+              try {
+                nodesToCleanup.forEach((node) => {
+                  if (typeof node.stop === "function") {
+                    try {
+                      node.stop();
+                    } catch (_e) {
+                      /* Non-fatal */
+                    }
+                  }
+                  if (typeof node.disconnect === "function") {
+                    try {
+                      node.disconnect();
+                    } catch (_e) {
+                      /* Non-fatal */
+                    }
+                  }
+                });
+                prevMaster.disconnect();
+              } catch (_e) {
+                /* Non-fatal */
+              }
+            },
+            fadeDuration * 1000 + 50,
+          );
+        } catch (_e) {
+          // Non-fatal
+        }
+      }
+    },
+
+    setVolume(vol, rampTime = 0.1) {
+      ambientVolume = Math.max(0, Math.min(1, Number(vol) || 0));
+      if (ambientMasterGain && sharedAudioCtx) {
+        try {
+          const now = sharedAudioCtx.currentTime;
+          ambientMasterGain.gain.cancelScheduledValues(now);
+          ambientMasterGain.gain.setValueAtTime(ambientMasterGain.gain.value, now);
+          ambientMasterGain.gain.linearRampToValueAtTime(
+            Math.max(0.0001, ambientVolume),
+            now + rampTime,
+          );
+        } catch (_e) {
+          /* Non-fatal volume adjust */
+        }
+      }
+    },
+
+    getCurrentMode() {
+      return ambientCurrentMode;
+    },
+
+    isPlaying() {
+      return ambientCurrentMode !== null;
+    },
+  };
+
+  // =========================================================================
+  // 5. NATIVE SPEECH SYNTHESIS VOICE BRIEFING ENGINE
+  // =========================================================================
+  let voiceSpeechRate = 1.0;
+  let voicePitch = 1.0;
+  let voicePreferredName = null;
+  let voiceVisualizerHook = null;
+  let voiceVisualizerRaf = null;
+  let voiceIsSpeaking = false;
+  let voiceAvailableVoices = [];
+
+  const PREFERRED_VOICE_NAMES = [
+    "Google US English",
+    "Samantha",
+    "Daniel",
+    "Karen",
+    "Moira",
+    "Alex",
+  ];
+
+  function loadSpeechVoices() {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return [];
+    try {
+      voiceAvailableVoices = window.speechSynthesis.getVoices() || [];
+      return voiceAvailableVoices;
+    } catch (_e) {
+      return [];
+    }
+  }
+
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    if (typeof window.speechSynthesis.onvoiceschanged !== "undefined") {
+      window.speechSynthesis.onvoiceschanged = () => loadSpeechVoices();
+    }
+    loadSpeechVoices();
+  }
+
+  function resolveBestVoice(preferredName) {
+    const voices = voiceAvailableVoices.length > 0 ? voiceAvailableVoices : loadSpeechVoices();
+    if (!voices || voices.length === 0) return null;
+
+    if (preferredName) {
+      const explicit = voices.find(
+        (v) => v.name && v.name.toLowerCase().includes(preferredName.toLowerCase()),
+      );
+      if (explicit) return explicit;
+    }
+
+    for (const name of PREFERRED_VOICE_NAMES) {
+      const match = voices.find((v) => v.name && v.name.includes(name));
+      if (match) return match;
+    }
+
+    const enUs = voices.find((v) => v.lang === "en-US" || v.lang === "en_US");
+    if (enUs) return enUs;
+
+    const enGb = voices.find((v) => v.lang === "en-GB" || v.lang === "en_GB");
+    if (enGb) return enGb;
+
+    const anyEn = voices.find((v) => v.lang && v.lang.startsWith("en"));
+    if (anyEn) return anyEn;
+
+    return voices[0] || null;
+  }
+
+  function startVisualizerLoop() {
+    if (!voiceVisualizerHook) return;
+
+    let phase = 0;
+    const updateBars = () => {
+      if (!voiceIsSpeaking) {
+        if (voiceVisualizerHook) voiceVisualizerHook([0, 0, 0, 0, 0]);
+        return;
+      }
+
+      phase += 0.18;
+      const bars = [
+        Math.max(
+          0.15,
+          Math.min(1.0, 0.45 + 0.45 * Math.sin(phase * 1.4) + (Math.random() * 0.1 - 0.05)),
+        ),
+        Math.max(
+          0.2,
+          Math.min(1.0, 0.65 + 0.35 * Math.sin(phase * 2.1 + 0.8) + (Math.random() * 0.1 - 0.05)),
+        ),
+        Math.max(
+          0.3,
+          Math.min(1.0, 0.8 + 0.2 * Math.sin(phase * 1.7 + 1.6) + (Math.random() * 0.1 - 0.05)),
+        ),
+        Math.max(
+          0.2,
+          Math.min(1.0, 0.6 + 0.35 * Math.sin(phase * 2.5 + 2.4) + (Math.random() * 0.1 - 0.05)),
+        ),
+        Math.max(
+          0.15,
+          Math.min(1.0, 0.4 + 0.4 * Math.sin(phase * 1.2 + 3.2) + (Math.random() * 0.1 - 0.05)),
+        ),
+      ];
+
+      try {
+        voiceVisualizerHook(bars);
+      } catch (_e) {
+        /* Non-fatal visualizer hook error */
+      }
+
+      voiceVisualizerRaf = setTimeout(updateBars, 50);
+    };
+
+    updateBars();
+  }
+
+  function stopVisualizerLoop() {
+    if (voiceVisualizerRaf) {
+      clearTimeout(voiceVisualizerRaf);
+      voiceVisualizerRaf = null;
+    }
+    if (voiceVisualizerHook) {
+      try {
+        voiceVisualizerHook([0, 0, 0, 0, 0]);
+      } catch (_e) {
+        /* Non-fatal hook reset */
+      }
+    }
+  }
+
+  const voice = {
+    isSupported() {
+      return typeof window !== "undefined" && "speechSynthesis" in window;
+    },
+
+    speak(text, onEnd, onBoundary) {
+      if (!this.isSupported() || !text) {
+        if (typeof onEnd === "function") onEnd();
+        return false;
+      }
+
+      this.stop();
+
+      try {
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance(String(text));
+
+        utterance.rate = voiceSpeechRate;
+        utterance.pitch = voicePitch;
+
+        const matchedVoice = resolveBestVoice(voicePreferredName);
+        if (matchedVoice) {
+          utterance.voice = matchedVoice;
+        }
+
+        utterance.onstart = () => {
+          voiceIsSpeaking = true;
+          startVisualizerLoop();
+        };
+
+        utterance.onboundary = (event) => {
+          if (typeof onBoundary === "function") {
+            try {
+              onBoundary(event);
+            } catch (_e) {
+              /* Non-fatal boundary callback */
+            }
+          }
+        };
+
+        const cleanup = () => {
+          voiceIsSpeaking = false;
+          stopVisualizerLoop();
+        };
+
+        utterance.onend = () => {
+          cleanup();
+          if (typeof onEnd === "function") {
+            try {
+              onEnd();
+            } catch (_e) {
+              /* Non-fatal onEnd */
+            }
+          }
+        };
+
+        utterance.onerror = () => {
+          cleanup();
+          if (typeof onEnd === "function") {
+            try {
+              onEnd();
+            } catch (_e) {
+              /* Non-fatal onError */
+            }
+          }
+        };
+
+        synth.speak(utterance);
+        return true;
+      } catch (_err) {
+        voiceIsSpeaking = false;
+        stopVisualizerLoop();
+        if (typeof onEnd === "function") onEnd();
+        return false;
+      }
+    },
+
+    stop() {
+      if (this.isSupported()) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (_e) {
+          /* Non-fatal cancel */
+        }
+      }
+      voiceIsSpeaking = false;
+      stopVisualizerLoop();
+    },
+
+    pause() {
+      if (this.isSupported() && voiceIsSpeaking) {
+        try {
+          window.speechSynthesis.pause();
+        } catch (_e) {
+          /* Non-fatal pause */
+        }
+      }
+    },
+
+    resume() {
+      if (this.isSupported()) {
+        try {
+          window.speechSynthesis.resume();
+        } catch (_e) {
+          /* Non-fatal resume */
+        }
+      }
+    },
+
+    isSpeaking() {
+      if (!this.isSupported()) return false;
+      return voiceIsSpeaking || window.speechSynthesis.speaking;
+    },
+
+    setRate(rate) {
+      voiceSpeechRate = Math.max(0.5, Math.min(2.0, Number(rate) || 1.0));
+    },
+
+    setVoice(voiceName) {
+      voicePreferredName = voiceName ? String(voiceName) : null;
+    },
+
+    getVoices() {
+      return loadSpeechVoices();
+    },
+
+    setVisualizer(callback) {
+      voiceVisualizerHook = typeof callback === "function" ? callback : null;
+    },
+  };
+
+  // =========================================================================
+  // 6. DYNAMIC 4-THEME SWITCHER ENGINE
+  // =========================================================================
+  const THEME_STORAGE_KEY = "mrn_theme_preference";
+  const DEFAULT_THEME = "theme-obsidian";
+  const VALID_THEMES = ["theme-obsidian", "theme-solar", "theme-emerald", "theme-cyberpunk"];
+
+  const themeMetadata = {
+    "theme-obsidian": {
+      name: "theme-obsidian",
+      label: "Obsidian",
+      primaryColor: "#6366f1",
+      accentColor: "#06b6d4",
+    },
+    "theme-solar": {
+      name: "theme-solar",
+      label: "Solar Sunrise",
+      primaryColor: "#f59e0b",
+      accentColor: "#fb923c",
+    },
+    "theme-emerald": {
+      name: "theme-emerald",
+      label: "Zen Emerald",
+      primaryColor: "#10b981",
+      accentColor: "#2dd4bf",
+    },
+    "theme-cyberpunk": {
+      name: "theme-cyberpunk",
+      label: "Cyberpunk Neon",
+      primaryColor: "#d946ef",
+      accentColor: "#00f0ff",
+    },
+  };
+
+  let currentTheme = DEFAULT_THEME;
+
+  const theme = {
+    getAvailableThemes() {
+      return Object.values(themeMetadata);
+    },
+
+    get() {
+      return currentTheme;
+    },
+
+    set(themeName, options = { persist: true }) {
+      if (!VALID_THEMES.includes(themeName)) {
+        themeName = DEFAULT_THEME;
+      }
+
+      const root = typeof document !== "undefined" ? document.documentElement : null;
+      if (root) {
+        VALID_THEMES.forEach((t) => {
+          root.classList.remove(t);
+        });
+        root.classList.add(themeName);
+        root.setAttribute("data-theme", themeName);
+      }
+
+      currentTheme = themeName;
+
+      if (options.persist !== false) {
+        safeStorageSet(THEME_STORAGE_KEY, themeName);
+      }
+
+      this.updatePickerUI();
+
+      if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+        try {
+          window.dispatchEvent(
+            new CustomEvent("mrn:theme-change", { detail: { theme: themeName } }),
+          );
+        } catch (_e) {
+          /* Non-fatal event dispatch error */
+        }
+      }
+
+      return themeName;
+    },
+
+    updatePickerUI() {
+      if (typeof document === "undefined" || typeof document.querySelectorAll !== "function")
+        return;
+      const meta = themeMetadata[currentTheme] || themeMetadata[DEFAULT_THEME];
+
+      const activeDot = document.getElementById ? document.getElementById("themeActiveDot") : null;
+      const activeLabel = document.getElementById
+        ? document.getElementById("themeActiveLabel")
+        : null;
+      if (activeDot) activeDot.style.background = meta.primaryColor;
+      if (activeLabel) activeLabel.textContent = meta.label;
+
+      const optionBtns = document.querySelectorAll(".theme-option-btn");
+      if (optionBtns && typeof optionBtns.forEach === "function") {
+        optionBtns.forEach((btn) => {
+          const isMatch = btn.getAttribute("data-theme") === currentTheme;
+          btn.classList.toggle("selected", isMatch);
+          const checkIcon = btn.querySelector ? btn.querySelector(".theme-check-icon") : null;
+          if (checkIcon) checkIcon.style.display = isMatch ? "inline-block" : "none";
+        });
+      }
+    },
+
+    init() {
+      const savedTheme = safeStorageGet(THEME_STORAGE_KEY);
+      this.set(savedTheme || DEFAULT_THEME, { persist: false });
+
+      if (typeof document === "undefined") return this;
+
+      const pickerBtn = document.getElementById("themePickerBtn");
+      const dropdownMenu = document.getElementById("themeDropdownMenu");
+      const container = document.getElementById("themePickerContainer");
+
+      if (pickerBtn && dropdownMenu) {
+        pickerBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = dropdownMenu.classList.contains("active");
+          dropdownMenu.classList.toggle("active", !isOpen);
+          pickerBtn.setAttribute("aria-expanded", String(!isOpen));
+          if (!isOpen) sound.playClick();
+        });
+
+        const optionBtns = document.querySelectorAll(".theme-option-btn");
+        optionBtns.forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const targetTheme = btn.getAttribute("data-theme");
+            this.set(targetTheme);
+            dropdownMenu.classList.remove("active");
+            pickerBtn.setAttribute("aria-expanded", "false");
+            haptics.light();
+            sound.playSuccess();
+          });
+        });
+
+        document.addEventListener("click", (e) => {
+          if (container && !container.contains(e.target)) {
+            dropdownMenu.classList.remove("active");
+            pickerBtn.setAttribute("aria-expanded", "false");
+          }
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && dropdownMenu.classList.contains("active")) {
+            dropdownMenu.classList.remove("active");
+            pickerBtn.setAttribute("aria-expanded", "false");
+            pickerBtn.focus();
+          }
+        });
+      }
+
+      this.updatePickerUI();
+      return this;
+    },
+  };
+
+  // =========================================================================
+  // 7. INTERACTIVE SPOTLIGHT ONBOARDING TOUR
+  // =========================================================================
+  const TOUR_STORAGE_KEY = "mrn_tour_completed";
+
+  const TOUR_STEPS = [
+    {
+      targetSelectors: ["#streakHeroCard", "#dashboardCheckinBtn", ".streak-hero-card"],
+      title: "1-Click Habit Check-in",
+      icon: "⚡",
+      content:
+        "Lock in your morning momentum daily! Confirm your completed routine with a single tap to build streaks and maintain consistency.",
+    },
+    {
+      targetSelectors: ["#dashboardJournalCard", ".dashboard-journal-card"],
+      title: "Mindset Journal & Reflection",
+      icon: "✍️",
+      content:
+        "Capture your One Big Thing, record daily gratitude, and log key reflections. Your thoughts are automatically saved and exportable.",
+    },
+    {
+      targetSelectors: ["#heatmapCard", "#coachPersonaCard", ".heatmap-card"],
+      title: "365-Day Consistency & AI Coaches",
+      icon: "🔥",
+      content:
+        "Visualize your year-long dedication on the activity heatmap, and switch between dynamic AI coach personas tailored to your goals.",
+    },
+  ];
+
+  let currentTourStep = 0;
+  let tourBackdropEl = null;
+  let tourCardEl = null;
+  let activeTargetEl = null;
+
+  const tour = {
+    isCompleted() {
+      return safeStorageGet(TOUR_STORAGE_KEY) === "true";
+    },
+
+    reset() {
+      safeStorageRemove(TOUR_STORAGE_KEY);
+    },
+
+    start(force = false) {
+      if (this.isCompleted() && !force) return;
+      currentTourStep = 0;
+      this.createTourDOM();
+      this.showStep(currentTourStep);
+    },
+
+    createTourDOM() {
+      if (typeof document === "undefined") return;
+
+      if (!tourBackdropEl) {
+        tourBackdropEl = document.createElement("div");
+        tourBackdropEl.className = "mrn-tour-backdrop";
+        document.body.appendChild(tourBackdropEl);
+      }
+
+      if (!tourCardEl) {
+        tourCardEl = document.createElement("div");
+        tourCardEl.className = "mrn-tour-card";
+        document.body.appendChild(tourCardEl);
+      }
+    },
+
+    positionCard(target) {
+      if (!target || !tourCardEl) return;
+      const rect = target.getBoundingClientRect();
+      const cardRect = tourCardEl.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const scrollY = window.scrollY || window.pageYOffset;
+      const scrollX = window.scrollX || window.pageXOffset;
+
+      let top = scrollY + rect.bottom + 16;
+      let left = scrollX + rect.left + rect.width / 2 - cardRect.width / 2;
+
+      if (top + cardRect.height > scrollY + viewportHeight - 20) {
+        top = scrollY + rect.top - cardRect.height - 16;
+      }
+
+      left = Math.max(16, Math.min(left, viewportWidth - cardRect.width - 16));
+
+      tourCardEl.style.top = `${top}px`;
+      tourCardEl.style.left = `${left}px`;
+    },
+
+    showStep(stepIndex) {
+      if (stepIndex < 0 || stepIndex >= TOUR_STEPS.length) return;
+      currentTourStep = stepIndex;
+      const step = TOUR_STEPS[stepIndex];
+
+      if (activeTargetEl) {
+        activeTargetEl.classList.remove("mrn-tour-target-highlight");
+      }
+
+      let target = null;
+      for (const sel of step.targetSelectors) {
+        const el = document.querySelector(sel);
+        if (el && el.offsetParent !== null) {
+          target = el;
+          break;
+        }
+      }
+
+      activeTargetEl = target;
+      if (activeTargetEl) {
+        activeTargetEl.classList.add("mrn-tour-target-highlight");
+        if (typeof activeTargetEl.scrollIntoView === "function") {
+          activeTargetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      const isLastStep = stepIndex === TOUR_STEPS.length - 1;
+
+      tourCardEl.innerHTML = `
+        <div class="mrn-tour-header">
+          <span class="mrn-tour-step-badge">Step ${stepIndex + 1} of ${TOUR_STEPS.length}</span>
+          <button type="button" class="mrn-tour-skip-btn" id="mrnTourSkipBtn">Skip Tour</button>
+        </div>
+        <div class="mrn-tour-title">${step.icon} ${step.title}</div>
+        <div class="mrn-tour-body">${step.content}</div>
+        <div class="mrn-tour-footer">
+          <div class="mrn-tour-dots">
+            ${TOUR_STEPS.map(
+              (_, i) =>
+                `<span class="mrn-tour-dot ${i === stepIndex ? "active" : ""}" data-step="${i}"></span>`,
+            ).join("")}
+          </div>
+          <div class="mrn-tour-actions">
+            <button type="button" class="mrn-tour-btn mrn-tour-btn-back" id="mrnTourBackBtn" ${
+              stepIndex === 0 ? "disabled" : ""
+            }>Back</button>
+            <button type="button" class="mrn-tour-btn mrn-tour-btn-next" id="mrnTourNextBtn">
+              ${isLastStep ? "Finish 🎉" : "Next"}
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("mrnTourSkipBtn")?.addEventListener("click", () => this.skip());
+      document.getElementById("mrnTourBackBtn")?.addEventListener("click", () => this.prev());
+      document.getElementById("mrnTourNextBtn")?.addEventListener("click", () => {
+        if (isLastStep) {
+          this.complete();
+        } else {
+          this.next();
+        }
+      });
+
+      const dotEls = tourCardEl.querySelectorAll(".mrn-tour-dot");
+      dotEls.forEach((dot) => {
+        dot.addEventListener("click", () => {
+          const targetStep = parseInt(dot.getAttribute("data-step"), 10);
+          this.showStep(targetStep);
+        });
+      });
+
+      setTimeout(() => {
+        if (activeTargetEl) {
+          this.positionCard(activeTargetEl);
+        }
+      }, 350);
+
+      haptics.light();
+      sound.playClick();
+    },
+
+    next() {
+      if (currentTourStep < TOUR_STEPS.length - 1) {
+        this.showStep(currentTourStep + 1);
+      } else {
+        this.complete();
+      }
+    },
+
+    prev() {
+      if (currentTourStep > 0) {
+        this.showStep(currentTourStep - 1);
+      }
+    },
+
+    complete() {
+      safeStorageSet(TOUR_STORAGE_KEY, "true");
+      this.cleanup();
+
+      if (typeof globalThis.confetti === "function") {
+        try {
+          globalThis.confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#d946ef"],
+          });
+        } catch (_e) {
+          /* Non-fatal confetti trigger */
+        }
+      }
+
+      haptics.success();
+      sound.playSuccess();
+    },
+
+    skip() {
+      safeStorageSet(TOUR_STORAGE_KEY, "true");
+      this.cleanup();
+    },
+
+    cleanup() {
+      if (activeTargetEl) {
+        activeTargetEl.classList.remove("mrn-tour-target-highlight");
+        activeTargetEl = null;
+      }
+      if (tourBackdropEl) {
+        tourBackdropEl.remove();
+        tourBackdropEl = null;
+      }
+      if (tourCardEl) {
+        tourCardEl.remove();
+        tourCardEl = null;
+      }
+    },
+
+    init() {
+      if (typeof window === "undefined") return this;
+      if (!this.isCompleted()) {
+        setTimeout(() => {
+          this.start(false);
+        }, 1200);
+      }
+      return this;
+    },
+  };
+
+  // =========================================================================
+  // 8. KEYBOARD SHORTCUTS DISPATCHER
   // =========================================================================
   const shortcutHandlers = new Map();
   let isKeydownListenerBound = false;
@@ -739,12 +1718,16 @@
   };
 
   // =========================================================================
-  // 6. MAIN UXCORE FACADE & INITIALIZER
+  // 10. MAIN UXCORE FACADE & INITIALIZER
   // =========================================================================
   const UXCore = {
     cache,
     haptics,
     sound,
+    ambient,
+    voice,
+    theme,
+    tour,
     shortcuts,
     network,
 
@@ -753,24 +1736,33 @@
      * @param {Object} [options]
      * @param {Record<string, Function>} [options.shortcuts] - Keyboard handlers
      * @param {boolean} [options.initNetwork=true] - Auto-start network monitor
+     * @param {boolean} [options.initTour=true] - Auto-check onboarding tour
      */
     init(options = {}) {
+      this.theme.init();
       if (options.shortcuts) {
         this.shortcuts.init(options.shortcuts);
       }
       if (options.initNetwork !== false) {
         this.network.init();
       }
+      if (options.initTour !== false) {
+        this.tour.init();
+      }
       return this;
     },
   };
 
-  // Automatically start network monitor on DOMContentLoaded in browser environments
+  // Automatically start network monitor & theme on DOMContentLoaded in browser environments
   if (typeof window !== "undefined") {
     if (document.readyState === "complete" || document.readyState === "interactive") {
       network.init();
+      theme.init();
     } else {
-      window.addEventListener("DOMContentLoaded", () => network.init());
+      window.addEventListener("DOMContentLoaded", () => {
+        network.init();
+        theme.init();
+      });
     }
   }
 

@@ -1708,6 +1708,158 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       { passive: true },
     );
 
+    // ==========================================
+    // 4. Voice Briefing & Visualizer Controller
+    // ==========================================
+    const voiceBriefingBtn = document.getElementById("voiceBriefingBtn");
+    const voiceBriefingIcon = document.getElementById("voiceBriefingIcon");
+    const voiceBriefingText = document.getElementById("voiceBriefingText");
+    const voiceWaveVisualizer = document.getElementById("voiceWaveVisualizer");
+
+    if (globalThis.UXCore?.voice) {
+      globalThis.UXCore.voice.setVisualizer((bars) => {
+        bars.forEach((heightRatio, idx) => {
+          const target = document.getElementById(`vbar-${idx}`);
+          if (target) {
+            target.style.transform = `scaleY(${Math.max(0.2, heightRatio)})`;
+          }
+        });
+      });
+    }
+
+    if (voiceBriefingBtn) {
+      voiceBriefingBtn.addEventListener("click", () => {
+        if (!globalThis.UXCore?.voice) {
+          showToast("Voice synthesis is not supported on this browser.", "info");
+          return;
+        }
+
+        if (globalThis.UXCore.voice.isSpeaking()) {
+          globalThis.UXCore.voice.stop();
+          if (voiceBriefingIcon) voiceBriefingIcon.className = "fas fa-volume-up";
+          if (voiceBriefingText) voiceBriefingText.textContent = "Voice Spark";
+          if (voiceWaveVisualizer) voiceWaveVisualizer.style.display = "none";
+          return;
+        }
+
+        // Get coaching spark text from active persona card or quote
+        const activeCard = document.querySelector(".persona-card.selected");
+        const quoteEl = activeCard ? activeCard.querySelector("div:last-child") : null;
+        const coachTitle = activeCard
+          ? activeCard.querySelector("div:first-child > div")?.textContent
+          : "Stoic Sage";
+        const quoteText = quoteEl
+          ? quoteEl.textContent.replace(/["']/g, "")
+          : "You have power over your mind, not outside events. Realize this, and you will find great strength.";
+
+        const briefing = `Good morning. Here is your coaching spark from the ${coachTitle}: ${quoteText}. Focus on your One Big Thing and lead your day with intention.`;
+
+        if (voiceBriefingIcon) voiceBriefingIcon.className = "fas fa-stop";
+        if (voiceBriefingText) voiceBriefingText.textContent = "Stop";
+        if (voiceWaveVisualizer) voiceWaveVisualizer.style.display = "inline-flex";
+
+        globalThis.UXCore.voice.speak(briefing, () => {
+          if (voiceBriefingIcon) voiceBriefingIcon.className = "fas fa-volume-up";
+          if (voiceBriefingText) voiceBriefingText.textContent = "Voice Spark";
+          if (voiceWaveVisualizer) voiceWaveVisualizer.style.display = "none";
+        });
+      });
+    }
+
+    // ==========================================
+    // 5. Procedural Ambient Soundscapes Controller
+    // ==========================================
+    const ambientSoundBtn = document.getElementById("ambientSoundBtn");
+    const ambientSoundLabel = document.getElementById("ambientSoundLabel");
+    const ambientModes = ["off", "binaural", "rain", "zen-waves"];
+    const ambientLabels = {
+      off: "Ambient: Off",
+      binaural: "Alpha Waves (10Hz) 🎧",
+      rain: "Rain Focus 🌧️",
+      "zen-waves": "Zen Ocean 🌊",
+    };
+    let currentAmbientIdx = 0;
+
+    if (ambientSoundBtn) {
+      ambientSoundBtn.addEventListener("click", () => {
+        if (!globalThis.UXCore?.ambient) return;
+        currentAmbientIdx = (currentAmbientIdx + 1) % ambientModes.length;
+        const targetMode = ambientModes[currentAmbientIdx];
+
+        if (targetMode === "off") {
+          globalThis.UXCore.ambient.stop();
+          if (ambientSoundLabel) ambientSoundLabel.textContent = ambientLabels.off;
+          ambientSoundBtn.classList.remove("btn-primary");
+          ambientSoundBtn.classList.add("btn-secondary");
+        } else {
+          globalThis.UXCore.ambient.play(targetMode, 0.45);
+          if (ambientSoundLabel) ambientSoundLabel.textContent = ambientLabels[targetMode];
+          ambientSoundBtn.classList.remove("btn-secondary");
+          ambientSoundBtn.classList.add("btn-primary");
+          if (globalThis.UXCore?.sound) globalThis.UXCore.sound.playClick();
+        }
+      });
+    }
+
+    // ==========================================
+    // 6. Interactive Spotlight Onboarding Tour
+    // ==========================================
+    const startTourBtn = document.getElementById("startTourBtn");
+    if (startTourBtn) {
+      startTourBtn.addEventListener("click", () => {
+        if (globalThis.UXCore?.tour) {
+          globalThis.UXCore.tour.start(true);
+        }
+      });
+    }
+
+    // ==========================================
+    // 7. Journal Micro-Interactions & Auto-Expand
+    // ==========================================
+    const reflectionTextarea = document.getElementById("dashReflectionText");
+    const gratitudeInput = document.getElementById("dashGratitude");
+    const oneBigThingInput = document.getElementById("dashOneBigThing");
+    const dashJournalForm = document.getElementById("dashJournalForm");
+
+    if (dashJournalForm) {
+      dashJournalForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        globalThis.saveDashboardJournal();
+      });
+    }
+
+    [reflectionTextarea].forEach((ta) => {
+      if (!ta) return;
+      ta.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = Math.max(80, this.scrollHeight) + "px";
+
+        const text = this.value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        const statusEl = document.getElementById("dashJournalStatus");
+        if (statusEl && words > 10) {
+          statusEl.textContent = "Thoughtful Reflection ✓";
+        }
+      });
+
+      ta.addEventListener("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          globalThis.saveDashboardJournal();
+        }
+      });
+    });
+
+    [oneBigThingInput, gratitudeInput].forEach((inp) => {
+      if (!inp) return;
+      inp.addEventListener("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          globalThis.saveDashboardJournal();
+        }
+      });
+    });
+
     loadDashboard();
     syncNotificationState();
   })();

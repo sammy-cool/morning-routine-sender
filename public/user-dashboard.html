@@ -72,6 +72,283 @@
         --radius-lg: 20px;
         --shadow-glow: 0 0 25px -5px var(--primary-glow);
         --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --theme-ambient-1: rgba(99, 102, 241, 0.12);
+        --theme-ambient-2: rgba(6, 182, 212, 0.1);
+        --theme-ambient-3: rgba(16, 185, 129, 0.06);
+      }
+
+      /* Solar Theme (Warm Sunrise) */
+      html.theme-solar,
+      [data-theme="theme-solar"] {
+        --bg-main: #0d0b08;
+        --bg-surface: rgba(28, 22, 14, 0.8);
+        --bg-surface-elevated: rgba(43, 34, 21, 0.85);
+        --bg-card: rgba(30, 24, 15, 0.75);
+        --border-subtle: rgba(245, 158, 11, 0.12);
+        --border-hover: rgba(245, 158, 11, 0.45);
+        --primary: #f59e0b;
+        --primary-glow: rgba(245, 158, 11, 0.35);
+        --primary-hover: #d97706;
+        --accent-cyan: #fb923c;
+        --text-main: #fffbeb;
+        --theme-ambient-1: rgba(245, 158, 11, 0.14);
+        --theme-ambient-2: rgba(251, 146, 60, 0.12);
+        --theme-ambient-3: rgba(234, 88, 12, 0.08);
+      }
+
+      /* Emerald Theme (Zen Forest) */
+      html.theme-emerald,
+      [data-theme="theme-emerald"] {
+        --bg-main: #060f0c;
+        --bg-surface: rgba(10, 31, 24, 0.8);
+        --bg-surface-elevated: rgba(16, 46, 36, 0.85);
+        --bg-card: rgba(10, 33, 25, 0.75);
+        --border-subtle: rgba(16, 185, 129, 0.12);
+        --border-hover: rgba(16, 185, 129, 0.45);
+        --primary: #10b981;
+        --primary-glow: rgba(16, 185, 129, 0.35);
+        --primary-hover: #059669;
+        --accent-cyan: #2dd4bf;
+        --text-main: #ecfdf5;
+        --theme-ambient-1: rgba(16, 185, 129, 0.14);
+        --theme-ambient-2: rgba(45, 212, 191, 0.1);
+        --theme-ambient-3: rgba(5, 150, 105, 0.08);
+      }
+
+      /* Cyberpunk Theme (Neon Violet / Cyan) */
+      html.theme-cyberpunk,
+      [data-theme="theme-cyberpunk"] {
+        --bg-main: #0a0414;
+        --bg-surface: rgba(26, 11, 46, 0.85);
+        --bg-surface-elevated: rgba(42, 17, 74, 0.85);
+        --bg-card: rgba(26, 11, 46, 0.75);
+        --border-subtle: rgba(217, 70, 239, 0.18);
+        --border-hover: rgba(0, 240, 255, 0.5);
+        --primary: #d946ef;
+        --primary-glow: rgba(217, 70, 239, 0.45);
+        --primary-hover: #c026d3;
+        --accent-cyan: #00f0ff;
+        --text-main: #fdf4ff;
+        --theme-ambient-1: rgba(217, 70, 239, 0.16);
+        --theme-ambient-2: rgba(0, 240, 255, 0.14);
+        --theme-ambient-3: rgba(168, 85, 247, 0.08);
+      }
+
+      /* Theme Picker UI */
+      .theme-picker-container {
+        position: relative;
+        display: inline-block;
+      }
+      .theme-picker-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--bg-surface);
+        color: var(--text-main);
+        border: 1px solid var(--border-subtle);
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: var(--transition);
+        min-height: 40px;
+      }
+      .theme-picker-btn:hover {
+        border-color: var(--primary);
+        box-shadow: 0 0 15px -3px var(--primary-glow);
+      }
+      .theme-dot-preview {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--primary);
+        box-shadow: 0 0 8px var(--primary-glow);
+      }
+      .theme-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 210px;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-subtle);
+        border-radius: 14px;
+        padding: 6px;
+        box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+        pointer-events: none;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .theme-dropdown-menu.active {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+      .theme-option-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        font-size: 12.5px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        text-align: left;
+      }
+      .theme-option-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .theme-option-btn.selected {
+        background: rgba(255, 255, 255, 0.12);
+        font-weight: 700;
+      }
+      .theme-palette-swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(255, 255, 255, 0.2);
+        display: inline-block;
+      }
+
+      /* Audio Wave Visualizer Bars */
+      .voice-wave-bars {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        height: 16px;
+      }
+      .voice-wave-bar {
+        width: 3px;
+        height: 100%;
+        background: var(--primary);
+        border-radius: 2px;
+        transform: scaleY(0.2);
+        transform-origin: bottom center;
+        transition: transform 0.05s linear;
+      }
+
+      /* Spotlight Tour Backdrop & Cutout */
+      .mrn-tour-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9998;
+        background: rgba(4, 7, 13, 0.78);
+        transition: all 0.3s ease;
+      }
+      .mrn-tour-card {
+        position: absolute;
+        z-index: 9999;
+        width: min(360px, calc(100vw - 32px));
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--border-hover);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow:
+          0 20px 45px -10px rgba(0, 0, 0, 0.8),
+          0 0 25px var(--primary-glow);
+        color: var(--text-main);
+        transition: all 0.25s ease;
+      }
+      .mrn-tour-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .mrn-tour-step-badge {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 3px 8px;
+        border-radius: 20px;
+        background: var(--primary-glow);
+        color: var(--primary);
+        border: 1px solid var(--border-hover);
+      }
+      .mrn-tour-skip-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .mrn-tour-title {
+        font-size: 16px;
+        font-weight: 800;
+        margin-bottom: 6px;
+        color: #fff;
+      }
+      .mrn-tour-body {
+        font-size: 13px;
+        line-height: 1.5;
+        color: #cbd5e1;
+        margin-bottom: 16px;
+      }
+      .mrn-tour-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .mrn-tour-dots {
+        display: flex;
+        gap: 5px;
+      }
+      .mrn-tour-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        cursor: pointer;
+      }
+      .mrn-tour-dot.active {
+        width: 16px;
+        border-radius: 10px;
+        background: var(--primary);
+      }
+      .mrn-tour-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .mrn-tour-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        border: none;
+      }
+      .mrn-tour-btn-back {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border: 1px solid var(--border-subtle);
+      }
+      .mrn-tour-btn-next {
+        background: var(--primary);
+        color: #fff;
+      }
+      .mrn-tour-target-highlight {
+        position: relative !important;
+        z-index: 9999 !important;
+        outline: 2px solid var(--primary) !important;
+        outline-offset: 4px !important;
+        box-shadow: 0 0 35px 5px var(--primary-glow) !important;
       }
 
       * {
@@ -93,12 +370,15 @@
         display: flex;
         flex-direction: column;
         background-image:
-          radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-          radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
-          radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+          radial-gradient(circle at 10% 10%, var(--theme-ambient-1) 0px, transparent 50%),
+          radial-gradient(circle at 90% 20%, var(--theme-ambient-2) 0px, transparent 50%),
+          radial-gradient(circle at 50% 90%, var(--theme-ambient-3) 0px, transparent 50%);
         background-attachment: fixed;
         padding-top: env(safe-area-inset-top, 0);
         padding-bottom: env(safe-area-inset-bottom, 0);
+        transition:
+          background-color 0.35s ease,
+          color 0.35s ease;
       }
 
       .container {
@@ -1263,7 +1543,105 @@
             </div>
           </div>
         </a>
-        <nav style="display: flex; gap: 10px; align-items: center" aria-label="Subscriber Actions">
+        <nav style="display: flex; gap: 8px; align-items: center" aria-label="Subscriber Actions">
+          <!-- Theme Picker Dropdown -->
+          <div class="theme-picker-container" id="themePickerContainer">
+            <button
+              type="button"
+              class="theme-picker-btn"
+              id="themePickerBtn"
+              aria-label="Change Color Theme"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              <span class="theme-dot-preview" id="themeActiveDot"></span>
+              <span id="themeActiveLabel">Obsidian</span>
+              <i
+                class="fas fa-chevron-down"
+                style="font-size: 10px; opacity: 0.7"
+                aria-hidden="true"
+              ></i>
+            </button>
+
+            <div
+              class="theme-dropdown-menu"
+              id="themeDropdownMenu"
+              role="menu"
+              aria-label="Available Color Themes"
+            >
+              <button
+                type="button"
+                class="theme-option-btn selected"
+                data-theme="theme-obsidian"
+                role="menuitem"
+              >
+                <span style="display: flex; align-items: center; gap: 8px">
+                  <span
+                    class="theme-palette-swatch"
+                    style="background: linear-gradient(135deg, #6366f1, #06b6d4)"
+                  ></span>
+                  <span>Obsidian</span>
+                </span>
+                <i class="fas fa-check theme-check-icon" style="color: #6366f1"></i>
+              </button>
+              <button
+                type="button"
+                class="theme-option-btn"
+                data-theme="theme-solar"
+                role="menuitem"
+              >
+                <span style="display: flex; align-items: center; gap: 8px">
+                  <span
+                    class="theme-palette-swatch"
+                    style="background: linear-gradient(135deg, #f59e0b, #fb923c)"
+                  ></span>
+                  <span>Solar Sunrise</span>
+                </span>
+                <i class="fas fa-check theme-check-icon" style="color: #f59e0b; display: none"></i>
+              </button>
+              <button
+                type="button"
+                class="theme-option-btn"
+                data-theme="theme-emerald"
+                role="menuitem"
+              >
+                <span style="display: flex; align-items: center; gap: 8px">
+                  <span
+                    class="theme-palette-swatch"
+                    style="background: linear-gradient(135deg, #10b981, #2dd4bf)"
+                  ></span>
+                  <span>Zen Emerald</span>
+                </span>
+                <i class="fas fa-check theme-check-icon" style="color: #10b981; display: none"></i>
+              </button>
+              <button
+                type="button"
+                class="theme-option-btn"
+                data-theme="theme-cyberpunk"
+                role="menuitem"
+              >
+                <span style="display: flex; align-items: center; gap: 8px">
+                  <span
+                    class="theme-palette-swatch"
+                    style="background: linear-gradient(135deg, #d946ef, #00f0ff)"
+                  ></span>
+                  <span>Cyberpunk</span>
+                </span>
+                <i class="fas fa-check theme-check-icon" style="color: #d946ef; display: none"></i>
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="startTourBtn"
+            title="Start Interactive Dashboard Tour"
+            style="padding: 8px 12px; font-size: 13px; min-height: 40px"
+          >
+            <i class="fas fa-compass" aria-hidden="true"></i> <span class="hide-mobile">Tour</span>
+          </button>
+
           <a
             href="/about"
             style="
@@ -1670,7 +2048,50 @@
               and focus mantras will be tailored to this philosophical voice.
             </p>
           </div>
-          <div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+            <!-- Voice Briefing Trigger -->
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="voiceBriefingBtn"
+              style="
+                padding: 6px 12px;
+                font-size: 12.5px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+              "
+              title="Read today's coach spark aloud"
+            >
+              <i class="fas fa-volume-up" id="voiceBriefingIcon" aria-hidden="true"></i>
+              <span id="voiceBriefingText">Voice Spark</span>
+              <div class="voice-wave-bars" id="voiceWaveVisualizer" style="display: none">
+                <span class="voice-wave-bar" id="vbar-0"></span>
+                <span class="voice-wave-bar" id="vbar-1"></span>
+                <span class="voice-wave-bar" id="vbar-2"></span>
+                <span class="voice-wave-bar" id="vbar-3"></span>
+                <span class="voice-wave-bar" id="vbar-4"></span>
+              </div>
+            </button>
+
+            <!-- Ambient Soundscape Selector -->
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="ambientSoundBtn"
+              style="
+                padding: 6px 12px;
+                font-size: 12.5px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              "
+              title="Toggle Ambient Focus Alpha Waves"
+            >
+              <i class="fas fa-headphones" aria-hidden="true"></i>
+              <span id="ambientSoundLabel">Ambient: Off</span>
+            </button>
+
             <span class="status-badge active" id="activePersonaBadge">🏛️ Stoic Sage</span>
           </div>
         </div>

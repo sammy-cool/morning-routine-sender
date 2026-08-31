@@ -498,6 +498,89 @@ async function testOutboundWebhook(req, res) {
   }
 }
 
+// GET /me/streak-freeze/status
+async function getStreakFreezeStatus(req, res) {
+  try {
+    const subscriber = await sharedData.getUserByEmail(req.subscriberEmail);
+    if (!subscriber) {
+      return res.status(404).json({ error: "Subscriber not found" });
+    }
+
+    res.json({
+      success: true,
+      streakFreezes: subscriber.streakFreezes ?? 2,
+      freezeHistory: subscriber.freezeHistory || [],
+      streakCount: subscriber.streakCount || 0,
+      lastCheckinDate: subscriber.lastCheckinDate || null,
+    });
+  } catch (error) {
+    logger.error("Failed to fetch streak freeze status", { error: error.message });
+    res.status(500).json({ error: "Failed to load streak freeze status" });
+  }
+}
+
+// POST /me/streak-freeze/use
+async function useStreakFreeze(req, res) {
+  try {
+    const subscriber = await sharedData.getUserByEmail(req.subscriberEmail);
+    if (!subscriber) {
+      return res.status(404).json({ error: "Subscriber not found" });
+    }
+
+    const freezes = subscriber.streakFreezes !== undefined ? Number(subscriber.streakFreezes) : 2;
+    if (freezes <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "No streak freeze shields remaining. Complete daily check-ins to stay consistent!",
+        streakFreezes: 0,
+      });
+    }
+
+    const tz = subscriber.timezone || "UTC";
+    const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
+
+    const history = Array.isArray(subscriber.freezeHistory) ? [...subscriber.freezeHistory] : [];
+    const alreadyFrozenToday = history.some((h) => h.date === todayStr);
+
+    if (alreadyFrozenToday) {
+      return res.status(400).json({
+        success: false,
+        error: "A streak freeze shield is already active for today.",
+        streakFreezes: freezes,
+      });
+    }
+
+    const newFreezes = freezes - 1;
+    history.push({
+      date: todayStr,
+      usedAt: new Date().toISOString(),
+      reason: "manual",
+    });
+
+    await sharedData.updateUser(req.subscriberEmail, {
+      streakFreezes: newFreezes,
+      freezeHistory: history,
+    });
+
+    logger.info("Subscriber activated streak freeze shield", {
+      email: req.subscriberEmail,
+      date: todayStr,
+      remaining: newFreezes,
+    });
+
+    res.json({
+      success: true,
+      message: "Streak Freeze Shield activated for today! Your streak is protected.",
+      streakFreezes: newFreezes,
+      freezeHistory: history,
+      date: todayStr,
+    });
+  } catch (error) {
+    logger.error("Failed to activate streak freeze", { error: error.message });
+    res.status(500).json({ error: "Failed to activate streak freeze" });
+  }
+}
+
 module.exports = {
   getMe,
   getMyHistory,
@@ -511,4 +594,6 @@ module.exports = {
   testChannel,
   updateOutboundWebhook,
   testOutboundWebhook,
+  getStreakFreezeStatus,
+  useStreakFreeze,
 };

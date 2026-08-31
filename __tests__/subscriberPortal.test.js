@@ -352,4 +352,54 @@ describe("subscriber portal", () => {
       expect(res.text).toMatch(/5-Day Streak/i);
     });
   });
+
+  describe("Streak Freeze Shield endpoints", () => {
+    const sessionToken = "valid-freeze-session";
+    const email = "freeze@example.com";
+
+    beforeEach(async () => {
+      await redis.set(`subscriber_session:${sessionToken}`, email);
+    });
+
+    test("GET /me/streak-freeze/status returns remaining streak freezes", async () => {
+      sharedData.getUserByEmail.mockResolvedValue({
+        email,
+        streakCount: 7,
+        streakFreezes: 2,
+        freezeHistory: [],
+      });
+
+      const res = await request(app)
+        .get("/me/streak-freeze/status")
+        .set("Cookie", [`mrn_session=${sessionToken}`]);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.streakFreezes).toBe(2);
+      expect(res.body.streakCount).toBe(7);
+    });
+
+    test("POST /me/streak-freeze/use consumes one shield for today", async () => {
+      sharedData.getUserByEmail.mockResolvedValue({
+        email,
+        streakCount: 7,
+        streakFreezes: 2,
+        freezeHistory: [],
+        timezone: "UTC",
+      });
+      sharedData.updateUser.mockResolvedValue(true);
+
+      const res = await request(app)
+        .post("/me/streak-freeze/use")
+        .set("Cookie", [`mrn_session=${sessionToken}`]);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.streakFreezes).toBe(1);
+      expect(sharedData.updateUser).toHaveBeenCalledWith(
+        email,
+        expect.objectContaining({ streakFreezes: 1 }),
+      );
+    });
+  });
 });

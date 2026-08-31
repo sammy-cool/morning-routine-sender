@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2026-08-31
+
+### 🚀 Added
+
+- **Voice Briefing Engine (`UXCore.voice`)**:
+  - Integrated native `window.speechSynthesis` with automated voice discovery (prefers natural English voices like Google US English, Samantha, Daniel).
+  - Reads aloud daily coaching spark and philosophical mindset guidance.
+  - Interactive audio wave visualizer with 5 animated frequency bars synced to voice activity.
+- **Procedural Ambient Focus Soundscapes (`UXCore.ambient`)**:
+  - Pure Web Audio API synthesis engine with zero external MP3s or network bandwidth overhead.
+  - 3 procedural focus soundscape modes:
+    - `binaural`: 10Hz Alpha Waves (200Hz base + 210Hz beat) for calm focused cognition and deep work.
+    - `rain`: Pink noise buffer with randomized high-frequency water droplet oscillators.
+    - `zen-waves`: Low-frequency sine LFO modulating filtered noise swell mimicking rhythmic ocean waves.
+- **Dynamic 4-Theme Switching System (`UXCore.theme`)**:
+  - 4 themes: **Obsidian** (default dark slate), **Solar Sunrise** (warm gold/amber), **Zen Emerald** (forest mint), and **Cyberpunk Neon** (electric violet/cyan).
+  - CSS custom properties (`--bg-main`, `--bg-surface`, `--primary`, `--primary-glow`, `--accent-color`, `--theme-ambient-1/2/3`).
+  - Floating Theme Picker dropdown with active swatch indicator, live preview, and `localStorage` persistence.
+- **Interactive Spotlight Onboarding Walkthrough (`UXCore.tour`)**:
+  - 3-step zero-dependency guided spotlight tour for new and returning subscribers (`1-Click Check-in` ➔ `Mindset Journal` ➔ `365-Day Consistency & AI Coaches`).
+  - Glassmorphic spotlight card with progress dots, step counter, skip/back buttons, and celebration confetti on completion.
+- **Streak Freeze Shields & Automated Gap Protection**:
+  - Database schema migration `20260831000000_add_streak_freezes_to_subscribers.js` (`streak_freezes` default 2, `freeze_history` jsonb).
+  - Automatic freeze shield consumption on 1-day missed gaps (`diffDays === 2`), preserving the user's hard-earned streak count.
+  - Endpoints `GET /me/streak-freeze/status` and `POST /me/streak-freeze/use` for manual shield management.
+- **Journaling Micro-Interactions & Hotkeys**:
+  - Auto-expanding textareas on input.
+  - Live character and word count tracking with "Thoughtful Reflection ✓" badge indicator.
+  - `Ctrl+Enter` / `Cmd+Enter` keyboard shortcut to save reflections instantly.
+
+---
+
 ## [2.2.0] - 2026-08-30
 
 ### 🚀 Added
