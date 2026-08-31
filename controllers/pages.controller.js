@@ -306,6 +306,9 @@ async function streakShare(req, res) {
       "Building unshakable discipline and morning focus with Morning Routine Sender.";
     const streakImageUrl = `${officialDomain}/api/streak-card/${encodeURIComponent(resolvedEmail)}/card.svg`;
     const canonicalUrl = `${officialDomain}/streak/${encodeURIComponent(rawInput)}`;
+    const shareTweetText = `🔥 I've maintained a ${streak}-day morning discipline streak on the ${trackConfig.name} track with @RoutineSender!\n\nCheck out my streak and level up your mornings:`;
+    const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTweetText)}&url=${encodeURIComponent(canonicalUrl)}`;
+    const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonicalUrl)}`;
 
     res.set("Content-Type", "text/html; charset=utf-8");
     res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
@@ -349,7 +352,7 @@ async function streakShare(req, res) {
   <style>
     :root {
       --bg: #07090e;
-      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-bg: rgba(15, 23, 42, 0.78);
       --primary: #6366f1;
       --primary-hover: #4f46e5;
       --cyan: #06b6d4;
@@ -363,8 +366,8 @@ async function streakShare(req, res) {
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 60%),
-        radial-gradient(circle at 85% 40%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.22) 0%, transparent 60%),
+        radial-gradient(circle at 85% 35%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 15% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 45%);
       color: var(--text-main);
       min-height: 100vh;
@@ -372,11 +375,11 @@ async function streakShare(req, res) {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 32px 16px;
+      padding: 36px 16px;
     }
     .share-container {
       width: 100%;
-      max-width: 820px;
+      max-width: 840px;
       margin: 0 auto;
     }
     .brand-header {
@@ -394,15 +397,16 @@ async function streakShare(req, res) {
       color: var(--text-main);
     }
     .brand-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
       background: linear-gradient(135deg, var(--primary), var(--cyan));
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 18px;
       color: #fff;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
     }
     .brand-title {
       font-size: 17px;
@@ -412,31 +416,33 @@ async function streakShare(req, res) {
     .badge-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
+      gap: 7px;
+      padding: 7px 16px;
       border-radius: 9999px;
       font-size: 13px;
       font-weight: 700;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.35);
       color: var(--emerald);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
     }
     .card {
       background: var(--card-bg);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.1);
+      border-radius: 26px;
+      padding: 30px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99, 102, 241, 0.12);
     }
     .streak-preview-wrap {
       width: 100%;
-      border-radius: 16px;
+      border-radius: 18px;
       overflow: hidden;
       margin-bottom: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: #07090e;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: #080c14;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
     .streak-card-img {
       width: 100%;
@@ -447,26 +453,85 @@ async function streakShare(req, res) {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 26px;
     }
     .meta-box {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 14px;
-      padding: 16px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px 18px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .meta-box:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
     }
     .meta-label {
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 4px;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
     }
     .meta-value {
       font-size: 18px;
       font-weight: 800;
       color: #fff;
+    }
+    .social-share-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .share-btn {
+      flex: 1 1 180px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .share-btn-twitter {
+      background: #0f1419;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .share-btn-twitter:hover {
+      background: #1d9bf0;
+      border-color: #1d9bf0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(29, 155, 240, 0.35);
+    }
+    .share-btn-linkedin {
+      background: rgba(10, 102, 194, 0.15);
+      color: #70b5f9;
+      border: 1px solid rgba(10, 102, 194, 0.35);
+    }
+    .share-btn-linkedin:hover {
+      background: #0a66c2;
+      color: #fff;
+      border-color: #0a66c2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(10, 102, 194, 0.35);
+    }
+    .share-btn-copy {
+      background: rgba(255, 255, 255, 0.07);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .share-btn-copy:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
     }
     .cta-actions {
       display: flex;
@@ -512,10 +577,30 @@ async function streakShare(req, res) {
       font-size: 13px;
       color: var(--text-muted);
     }
+    .copy-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #10b981;
+      color: #ffffff;
+      padding: 10px 22px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+      z-index: 100;
+    }
+    .copy-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
     @media (max-width: 640px) {
-      .card { padding: 18px; }
-      .cta-actions { flex-direction: column; }
-      .btn { width: 100%; }
+      .card { padding: 20px; }
+      .cta-actions, .social-share-row { flex-direction: column; }
+      .btn, .share-btn { width: 100%; }
     }
   </style>
 </head>
@@ -554,6 +639,34 @@ async function streakShare(req, res) {
         </div>
       </div>
 
+      <!-- Social Sharing Row -->
+      <div class="social-share-row">
+        <a
+          href="${escapeHtml(twitterShareUrl)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-btn share-btn-twitter"
+        >
+          <i class="fa-brands fa-x-twitter"></i> Share to X
+        </a>
+        <a
+          href="${escapeHtml(linkedInShareUrl)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-btn share-btn-linkedin"
+        >
+          <i class="fa-brands fa-linkedin"></i> Share on LinkedIn
+        </a>
+        <button
+          type="button"
+          class="share-btn share-btn-copy"
+          onclick="copyStreakLink()"
+        >
+          <i class="fas fa-link"></i> Copy Link
+        </button>
+      </div>
+
+      <!-- Main Navigation Actions -->
       <div class="cta-actions">
         <a href="/" class="btn btn-primary">
           <i class="fas fa-bolt"></i> Start Your Routine
@@ -568,6 +681,32 @@ async function streakShare(req, res) {
       Morning Routine Sender • Automated Daily Habits &amp; Peak Performance Architecture
     </footer>
   </div>
+
+  <div id="copyToast" class="copy-toast">
+    <i class="fas fa-check-circle" style="margin-right: 6px;"></i> Streak card link copied to clipboard!
+  </div>
+
+  <script>
+    function copyStreakLink() {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(window.location.href).then(showToast);
+      } else {
+        const input = document.createElement('textarea');
+        input.value = window.location.href;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast();
+      }
+    }
+    function showToast() {
+      const toast = document.getElementById('copyToast');
+      if (!toast) return;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  </script>
 </body>
 </html>`;
 

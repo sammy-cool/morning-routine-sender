@@ -87,6 +87,7 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
 
   afterEach(() => {
     UXCore.shortcuts.destroy();
+    UXCore.network.destroy();
     jest.restoreAllMocks();
   });
 

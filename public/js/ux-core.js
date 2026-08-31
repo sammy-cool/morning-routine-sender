@@ -1678,11 +1678,19 @@
       banner.classList.remove("mrn-offline");
       banner.classList.add("mrn-online", "mrn-visible");
 
+      if (onlineDismissTimeout) {
+        clearTimeout(onlineDismissTimeout);
+        onlineDismissTimeout = null;
+      }
+
       // Smoothly hide after 3.2 seconds
       onlineDismissTimeout = setTimeout(() => {
         this.hideBanner();
         onlineDismissTimeout = null;
       }, 3200);
+      if (typeof onlineDismissTimeout?.unref === "function") {
+        onlineDismissTimeout.unref();
+      }
     },
 
     /**

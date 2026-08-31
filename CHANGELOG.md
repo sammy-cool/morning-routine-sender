@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2026-08-31
+
+### 🎨 Visual & UI/UX Redesign Overhaul
+
+- **Modern Vector Brand Identity (`public/assets/logo.svg`)**:
+  - High-DPI scalable SVG brand logo featuring radiant sunrise geometry, sacred zen focus rings, and glowing auroras (Indigo `#6366f1`, Cyan `#06b6d4`, Emerald `#10b981`, Amber `#f59e0b`).
+- **Dynamic Social Streak Share Experience (`controllers/pages.controller.js` / `/streak/:handleOrEmail`)**:
+  - Upgraded high-impact glassmorphic share page with real-time vector SVG streak card preview.
+  - 1-Click native social sharing directly to **X / Twitter** and **LinkedIn**, plus clipboard link copier with animated toast notification.
+- **Next-Gen PWA Offline Shell (`public/offline.html`)**:
+  - Glassmorphic offline card with radar wave pulse animation.
+  - Real-time offline habit check-in queue counter inspecting IndexedDB and localStorage buffers.
+  - 15-second automatic reconnection countdown progress meter and instant retry trigger.
+- **Cross-Platform Responsive Bento Grid Architecture**:
+  - 12-column adaptive layout across desktop, tablet, and mobile with bottom floating glass docks.
+  - Timer teardown and `.unref()` protection across network banners and async visualizers.
+
+---
+
 ## [2.3.1] - 2026-08-31
 
 ### 🛠️ Fixed & Performance

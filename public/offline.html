@@ -2,34 +2,45 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <title>Offline Mode • Morning Routine</title>
+    <title>Offline Mode • Morning Routine Sender</title>
     <meta
       name="description"
-      content="You are currently offline. Please check your internet connection to regain access."
+      content="You are currently offline. Your morning routine and habit check-ins are queued and will sync automatically upon reconnection."
     />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#090d16" />
+    <meta name="theme-color" content="#07090e" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
+    <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap"
       rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
 
     <style>
       :root {
         --bg-main: #07090e;
-        --bg-card: rgba(17, 24, 39, 0.85);
-        --border-subtle: rgba(255, 255, 255, 0.08);
+        --bg-card: rgba(15, 23, 42, 0.82);
+        --border-subtle: rgba(255, 255, 255, 0.1);
+        --border-glow: rgba(99, 102, 241, 0.35);
         --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.4);
+        --accent-cyan: #06b6d4;
+        --accent-emerald: #10b981;
+        --accent-amber: #f59e0b;
         --text-main: #f8fafc;
         --text-muted: #94a3b8;
-        --accent-cyan: #06b6d4;
+        --text-subtle: #64748b;
       }
 
       * {
@@ -50,117 +61,451 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 20px;
-        background-image: radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 60%);
+        padding: 24px 16px;
+        background-image:
+          radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.18) 0px, transparent 65%),
+          radial-gradient(circle at 80% 85%, rgba(6, 182, 212, 0.12) 0px, transparent 55%),
+          radial-gradient(circle at 20% 90%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+        background-attachment: fixed;
       }
 
-      .card {
+      .offline-card {
         background: var(--bg-card);
-        backdrop-filter: blur(20px);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
         border: 1px solid var(--border-subtle);
-        border-radius: 20px;
-        padding: 40px 32px;
-        max-width: 480px;
+        border-radius: 28px;
+        padding: 44px 36px;
+        max-width: 520px;
         width: 100%;
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 16px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        gap: 20px;
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.65),
+          0 0 45px rgba(99, 102, 241, 0.12);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .offline-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          var(--primary),
+          var(--accent-cyan),
+          var(--accent-emerald)
+        );
+      }
+
+      .status-radar {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 4px;
+      }
+
+      .radar-wave {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid var(--primary);
+        opacity: 0;
+        animation: radarPulse 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+      }
+
+      .radar-wave:nth-child(2) {
+        animation-delay: 0.8s;
+      }
+
+      .radar-wave:nth-child(3) {
+        animation-delay: 1.6s;
+      }
+
+      @keyframes radarPulse {
+        0% {
+          transform: scale(0.6);
+          opacity: 0.8;
+        }
+        100% {
+          transform: scale(1.6);
+          opacity: 0;
+        }
       }
 
       .icon-wrap {
         width: 64px;
         height: 64px;
-        border-radius: 50%;
-        background: rgba(99, 102, 241, 0.15);
-        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(6, 182, 212, 0.2));
+        border: 1px solid var(--border-glow);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
-        margin-bottom: 8px;
+        font-size: 26px;
+        color: #818cf8;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 8px 20px var(--primary-glow);
       }
 
       h1 {
         font-size: 24px;
         font-weight: 800;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.02em;
+        color: #ffffff;
       }
 
-      p {
+      p.description {
         font-size: 14px;
         color: var(--text-muted);
         line-height: 1.6;
       }
 
-      .btn {
-        background: linear-gradient(135deg, var(--primary), #4f46e5);
-        color: #fff;
-        padding: 11px 22px;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        margin-top: 8px;
-        transition: transform 0.2s ease;
+      /* Queue Indicator Banner */
+      .queue-badge-card {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        text-align: left;
       }
 
-      .btn:hover {
-        transform: translateY(-1px);
+      .queue-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
 
-      .notice {
+      .queue-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-amber);
+        font-size: 16px;
+      }
+
+      .queue-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .queue-desc {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .queue-pill {
+        padding: 4px 10px;
+        border-radius: 9999px;
         font-size: 12px;
-        color: #818cf8;
-        background: rgba(99, 102, 241, 0.1);
-        padding: 8px 14px;
-        border-radius: 20px;
-        border: 1px solid rgba(99, 102, 241, 0.2);
+        font-weight: 800;
+        font-family: "JetBrains Mono", monospace;
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+      }
+
+      /* Auto-Retry Countdown Meter */
+      .retry-meter {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .meter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--text-subtle);
+      }
+
+      .countdown-val {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        color: var(--accent-cyan);
+      }
+
+      .progress-bar-bg {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 9999px;
+        overflow: hidden;
+      }
+
+      .progress-bar-fill {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
+        border-radius: 9999px;
+        transition: width 1s linear;
+      }
+
+      /* Actions */
+      .action-row {
+        display: flex;
+        gap: 12px;
+        width: 100%;
         margin-top: 6px;
+      }
+
+      .btn {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 20px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #4f46e5);
+        color: #ffffff;
+        box-shadow: 0 4px 16px var(--primary-glow);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 22px rgba(99, 102, 241, 0.55);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.07);
+        color: #f1f5f9;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .footer-brand {
+        font-size: 12px;
+        color: var(--text-subtle);
+      }
+
+      @media (max-width: 480px) {
+        .offline-card {
+          padding: 32px 20px;
+        }
+        .action-row {
+          flex-direction: column;
+        }
       }
     </style>
   </head>
 
   <body>
-    <main class="card">
-      <div class="icon-wrap" aria-hidden="true">📡</div>
+    <main class="offline-card" role="main">
+      <div class="status-radar" aria-hidden="true">
+        <div class="radar-wave"></div>
+        <div class="radar-wave"></div>
+        <div class="radar-wave"></div>
+        <div class="icon-wrap">
+          <i class="fas fa-wifi-slash"></i>
+        </div>
+      </div>
+
       <div
         role="status"
         aria-live="polite"
-        style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%"
+        style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%"
       >
         <h1>Connection Offline</h1>
-        <p>
-          Your internet connection seems to be unavailable. Please check your network connection.
+        <p class="description">
+          You are currently offline. Your active routine state is preserved locally, and pending
+          actions will sync instantly once reconnected.
         </p>
-        <div class="notice">The page will automatically reconnect once internet is restored.</div>
       </div>
-      <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px">
-        <button class="btn" style="flex: 1" onclick="window.location.reload()">
-          Retry Connection
+
+      <!-- Offline Check-in Queue Status Indicator -->
+      <div class="queue-badge-card" id="offlineQueueBadge">
+        <div class="queue-info">
+          <div class="queue-icon">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <div>
+            <div class="queue-title" id="queueStatusTitle">Offline Habit Queue</div>
+            <div class="queue-desc" id="queueStatusDesc">Checking pending check-ins…</div>
+          </div>
+        </div>
+        <span class="queue-pill" id="queueCountPill">0</span>
+      </div>
+
+      <!-- Auto-Retry Progress Meter -->
+      <div class="retry-meter">
+        <div class="meter-header">
+          <span>Auto-reconnecting in</span>
+          <span class="countdown-val" id="countdownVal">15s</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBarFill" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-row">
+        <button type="button" class="btn btn-primary" onclick="retryConnectionNow()">
+          <i class="fas fa-rotate-right" id="retrySpinner"></i> Retry Now
         </button>
-        <a
-          href="/"
-          class="btn"
-          style="
-            flex: 1;
-            background: rgba(255, 255, 255, 0.08);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          "
-          >Home</a
-        >
+        <a href="/" class="btn btn-secondary"> <i class="fas fa-home"></i> Home </a>
       </div>
+
+      <footer class="footer-brand">Morning Routine Sender • Unshakable Morning Discipline</footer>
     </main>
 
     <script>
+      const COUNTDOWN_TOTAL_SECONDS = 15;
+      let countdownLeft = COUNTDOWN_TOTAL_SECONDS;
+      let countdownTimer = null;
+
+      async function inspectOfflineQueue() {
+        let count = 0;
+        try {
+          if (typeof indexedDB !== "undefined") {
+            const req = indexedDB.open("mrn-offline-sync-db", 1);
+            req.onsuccess = (e) => {
+              try {
+                const db = e.target.result;
+                if (db.objectStoreNames.contains("checkin_queue")) {
+                  const tx = db.transaction("checkin_queue", "readonly");
+                  const store = tx.objectStore("checkin_queue");
+                  const countReq = store.count();
+                  countReq.onsuccess = () => {
+                    count = countReq.result || 0;
+                    updateQueueUI(count);
+                  };
+                } else {
+                  checkLocalStorageBackup();
+                }
+              } catch (_) {
+                checkLocalStorageBackup();
+              }
+            };
+            req.onerror = () => checkLocalStorageBackup();
+          } else {
+            checkLocalStorageBackup();
+          }
+        } catch (_) {
+          checkLocalStorageBackup();
+        }
+
+        function checkLocalStorageBackup() {
+          try {
+            const items = JSON.parse(localStorage.getItem("mrn_offline_checkins_backup") || "[]");
+            count = Array.isArray(items) ? items.length : 0;
+          } catch (_) {
+            count = 0;
+          }
+          updateQueueUI(count);
+        }
+      }
+
+      function updateQueueUI(count) {
+        const titleEl = document.getElementById("queueStatusTitle");
+        const descEl = document.getElementById("queueStatusDesc");
+        const pillEl = document.getElementById("queueCountPill");
+
+        if (!titleEl || !descEl || !pillEl) return;
+
+        pillEl.textContent = count;
+        if (count > 0) {
+          titleEl.textContent = "⚡ Habit Check-ins Queued";
+          descEl.textContent = `${count} check-in${count > 1 ? "s" : ""} pending automatic sync`;
+          pillEl.style.background = "rgba(245, 158, 11, 0.25)";
+          pillEl.style.color = "#fbbf24";
+        } else {
+          titleEl.textContent = "✅ Habit Queue Synced";
+          descEl.textContent = "No pending offline actions in queue";
+          pillEl.style.background = "rgba(16, 185, 129, 0.2)";
+          pillEl.style.color = "#34d399";
+        }
+      }
+
+      function startCountdown() {
+        const valEl = document.getElementById("countdownVal");
+        const fillEl = document.getElementById("progressBarFill");
+
+        countdownTimer = setInterval(() => {
+          countdownLeft--;
+          if (valEl) valEl.textContent = `${countdownLeft}s`;
+          if (fillEl) {
+            const pct = Math.max(0, (countdownLeft / COUNTDOWN_TOTAL_SECONDS) * 100);
+            fillEl.style.width = `${pct}%`;
+          }
+
+          if (countdownLeft <= 0) {
+            clearInterval(countdownTimer);
+            retryConnectionNow();
+          }
+        }, 1000);
+      }
+
+      function retryConnectionNow() {
+        const spinner = document.getElementById("retrySpinner");
+        if (spinner) spinner.classList.add("fa-spin");
+
+        fetch("/health", { method: "GET", cache: "no-store" })
+          .then((res) => {
+            if (res.ok) {
+              window.location.replace("/");
+            } else {
+              resetCountdown();
+            }
+          })
+          .catch(() => {
+            resetCountdown();
+          });
+      }
+
+      function resetCountdown() {
+        const spinner = document.getElementById("retrySpinner");
+        if (spinner) spinner.classList.remove("fa-spin");
+        countdownLeft = COUNTDOWN_TOTAL_SECONDS;
+        if (countdownTimer) clearInterval(countdownTimer);
+        startCountdown();
+      }
+
       window.addEventListener("online", () => {
         window.location.replace("/");
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        inspectOfflineQueue();
+        startCountdown();
       });
     </script>
   </body>
