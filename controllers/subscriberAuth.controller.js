@@ -60,6 +60,7 @@ async function requestLogin(req, res) {
           <p style="color:#666;font-size:13px;">This link expires in 15 minutes and can only be used once. If you didn't request this, you can safely ignore this email.</p>
         </div>
       `,
+      text: `Your Morning Routine login link\n\nClick the link below to log in to your dashboard:\n${loginUrl}\n\nThis link expires in 15 minutes and can only be used once. If you didn't request this, you can safely ignore this email.`,
     });
 
     logger.info("Login link sent", { email });

@@ -163,7 +163,8 @@ function sitemap(req, res) {
   let content = getCachedTemplate("public/sitemap.xml");
   content = content
     .replaceAll("__DOMAIN__", domain)
-    .replaceAll("https://morning-routine-sender.onrender.com", domain);
+    .replaceAll("https://morning-routine-sender.onrender.com", domain)
+    .replaceAll("https://your-app.onrender.com", domain);
   return res.send(content);
 }
 
@@ -318,7 +319,10 @@ async function streakShare(req, res) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#07090e">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#050608">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>${escapeHtml(pageTitle)} • Morning Routine Sender</title>
   <meta name="description" content="${escapeHtml(pageDescription)}">
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
@@ -336,6 +340,8 @@ async function streakShare(req, res) {
 
   <!-- Twitter Card Metadata -->
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@MorningRoutine">
+  <meta name="twitter:creator" content="@MorningRoutine">
   <meta name="twitter:title" content="${escapeHtml(pageTitle)}">
   <meta name="twitter:description" content="${escapeHtml(pageDescription)}">
   <meta name="twitter:image" content="${escapeHtml(streakImageUrl)}">

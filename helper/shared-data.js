@@ -750,6 +750,52 @@ const WEEKLY_DIGEST_CONFIGS = {
     encouragement:
       "Every great week starts with an intentional Sunday evening and energized morning!",
   },
+  career: {
+    reflection:
+      "Review your high-stakes career conversations and professional milestones from this past week. Where did you create maximum strategic leverage?",
+    prepItems: [
+      {
+        title: "Identify Top Career Milestone for the Week",
+        description:
+          "Define the single most impactful project deliverable that elevates your visibility and leadership.",
+      },
+      {
+        title: "Stakeholder Alignment Check",
+        description:
+          "Map key stakeholders you need to proactively update or sync with before Wednesday.",
+      },
+      {
+        title: "Block 3 Skill Mastery Sessions",
+        description:
+          "Reserve 20 minutes on Monday, Wednesday, and Friday for deliberate skill refinement.",
+      },
+    ],
+    encouragement:
+      "Professional mastery is forged through relentless daily intentionality and high-leverage execution.",
+  },
+  reflection: {
+    reflection:
+      "Look back at your wins, lessons learned, and moments of gratitude over the last 7 days. How did self-awareness shape your decisions?",
+    prepItems: [
+      {
+        title: "Set Weekly Gratitude Theme",
+        description:
+          "Choose an anchor value (e.g., Compassion, Humility, Stillness) to guide your evening reviews.",
+      },
+      {
+        title: "Reset Physical & Mental Space",
+        description:
+          "Clean your workspace and journal entry queue to enter Monday with zero mental baggage.",
+      },
+      {
+        title: "Schedule Sunday Wind-Down",
+        description:
+          "Commit to powering down all electronic devices 60 minutes before bedtime tonight.",
+      },
+    ],
+    encouragement:
+      "Reflection turns experience into insight, and insight into compounding personal growth.",
+  },
 };
 
 function getWeeklyDigestContent(trackKey = "deep-work") {

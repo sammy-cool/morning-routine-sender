@@ -21,7 +21,7 @@ async function getMe(req, res) {
 // GET /me/history
 async function getMyHistory(req, res) {
   try {
-    const limit = Math.min(Number(req.query.limit) || 20, 100);
+    const limit = Math.max(1, Math.min(Number(req.query.limit) || 20, 100));
     const history = await emailTracker.getHistory(req.subscriberEmail, limit);
     res.json({ history });
   } catch (error) {

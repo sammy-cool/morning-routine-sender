@@ -82,6 +82,7 @@ async function requestSignup(req, res) {
           <p style="color:#666;font-size:13px;">If you didn't request this, you can safely ignore this email -- you won't be subscribed unless you click the link above.</p>
         </div>
       `,
+      text: `Confirm your Morning Routine subscription\n\nClick the link below to confirm you'd like to receive Morning Routine emails at this address:\n${confirmUrl}\n\nIf you didn't request this, you can safely ignore this email -- you won't be subscribed unless you click the link.`,
     });
 
     logger.info("Signup confirmation sent", { email });
@@ -142,6 +143,7 @@ async function confirmSignup(req, res) {
 
 async function sendWelcomeEmail(email) {
   const transporter = getTransporter();
+  const dashboardUrl = `${process.env.RENDER_URL || "https://morning-routine-sender.onrender.com"}/user-dashboard`;
   await transporter.sendMail({
     from: process.env.FROM_NAME
       ? `"${process.env.FROM_NAME}" <${process.env.FROM_USER}>`
@@ -152,10 +154,11 @@ async function sendWelcomeEmail(email) {
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
         <h2>You're all set!</h2>
         <p>You're subscribed to Morning Routine -- expect your first email soon.</p>
-        <p>You can update your send time, timezone, or pause anytime from your dashboard. No need to email anyone to make changes.</p>
+        <p>You can update your send time, timezone, or pause anytime from your <a href="${dashboardUrl}" style="color:#4f46e5;font-weight:600;">dashboard</a>. No need to email anyone to make changes.</p>
         <p style="color:#666;font-size:13px;margin-top:24px;">Didn't mean to sign up? Every routine email includes a one-click unsubscribe link.</p>
       </div>
     `,
+    text: `Welcome to Morning Routine 🌞\n\nYou're all set! You're subscribed to Morning Routine -- expect your first email soon.\n\nYou can update your send time, timezone, or pause anytime from your dashboard: ${dashboardUrl}\n\nDidn't mean to sign up? Every routine email includes a one-click unsubscribe link.`,
   });
   logger.info("Welcome email sent", { email });
 }

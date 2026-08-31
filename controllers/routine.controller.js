@@ -159,7 +159,8 @@ function renderCheckinPage(res, data) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#07090e">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#050608">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>${escapeHtml(data.title)} • Morning Routine</title>
@@ -414,16 +415,30 @@ async function liveRoutine(req, res) {
     )
     .join("\n");
 
+  const domain = res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#07090e">
+  <meta name="robots" content="index, follow">
+  <meta name="description" content="Interactive 25-minute live morning routine focus companion with procedural soundscapes, ritual checklist, and daily inspiration.">
+  <meta name="theme-color" content="#050608">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Today's Morning Routine • ${escapeHtml(trackContent.name)}</title>
+  <link rel="canonical" href="${domain}/routine">
+  <meta property="og:title" content="Today's Morning Routine • ${escapeHtml(trackContent.name)}">
+  <meta property="og:description" content="Interactive 25-minute live morning routine focus companion with procedural soundscapes, ritual checklist, and daily inspiration.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${domain}/routine">
+  <meta property="og:image" content="${domain}/assets/screenshot-desktop.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Today's Morning Routine • ${escapeHtml(trackContent.name)}">
+  <meta name="twitter:description" content="Interactive 25-minute live morning routine focus companion with procedural soundscapes, ritual checklist, and daily inspiration.">
+  <meta name="twitter:image" content="${domain}/assets/screenshot-desktop.png">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">

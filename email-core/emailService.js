@@ -53,6 +53,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     const morningSpark = await getDailyMorningSpark({
       email: userData.email,
       routineTrack: trackKey,
+      coachPersona: userData.coachPersona || "stoic",
       streakCount: userStreak,
       timezone: userTimezone,
       name: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
@@ -70,6 +71,8 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       trackBadge: trackBadge,
       dailyQuote: dailyQuote,
       dailyTip: dailyTip,
+      checklist: trackInfo.checklist || [],
+      coachPersona: userData.coachPersona || "stoic",
       aiSparkReflection: morningSpark.sparkReflection,
       aiMicroAction: morningSpark.microAction,
       aiFocusMantra: morningSpark.focusMantra,
@@ -97,7 +100,32 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       throw new Error("Email template rendering error");
     }
 
-    const text = `Good morning ${data.userName},\n\n[${trackInfo.badge} • 🔥 ${streakBadge}]\n\nQuote: "${data.dailyQuote}"\n\nToday's Focus Ritual: ${data.dailyTip}\n\n⚡ Open Live Routine & Timer: ${data.ctaUrl}\n🔥 1-Click Streak Check-in: ${data.checkinUrl}\nManage Preferences: ${data.preferencesUrl}\nUnsubscribe: ${data.unsubscribeUrl}`;
+    const textChecklist = (trackInfo.checklist || []).map((item) => `[ ] ${item}`).join("\n");
+    const text = `Good morning ${data.userName},
+
+[${trackInfo.badge} • 🔥 ${streakBadge}]
+
+Quote: "${data.dailyQuote}"
+
+Today's Focus Ritual:
+${data.dailyTip}
+
+⚡ Daily Kickoff (${data.aiSourceBadge}):
+"${data.aiSparkReflection}"
+
+🚀 2-Min Micro-Action:
+${data.aiMicroAction}
+
+⚓ Focus Mantra:
+"${data.aiFocusMantra}"
+
+📋 Today's Habit Checklist:
+${textChecklist}
+
+⚡ Open Live Routine & Timer: ${data.ctaUrl}
+🔥 1-Click Streak Check-in: ${data.checkinUrl}
+Manage Preferences: ${data.preferencesUrl}
+Unsubscribe: ${data.unsubscribeUrl}`;
 
     // Send email
     try {
@@ -116,12 +144,15 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
               ? appLocals
               : appLocals?.officialDomain || "morning-routine-sender",
           "Message-ID": `<${crypto.randomUUID()}@morningroutine.app>`,
+          "X-Entity-Ref-ID": messageRef,
           "X-Trace-ID": `${crypto.randomBytes(6).toString("hex")}`,
           "X-Service": "morning-routine-sender",
           "X-Campaign": "daily-routine",
           "X-Template-Type": trackKey,
           "X-Job-Type": "routine-email",
           "X-Message-Ref": messageRef,
+          Precedence: "bulk",
+          "Auto-Submitted": "auto-generated",
           "List-Unsubscribe": `<${data.unsubscribeUrl}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         },

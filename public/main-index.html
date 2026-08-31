@@ -85,6 +85,27 @@
         "@context": "https://schema.org",
         "@graph": [
           {
+            "@type": "WebSite",
+            "@id": "__DOMAIN__/#website",
+            "name": "Morning Routine Sender",
+            "url": "__DOMAIN__/",
+            "description": "Automated, timezone-aware daily morning routine email delivery system featuring curated tracks, habit streak tracking, and focus companion tools.",
+            "publisher": {
+              "@id": "__DOMAIN__/#organization"
+            },
+            "inLanguage": "en-US"
+          },
+          {
+            "@type": "Organization",
+            "@id": "__DOMAIN__/#organization",
+            "name": "Morning Routine Sender",
+            "url": "__DOMAIN__/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "__DOMAIN__/assets/mrn-brand-ico.png"
+            }
+          },
+          {
             "@type": "WebApplication",
             "@id": "__DOMAIN__/#webapp",
             "name": "Morning Routine Sender",
@@ -100,6 +121,36 @@
               "price": "0",
               "priceCurrency": "USD"
             }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "__DOMAIN__/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What time will I receive my morning routine email?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Every morning at your chosen local wake-up time. Our automated scheduler uses your local timezone so your ritual is waiting for you when you wake up."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I change my habit track or schedule later?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes! Log in to your subscriber dashboard using a passwordless magic link to switch your routine track, customize your wake-up time, or adjust notification channels at any time."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does the habit streak check-in work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Each daily email contains a 1-click streak check-in button. Click it to verify your completed routine and build your consistency streak. If you miss a day, streak freeze shields protect your progress."
+                }
+              }
+            ]
           }
         ]
       }

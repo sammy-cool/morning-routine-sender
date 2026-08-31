@@ -289,7 +289,10 @@ function generateCsvExport(entries = []) {
   ];
   const escapeCsv = (val) => {
     if (val === null || val === undefined) return '""';
-    const str = String(val).replace(/"/g, '""');
+    let str = String(val).replace(/"/g, '""');
+    if (/^[=+\-@\t\r]/.test(str)) {
+      str = `'${str}`;
+    }
     return `"${str}"`;
   };
 

@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.4] - 2026-08-31
+
+### 🚀 Enterprise CI/CD Pipeline, Multi-Platform SEO & Rich Email Plain-Text Integration
+
+- **Enterprise CI Pipeline Optimization (`.github/workflows/ci.yml`)**:
+  - Implemented top-level `permissions: contents: read` enforcing least-privilege security.
+  - Added strict job timeouts (`timeout-minutes: 10` on lint & audit, `timeout-minutes: 15` on tests) preventing hung runners.
+  - Expanded automated test matrix across Active LTS Node versions: `18.x`, `20.x`, and `22.x` with `fail-fast: false`.
+  - Re-ordered step sequence: Prettier format fast-fail -> AST syntax validation -> ESLint analysis -> Security vulnerability audit -> Matrix test runner.
+- **Search Engine Optimization (SEO), Structured Data & Sitemaps**:
+  - **Schema.org Rich Snippets (`public/main-index.html`)**: Added `WebSite`, `Organization`, and `FAQPage` JSON-LD schemas enabling Google Search FAQ rich snippets for landing page questions.
+  - **Live Companion SEO (`controllers/routine.controller.js`)**: Injected canonical URL (`/routine`), meta description, OpenGraph (`og:title`, `og:image`, `og:url`), and Twitter Cards to the Live Focus Companion view.
+  - **Public Streak Share Metadata (`controllers/pages.controller.js`)**: Added `robots: index, follow`, `twitter:site: @MorningRoutine`, and PWA mobile status meta tags to `/streak/:handleOrEmail`.
+  - **Sitemap Freshness (`public/sitemap.xml`)**: Updated `lastmod` timestamps to `2026-08-31` and pruned `noindex` offline shell URL from sitemap index.
+  - **PWA Asset Integrity (`public/offline.html`)**: Added explicit `<link rel="icon">`, `<link rel="apple-touch-icon">`, and `<link rel="manifest">` tags.
+- **Transactional & Daily Email Plain-Text Fallbacks & ESP Resilience**:
+  - **Rich Plain-Text Rendering (`email-core/emailService.js`)**: Expanded text fallbacks to include AI Morning Kickoff Spark, Coach Mantra, 2-Min Micro-Action, and 4-item Habit Checklist.
+  - **Bulk RFC Headers**: Added `Precedence: bulk`, `Auto-Submitted: auto-generated`, and `X-Entity-Ref-ID` preventing Gmail conversation thread collisions and auto-responder loops.
+  - **Transactional Text Fallbacks (`controllers/signup.controller.js`, `controllers/subscriberAuth.controller.js`)**: Added `text` properties across signup confirmation, magic login, and welcome emails.
+  - **Weekly Digest Parity (`helper/shared-data.js`)**: Added `career` and `reflection` track configurations to `WEEKLY_DIGEST_CONFIGS`.
+- **Security Boundaries & Input Sanitization**:
+  - **CSV Formula Injection Prevention (`helper/journalService.js`)**: Prefixed formula triggers (`=`, `+`, `-`, `@`, `\t`, `\r`) with single quotes to defend exported CSVs against CWE-1236.
+  - **History Query Limit Clamping (`controllers/me.controller.js`)**: Clamped `req.query.limit` within `[1, 100]` preventing negative limits or unbounded queries.
+- **Expanded Test Suite Coverage**:
+  - Added [`__tests__/seo.link.integrity.test.js`](file:///home/smarty/projects/morning-routine-sender/__tests__/seo.link.integrity.test.js) testing static asset presence, meta tags, sitemaps, robots.txt, and LLM context endpoints.
+  - Added [`__tests__/email.templates.rendering.test.js`](file:///home/smarty/projects/morning-routine-sender/__tests__/email.templates.rendering.test.js) testing HTML/plain-text rendering across all 7 tracks, headers, and digest metrics.
+  - Added [`__tests__/edge.boundaries.security.test.js`](file:///home/smarty/projects/morning-routine-sender/__tests__/edge.boundaries.security.test.js) testing CSV formula injection defense, query limits, and corrupted timezone resilience.
+  - Test suite coverage expanded to **38 test suites / 276 tests** (100% passing).
+
+---
+
 ## [2.6.3] - 2026-08-31
 
 ### 🌟 Comprehensive End-to-End Testing, Concurrency Guards, Track Configs & UI Audio Polish
