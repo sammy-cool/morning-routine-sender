@@ -351,14 +351,14 @@ async function streakShare(req, res) {
 
   <style>
     :root {
-      --bg: #07090e;
-      --card-bg: rgba(15, 23, 42, 0.78);
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --cyan: #06b6d4;
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --border: rgba(255, 255, 255, 0.1);
+      --bg: #050608;
+      --card-bg: rgba(12, 17, 29, 0.82);
+      --primary: #7c3aed;
+      --primary-hover: #6d28d9;
+      --cyan: #22d3ee;
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --border: rgba(255, 255, 255, 0.08);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -366,9 +366,9 @@ async function streakShare(req, res) {
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.22) 0%, transparent 60%),
-        radial-gradient(circle at 85% 35%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 15% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 45%);
+        radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.22) 0%, transparent 60%),
+        radial-gradient(circle at 85% 35%, rgba(34, 211, 238, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 15% 80%, rgba(52, 211, 153, 0.1) 0%, transparent 45%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -406,7 +406,7 @@ async function streakShare(req, res) {
       justify-content: center;
       font-size: 18px;
       color: #fff;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
     }
     .brand-title {
       font-size: 17px;
@@ -608,7 +608,7 @@ async function streakShare(req, res) {
   <div class="share-container">
     <header class="brand-header">
       <a href="/" class="brand-logo">
-        <div class="brand-icon"><i class="fas fa-sun"></i></div>
+        <img src="/assets/logo.svg" alt="Morning Routine" width="34" height="34" style="border-radius: 10px;" />
         <span class="brand-title">Morning Routine Sender</span>
       </a>
       <span class="badge-pill"><i class="fas fa-certificate"></i> Verified Habit Streak</span>

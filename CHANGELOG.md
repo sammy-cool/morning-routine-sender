@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - 2026-08-31
+
+### 🌟 Revolutionary 2026/2027 Full-App UI/UX Redesign & Brand Transformation
+
+- **Cosmic Space Dark Design System (`#050608`)**:
+  - Replaced legacy flat dark backgrounds with an ultra-deep obsidian space backdrop (`#050608`), ambient multi-point radial gradients, and animated fluid mesh blobs.
+  - Upgraded core primary accent to electric violet (`#7c3aed`) with luminous glow halos (`rgba(124, 58, 237, 0.4)`), coupled with neon cyan (`#22d3ee`), emerald (`#34d399`), amber (`#fbbf24`), and rose (`#fb7185`).
+- **Brand Geometry & High-DPI Visual Assets**:
+  - Re-architected `public/assets/logo.svg` with multi-layered cosmic sunrise vectors, horizon refraction shimmers, dual orbital zen rings, and radiant violet-to-cyan aurora gradients.
+  - Regenerated 512x512 maskable PWA app icons and high-resolution desktop/mobile screenshots (`scripts/generate-pwa-assets.js`).
+- **Complete Multi-Page UI Redesign**:
+  - **Landing Page (`public/main-index.html`)**: Bento grid architecture, live email preview simulator with interactive checklist states, live HUD clock, floating badge pill, and smooth dialog physics.
+  - **Subscriber Dashboard (`public/user-dashboard.html`)**: Refreshed 4-theme palette (Obsidian, Solar Sunrise, Zen Emerald, Cyberpunk Neon), glowing streak hero aura, floating glass bottom navigation for mobile viewports, and smooth card entrance animations.
+  - **About & Manifesto (`public/about.html`)**: High-converting narrative layout, glassmorphic comparative story cards, interactive ecosystem grid, and creator profile card.
+  - **Live Focus Companion & Check-in (`controllers/routine.controller.js`)**: Violet-glow Pomodoro focus timer, interactive soundscape audio visualizers, and celebratory check-in fireworks.
+  - **Admin Command Center (`admin-renderer/views/admin-dashboard.html`)**: Mission-control dark aesthetic, deep violet-blue vertical sidebar gradient, animated entrance cards, and deliverability guard.
+  - **Public Streak Share Landing Page (`controllers/pages.controller.js` / `/streak/:handleOrEmail`)**: Dynamic OpenGraph landing page updated with brand logo and cosmic color scheme.
+  - **PWA Offline Shell (`public/offline.html`) & Preloader (`public/css/loader.css`)**: Radar wave pulse animations, offline IndexedDB sync indicator, and violet-cyan ring loader.
+- **Zero Breaking Changes**:
+  - 100% functional element preservation across all form IDs, CSRF honeypots, Web Speech voice synthesis, Web Audio ambient generators, Service Worker caching, and Jest test runner (34 test suites, 218 tests passing).
+
+---
+
 ## [2.5.0] - 2026-08-31
 
 ### 🚀 Added

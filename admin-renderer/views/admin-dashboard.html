@@ -39,20 +39,21 @@
 
     <style>
       :root {
-        --bg-main: #07090e;
-        --bg-surface: rgba(15, 23, 42, 0.65);
-        --bg-surface-elevated: rgba(30, 41, 59, 0.7);
-        --bg-card: rgba(17, 24, 39, 0.75);
-        --border-subtle: rgba(255, 255, 255, 0.08);
-        --border-hover: rgba(99, 102, 241, 0.4);
-        --primary: #6366f1;
-        --primary-glow: rgba(99, 102, 241, 0.35);
-        --primary-hover: #4f46e5;
-        --accent-cyan: #06b6d4;
-        --accent-emerald: #10b981;
-        --accent-amber: #f59e0b;
-        --accent-rose: #f43f5e;
-        --text-main: #f8fafc;
+        --bg-main: #050608;
+        --bg-sidebar: rgba(8, 12, 22, 0.95);
+        --bg-surface: rgba(12, 17, 29, 0.8);
+        --bg-surface-elevated: rgba(15, 20, 35, 0.75);
+        --bg-card: rgba(12, 17, 29, 0.8);
+        --border-subtle: rgba(255, 255, 255, 0.06);
+        --border-hover: rgba(124, 58, 237, 0.4);
+        --primary: #7c3aed;
+        --primary-glow: rgba(124, 58, 237, 0.4);
+        --primary-hover: #6d28d9;
+        --accent-cyan: #22d3ee;
+        --accent-emerald: #34d399;
+        --accent-amber: #fbbf24;
+        --accent-rose: #fb7185;
+        --text-main: #f1f5f9;
         --text-muted: #94a3b8;
         --text-subtle: #64748b;
         --radius-sm: 8px;
@@ -74,6 +75,29 @@
         -webkit-font-smoothing: antialiased;
       }
 
+      @keyframes gradient-shift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      @keyframes card-enter {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
       body {
         background-color: var(--bg-main);
         color: var(--text-main);
@@ -81,9 +105,11 @@
         display: flex;
         overflow-x: hidden;
         background-image:
-          radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-          radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
-          radial-gradient(at 50% 100%, rgba(244, 63, 94, 0.06) 0px, transparent 50%);
+          radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+          radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.12) 0px, transparent 50%),
+          radial-gradient(at 50% 100%, rgba(251, 113, 133, 0.1) 0px, transparent 50%);
+        background-size: 200% 200%;
+        animation: gradient-shift 15s ease infinite;
         background-attachment: fixed;
       }
 
@@ -106,8 +132,8 @@
       /* Sidebar */
       aside.sidebar {
         width: 280px;
-        background: rgba(11, 15, 25, 0.85);
-        backdrop-filter: blur(20px);
+        background: linear-gradient(180deg, var(--bg-sidebar) 0%, rgba(5, 6, 8, 0.98) 100%);
+        backdrop-filter: blur(24px);
         border-right: 1px solid var(--border-subtle);
         padding: 24px 18px;
         display: flex;
@@ -384,19 +410,22 @@
 
       .stat-card {
         background: var(--bg-card);
-        backdrop-filter: blur(20px);
+        backdrop-filter: blur(24px);
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
         padding: 22px 24px;
         position: relative;
         overflow: hidden;
         transition: var(--transition);
+        animation: card-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
       }
 
       .stat-card:hover {
         transform: translateY(-2px);
-        border-color: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        border-color: var(--primary-glow);
+        box-shadow:
+          0 10px 30px -10px rgba(0, 0, 0, 0.5),
+          0 0 15px var(--primary-glow);
       }
 
       .stat-card::before {
@@ -496,13 +525,20 @@
 
       .card {
         background: var(--bg-card);
-        backdrop-filter: blur(20px);
+        backdrop-filter: blur(24px);
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
         padding: 24px;
         display: flex;
         flex-direction: column;
         gap: 18px;
+        transition: var(--transition);
+        animation: card-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      .card:hover {
+        border-color: var(--primary-glow);
+        box-shadow: 0 0 20px var(--primary-glow);
       }
 
       .card-header {

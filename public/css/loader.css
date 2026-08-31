@@ -1,7 +1,7 @@
 .off-load-page {
   height: 100vh;
   font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-  background: #07090e;
+  background: #050608;
   overflow: hidden;
   position: relative;
   z-index: 98;
@@ -36,9 +36,10 @@
   height: 160px;
   border-radius: 50%;
   border: 6px solid transparent;
-  border-top-color: #6366f1;
+  border-top-color: #7c3aed;
+  border-right-color: #22d3ee;
   animation: rotate 1.4s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
+  filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.6));
 }
 @keyframes rotate {
   from {

@@ -1,50 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%" fill="none" role="img" aria-label="Morning Routine Sender Logo">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <filter id="zenGlow" x="-20%" y="-20%" width="140%" height="140%" filterUnits="userSpaceOnUse">
-      <feGaussianBlur stdDeviation="6" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-    <filter id="sunburstGlow" x="-30%" y="-30%" width="160%" height="160%" filterUnits="userSpaceOnUse">
-      <feGaussianBlur stdDeviation="3.5" result="blur2" />
-      <feComposite in="SourceGraphic" in2="blur2" operator="over" />
-    </filter>
-
-    <linearGradient id="brandGradPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366f1" />
-      <stop offset="50%" stop-color="#06b6d4" />
-      <stop offset="100%" stop-color="#10b981" />
+    <linearGradient id="auroraCore" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="45%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
     </linearGradient>
-
-    <linearGradient id="solarGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fbbf24" />
-      <stop offset="60%" stop-color="#f59e0b" />
-      <stop offset="100%" stop-color="#ea580c" />
+    <linearGradient id="sunriseWarm" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="60%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#fb7185"/>
     </linearGradient>
-
-    <linearGradient id="zenRingGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
-      <stop offset="100%" stop-color="#818cf8" stop-opacity="0.3" />
+    <linearGradient id="emeraldGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
     </linearGradient>
+    <radialGradient id="outerAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/>
+      <stop offset="60%" stop-color="#7c3aed" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="innerSunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#f97316" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="horizonClip">
+      <rect x="0" y="0" width="512" height="280"/>
+    </clipPath>
   </defs>
-
-  <circle cx="60" cy="60" r="48" fill="url(#brandGradPrimary)" opacity="0.18" filter="url(#zenGlow)" />
-  <circle cx="60" cy="60" r="50" stroke="url(#zenRingGrad)" stroke-width="1.5" stroke-dasharray="4 6" opacity="0.6" />
-  <circle cx="60" cy="60" r="42" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1" />
-
-  <g opacity="0.85">
-    <line x1="60" y1="14" x2="60" y2="24" stroke="url(#solarGoldGrad)" stroke-width="2.5" stroke-linecap="round" />
-    <line x1="60" y1="96" x2="60" y2="106" stroke="url(#brandGradPrimary)" stroke-width="2.5" stroke-linecap="round" opacity="0.4" />
-    <line x1="14" y1="60" x2="24" y2="60" stroke="url(#solarGoldGrad)" stroke-width="2.5" stroke-linecap="round" />
-    <line x1="96" y1="60" x2="106" y2="60" stroke="url(#solarGoldGrad)" stroke-width="2.5" stroke-linecap="round" />
-    <line x1="27.5" y1="27.5" x2="34.5" y2="34.5" stroke="url(#solarGoldGrad)" stroke-width="2" stroke-linecap="round" />
-    <line x1="92.5" y1="27.5" x2="85.5" y2="34.5" stroke="url(#solarGoldGrad)" stroke-width="2" stroke-linecap="round" />
-    <line x1="27.5" y1="92.5" x2="34.5" y2="85.5" stroke="url(#brandGradPrimary)" stroke-width="2" stroke-linecap="round" opacity="0.4" />
-    <line x1="92.5" y1="92.5" x2="85.5" y2="85.5" stroke="url(#brandGradPrimary)" stroke-width="2" stroke-linecap="round" opacity="0.4" />
+  <circle cx="256" cy="256" r="250" fill="#050608"/>
+  <circle cx="256" cy="256" r="245" fill="url(#outerAura)"/>
+  <ellipse cx="256" cy="256" rx="220" ry="220" fill="none" stroke="url(#auroraCore)" stroke-width="1.2" opacity="0.25"/>
+  <ellipse cx="256" cy="256" rx="195" ry="195" fill="none" stroke="url(#emeraldGlow)" stroke-width="0.8" opacity="0.18" stroke-dasharray="8 12"/>
+  <circle cx="256" cy="256" r="165" fill="none" stroke="url(#auroraCore)" stroke-width="2" opacity="0.35"/>
+  <g clip-path="url(#horizonClip)" opacity="0.85">
+    <polygon points="256,100 246,260 266,260" fill="url(#sunriseWarm)" opacity="0.9"/>
+    <polygon points="256,120 186,248 206,258" fill="url(#sunriseWarm)" opacity="0.7" transform="rotate(-15, 256, 256)"/>
+    <polygon points="256,130 176,238 196,248" fill="url(#sunriseWarm)" opacity="0.5" transform="rotate(-30, 256, 256)"/>
+    <polygon points="256,145 170,230 190,240" fill="url(#sunriseWarm)" opacity="0.35" transform="rotate(-48, 256, 256)"/>
+    <polygon points="256,120 306,248 326,258" fill="url(#sunriseWarm)" opacity="0.7" transform="rotate(15, 256, 256)"/>
+    <polygon points="256,130 316,238 336,248" fill="url(#sunriseWarm)" opacity="0.5" transform="rotate(30, 256, 256)"/>
+    <polygon points="256,145 322,230 342,240" fill="url(#sunriseWarm)" opacity="0.35" transform="rotate(48, 256, 256)"/>
   </g>
-
-  <path d="M 60 26 L 86 41 L 86 71 L 60 86 L 34 71 L 34 41 Z" stroke="rgba(255, 255, 255, 0.2)" stroke-width="1.5" fill="rgba(15, 23, 42, 0.65)" />
-  <circle cx="60" cy="58" r="18" fill="url(#solarGoldGrad)" filter="url(#sunburstGlow)" />
-  <circle cx="60" cy="58" r="14" fill="#ffffff" opacity="0.3" />
-  <path d="M 40 64 C 48 56, 72 56, 80 64" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none" />
-  <circle cx="60" cy="52" r="3.5" fill="#ffffff" />
+  <circle cx="256" cy="260" r="85" fill="url(#innerSunGlow)"/>
+  <line x1="90" y1="280" x2="422" y2="280" stroke="url(#auroraCore)" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 180 280 A 76 76 0 0 1 332 280" fill="url(#sunriseWarm)"/>
+  <path d="M 200 280 A 56 56 0 0 1 312 280" fill="none" stroke="#fef3c7" stroke-width="1.5" opacity="0.5"/>
+  <line x1="220" y1="300" x2="292" y2="300" stroke="url(#sunriseWarm)" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+  <line x1="235" y1="318" x2="277" y2="318" stroke="url(#sunriseWarm)" stroke-width="1" stroke-linecap="round" opacity="0.2"/>
+  <line x1="245" y1="334" x2="267" y2="334" stroke="url(#sunriseWarm)" stroke-width="0.8" stroke-linecap="round" opacity="0.12"/>
+  <circle cx="130" cy="150" r="2" fill="#22d3ee" opacity="0.7"/>
+  <circle cx="380" cy="130" r="1.8" fill="#34d399" opacity="0.6"/>
+  <circle cx="100" cy="220" r="1.5" fill="#fbbf24" opacity="0.5"/>
+  <circle cx="400" cy="200" r="2.2" fill="#7c3aed" opacity="0.6"/>
+  <circle cx="160" cy="110" r="1.2" fill="#fb7185" opacity="0.4"/>
+  <circle cx="350" cy="170" r="1.6" fill="#22d3ee" opacity="0.5"/>
+  <path d="M 140 380 Q 256 420 372 380" fill="none" stroke="url(#emeraldGlow)" stroke-width="1.2" opacity="0.3"/>
 </svg>

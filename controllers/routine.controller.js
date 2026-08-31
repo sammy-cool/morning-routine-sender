@@ -170,21 +170,21 @@ function renderCheckinPage(res, data) {
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #07090e;
-      --card-bg: rgba(17, 24, 39, 0.75);
-      --primary: #6366f1;
-      --primary-glow: rgba(99, 102, 241, 0.35);
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --border: rgba(255, 255, 255, 0.08);
-      --text-main: #f8fafc;
+      --bg: #050608;
+      --card-bg: rgba(12, 17, 29, 0.8);
+      --primary: #7c3aed;
+      --primary-glow: rgba(124, 58, 237, 0.4);
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --border: rgba(255, 255, 255, 0.06);
+      --text-main: #f1f5f9;
       --text-muted: #94a3b8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 60%),
+        radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.18) 0%, transparent 60%),
         radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.12) 0%, transparent 45%);
       color: var(--text-main);
       min-height: 100vh;
@@ -280,13 +280,13 @@ function renderCheckinPage(res, data) {
       cursor: pointer;
     }
     .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
       color: #ffffff;
-      box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.4);
     }
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 14px 24px -5px rgba(99, 102, 241, 0.6);
+      box-shadow: 0 14px 24px -5px rgba(124, 58, 237, 0.6);
     }
     .btn-ghost {
       background: rgba(255, 255, 255, 0.05);
@@ -434,33 +434,33 @@ async function liveRoutine(req, res) {
   <script src="/js/ux-core.js?v=4.3.0" defer></script>
   <style>
     :root {
-      --bg: #07090e;
-      --card-bg: rgba(17, 24, 39, 0.8);
-      --primary: #6366f1;
-      --primary-glow: rgba(99, 102, 241, 0.35);
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --border: rgba(255, 255, 255, 0.08);
-      --text-main: #f8fafc;
+      --bg: #050608;
+      --card-bg: rgba(12, 17, 29, 0.8);
+      --primary: #7c3aed;
+      --primary-glow: rgba(124, 58, 237, 0.4);
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --border: rgba(255, 255, 255, 0.06);
+      --text-main: #f1f5f9;
       --text-muted: #94a3b8;
     }
     html.theme-solar, [data-theme="theme-solar"] {
-      --bg: #0d0b08;
-      --card-bg: rgba(30, 24, 15, 0.85);
+      --bg: #0a0805;
+      --card-bg: rgba(24, 18, 10, 0.8);
       --primary: #f59e0b;
       --primary-glow: rgba(245, 158, 11, 0.35);
       --border: rgba(245, 158, 11, 0.15);
     }
     html.theme-emerald, [data-theme="theme-emerald"] {
-      --bg: #060f0c;
-      --card-bg: rgba(10, 33, 25, 0.85);
+      --bg: #030806;
+      --card-bg: rgba(8, 26, 18, 0.8);
       --primary: #10b981;
       --primary-glow: rgba(16, 185, 129, 0.35);
       --border: rgba(16, 185, 129, 0.15);
     }
     html.theme-cyberpunk, [data-theme="theme-cyberpunk"] {
-      --bg: #0a0414;
-      --card-bg: rgba(26, 11, 46, 0.85);
+      --bg: #07030f;
+      --card-bg: rgba(18, 8, 32, 0.8);
       --primary: #d946ef;
       --primary-glow: rgba(217, 70, 239, 0.45);
       --border: rgba(217, 70, 239, 0.2);
@@ -644,11 +644,11 @@ async function liveRoutine(req, res) {
       border-radius: 14px;
       font-size: 16px;
       font-weight: 800;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
       color: #fff;
       border: none;
       cursor: pointer;
-      box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -657,7 +657,7 @@ async function liveRoutine(req, res) {
     }
     .btn-checkin:hover {
       transform: translateY(-2px);
-      box-shadow: 0 14px 28px -5px rgba(99, 102, 241, 0.6);
+      box-shadow: 0 14px 28px -5px rgba(124, 58, 237, 0.6);
     }
     /* Daily Journal & Reflection Styling */
     .journal-card {
@@ -869,7 +869,7 @@ async function liveRoutine(req, res) {
   <div class="container">
     <div class="header">
       <a href="/" class="brand" aria-label="Morning Routine Home">
-        <span>🌅</span> Morning Routine
+        <img src="/assets/logo.svg" alt="Logo" width="28" height="28" style="border-radius: 8px;"> Morning Routine
       </a>
       <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
         <div class="streak-pill">
