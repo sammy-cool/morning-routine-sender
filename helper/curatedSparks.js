@@ -12,7 +12,7 @@ const COACH_PERSONAS_METADATA = {
     archetype: "Roman Emperor & Stoic Philosopher",
     tagline: "Master your internal citadel & cultivate unshakable tranquility.",
     icon: "fa-monument",
-    color: "#6366f1",
+    color: "#7c3aed",
     tone: "Grounded, serene, introspective, unshakable, objective, dignified",
     focusDomains:
       "Dichotomy of control, amor fati, memento mori, emotional equanimity, virtue under pressure",

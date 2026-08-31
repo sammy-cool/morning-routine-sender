@@ -855,16 +855,21 @@
         transition: var(--transition);
       }
 
+      .small {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
       @media (max-width: 768px) {
         .pwa-banner {
-          bottom: 0;
-          right: 0;
-          width: 100%;
+          bottom: calc(env(safe-area-inset-bottom, 16px) + 78px);
+          left: 16px;
+          right: 16px;
+          width: calc(100% - 32px);
           max-width: none;
-          border-radius: 24px 24px 0 0;
-          border-bottom: none;
-          border-left: none;
-          border-right: none;
+          border-radius: 20px;
+          z-index: 90;
         }
 
         /* Mobile bottom nav style for header links */

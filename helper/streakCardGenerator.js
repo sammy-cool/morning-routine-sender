@@ -110,7 +110,7 @@ function generateVectorQrMatrix(text, size = 110, x = 990, y = 410) {
     <rect x="${x - 10}" y="${y - 10}" width="${size + 20}" height="${size + 20}" rx="14" fill="#ffffff" />
     <path d="${pathData.trim()}" fill="#0f172a" />
     <!-- Center MRN Logo Dot -->
-    <circle cx="${(x + size / 2).toFixed(2)}" cy="${(y + size / 2).toFixed(2)}" r="${(cellSize * 1.6).toFixed(2)}" fill="#6366f1" />
+    <circle cx="${(x + size / 2).toFixed(2)}" cy="${(y + size / 2).toFixed(2)}" r="${(cellSize * 1.6).toFixed(2)}" fill="#7c3aed" />
     <circle cx="${(x + size / 2).toFixed(2)}" cy="${(y + size / 2).toFixed(2)}" r="${(cellSize * 0.8).toFixed(2)}" fill="#ffffff" />
   `;
 }
@@ -146,9 +146,9 @@ function generateStreakSvg({
   <defs>
     <!-- Background Gradient -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#07090e" />
-      <stop offset="50%" stop-color="#0f172a" />
-      <stop offset="100%" stop-color="#05070c" />
+      <stop offset="0%" stop-color="#050608" />
+      <stop offset="50%" stop-color="#0c111d" />
+      <stop offset="100%" stop-color="#050608" />
     </linearGradient>
 
     <!-- Flame Streak Glow -->
@@ -160,15 +160,15 @@ function generateStreakSvg({
 
     <!-- Cyberpunk Accent Gradient -->
     <linearGradient id="cyanPurple" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#06b6d4" />
+      <stop offset="0%" stop-color="#7c3aed" />
+      <stop offset="100%" stop-color="#22d3ee" />
     </linearGradient>
 
     <!-- Card Glass Border Gradient -->
     <linearGradient id="glassBorder" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="rgba(255, 255, 255, 0.22)" />
-      <stop offset="50%" stop-color="rgba(99, 102, 241, 0.4)" />
-      <stop offset="100%" stop-color="rgba(6, 182, 212, 0.15)" />
+      <stop offset="50%" stop-color="rgba(124, 58, 237, 0.45)" />
+      <stop offset="100%" stop-color="rgba(34, 211, 238, 0.2)" />
     </linearGradient>
 
     <!-- Glow Filters -->
@@ -186,12 +186,12 @@ function generateStreakSvg({
   <rect width="1200" height="630" fill="url(#bgGrad)" />
 
   <!-- Ambient Glow Orbs -->
-  <circle cx="1080" cy="120" r="280" fill="#6366f1" opacity="0.22" filter="url(#glowEffect)" />
-  <circle cx="120" cy="520" r="260" fill="#06b6d4" opacity="0.16" filter="url(#glowEffect)" />
-  <circle cx="600" cy="315" r="320" fill="#f43f5e" opacity="0.08" filter="url(#glowEffect)" />
+  <circle cx="1080" cy="120" r="280" fill="#7c3aed" opacity="0.25" filter="url(#glowEffect)" />
+  <circle cx="120" cy="520" r="260" fill="#22d3ee" opacity="0.18" filter="url(#glowEffect)" />
+  <circle cx="600" cy="315" r="320" fill="#fb7185" opacity="0.08" filter="url(#glowEffect)" />
 
   <!-- Subtle Cyber Grid Pattern Overlay -->
-  <g opacity="0.07" stroke="#ffffff" stroke-width="1">
+  <g opacity="0.06" stroke="#ffffff" stroke-width="1">
     <line x1="80" y1="140" x2="1120" y2="140" />
     <line x1="80" y1="280" x2="1120" y2="280" />
     <line x1="80" y1="420" x2="1120" y2="420" />
@@ -201,7 +201,7 @@ function generateStreakSvg({
   </g>
 
   <!-- Main Glass Container -->
-  <rect x="70" y="60" width="1060" height="510" rx="28" fill="rgba(15, 23, 42, 0.72)" stroke="url(#glassBorder)" stroke-width="1.8" />
+  <rect x="70" y="60" width="1060" height="510" rx="28" fill="rgba(12, 17, 29, 0.8)" stroke="url(#glassBorder)" stroke-width="1.8" />
 
   <!-- Header: Brand Logo & Verified Tag -->
   <g transform="translate(130, 115)">
@@ -215,11 +215,11 @@ function generateStreakSvg({
   <!-- Top Right: User Handle Pill -->
   <g transform="translate(850, 115)">
     <rect x="0" y="0" width="220" height="44" rx="22" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
-    <circle cx="22" cy="22" r="14" fill="#6366f1" />
+    <circle cx="22" cy="22" r="14" fill="#7c3aed" />
     <text x="22" y="27" text-anchor="middle" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="13" font-weight="800" fill="#ffffff">${userInitial}</text>
     <text x="48" y="28" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">${safeName}</text>
     <!-- Verified Badge Check -->
-    <circle cx="198" cy="22" r="8" fill="#10b981" />
+    <circle cx="198" cy="22" r="8" fill="#34d399" />
     <path d="M194.5 22l2.5 2.5 5-5" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
   </g>
 
@@ -232,11 +232,11 @@ function generateStreakSvg({
   <!-- Milestone Badge & Focus Track Pill -->
   <g transform="translate(130, 360)">
     <!-- Milestone Pill -->
-    <rect x="0" y="0" width="310" height="46" rx="23" fill="rgba(99, 102, 241, 0.18)" stroke="#6366f1" stroke-width="1.5" />
-    <text x="26" y="29" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="17" font-weight="800" fill="#a5b4fc">🏆 ${milestone}</text>
+    <rect x="0" y="0" width="310" height="46" rx="23" fill="rgba(124, 58, 237, 0.2)" stroke="#7c3aed" stroke-width="1.5" />
+    <text x="26" y="29" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="17" font-weight="800" fill="#c4b5fd">🏆 ${milestone}</text>
 
     <!-- Track Pill -->
-    <rect x="325" y="0" width="340" height="46" rx="23" fill="rgba(6, 182, 212, 0.14)" stroke="${safeTrackColor}" stroke-width="1.5" />
+    <rect x="325" y="0" width="340" height="46" rx="23" fill="rgba(34, 211, 238, 0.14)" stroke="${safeTrackColor}" stroke-width="1.5" />
     <text x="350" y="29" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="16" font-weight="800" fill="#67e8f9">${safeTrackIcon} ${safeTrackLabel}</text>
   </g>
 

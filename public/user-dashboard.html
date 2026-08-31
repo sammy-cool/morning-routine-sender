@@ -1260,6 +1260,96 @@
         color: #fff;
       }
 
+      .modal-close-btn {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+        font-size: 18px;
+        line-height: 1;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        z-index: 10;
+      }
+      .modal-close-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        transform: scale(1.08);
+      }
+
+      .hide-mobile {
+        display: inline;
+      }
+      @media (max-width: 640px) {
+        .hide-mobile {
+          display: none !important;
+        }
+      }
+
+      /* Streak Freeze Shield Card */
+      .streak-freeze-card {
+        background: linear-gradient(
+          135deg,
+          rgba(34, 211, 238, 0.08) 0%,
+          rgba(124, 58, 237, 0.08) 100%
+        );
+        border: 1px solid rgba(34, 211, 238, 0.25);
+        border-radius: var(--radius-lg);
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px -10px rgba(34, 211, 238, 0.15);
+        transition: var(--transition);
+      }
+      .streak-freeze-card:hover {
+        border-color: rgba(34, 211, 238, 0.45);
+        box-shadow: 0 12px 35px -8px rgba(34, 211, 238, 0.25);
+      }
+      .freeze-shield-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 800;
+        background: rgba(34, 211, 238, 0.15);
+        border: 1px solid rgba(34, 211, 238, 0.35);
+        color: #22d3ee;
+        letter-spacing: 0.5px;
+      }
+      .btn-freeze-use {
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 10px 18px;
+        border-radius: var(--radius-md);
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+      }
+      .btn-freeze-use:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
+      }
+
       /* Shortcuts Modal */
       .shortcuts-modal-card {
         background: #0d1322;
@@ -1729,6 +1819,41 @@
           <a href="/routine" class="btn btn-secondary">
             <i class="fas fa-play" aria-hidden="true"></i> Live Routine Companion
           </a>
+        </div>
+      </div>
+
+      <!-- Streak Freeze Protection Shield Card -->
+      <div class="streak-freeze-card" id="streakFreezeCard" style="display: none">
+        <div style="display: flex; align-items: center; gap: 14px">
+          <div
+            style="font-size: 32px; filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.5))"
+            aria-hidden="true"
+          >
+            🛡️
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+              <span style="font-size: 16px; font-weight: 800; color: #fff" id="freezeShieldTitle">
+                Streak Freeze Protection
+              </span>
+              <span class="freeze-shield-badge" id="freezeShieldCountBadge">
+                2/2 Shields Available
+              </span>
+            </div>
+            <p class="small" id="freezeShieldSubtext" style="color: #cbd5e1; margin-top: 2px">
+              Missed a day? 1 shield is automatically consumed to preserve your unbroken streak.
+            </p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+          <button
+            type="button"
+            class="btn-freeze-use"
+            id="useStreakFreezeBtn"
+            onclick="useStreakFreezeShield()"
+          >
+            <i class="fas fa-shield-alt" aria-hidden="true"></i> Activate 24h Freeze
+          </button>
         </div>
       </div>
 

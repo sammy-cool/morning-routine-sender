@@ -4,10 +4,10 @@ const sharedData = require("./shared-data");
 const { generateActionToken } = require("./unsubscribeToken");
 
 const TRACK_COLORS = {
-  "deep-work": 0x6366f1, // Indigo
+  "deep-work": 0x7c3aed, // Electric Violet
   mindfulness: 0x10b981, // Emerald
   executive: 0xf59e0b, // Amber
-  learning: 0x06b6d4, // Cyan
+  learning: 0x22d3ee, // Cyan
   classic: 0xec4899, // Pink
 };
 
@@ -42,7 +42,7 @@ async function sendDiscordNotification({
 
   const trackKey = (subscriber?.routineTrack || trackContent?.track || "deep-work").toLowerCase();
   const trackName = trackContent?.name || "Deep Work & Builder";
-  const embedColor = TRACK_COLORS[trackKey] || 0x6366f1;
+  const embedColor = TRACK_COLORS[trackKey] || 0x7c3aed;
   const streak = Number(streakCount) || Number(subscriber?.streakCount) || 1;
 
   const email = subscriber?.email || "";

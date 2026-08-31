@@ -87,10 +87,10 @@ async function unsubscribe(req, res) {
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #07090e;
-      --card-bg: rgba(17, 24, 39, 0.75);
-      --primary: #6366f1;
-      --primary-glow: rgba(99, 102, 241, 0.35);
+      --bg: #050608;
+      --card-bg: rgba(12, 17, 29, 0.82);
+      --primary: #7c3aed;
+      --primary-glow: rgba(124, 58, 237, 0.4);
       --border: rgba(255, 255, 255, 0.08);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
@@ -99,8 +99,8 @@ async function unsubscribe(req, res) {
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
-        radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.1) 0%, transparent 45%);
+        radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.18) 0%, transparent 60%),
+        radial-gradient(circle at 85% 30%, rgba(34, 211, 238, 0.12) 0%, transparent 45%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -187,10 +187,10 @@ async function unsubscribe(req, res) {
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #07090e;
-      --card-bg: rgba(17, 24, 39, 0.75);
-      --primary: #6366f1;
-      --primary-glow: rgba(99, 102, 241, 0.35);
+      --bg: #050608;
+      --card-bg: rgba(12, 17, 29, 0.82);
+      --primary: #7c3aed;
+      --primary-glow: rgba(124, 58, 237, 0.4);
       --border: rgba(255, 255, 255, 0.08);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
@@ -199,8 +199,8 @@ async function unsubscribe(req, res) {
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
-        radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.1) 0%, transparent 45%);
+        radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.18) 0%, transparent 60%),
+        radial-gradient(circle at 85% 30%, rgba(34, 211, 238, 0.12) 0%, transparent 45%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;

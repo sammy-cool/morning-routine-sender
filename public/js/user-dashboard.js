@@ -187,7 +187,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           const date = h.sent_at ? new Date(h.sent_at).toLocaleString() : "n/a";
           const status = h.status || "unknown";
           return `
-            <div class="history-row">
+            <div class="history-item">
               <span>${date}</span>
               <span class="history-status ${status}">${status}</span>
             </div>
@@ -265,6 +265,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         renderCoachPersona(sub);
         renderOutboundWebhook(sub);
         loadActivityHeatmap();
+        loadStreakFreezeStatus();
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);
@@ -623,14 +624,93 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    // --- Streak Freeze Shield Manager ---
+    async function loadStreakFreezeStatus() {
+      const freezeCard = document.getElementById("streakFreezeCard");
+      const countBadge = document.getElementById("freezeShieldCountBadge");
+      const useBtn = document.getElementById("useStreakFreezeBtn");
+      if (!freezeCard) return;
+
+      try {
+        const resp = await fetch("/me/streak-freeze/status", { cache: "no-store" }).catch(() => ({
+          ok: false,
+        }));
+        if (resp && resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          freezeCard.style.display = "flex";
+          const remaining =
+            typeof data.streakFreezesRemaining === "number" ? data.streakFreezesRemaining : 2;
+          if (countBadge) {
+            countBadge.textContent = `${remaining}/2 Shields Available`;
+            if (remaining === 0) {
+              countBadge.style.background = "rgba(239, 68, 68, 0.15)";
+              countBadge.style.color = "#f87171";
+              countBadge.style.borderColor = "rgba(239, 68, 68, 0.35)";
+            }
+          }
+          if (useBtn && remaining === 0) {
+            useBtn.disabled = true;
+            useBtn.style.opacity = "0.5";
+            useBtn.innerHTML =
+              '<i class="fas fa-shield-alt" aria-hidden="true"></i> No Shields Left';
+          }
+        }
+      } catch (_e) {
+        // Non-blocking
+      }
+    }
+
+    globalThis.useStreakFreezeShield = async function () {
+      const useBtn = document.getElementById("useStreakFreezeBtn");
+      if (useBtn) {
+        useBtn.disabled = true;
+        useBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Activating…';
+      }
+
+      try {
+        const resp = await fetch("/me/streak-freeze/use", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }).catch(() => ({ ok: false }));
+
+        if (resp && resp.ok) {
+          showToast(
+            "🛡️ Streak Freeze Shield activated for today! Your streak is protected.",
+            "success",
+          );
+          if (globalThis.UXCore?.sound) globalThis.UXCore.sound.playSuccess();
+          if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.success();
+          await loadStreakFreezeStatus();
+        } else {
+          const err = await resp.json().catch(() => ({}));
+          showToast(err.error || "Could not activate streak freeze.", "error");
+          if (useBtn) {
+            useBtn.disabled = false;
+            useBtn.innerHTML =
+              '<i class="fas fa-shield-alt" aria-hidden="true"></i> Activate 24h Freeze';
+          }
+        }
+      } catch (_e) {
+        showToast("Network error while activating freeze shield.", "error");
+        if (useBtn) {
+          useBtn.disabled = false;
+          useBtn.innerHTML =
+            '<i class="fas fa-shield-alt" aria-hidden="true"></i> Activate 24h Freeze';
+        }
+      }
+    };
+
     // --- Morning Mindset & Journaling State Manager ---
-    let dashSelectedMood = 5;
+    let dashSelectedMood = 3;
 
     globalThis.setDashboardMood = function (score) {
       dashSelectedMood = score;
+      const scoreInput = document.getElementById("dashMoodScore");
+      if (scoreInput) scoreInput.value = score;
+
       document.querySelectorAll(".dash-mood-btn").forEach((btn) => {
         if (parseInt(btn.getAttribute("data-score"), 10) === score) {
-          btn.style.background = "rgba(99, 102, 241, 0.35)";
+          btn.style.background = "rgba(124, 58, 237, 0.35)";
           btn.style.borderColor = "var(--primary)";
         } else {
           btn.style.background = "rgba(0, 0, 0, 0.3)";
@@ -1595,10 +1675,8 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       closeShortcutsModal();
       closeMilestoneModal();
       closeStreakShareModal();
-      const sideDrawer = document.getElementById("sideDrawer");
-      if (sideDrawer) {
-        sideDrawer.classList.remove("active");
-        sideDrawer.style.display = "none";
+      if (typeof closeHeatmapDrawer === "function") {
+        closeHeatmapDrawer();
       }
     }
 
