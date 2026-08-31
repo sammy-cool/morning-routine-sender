@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4.3.0";
+const CACHE_VERSION = "v4.3.1";
 const CACHE_NAME = `mrn-pwa-${CACHE_VERSION}`;
 
 // STATIC ASSETS ONLY (NO HTML, NO AUTH, NO SUBSCRIBER DATA)
@@ -255,7 +255,36 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/unsubscribe");
 
   if (isDynamicApi || req.method !== "GET") {
-    event.respondWith(fetch(req));
+    event.respondWith(
+      fetch(req).catch(() => {
+        const isJson =
+          req.headers.get("accept")?.includes("application/json") ||
+          url.pathname.includes("/api");
+        if (isJson) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Network unavailable. Please check your connection.",
+              offline: true,
+            }),
+            {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+        if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/verify")) {
+          return new Response(
+            "<!DOCTYPE html><html><head><meta charset='utf-8'/><title>Admin Offline</title><style>body{background:#050608;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;padding:20px;box-sizing:border-box;}</style></head><body><div style='text-align:center;max-width:420px;padding:32px;background:rgba(12,17,29,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:20px;'><h2>⚠️ Admin Offline</h2><p style='color:#94a3b8;margin-top:8px;'>Administrative operations require an active network connection.</p></div></body></html>",
+            { status: 503, headers: { "Content-Type": "text/html" } },
+          );
+        }
+        return (
+          caches.match("/offline") ||
+          new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain" } })
+        );
+      }),
+    );
     return;
   }
 

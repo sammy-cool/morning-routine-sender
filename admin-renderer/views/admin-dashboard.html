@@ -2444,7 +2444,7 @@
     </main>
 
     <!-- Modal: Add / Edit Subscriber -->
-    <div class="modal-backdrop" id="subscriberModal">
+    <div class="modal-backdrop" id="subscriberModal" aria-hidden="true" inert>
       <div class="modal-dialog">
         <div class="modal-header">
           <div class="modal-title" id="subscriberModalTitle">Add New Subscriber</div>
@@ -2535,7 +2535,7 @@
     </div>
 
     <!-- Enhanced Modal: Database Records & Audit Inspector -->
-    <div class="modal-backdrop" id="dbInspectorModal">
+    <div class="modal-backdrop" id="dbInspectorModal" aria-hidden="true" inert>
       <div
         class="modal-dialog"
         style="
@@ -2929,7 +2929,7 @@ Loading records…</pre>
     </div>
 
     <!-- Modal: Command Palette -->
-    <div class="modal-backdrop" id="commandPaletteModal">
+    <div class="modal-backdrop" id="commandPaletteModal" aria-hidden="true" inert>
       <div class="modal-dialog cmd-palette-dialog">
         <input
           type="text"
@@ -2978,6 +2978,7 @@ Loading records…</pre>
       role="dialog"
       aria-modal="true"
       aria-hidden="true"
+      inert
       aria-labelledby="confirmDialogTitle"
     >
       <div class="modal-dialog" style="max-width: 440px">
@@ -4436,21 +4437,33 @@ Loading records…</pre>
         const m = document.getElementById(id);
         if (m) {
           modalTriggerMap.set(id, document.activeElement);
+          m.inert = false;
           m.classList.add("open");
-          m.setAttribute("aria-hidden", "false");
+          m.removeAttribute("aria-hidden");
         }
       }
 
       function closeModal(id) {
         const m = document.getElementById(id);
         if (m) {
+          const prevEl = modalTriggerMap.get(id);
+          modalTriggerMap.delete(id);
+
+          // Remove focus from any descendant inside the modal FIRST before changing aria-hidden or inert
+          if (document.activeElement && m.contains(document.activeElement)) {
+            if (prevEl && typeof prevEl.focus === "function" && document.body.contains(prevEl)) {
+              prevEl.focus();
+            } else {
+              document.activeElement.blur();
+              if (document.body && typeof document.body.focus === "function") {
+                document.body.focus();
+              }
+            }
+          }
+
           m.classList.remove("open");
           m.setAttribute("aria-hidden", "true");
-          const prevEl = modalTriggerMap.get(id);
-          if (prevEl && typeof prevEl.focus === "function") {
-            prevEl.focus();
-          }
-          modalTriggerMap.delete(id);
+          m.inert = true;
         }
       }
 
@@ -4537,12 +4550,14 @@ Loading records…</pre>
         toggleWebhookAutoPoll(true, false);
       });
 
-      // Cleanup on Unload
-      window.addEventListener("beforeunload", () => {
+      // Cleanup on Page Hide / Unload
+      const cleanupAdminTimers = () => {
         if (webhookAutoPollIntervalId) {
           clearInterval(webhookAutoPollIntervalId);
         }
-      });
+      };
+      window.addEventListener("pagehide", cleanupAdminTimers);
+      window.addEventListener("beforeunload", cleanupAdminTimers);
     </script>
   </body>
 </html>

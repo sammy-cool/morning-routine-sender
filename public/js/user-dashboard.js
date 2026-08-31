@@ -1053,14 +1053,19 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       }
 
       if (drawerBody) drawerBody.innerHTML = html;
+      heatmapDrawer.inert = false;
       heatmapDrawer.classList.add("open");
-      heatmapDrawer.setAttribute("aria-hidden", "false");
+      heatmapDrawer.removeAttribute("aria-hidden");
     }
 
     function closeHeatmapDrawer() {
       if (!heatmapDrawer) return;
+      if (document.activeElement && heatmapDrawer.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
       heatmapDrawer.classList.remove("open");
       heatmapDrawer.setAttribute("aria-hidden", "true");
+      heatmapDrawer.inert = true;
     }
 
     if (btnDrawerClose) btnDrawerClose.addEventListener("click", closeHeatmapDrawer);
@@ -1463,14 +1468,23 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`;
       }
 
+      streakShareModal.inert = false;
       streakShareModal.style.display = "flex";
-      streakShareModal.setAttribute("aria-hidden", "false");
+      streakShareModal.removeAttribute("aria-hidden");
     }
 
     function closeStreakShareModal() {
       if (!streakShareModal) return;
+      if (document.activeElement && streakShareModal.contains(document.activeElement)) {
+        if (openShareModalBtn && typeof openShareModalBtn.focus === "function") {
+          openShareModalBtn.focus();
+        } else {
+          document.activeElement.blur();
+        }
+      }
       streakShareModal.style.display = "none";
       streakShareModal.setAttribute("aria-hidden", "true");
+      streakShareModal.inert = true;
     }
 
     if (openShareModalBtn) openShareModalBtn.addEventListener("click", openStreakShareModal);
@@ -1646,10 +1660,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       if (flameEl) flameEl.textContent = config.flame;
       if (tierIcon) tierIcon.className = `fas ${config.icon}`;
 
+      milestoneModal.inert = false;
       milestoneModal.style.display = "flex";
       requestAnimationFrame(() => {
         milestoneModal.classList.add("active");
-        milestoneModal.setAttribute("aria-hidden", "false");
+        milestoneModal.removeAttribute("aria-hidden");
       });
 
       fireMilestoneConfetti(config.colors);
@@ -1663,8 +1678,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     function closeMilestoneModal() {
       if (!milestoneModal) return;
+      if (document.activeElement && milestoneModal.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
       milestoneModal.classList.remove("active");
       milestoneModal.setAttribute("aria-hidden", "true");
+      milestoneModal.inert = true;
       setTimeout(() => {
         milestoneModal.style.display = "none";
       }, 300);
@@ -1708,17 +1727,22 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     function openShortcutsModal() {
       if (!shortcutsModal) return;
+      shortcutsModal.inert = false;
       shortcutsModal.style.display = "flex";
       requestAnimationFrame(() => {
         shortcutsModal.classList.add("active");
-        shortcutsModal.setAttribute("aria-hidden", "false");
+        shortcutsModal.removeAttribute("aria-hidden");
       });
     }
 
     function closeShortcutsModal() {
       if (!shortcutsModal) return;
+      if (document.activeElement && shortcutsModal.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
       shortcutsModal.classList.remove("active");
       shortcutsModal.setAttribute("aria-hidden", "true");
+      shortcutsModal.inert = true;
       setTimeout(() => {
         shortcutsModal.style.display = "none";
       }, 250);

@@ -79,6 +79,15 @@ app.use(
   }),
 );
 
+// Explicit Permissions-Policy: allow unload for browser extensions and BFCache while restricting unused device sensors
+app.use((req, res, next) => {
+  res.setHeader(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), payment=(), unload=*",
+  );
+  next();
+});
+
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 

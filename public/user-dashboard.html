@@ -3235,7 +3235,7 @@
     </div>
 
     <!-- Social Streak Card Share Modal -->
-    <div id="streakShareModal" class="share-modal-overlay" style="display: none" aria-hidden="true">
+    <div id="streakShareModal" class="share-modal-overlay" style="display: none" aria-hidden="true" inert>
       <div
         class="share-modal-content"
         role="dialog"
@@ -3261,40 +3261,55 @@
           </button>
         </div>
 
-        <div class="share-preview-wrapper">
+        <div class="streak-preview-container">
           <img
-            id="shareCardPreviewImg"
-            src="/api/streak-card.svg"
-            alt="Verified Streak Card Preview"
-            style="width: 100%; height: auto; border-radius: 10px; display: block"
+            id="modalStreakPreviewImg"
+            class="streak-preview-img"
+            src=""
+            alt="Streak Momentum Card"
           />
         </div>
 
-        <div class="share-actions-grid">
-          <a
-            id="shareTwitterBtn"
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="btn share-btn-twitter"
-          >
-            <i class="fab fa-x-twitter"></i> Share on X / Twitter
-          </a>
-          <a
-            id="shareLinkedinBtn"
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="btn share-btn-linkedin"
-          >
-            <i class="fab fa-linkedin"></i> Share on LinkedIn
-          </a>
-          <button type="button" class="btn btn-secondary" id="copyShareLinkBtn">
-            <i class="fas fa-link"></i> Copy SVG Image URL
-          </button>
-          <button type="button" class="btn btn-secondary" id="copyMarkdownBadgeBtn">
-            <i class="fab fa-markdown"></i> Copy GitHub Badge
-          </button>
+        <!-- Social Channels Dispatch -->
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted)">
+            DIRECT SHARE
+          </div>
+          <div class="share-actions-grid">
+            <a
+              id="shareTwitterBtn"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="share-btn twitter"
+            >
+              <i class="fab fa-x-twitter"></i> Post to X
+            </a>
+            <a
+              id="shareLinkedinBtn"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="share-btn linkedin"
+            >
+              <i class="fab fa-linkedin-in"></i> Share LinkedIn
+            </a>
+          </div>
+        </div>
+
+        <!-- Quick Copy Options -->
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted)">
+            COPY EMBEDS
+          </div>
+          <div class="share-actions-grid">
+            <button type="button" id="copyShareLinkBtn" class="btn btn-secondary btn-sm">
+              <i class="fas fa-link"></i> Copy Link
+            </button>
+            <button type="button" id="copyMarkdownBadgeBtn" class="btn btn-secondary btn-sm">
+              <i class="fas fa-code"></i> Copy Markdown
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -3335,6 +3350,7 @@
       class="celebration-modal-overlay"
       style="display: none"
       aria-hidden="true"
+      inert
       role="dialog"
       aria-modal="true"
       aria-labelledby="milestoneTitle"
@@ -3402,6 +3418,7 @@
       class="shortcuts-modal-overlay"
       style="display: none"
       aria-hidden="true"
+      inert
       role="dialog"
       aria-modal="true"
       aria-labelledby="shortcutsModalTitle"

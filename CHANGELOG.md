@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.2] - 2026-08-31
+
+### 🛡️ Permissions Policy, Service Worker Graceful Network Fallback, and WAI-ARIA Modal Accessibility Fixes
+
+- **Explicit Permissions-Policy Header (`index.js`)**:
+  - Configured `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), unload=*` middleware.
+  - Resolves Chrome `[Violation] Permissions policy violation: unload is not allowed in this document` caused by browser extension content scripts registering unload hooks.
+- **Service Worker Graceful Network Failure Handler (`public/sw.js`)**:
+  - Added `.catch()` rejection handler to dynamic route handler (`isDynamicApi || req.method !== "GET"`).
+  - Eliminates unhandled Service Worker promise rejections (`FetchEvent for /admin-dashboard resulted in a network error response: promise was rejected / TypeError: Failed to fetch`).
+  - Returns structured 503 JSON offline response for API queries and styled 503 HTML offline shell for admin navigation.
+  - Bumped Service Worker cache version to `v4.3.1`.
+- **WAI-ARIA Focus Safety & `inert` Modal Management (`admin-renderer/views/admin-dashboard.html`, `public/js/landing-page-modal.js`, `public/js/user-dashboard.js`, `public/main-index.html`, `public/user-dashboard.html`)**:
+  - Fixed `Blocked aria-hidden on an element because its descendant retained focus` console violation.
+  - Relocated focus away from descendant close buttons (`<button class="btn btn-glass btn-sm">`) back to trigger element or `document.body` **before** applying `aria-hidden="true"`.
+  - Added modern W3C `inert` attribute management on hidden modals (`#dbInspectorModal`, `#subscriberModal`, `#commandPaletteModal`, `#confirmDialogModal`, `#keyModal`, `#streakShareModal`, `#milestoneModal`, `#shortcutsModal`, `#heatmapDrawer`).
+
+---
+
 ## [2.6.1] - 2026-08-31
 
 ### ⚡ Comprehensive Full-App GPU & Rendering Performance Optimization

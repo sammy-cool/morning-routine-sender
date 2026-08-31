@@ -14,15 +14,24 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     if (!modalWrap) return;
 
     function openModal() {
+      modalWrap.inert = false;
       modalWrap.style.display = "flex";
       modalWrap.classList.add("open");
-      modalWrap.setAttribute("aria-hidden", "false");
+      modalWrap.removeAttribute("aria-hidden");
       if (openBtn) openBtn.setAttribute("aria-expanded", "true");
       if (adminKeyInput) adminKeyInput.focus();
     }
     function closeModal() {
+      if (document.activeElement && modalWrap.contains(document.activeElement)) {
+        if (openBtn && typeof openBtn.focus === "function") {
+          openBtn.focus();
+        } else {
+          document.activeElement.blur();
+        }
+      }
       modalWrap.classList.remove("open");
       modalWrap.setAttribute("aria-hidden", "true");
+      modalWrap.inert = true;
       modalWrap.style.display = "none";
       if (openBtn) openBtn.setAttribute("aria-expanded", "false");
       if (adminKeyInput) adminKeyInput.value = "";
