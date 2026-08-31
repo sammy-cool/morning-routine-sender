@@ -1,236 +1,215 @@
-# Architecture
+# Architecture & System Design
 
-This document goes one level deeper than `README.md`'s structure table — it
-covers _why_ the code is organized this way, how requests actually flow
-through it, and design decisions/tradeoffs worth knowing before you change
-something.
+This document covers the architectural philosophy, subsystem layering, end-to-end request flows, and critical design decisions for **Morning Routine Sender**.
 
-## Layering
+---
+
+## 1. High-Level Layering & Module Topology
 
 ```
-index.js  (composition root)
+index.js  (Application Composition Root & Global Error Shields)
    │
-   ├── middleware/        cross-cutting concerns (rate limiting, request context)
-   ├── routes/             path → controller wiring, no logic
-   ├── controllers/        the actual logic for each route
-   ├── config/              shared singletons (DB, Redis, SMTP transporter, env check)
-   └── email-core/         domain logic: scheduling, sending, tracking
+   ├── middleware/        Cross-cutting guards (Rate limiting, Signed cookies, Context injection, Anti-spam)
+   ├── routes/            Path → Controller router bindings (Zero business logic)
+   ├── controllers/       Controller orchestrators (Request parsing, validation, HTTP response negotiation)
+   ├── config/            Shared singletons (Knex PostgreSQL pool, Redis client, Nodemailer transporter, Env validator)
+   ├── email-core/        Core delivery engine (Cron scheduler, MJML compiler, Telemetry tracker, Suppression list)
+   ├── push-core/         Web Push VAPID notification engine
+   ├── helper/            Domain services (AI LLM router, Multi-channel dispatcher, Journaling, SVG generator)
+   └── public/js/         Client runtime (SWR cache, Web Audio synthesis, Haptic engine, Offline sync, App badging)
 ```
 
-The rule of thumb: **routes know paths, controllers know logic, config
-knows connections.** If you're adding a new endpoint, you're touching
-`routes/*.routes.js` (one line) and `controllers/*.controller.js` (the
-actual work) — `index.js` itself should rarely need to change.
+**Core Principle:**
 
-This split follows Express's own guidance to keep route declaration
-separate from route logic once an app grows past a handful of endpoints —
-`index.js` was 576 lines with all 18 routes inline before this cleanup; it's
-stayed under 140 lines since, even as new route groups (subscriber
-management, the self-service portal, public signup) were added — new
-features mean new files under `routes/`/`controllers/`, not growth in
-`index.js` itself.
+- **Routes** know HTTP verbs and paths.
+- **Controllers** orchestrate inputs and response codes.
+- **Services & Helpers** execute business logic and database mutations.
+- **Config** manages connections and singletons.
 
-## Request flow: a scheduled email send
+---
+
+## 2. End-to-End Request & Delivery Flows
+
+### A. Scheduled Routine Email & Multi-Channel Dispatch
 
 ```
-emailScheduler.js (node-cron fires)
+emailScheduler.js (node-cron fires per subscriber's cron & timezone)
         │
         ▼
-config/mailTransporter.js  ──fetches──▶  config/email-config.js (builds/validates SMTP transporter)
+emailJobs.js (runRoutineEmailJob with timeout protection & suppression check)
+        │
+        ├──▶ helper/aiSparkGenerator.js (Resolves AI Coach Persona spark via Gemini/OpenAI/Ollama/Curated)
+        ├──▶ helper/channelDispatcher.js (Parallel non-blocking Discord embed & Telegram Bot dispatch)
+        ├──▶ helper/outboundWebhookDispatcher.js (Dispatches signed HMAC-SHA256 payload to Zapier/Make)
         │
         ▼
-email-core/emailService.js  (compiles email-templates/*.mjml with data from helper/shared-data.js)
+emailService.js (Compiles email-templates/email-template.mjml with dynamic theme tokens)
         │
         ▼
-Nodemailer sends
+mailTransporter.js ──dispatches via SMTP──▶ Nodemailer
         │
         ▼
-email-core/emailTracker.js  (records result → Postgres: email_tracker / job_last_run tables)
+emailTracker.js (Logs dispatch record, attempt count, and latency in PostgreSQL `email_tracker`)
 ```
 
-The manual trigger routes (`POST /send-test-email`, `POST /send-bulk-now`,
-in `controllers/email.controller.js`) call into this same chain starting
-from `emailService`/`emailScheduler` directly — cron and manual triggers
-are two entry points into one pipeline, not two separate implementations.
+---
 
-## Request flow: admin authentication
-
-No sessions — short-lived, one-time Redis keys instead:
+### B. Daily Habit Check-in & Offline Background Sync
 
 ```
-GET /generate-admin-key  (requires ADMIN_KEY header/query)
-        │  generates random key, stores in Redis with 5-min TTL
-        ▼
-POST /verify-admin-key  OR  POST /secret-jobs-scheduler
-        │  looks up key in Redis, deletes it immediately (one-time use)
-        ▼
-verify-admin-key → sets mrn_role=admin cookie
-secret-jobs-scheduler → starts/stops cron jobs directly
+User checks in via /user-dashboard or /routine companion
+        │
+        ├── If Online ──▶ POST /checkin (or GET /checkin?token=...)
+        │                      │
+        │                      ├── Validates subscriber & calculates unbroken streak count
+        │                      ├── Triggers Outbound Webhooks (routine.completed)
+        │                      ├── Syncs W3C App Badge via navigator.setAppBadge(streak)
+        │                      └── Returns JSON payload with celebration triggers
+        │
+        └── If Offline ──▶ public/js/offline-sync.js
+                               │
+                               ├── Enqueues check-in request in IndexedDB (`checkin_queue`)
+                               ├── Registers Service Worker Background Sync (`sync-morning-checkin`)
+                               └── Dispatches when network reconnects ──▶ POST /checkin (X-Offline-Sync: true)
 ```
 
-`GET /admin-dashboard` and the `/` root route both check the `mrn_role`
-cookie before deciding what to serve — see `controllers/pages.controller.js`.
+---
 
-## Subscriber management (admin-facing)
-
-Subscribers live in a `subscribers` table (email, cron pattern, timezone,
-template type, active flag), replacing what used to be a hardcoded array of
-real email addresses committed directly to source control. Full CRUD is
-available at `/admin/subscribers` (`controllers/subscribers.controller.js`),
-gated by `middleware/requireAdmin.js` — a real auth check (`mrn_role=admin`
-cookie), not the unauthenticated pattern some of the older `/admin/*` routes
-still use. `helper/validateSubscriber.js` holds validation shared between
-this controller and the self-service one below, so the rules (valid email,
-real cron syntax via `node-cron`'s own validator, one of the actual
-template types that exist in `email-templates/`) can't drift between the
-two.
-
-## Request flow: subscriber self-service (magic-link login)
-
-No passwords — a subscriber is just an email address, so login is a
-short-lived, single-use link, structurally similar to the admin one-time-key
-flow but backed by a longer-lived session afterward:
+### C. Client UX Core Engine & SWR Caching (`public/js/ux-core.js`)
 
 ```
-POST /login  { email }
-        │  looks up email in `subscribers`; ALWAYS responds with the same
-        │  generic message either way (prevents email enumeration)
-        │  if found: random token → Redis (15 min TTL) → emails a link
-        ▼
-GET /verify-login?token=...
-        │  redeems the token (one-time use, deleted immediately)
-        ▼
-   createSession() — NOT a plain cookie holding the email. A random
-   opaque session token is stored in the cookie; the actual email lives
-   server-side in Redis, keyed by that token (30-day TTL). A subscriber's
-   identity is never something a client could forge just by editing their
-   own cookie.
-        ▼
-GET /me, GET /me/history, PATCH /me
-        │  gated by middleware/subscriberSession.js's requireSubscriberSession,
-        │  which resolves the session token → email and attaches it to
-        │  req.subscriberEmail. Every self-service endpoint scopes to
-        │  *that* email only — there is no way to pass a different email
-        │  in in the request and act on someone else's subscription.
+Page Load / Interaction (/user-dashboard)
+        │
+        ├── 1. UXCore.cache.get(key)
+        │         │
+        │         ├── Cache Hit ──▶ Immediately renders DOM (<10ms instant paint)
+        │         └── Background ──▶ Fetches /me or /api/journal/heatmap and updates cache & DOM
+        │
+        ├── 2. Optimistic UI Mutations
+        │         │
+        │         ├── Click Check-in ──▶ Increments streak immediately, plays UXCore.sound.playSuccess()
+        │         └── Click Save Note ──▶ Displays "Saved Just Now ✓", vibrates UXCore.haptics.light()
+        │
+        ├── 3. Keyboard Shortcuts Dispatcher (Space/C, J, H, S, ?, Esc)
+        │         │
+        │         └── Smart Input Isolation (Ignores keystrokes inside <input>, <textarea>, [contenteditable])
+        │
+        └── 4. Real-Time Network Monitor
+                  │
+                  └── Toggles floating glassmorphic offline pill banner & auto-dismisses on reconnect
 ```
 
-`GET /user-dashboard` (`controllers/pages.controller.js`) checks this same
-session before serving the page — deliberately via a **lazy `require()`**
-inside the function rather than a top-level import, since a top-level
-import would pull in `config/redisClient.js` (a real Redis connection
-attempt) on every load of this module, including tests that only exercise
-unrelated functions like `/health`.
+---
 
-## Request flow: public signup (double opt-in)
+### D. Multi-LLM AI Morning Coach Architecture (`helper/aiSparkGenerator.js`)
 
 ```
-POST /subscribe  { email, cronPattern?, timezone? }
-        │  real validation errors (bad email format, invalid cron) →
-        │  actual 400 responses -- this doesn't leak subscriber existence,
-        │  only whether the submitted input itself is well-formed
-        │  if the email is ALREADY subscribed: same generic response as
-        │  the "not found" case, no email sent (enumeration-safe)
-        │  otherwise: random token → Redis (24h TTL) → emails a
-        │  confirmation link
+Subscriber Coach Preference (`subscribers.coach_persona`)
+  [ 'stoic' | 'relentless' | 'zen' | 'tech-lead' | 'optimist' ]
+        │
         ▼
-GET /confirm-subscription?token=...
-        │  redeems the token, calls addUser(), fires the welcome email
-        │  (not awaited -- a slow/failed welcome email shouldn't block
-        │  the signup itself), then immediately creates a session via
-        │  the exact same createSession() used by /verify-login
-        ▼
-redirects straight to /user-dashboard, already logged in
+aiSparkGenerator.generateAiSpark({ persona, track, theme })
+        │
+        ├── 1. Checks configured LLM_PROVIDER ('gemini' | 'openai' | 'ollama' | 'curated')
+        ├── 2. Injects archetype system instructions & character tone constraints
+        ├── 3. Executes API call with strict 4500ms timeout
+        │
+        └── 4. Graceful Fallback: If AI provider errors or times out,
+               returns deterministic wisdom quote from helper/curatedSparks.js
 ```
 
-Deliberately double opt-in rather than "type an email, get subscribed
-immediately": a single-step flow would let anyone subscribe someone
-_else's_ address without their consent. The confirmation click doubles as
-first login, which is why there's one welcome-email trigger point instead
-of two separate "first signup" and "first login" code paths.
+---
 
-### Unsubscribe
+### E. Inbound Webhook Telemetry & Dead-Letter Retry Engine
 
-`GET /unsubscribe?email=...&token=...` (`controllers/email.controller.js`)
-actually updates the subscriber's row (`setUserActive(email, false)`) —
-this used to call a browser-DOM toast-notification function from
-server-side code and silently do nothing to the database at all. The
-`token` is a stateless HMAC of the email (`helper/unsubscribeToken.js`,
-`UNSUBSCRIBE_SECRET` env var, falls back to `ADMIN_KEY` if unset) rather
-than a Redis-backed one-time token like login/signup — unsubscribe links
-are embedded in every routine email and need to keep working indefinitely,
-not expire like a login link should. Verified with
-`crypto.timingSafeEqual` rather than `===`, so a wrong guess can't be
-brute-forced faster by its rejection timing. Without this token, anyone
-who knew (or guessed) another subscriber's email could unsubscribe them
-just by visiting the URL.
+```
+SMTP Provider (Resend / SendGrid / Brevo) fires webhook
+        │
+        ▼
+POST /api/webhook/:provider  (routes/webhook.routes.js)
+        │
+        ▼
+webhookParsers.js (Normalizes provider-specific payloads into standard event format)
+        │
+        ├── If Hard Bounce / Spam Complaint ──▶ suppressionService.recordSuppression()
+        │                                           └── Marks subscriber inactive & blacklists email
+        │
+        └── Logs telemetry in `email_events` table (event_type: delivered, opened, clicked, bounced)
+```
 
-## Shared singletons, and why they're separate modules
+**Dead-Letter Retry:**
 
-Three pieces of app-wide state used to live as module-scoped variables
-directly inside `index.js`, which made them inaccessible once routes moved
-into their own files. Each now has one home:
+- Admin accesses **`/admin-dashboard`** ➔ `POST /admin/api/retry-failed`.
+- Finds dispatches marked `failed` in `email_tracker` from the last 24h/48h/7d.
+- Re-queues dispatches through `emailScheduler.sendRoutineEmail()` with exponential backoff.
 
-| State                             | Lives in                     | Used by                                                                                                                     |
-| --------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Redis connection                  | `config/redisClient.js`      | `controllers/auth.controller.js`, `subscriberAuth.controller.js`, `signup.controller.js`, `middleware/subscriberSession.js` |
-| SMTP transporter (lazy singleton) | `config/mailTransporter.js`  | `controllers/email.controller.js`, `subscriberAuth.controller.js`, `signup.controller.js`, `index.js` (graceful shutdown)   |
-| Rate limiter                      | `middleware/rateLimiters.js` | `admin.routes.js`, `email.routes.js`, `subscriberPortal.routes.js`                                                          |
+---
 
-Each is created once, on first `require()`, and reused everywhere it's
-imported (Node's module cache makes this a natural singleton — no extra
-DI framework needed for a project this size).
+### F. Sunday Weekly Performance Digest Engine
 
-## Known design tradeoffs (not bugs — deliberate or pre-existing decisions)
+```
+emailScheduler.js (Automated weekly cron trigger: '0 18 * * 0' / Sundays at 18:00)
+        │
+        ▼
+runWeeklyDigestJob() (email-core/emailJobs.js)
+        │
+        ├── 1. Queries all active subscribers
+        ├── 2. Checks emailTracker.wasEmailSentThisWeek() (prevents duplicate dispatches)
+        ├── 3. Aggregates past 7-day journal entries, mood scores, and completion days
+        ├── 4. Compiles Sunday MJML digest template with AI spark for upcoming week
+        │
+        ▼
+Dispatches via mailTransporter with structured telemetry recording
+```
 
-- **~~`config/redis-config.js` vs `config/redisClient.js`~~ — resolved.**
-  Consolidated into one `config/redisClient.js`: kept the single-URL
-  connection style (right choice for a managed provider like Render Redis),
-  absorbed `USE_MOCK_REDIS` support and retry backoff from the file that
-  used to be dead code. `REDIS_LEAP_URL` (the old Leapcell-era var name) is
-  still checked as a fallback if `REDIS_URL` isn't set, with a warning —
-  remove that fallback once the env var is renamed on Render.
-- **~~`helper/read-db.js` used a separate DB connection~~ — resolved.**
-  Now reuses the shared Knex instance from `db/knex.js` instead of its own
-  `pg.Client` (which was pointed at a dead `DATABASE_URL` from before the
-  Render Postgres migration).
-- **node-cron over BullMQ**: this project used to have a parallel BullMQ-based
-  queue system (removed in the dead-code cleanup pass). node-cron is what's
-  actually live. If job volume grows to the point where retries, backoff,
-  or multiple workers matter, BullMQ is the natural next step — but
-  re-introduce it deliberately, not as leftover half-wired code.
-- **Content-Security-Policy uses `'unsafe-inline'`** for `script-src` and
-  `style-src`. An audit of `public/`/`admin-renderer/` found 30+ inline
-  `onclick`/`onchange` handlers (mostly `admin-dashboard.html`) plus inline
-  `<script>`/`<style>` blocks. A strict CSP without `'unsafe-inline'` would
-  break these today. This CSP still meaningfully restricts which external
-  origins can be loaded from (`cdn.jsdelivr.net`, Google Fonts, and
-  `cdnjs.cloudflare.com` are the only allowlisted external sources — all
-  verified against actual usage, not guessed) and blocks clickjacking via
-  `frame-ancestors`, but it does not defend against inline-script-based
-  XSS specifically. Removing `'unsafe-inline'` would mean converting every
-  inline handler to `addEventListener()` across 6 HTML files — a real,
-  separate project if tightened further.
+---
 
-## Testing strategy
+## 3. Database Schema & Migration History
 
-`__tests__/` covers pure functions and mock-based controller/route tests —
-no live DB/Redis/SMTP connections required, so the suite is fast and
-deterministic. This required deliberately mocking every transitive
-dependency that would otherwise open a real connection, including some
-non-obvious ones caught the hard way: `routes/subscriberPortal.routes.js`
-pulls in `me.controller.js` → `emailTracker.js` → `db/knex.js`, and
-`email.controller.js` pulls in `emailScheduler.js` →
-`database-cleanup.js` → `db/knex.js` — both real-DB paths that don't go
-through `helper/shared-data.js` and so need their own explicit mocks.
+The database layer utilizes **PostgreSQL** with **Knex.js** migrations:
 
-Also worth knowing if a future test file behaves strangely:
-`middleware/rateLimiters.js`'s `sendEmailLimiter` is a shared singleton
-whose internal per-IP request counter persists for the _entire test
-process_, not per test or per file. With `ALLOWED_RATE_LIMITER` unset,
-`express-rate-limit` defaults to `max: 5` — so a test file that calls a
-rate-limited route (like `/login` or `/subscribe`) more than 5 times
-across its whole suite will start getting silently blocked with a real
-`429`, with zero indication why an assertion three tests later suddenly
-fails. Mock `middleware/rateLimiters.js` as a pass-through
-(`(req, res, next) => next()`) in any test file that exercises these
-routes more than a few times.
+| Migration File                                           | Primary Tables & Columns Added                                                           |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `20251009153643_create_email_tracker_table.js`           | `email_tracker` (recipient, status, sent_at, template_type, retry_count, metadata JSONB) |
+| `20251009153701_create_last_run_table.js`                | `job_last_run` (job_name, last_run_at, status)                                           |
+| `20260711172620_create_subscribers_table.js`             | `subscribers` (email, cron_pattern, timezone, is_active)                                 |
+| `20260828000000_add_streaks_and_track_to_subscribers.js` | Adds `streak_count`, `last_completed_date`, `routine_track` to `subscribers`             |
+| `20260828010000_create_suppression_and_events_tables.js` | `suppression_list` (bounces/complaints) and `email_events` (audit log)                   |
+| `20260828020000_create_push_subscriptions_table.js`      | `push_subscriptions` (endpoint, auth, p256dh, subscriber_email)                          |
+| `20260829000000_create_journal_entries_table.js`         | `journal_entries` (entry_date, mood_score, one_big_thing, gratitude, reflection_text)    |
+| `20260829010000_add_channels_to_subscribers.js`          | Adds `discord_webhook_url`, `telegram_chat_id`, `channels_enabled`                       |
+| `20260829020000_add_coach_persona_to_subscribers.js`     | Adds `coach_persona` (stoic, relentless, zen, tech-lead, optimist)                       |
+| `20260829030000_add_outbound_webhooks_to_subscribers.js` | Adds `webhook_endpoint_url`, `webhook_secret`, `webhook_enabled`                         |
+
+---
+
+## 4. Authentication & Security Design
+
+1. **Dual-Tier Authentication**:
+   - **Admin Console (`/admin-dashboard`)**: Master `ADMIN_KEY` direct login or Redis-backed temporary 5-minute single-use keys (`GET /generate-admin-key`). Successful authentication issues a 24-hour signed HMAC cookie (`mrn_role=admin`).
+   - **Subscriber Portal (`/user-dashboard`)**: Passwordless double opt-in & magic links (`POST /login` ➔ 15-minute single-use Redis token ➔ `GET /verify-login` ➔ 30-day opaque session token in signed cookie).
+
+2. **Enumeration-Resistant Endpoints**:
+   - `/login` and `/subscribe` always return consistent timing-safe success responses regardless of whether the email is present in the database.
+
+3. **Stateless HMAC Action Tokens**:
+   - Unsubscribe links (`/unsubscribe?email=...&token=...`) use stateless HMAC-SHA256 signatures verified with `crypto.timingSafeEqual()`.
+
+4. **Anti-Spam Honeypot Defenses**:
+   - `middleware/honeypot.js` monitors hidden form fields (`website`, `hp_username`) and silently drops automated bot submissions.
+
+---
+
+## 5. Testing & Verification Strategy
+
+All unit and integration tests live in `__tests__/`:
+
+- **Fast, Isolated, Zero-Dependency**: External networks, SMTP servers, AI LLMs, and Redis are completely mocked with deterministic stubs.
+- **34 Test Suites (211/211 Passing)**:
+  - Database schema and migration rollback consistency.
+  - SWR caching, haptics, Web Audio, and keyboard hotkey dispatching (`ux.core.test.js`).
+  - Multi-channel notification delivery (Discord embeds, Telegram bot API).
+  - Outbound webhook HMAC signature validation.
+  - Sunday weekly digest compilation & scheduler de-duplication.
+  - OpenGraph dynamic meta tags & SVG streak share card generation.
+  - Dead-letter retry and SMTP bounce suppression mechanisms.
