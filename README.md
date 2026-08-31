@@ -8,7 +8,7 @@
 [![Version](https://img.shields.io/badge/Version-v2.2.0-6366f1?style=flat-square)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-6366f1?style=flat-square)](./LICENSE)
 
-An enterprise-ready **Node.js/Express** automation platform that dispatches personalized, responsive morning routine emails (powered by **MJML**, daily motivation quotes, and curated tech news) on custom cron schedules. Equipped with a next-gen **Obsidian Glassmorphism Admin Command Center**, a passwordless **Subscriber Magic-Link Portal**, **SWR Caching & Optimistic UI**, **Procedural Web Audio synthesis**, **Mobile Haptic Feedback**, **365-Day Activity Heatmaps**, **AI Morning Coach Personas**, **Outbound Webhooks**, **Dynamic Streak Share Cards**, **Sunday Weekly Digests**, and a high-performance **Winston Telemetry Logger**.
+An enterprise-ready **Node.js/Express** automation platform that dispatches personalized, responsive morning routine emails (powered by **MJML**, daily motivation quotes, and curated tech news) on custom cron schedules. Equipped with a next-gen **Obsidian Glassmorphism Admin Command Center (`/admin-dashboard`)**, a passwordless **Subscriber Magic-Link Portal (`/user-dashboard`)**, **SWR Caching & Optimistic UI**, **Procedural Web Audio synthesis**, **Mobile Haptic Feedback**, **365-Day Activity Heatmaps**, **AI Morning Coach Personas**, **Outbound Automation Webhooks**, **Dynamic SVG Streak Share Cards**, **Sunday Weekly Digests**, and a high-performance **Winston Telemetry Logger**.
 
 ---
 
@@ -55,17 +55,17 @@ An enterprise-ready **Node.js/Express** automation platform that dispatches pers
 
 ## 🏗️ Architecture & Tech Stack
 
-| Layer                 | Technology                                                                      |
-| :-------------------- | :------------------------------------------------------------------------------ |
-| **Backend Runtime**   | Node.js (v20+ LTS), Express 4                                                   |
-| **Database & ORM**    | PostgreSQL with Knex.js query builder & migrations                              |
-| **Cache & Sessions**  | Redis via `ioredis` (with dev mock fallback)                                    |
-| **Email Compilation** | Nodemailer (SMTP) + MJML + Handlebars                                           |
-| **Scheduler**         | `node-cron` with in-memory job registry & timezone-aware triggers               |
-| **Frontend UI**       | Modern Vanilla JS, Glassmorphism CSS, Chart.js, FontAwesome                     |
-| **Logging**           | Winston with `winston-daily-rotate-file` & deep error serialization             |
-| **Testing & Quality** | Jest + Supertest (33 test suites, 201 unit/integration tests), ESLint, Prettier |
-| **Deployment**        | Render (Web Service + Managed PostgreSQL + Redis)                               |
+| Layer                   | Technology                                                                        |
+| :---------------------- | :-------------------------------------------------------------------------------- |
+| **Backend Runtime**     | Node.js (v20+ LTS), Express 4                                                     |
+| **Database & ORM**      | PostgreSQL with Knex.js query builder & migrations                                |
+| **Cache & Sessions**    | Redis via `ioredis` (with resilient dev mock fallback)                            |
+| **Email Compilation**   | Nodemailer (SMTP) + MJML + Handlebars                                             |
+| **Scheduler**           | `node-cron` with in-memory job registry & timezone-aware triggers                 |
+| **Frontend UI**         | Modern Vanilla JS, Glassmorphism CSS, Web Audio Synthesis, Web Vibration API      |
+| **Logging & Telemetry** | Winston with `winston-daily-rotate-file` & structured JSON serialization          |
+| **Testing & Quality**   | Jest + Supertest (34 test suites, 211 unit/integration tests), ESLint 9, Prettier |
+| **Deployment**          | Render (Web Service + Managed PostgreSQL + Redis)                                 |
 
 ---
 
@@ -76,61 +76,89 @@ An enterprise-ready **Node.js/Express** automation platform that dispatches pers
 ├── index.js                      # Application entry point, security middleware, router mounts
 ├── knexfile.js                   # PostgreSQL Knex configuration (pool & SSL settings)
 ├── logger.js                     # Enterprise Winston logger with request middleware
+├── render.yaml                   # Infrastructure-as-Code blueprint for Render
 ├── db/
 │   ├── knex.js                   # Initialized Knex database instance
 │   ├── migrations/               # PostgreSQL schema migration files
 │   └── seeds/                    # Database seeds
 ├── routes/
-│   ├── admin.routes.js           # Database inspection & maintenance routes
+│   ├── admin.routes.js           # Database inspection, telemetry, & maintenance routes
 │   ├── auth.routes.js            # Admin key issuance & verification routes
+│   ├── deliverability.routes.js  # Bounce/delivery event feeds & dead-letter retry routes
 │   ├── email.routes.js           # Test send, bulk dispatch, and unsubscribe routes
+│   ├── journal.routes.js         # Reflection journaling & 365-day heatmap API routes
 │   ├── pages.routes.js           # Static pages, health check, PWA manifest, and dashboards
+│   ├── push.routes.js            # Web Push subscription & test dispatch routes
+│   ├── subscriberPortal.routes.js# Magic-link auth, personas, & self-scoped subscriber routes
 │   ├── subscribers.routes.js     # Admin CRUD operations for subscribers
-│   └── subscriberPortal.routes.js# Magic-link auth & self-scoped subscriber routes
+│   ├── webhook.routes.js         # Inbound SMTP provider webhook listeners (Resend/SendGrid/Brevo)
+│   └── weeklyDigest.routes.js    # Sunday weekly digest preview & trigger routes
 ├── controllers/
 │   ├── admin.controller.js       # Database retention & file log cleanup
 │   ├── auth.controller.js        # Admin verification & key generator
+│   ├── deliverability.controller.js # Delivery telemetry aggregation & 1-click retry
 │   ├── email.controller.js       # Email testing, bulk trigger & unsubscribe page
-│   ├── me.controller.js          # Self-scoped subscriber profile (/me)
+│   ├── journal.controller.js     # Daily reflection journal & 365-day heatmap controller
+│   ├── me.controller.js          # Self-scoped subscriber profile, personas, & outbound webhooks
 │   ├── pages.controller.js       # Dynamic template renderer with domain replacement
+│   ├── push.controller.js        # Web Push subscription registration & test push
+│   ├── routine.controller.js     # 1-Click habit streak checkin & live routine companion
 │   ├── signup.controller.js      # Double opt-in newsletter signup
 │   ├── subscriberAuth.controller.js # Magic link generation and redemption
 │   ├── subscriberStats.controller.js # Aggregated analytics & subscriber metrics
-│   └── subscribers.controller.js # Admin subscriber management
+│   ├── subscribers.controller.js # Admin subscriber management
+│   ├── webhook.controller.js     # Webhook parser for bounce/complaint/delivery events
+│   └── weeklyDigest.controller.js# Sunday performance digest controller
 ├── config/
 │   ├── email-config.js           # Nodemailer transport builder & verification
+│   ├── env.js                    # Startup environment validator
 │   ├── mailTransporter.js        # Singleton SMTP transporter with graceful teardown
 │   ├── redisClient.js            # Resilient ioredis client with dev mock fallback
-│   └── env.js                    # Startup environment validator
+│   └── smtp-providers.js         # Multi-provider SMTP presets
 ├── middleware/
+│   ├── honeypot.js               # Anti-spam hidden field validator
 │   ├── rateLimiters.js           # Express rate limiters for auth & email endpoints
 │   ├── requireAdmin.js           # Signed cookie admin gatekeeper
 │   ├── setApiBase.js             # Dynamic canonical URL and domain injector
 │   └── subscriberSession.js      # Opaque Redis session validator for subscribers
 ├── email-core/
-│   ├── emailJobs.js              # Cron dispatch wrapper with failure alerting
+│   ├── emailJobs.js              # Cron dispatch wrapper with failure alerting & weekly digest
 │   ├── emailScheduler.js         # node-cron scheduler registration & management
 │   ├── emailService.js           # Async MJML template compiler and SMTP sender
-│   └── emailTracker.js           # PostgreSQL send telemetry & log tracker
-├── email-templates/
-│   └── email-template.mjml       # Responsive MJML email layout
+│   ├── emailTracker.js           # PostgreSQL send telemetry & log tracker
+│   └── suppressionService.js     # Suppression list manager for hard bounces & unsubscribes
+├── push-core/
+│   └── pushService.js            # VAPID Web Push notification engine
 ├── helper/
-│   ├── database-cleanup.js       # Retention-based database record cleaner
-│   ├── retryUtil.js              # Async retry wrapper with structured backoff logs
+│   ├── aiSparkGenerator.js       # Multi-LLM provider engine (Gemini/OpenAI/Ollama/Curated)
+│   ├── channelDispatcher.js      # Discord embed & Telegram bot dispatcher
+│   ├── curatedSparks.js          # Persona-curated fallback motivation quotes
+│   ├── errorClassifier.js        # SMTP error classification & retry categorization
+│   ├── journalService.js         # Journal entry upsert, export, & heatmap aggregation
+│   ├── outboundWebhookDispatcher.js # Signed HMAC-SHA256 outbound webhook dispatcher
+│   ├── retryUtil.js              # Async exponential backoff retry engine
 │   ├── shared-data.js            # Quote cache, daily routine themes, and fallbacks
-│   ├── unsubscribeToken.js       # HMAC-SHA256 signed unsubscribe token generator
-│   └── util.js                   # Crypto utilities, safe string compare, and News API
-├── admin-renderer/
-│   └── views/
-│       └── admin-dashboard.html  # Obsidian Glassmorphism Admin Command Center
+│   ├── streakCardGenerator.js    # High-DPI dynamic SVG streak card generator
+│   ├── unsubscribeToken.js       # HMAC-SHA256 signed action tokens
+│   ├── webhookParsers.js         # Provider-specific bounce & delivery event normalizers
+│   └── weeklyDigestService.js    # Sunday digest MJML template compiler & dispatcher
 ├── public/
 │   ├── main-index.html           # Landing page with signup & subscriber portals
-│   ├── user-dashboard.html       # Subscriber routine preferences & history view
+│   ├── user-dashboard.html       # Subscriber command center, heatmap & journal
 │   ├── offline.html              # PWA offline fallback screen
 │   ├── manifest.json             # PWA Web App Manifest
-│   ├── sw.js                     # Service worker with offline caching
-│   └── js/                       # Client scripts (signup, login, modal)
-└── __tests__/                    # Comprehensive Jest test suite
+│   ├── sw.js                     # Service worker with offline caching & background sync
+│   └── js/                       # Client engines
+│       ├── app-badging.js        # Native W3C App Badging integration
+│       ├── offline-sync.js       # IndexedDB offline checkin queue
+│       ├── user-dashboard.js     # Dashboard state manager & UI controller
+│       └── ux-core.js            # SWR cache, audio synthesis, haptics, & shortcuts
+├── admin-renderer/
+│   ├── js/
+│   │   └── admin-dashboard.js    # Admin console telemetry & charts logic
+│   └── views/
+│       └── admin-dashboard.html  # Obsidian Glassmorphism Admin Command Center
+└── __tests__/                    # 34 comprehensive Jest test suites (211/211 passing)
 ```
 
 ---
@@ -139,48 +167,69 @@ An enterprise-ready **Node.js/Express** automation platform that dispatches pers
 
 ### 1. Public & Subscriber Portal Endpoints
 
-| Method  | Endpoint                            | Description                                                              |
-| :------ | :---------------------------------- | :----------------------------------------------------------------------- |
-| `GET`   | `/`                                 | Responsive landing page (signup + subscriber portal + admin key trigger) |
-| `GET`   | `/user-dashboard` (or `/dashboard`) | Subscriber preferences & history dashboard (session-gated)               |
-| `POST`  | `/subscribe`                        | New subscriber double opt-in registration                                |
-| `GET`   | `/confirm-subscription`             | Confirm signup and establish subscriber session                          |
-| `POST`  | `/login`                            | Request passwordless magic login link                                    |
-| `GET`   | `/verify-login`                     | Redeem magic link and initialize subscriber session                      |
-| `POST`  | `/logout`                           | Terminate subscriber session                                             |
-| `GET`   | `/me`                               | Fetch authenticated subscriber profile                                   |
-| `PATCH` | `/me`                               | Update routine schedule, timezone, or pause/resume                       |
-| `GET`   | `/me/history`                       | View subscriber email delivery history                                   |
-| `GET`   | `/unsubscribe`                      | 1-click cryptographically signed unsubscribe confirmation                |
+| Method  | Endpoint                            | Description                                                                 |
+| :------ | :---------------------------------- | :-------------------------------------------------------------------------- |
+| `GET`   | `/`                                 | Responsive landing page (signup + subscriber portal + live companion links) |
+| `GET`   | `/about`                            | Project overview, philosophy, and architecture details                      |
+| `GET`   | `/routine`                          | Live focus companion screen with routine timer & check-in                   |
+| `GET`   | `/checkin`                          | 1-Click habit streak check-in (supports JSON & Web UI)                      |
+| `GET`   | `/user-dashboard` (or `/dashboard`) | Subscriber command center (preferences, journal, & heatmap)                 |
+| `GET`   | `/streak/:handleOrEmail`            | Dynamic OpenGraph & Twitter Card share landing page                         |
+| `POST`  | `/subscribe`                        | New subscriber double opt-in registration                                   |
+| `GET`   | `/confirm-subscription`             | Confirm signup and establish subscriber session                             |
+| `POST`  | `/login`                            | Request passwordless magic login link                                       |
+| `GET`   | `/verify-login`                     | Redeem magic link and initialize subscriber session                         |
+| `POST`  | `/logout`                           | Terminate subscriber session                                                |
+| `GET`   | `/me`                               | Fetch authenticated subscriber profile                                      |
+| `PATCH` | `/me`                               | Update routine schedule, timezone, track, or pause/resume                   |
+| `GET`   | `/me/history`                       | View subscriber email delivery history                                      |
+| `GET`   | `/api/coach-personas`               | List 5 AI morning coach persona archetypes                                  |
+| `POST`  | `/me/coach-persona`                 | Update coaching persona preference                                          |
+| `POST`  | `/me/channels`                      | Update Discord webhook & Telegram chat ID notifications                     |
+| `POST`  | `/me/outbound-webhook`              | Configure outbound automation webhook (Zapier/Make)                         |
+| `GET`   | `/api/journal/today`                | Fetch today's reflection note and mood score                                |
+| `POST`  | `/api/journal/save`                 | Save daily reflection, gratitude, and mood score                            |
+| `GET`   | `/api/journal/heatmap`              | Aggregated 365-day consistency heatmap data                                 |
+| `GET`   | `/api/journal/history`              | List recent 30 reflection entries                                           |
+| `GET`   | `/api/journal/export`               | Export all reflections as Markdown or JSON                                  |
+| `GET`   | `/api/streak-card/:email/card.svg`  | Dynamic high-DPI SVG streak share card                                      |
+| `POST`  | `/api/push/subscribe`               | Register browser Web Push subscription                                      |
+| `GET`   | `/unsubscribe`                      | 1-Click cryptographically signed unsubscribe confirmation                   |
+
+---
 
 ### 2. Admin & Telemetry Endpoints (Gated via `mrn_role=admin`)
 
-| Method   | Endpoint                    | Description                                                         |
-| :------- | :-------------------------- | :------------------------------------------------------------------ |
-| `GET`    | `/admin-dashboard`          | Next-Gen Admin Command Center                                       |
-| `POST`   | `/verify-admin-key`         | Authenticate master `ADMIN_KEY` or temporary Redis key              |
-| `GET`    | `/generate-admin-key`       | Generate 5-minute temporary admin key (requires `ADMIN_KEY` header) |
-| `GET`    | `/admin/subscribers`        | List subscribers with search & filter                               |
-| `POST`   | `/admin/subscribers`        | Manually add subscriber                                             |
-| `PATCH`  | `/admin/subscribers/:email` | Update subscriber attributes or toggle active state                 |
-| `DELETE` | `/admin/subscribers/:email` | Remove subscriber record                                            |
-| `GET`    | `/admin/subscriber-stats`   | Aggregated metrics (total, active, paused, 7D/30D/90D growth)       |
-| `POST`   | `/send-test-email`          | Dispatch test routine email with selected theme                     |
-| `POST`   | `/send-bulk-now`            | Trigger immediate bulk dispatch to all active subscribers           |
-| `GET`    | `/scheduled-jobs`           | List active `node-cron` schedulers                                  |
-| `GET`    | `/read-db`                  | Inspect raw `email_tracker` audit logs                              |
-| `POST`   | `/admin/cleanup-database`   | Prune email audit logs older than N days                            |
-| `POST`   | `/admin/cleanup-logs`       | Purge disk log files older than 3 days                              |
-| `GET`    | `/health`                   | System health check                                                 |
+| Method   | Endpoint                           | Description                                                         |
+| :------- | :--------------------------------- | :------------------------------------------------------------------ |
+| `GET`    | `/admin-dashboard`                 | Obsidian Glassmorphism Admin Command Center                         |
+| `POST`   | `/verify-admin-key`                | Authenticate master `ADMIN_KEY` or temporary Redis key              |
+| `GET`    | `/generate-admin-key`              | Generate 5-minute temporary admin key (requires `ADMIN_KEY` header) |
+| `GET`    | `/admin/subscribers`               | List subscribers with search & filter                               |
+| `POST`   | `/admin/subscribers`               | Manually add subscriber                                             |
+| `PATCH`  | `/admin/subscribers/:email`        | Update subscriber attributes or toggle active state                 |
+| `DELETE` | `/admin/subscribers/:email`        | Remove subscriber record                                            |
+| `GET`    | `/admin/subscriber-stats`          | Aggregated metrics (total, active, paused, 7D/30D/90D growth)       |
+| `GET`    | `/admin/api/telemetry-overview`    | Real-time 7D & 30D delivery, open, and bounce rates                 |
+| `GET`    | `/admin/api/recent-events`         | Live webhook delivery feed from SMTP providers                      |
+| `POST`   | `/admin/api/retry-failed`          | 1-Click dead-letter retry for failed dispatches                     |
+| `POST`   | `/admin/api/trigger-weekly-digest` | Trigger Sunday weekly digest batch dispatch                         |
+| `POST`   | `/send-test-email`                 | Dispatch test routine email with selected track theme               |
+| `POST`   | `/send-bulk-now`                   | Trigger immediate bulk dispatch to all active subscribers           |
+| `GET`    | `/scheduled-jobs`                  | List active `node-cron` schedulers                                  |
+| `GET`    | `/read-db`                         | Inspect raw `email_tracker` audit logs                              |
+| `POST`   | `/admin/cleanup-database`          | Prune email audit logs older than N days                            |
+| `POST`   | `/admin/cleanup-logs`              | Purge disk log files older than 3 days                              |
+| `GET`    | `/health`                          | System health check (uptime, memory, scheduling mode)               |
 
 ---
 
 ## ⚙️ Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory (see [`.env.example`](./.env.example)):
 
 ```env
-# Server
+# Server & Environment
 PORT=2900
 NODE_ENV=development
 RENDER_URL=https://morning-routine-sender.onrender.com
@@ -202,7 +251,22 @@ FROM_USER=your-email@gmail.com
 FROM_PASS=your-16-digit-google-app-password
 LOGO_URL=https://your-domain.com/assets/logo.png
 
-# External APIs
+# AI Providers (Gemini / OpenAI / Ollama / Curated)
+LLM_PROVIDER=curated
+GEMINI_API_KEY=your-gemini-api-key
+OPENAI_API_KEY=your-openai-api-key
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=mistral
+
+# Multi-Channel Dispatch (Optional)
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+
+# Web Push (VAPID Keys)
+VAPID_PUBLIC_KEY=your-vapid-public-key
+VAPID_PRIVATE_KEY=your-vapid-private-key
+VAPID_SUBJECT=mailto:your-email@domain.com
+
+# External APIs & Logging
 THE_NEWS_API_KEY=your-thenewsapi-key-optional
 LOG_LEVEL=info
 ```
@@ -242,13 +306,22 @@ Visit `http://localhost:2900` in your browser.
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Code Quality
 
-Run the comprehensive Jest test suite:
+Run the comprehensive Jest test suite, AST syntax validator, linter, and Prettier check:
 
 ```bash
-# Run all 8 test suites
+# Run all 34 test suites (211 unit/integration tests)
 npm test
+
+# Run AST syntax check across all JavaScript files
+npm run check:syntax
+
+# Run ESLint 9 validation
+npm run lint
+
+# Verify Prettier code style formatting
+npm run format:check
 
 # Run tests in watch mode
 npm run test:watch
@@ -261,12 +334,13 @@ npm run test:smtp
 
 ## 🌐 Production Deployment (Render)
 
-1. Push your branch to GitHub (`master` or `fix/render-deploy-fix`).
+1. Push your branch to GitHub (`master`).
 2. In your Render Dashboard:
    - Set **Build Command**: `npm install`
    - Set **Start Command**: `npx knex migrate:latest && node index.js`
    - Configure environment variables in the **Environment** tab.
 3. Render will build and deploy the web service automatically with zero downtime.
+4. Verify deployment health at: `https://morning-routine-sender.onrender.com/health`
 
 ---
 
