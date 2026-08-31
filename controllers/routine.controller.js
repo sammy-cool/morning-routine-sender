@@ -1776,10 +1776,12 @@ async function liveRoutine(req, res) {
               type: "success",
               allowHtml: true,
               showProgressBar: true,
+              progressPosition: "bottom",
+              progressColor: "#7c3aed",
               pauseOnHover: true,
               duration: 8000,
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              borderRadius: "14px",
+              borderRadius: "16px",
               cta: {
                 label: "🔥 1-Click Check-in",
                 variant: "link",
@@ -1828,7 +1830,7 @@ async function liveRoutine(req, res) {
           particleCount: 80,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#6366f1', '#10b981', '#f59e0b', '#06b6d4']
+          colors: ['#7c3aed', '#22d3ee', '#34d399', '#fbbf24']
         });
       }
     }
@@ -1895,7 +1897,11 @@ async function liveRoutine(req, res) {
               message: "✨ <b>Reflection Saved!</b> Your morning intention and mindset are locked in.",
               type: "success",
               allowHtml: true,
-              duration: 4000
+              showProgressBar: true,
+              progressPosition: "bottom",
+              progressColor: "#7c3aed",
+              borderRadius: "16px",
+              duration: 4500
             });
           }
         } else {
@@ -1904,6 +1910,9 @@ async function liveRoutine(req, res) {
             customizableToast.createToast({
               message: data.error || "Could not save reflection. Please check your connection.",
               type: "warning",
+              showProgressBar: true,
+              progressPosition: "bottom",
+              borderRadius: "16px",
               duration: 5000
             });
           }

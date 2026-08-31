@@ -15,6 +15,10 @@
   }
 
   function showToast(message, type = "info", options = {}) {
+    if (globalThis.UXCore?.toast?.show) {
+      return globalThis.UXCore.toast.show(message, type, options);
+    }
+
     const toastLib =
       (typeof window !== "undefined" && window.customizableToast) ||
       (typeof customizableToast !== "undefined" ? customizableToast : null);
@@ -25,9 +29,10 @@
         type: type === "warn" ? "warning" : type,
         position: "top-center",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
-        borderRadius: "14px",
+        borderRadius: "16px",
         showProgressBar: true,
         progressPosition: "bottom",
+        progressColor: "#7c3aed",
         pauseOnHover: true,
         duration: 4500,
         ...options,

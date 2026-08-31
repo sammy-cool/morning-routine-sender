@@ -13,6 +13,10 @@
 
   // Toast Helper integrating customizable-toast-notification
   function showToast(message, type = "info", options = {}) {
+    if (globalThis.UXCore?.toast?.show) {
+      return globalThis.UXCore.toast.show(message, type, options);
+    }
+
     const toastLib =
       globalThis.customizableToast ||
       (typeof window !== "undefined" ? window.customizableToast : null);
@@ -23,9 +27,10 @@
         type: type === "warn" ? "warning" : type,
         position: "top-center",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
-        borderRadius: "14px",
+        borderRadius: "16px",
         showProgressBar: true,
         progressPosition: "bottom",
+        progressColor: "#7c3aed",
         pauseOnHover: true,
         duration: 5000,
         ...options,

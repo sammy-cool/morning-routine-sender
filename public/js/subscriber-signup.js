@@ -8,6 +8,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     if (!form) return;
 
     function showToast(message, type = "info", options = {}) {
+      if (globalThis.UXCore?.toast?.show) {
+        return globalThis.UXCore.toast.show(message, type, options);
+      }
+
       const toastLib =
         (typeof window !== "undefined" && window.customizableToast) ||
         (typeof customizableToast !== "undefined" ? customizableToast : null);
@@ -18,9 +22,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           type: type === "warn" ? "warning" : type,
           position: "top-center",
           fontFamily: "'Plus Jakarta Sans', sans-serif",
-          borderRadius: "14px",
+          borderRadius: "16px",
           showProgressBar: true,
           progressPosition: "bottom",
+          progressColor: "#7c3aed",
           pauseOnHover: true,
           duration: 4500,
           ...options,
@@ -49,7 +54,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             website: form.website ? form.website.value : "",
           }),
         });
-        const data = await resp.json();
+        const data = await resp.json().catch(() => ({}));
 
         if (!resp.ok) {
           const errMsg = (data.errors || []).join(", ") || data.message || "Something went wrong.";
@@ -60,7 +65,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
         const msg = data.message || "Check your inbox to confirm your subscription.";
         statusEl.textContent = msg;
-        showToast(msg, "success", { duration: 6000 });
+        showToast(`🎉 ${msg}`, "success", {
+          duration: 7000,
+          cta: {
+            label: "Try Focus Companion ⚡",
+            href: "/routine",
+          },
+        });
         emailInput.value = "";
       } catch (err) {
         console.error(err);

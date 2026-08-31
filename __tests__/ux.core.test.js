@@ -298,4 +298,77 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
       expect(UXCore.tour.isCompleted()).toBe(false);
     });
   });
+
+  describe("10. Enhanced Customizable Toast Notification Engine", () => {
+    test("exposes toast methods and integrates with customizable-toast-notification", () => {
+      const mockCreateToast = jest.fn();
+      const mockSetDefaultColors = jest.fn();
+      global.customizableToast = {
+        createToast: mockCreateToast,
+        setDefaultColors: mockSetDefaultColors,
+      };
+
+      UXCore.toast.initDefaults();
+      expect(mockSetDefaultColors).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: "#10b981",
+          error: "#ef4444",
+          info: "#7c3aed",
+          warning: "#f59e0b",
+        }),
+      );
+
+      UXCore.toast.success("Habit checked!");
+      expect(mockCreateToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Habit checked!",
+          type: "success",
+          position: "top-center",
+          borderRadius: "16px",
+          showProgressBar: true,
+          progressPosition: "bottom",
+        }),
+      );
+
+      UXCore.toast.error("Failed to connect");
+      expect(mockCreateToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Failed to connect",
+          type: "error",
+        }),
+      );
+
+      UXCore.toast.warn("Low streak alert");
+      expect(mockCreateToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Low streak alert",
+          type: "warning",
+        }),
+      );
+
+      UXCore.toast.cta("Focus completed!", {
+        label: "Check-in ⚡",
+        href: "/checkin",
+      });
+      expect(mockCreateToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Focus completed!",
+          cta: expect.objectContaining({
+            label: "Check-in ⚡",
+            href: "/checkin",
+            variant: "link",
+          }),
+        }),
+      );
+
+      delete global.customizableToast;
+    });
+
+    test("falls back gracefully when toast library is not loaded", () => {
+      delete global.customizableToast;
+      expect(() => {
+        UXCore.toast.info("Offline fallback test");
+      }).not.toThrow();
+    });
+  });
 });

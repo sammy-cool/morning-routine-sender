@@ -1779,7 +1779,163 @@
   }
 
   // =========================================================================
-  // 10. MAIN UXCORE FACADE & INITIALIZER
+  // 10. ENHANCED CUSTOMIZABLE TOAST NOTIFICATION ENGINE
+  // =========================================================================
+  const toast = {
+    /**
+     * Get toast library reference safely
+     */
+    getLib() {
+      return (
+        (typeof window !== "undefined" && window.customizableToast) ||
+        (typeof customizableToast !== "undefined" ? customizableToast : null)
+      );
+    },
+
+    /**
+     * Configure global defaults for customizable-toast-notification
+     */
+    initDefaults() {
+      const lib = this.getLib();
+      if (lib && typeof lib.setDefaultColors === "function") {
+        lib.setDefaultColors({
+          success: "#10b981",
+          error: "#ef4444",
+          info: "#7c3aed",
+          warning: "#f59e0b",
+        });
+      }
+    },
+
+    /**
+     * Core toast dispatcher with sound, haptics, theme awareness & CTA support
+     */
+    show(message, type = "info", options = {}) {
+      const lib = this.getLib();
+      const normalizedType = type === "warn" ? "warning" : type;
+
+      // Trigger haptics and sounds automatically based on type
+      if (normalizedType === "success") {
+        if (typeof haptics !== "undefined" && haptics.success) haptics.success();
+        if (typeof sound !== "undefined" && sound.playSuccess && !options.silent)
+          sound.playSuccess();
+      } else if (normalizedType === "error") {
+        if (typeof haptics !== "undefined" && haptics.light) haptics.light();
+      }
+
+      if (lib && typeof lib.createToast === "function") {
+        const currentTheme =
+          typeof theme !== "undefined" && theme.get ? theme.get() : "theme-obsidian";
+        let progressColor = "#7c3aed";
+        if (currentTheme === "theme-solar") progressColor = "#f59e0b";
+        else if (currentTheme === "theme-emerald") progressColor = "#10b981";
+        else if (currentTheme === "theme-cyberpunk") progressColor = "#d946ef";
+
+        return lib.createToast({
+          message: String(message || ""),
+          type: normalizedType,
+          position: options.position || "top-center",
+          fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif",
+          borderRadius: options.borderRadius || "16px",
+          showProgressBar: options.showProgressBar !== false,
+          progressPosition: options.progressPosition || "bottom",
+          progressColor: options.progressColor || progressColor,
+          progressHeight: options.progressHeight || "3px",
+          pauseOnHover: options.pauseOnHover !== false,
+          duration: options.duration || (options.cta ? 6000 : 4500),
+          animationDuration: options.animationDuration || "0.35s",
+          animationEasing: options.animationEasing || "cubic-bezier(0.16, 1, 0.3, 1)",
+          showCloseButton: options.showCloseButton !== false,
+          wrapText: options.wrapText || "normal",
+          ...options,
+        });
+      }
+
+      // Fallback if library is not loaded
+      if (typeof document !== "undefined" && typeof document.createElement === "function") {
+        const fallback = document.createElement("div");
+        if (fallback) {
+          if (fallback.style) {
+            fallback.style.cssText =
+              "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(12,17,29,0.95);color:#fff;padding:12px 24px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);z-index:99999;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 10px 30px rgba(0,0,0,0.5);";
+          }
+          fallback.textContent = String(message || "");
+          if (document.body && typeof document.body.appendChild === "function") {
+            document.body.appendChild(fallback);
+          }
+          setTimeout(() => {
+            if (typeof fallback.remove === "function") fallback.remove();
+          }, 4000);
+        }
+      }
+    },
+
+    success(message, options = {}) {
+      return this.show(message, "success", options);
+    },
+
+    error(message, options = {}) {
+      return this.show(message, "error", options);
+    },
+
+    info(message, options = {}) {
+      return this.show(message, "info", options);
+    },
+
+    warn(message, options = {}) {
+      return this.show(message, "warning", options);
+    },
+
+    /**
+     * Action toast with Interactive CTA Button
+     */
+    cta(message, { label, onClick, href, type = "info", autoClose = true, ...rest } = {}) {
+      return this.show(message, type, {
+        cta: {
+          label: label || "Action",
+          onClick,
+          href,
+          autoClose: autoClose !== false,
+          variant: href ? "link" : "button",
+        },
+        duration: rest.duration || 6500,
+        ...rest,
+      });
+    },
+
+    /**
+     * 1-Click Routine CTA Toast
+     */
+    routine(message = "⚡ Ready to start your morning routine sprint?", options = {}) {
+      return this.cta(message, {
+        label: "Open Routine 🚀",
+        href: "/routine",
+        type: "info",
+        ...options,
+      });
+    },
+
+    /**
+     * Celebratory Streak Milestone Toast
+     */
+    streak(streakCount, options = {}) {
+      if (typeof sound !== "undefined" && sound.playMilestone) sound.playMilestone();
+      if (typeof haptics !== "undefined" && haptics.celebration) haptics.celebration();
+      return this.cta(`🔥 ${streakCount}-Day Streak Locked In! Unstoppable discipline.`, {
+        label: "Share Badge 🏆",
+        onClick: () => {
+          const btn = document.getElementById("openShareModalBtn");
+          if (btn) btn.click();
+        },
+        type: "success",
+        duration: 7000,
+        ...options,
+      });
+    },
+  };
+
+  // =========================================================================
+  // 11. MAIN UXCORE FACADE & INITIALIZER
   // =========================================================================
   const UXCore = {
     cache,
@@ -1791,6 +1947,7 @@
     tour,
     shortcuts,
     network,
+    toast,
 
     /**
      * Optional all-in-one initializer.
@@ -1801,6 +1958,7 @@
      */
     init(options = {}) {
       this.theme.init();
+      this.toast.initDefaults();
       if (options.shortcuts) {
         this.shortcuts.init(options.shortcuts);
       }

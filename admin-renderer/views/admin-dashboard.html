@@ -3052,12 +3052,14 @@ Loading records…</pre>
           const defaults = {
             position: "top-center",
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            borderRadius: "14px",
+            borderRadius: "16px",
             showProgressBar: true,
             progressPosition: "bottom",
+            progressColor: "#7c3aed",
             pauseOnHover: true,
             duration: 4500,
-            animationDuration: 300,
+            animationDuration: "0.35s",
+            animationEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
           };
 
           return toastLib.createToast({ ...defaults, ...config });
@@ -3074,6 +3076,24 @@ Loading records…</pre>
         }
         static warn(msg, options = {}) {
           return this.show({ message: msg, type: "warning", ...options });
+        }
+        static cta(
+          msg,
+          { label, onClick, href, type = "info", autoClose = true, ...options } = {},
+        ) {
+          return this.show({
+            message: msg,
+            type,
+            cta: {
+              label: label || "Action",
+              onClick,
+              href,
+              autoClose: autoClose !== false,
+              variant: href ? "link" : "button",
+            },
+            duration: options.duration || 6500,
+            ...options,
+          });
         }
       }
 
