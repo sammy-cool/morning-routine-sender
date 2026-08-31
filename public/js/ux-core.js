@@ -16,9 +16,10 @@
   "use strict";
 
   // =========================================================================
-  // 1. SWR (STALE-WHILE-REVALIDATE) CACHE ENGINE
+  // 1. SWR (STALE-WHILE-REVALIDATE) CACHE ENGINE WITH LRU EVICTION
   // =========================================================================
   const SWR_STORAGE_PREFIX = "mrn_swr_cache_";
+  const MAX_MEMORY_CACHE_SIZE = 100;
   const memoryCache = new Map();
 
   /**
@@ -32,7 +33,7 @@
         return localStorage.getItem(key);
       }
     } catch (_e) {
-      // Non-fatal: LocalStorage might be disabled or in private mode
+      /* LocalStorage disabled or in private mode */
     }
     return null;
   }
@@ -48,7 +49,7 @@
         localStorage.setItem(key, val);
       }
     } catch (_e) {
-      // Non-fatal: Quota exceeded or storage unavailable
+      /* Quota exceeded or storage unavailable */
     }
   }
 
@@ -62,7 +63,7 @@
         localStorage.removeItem(key);
       }
     } catch (_e) {
-      // Non-fatal
+      /* Non-fatal */
     }
   }
 
@@ -78,14 +79,17 @@
 
       let entry = memoryCache.get(key);
 
-      // Fallback to localStorage if not in memory
-      if (!entry) {
+      if (entry) {
+        // Refresh LRU order on access
+        memoryCache.delete(key);
+        memoryCache.set(key, entry);
+      } else {
         const stored = safeStorageGet(SWR_STORAGE_PREFIX + key);
         if (stored) {
           try {
             entry = JSON.parse(stored);
             if (entry && typeof entry.timestamp === "number") {
-              memoryCache.set(key, entry);
+              this.set(key, entry.data, entry.timestamp);
             } else {
               entry = null;
             }
@@ -114,14 +118,23 @@
      * Store data in both in-memory Map and localStorage with current timestamp.
      * @param {string} key - Cache identifier
      * @param {any} data - Data payload to cache
+     * @param {number} [explicitTimestamp] - Optional timestamp for restoration
      * @returns {{ data: any, timestamp: number }}
      */
-    set(key, data) {
+    set(key, data, explicitTimestamp) {
       if (!key) return null;
+
+      // LRU eviction if capacity exceeded
+      if (memoryCache.size >= MAX_MEMORY_CACHE_SIZE && !memoryCache.has(key)) {
+        const oldestKey = memoryCache.keys().next().value;
+        if (oldestKey) memoryCache.delete(oldestKey);
+      } else if (memoryCache.has(key)) {
+        memoryCache.delete(key);
+      }
 
       const entry = {
         data,
-        timestamp: Date.now(),
+        timestamp: explicitTimestamp || Date.now(),
       };
 
       memoryCache.set(key, entry);
@@ -644,42 +657,54 @@
       ambientCurrentMode = null;
       ambientMasterGain = null;
 
-      if (prevMaster && sharedAudioCtx && sharedAudioCtx.state === "running") {
+      const executeCleanup = () => {
         try {
-          const now = sharedAudioCtx.currentTime;
-          prevMaster.gain.cancelScheduledValues(now);
-          prevMaster.gain.setValueAtTime(prevMaster.gain.value, now);
-          prevMaster.gain.exponentialRampToValueAtTime(0.0001, now + fadeDuration);
-
-          setTimeout(
-            () => {
+          nodesToCleanup.forEach((node) => {
+            if (typeof node.stop === "function") {
               try {
-                nodesToCleanup.forEach((node) => {
-                  if (typeof node.stop === "function") {
-                    try {
-                      node.stop();
-                    } catch (_e) {
-                      /* Non-fatal */
-                    }
-                  }
-                  if (typeof node.disconnect === "function") {
-                    try {
-                      node.disconnect();
-                    } catch (_e) {
-                      /* Non-fatal */
-                    }
-                  }
-                });
-                prevMaster.disconnect();
+                node.stop();
               } catch (_e) {
                 /* Non-fatal */
               }
-            },
-            fadeDuration * 1000 + 50,
-          );
+            }
+            if (typeof node.disconnect === "function") {
+              try {
+                node.disconnect();
+              } catch (_e) {
+                /* Non-fatal */
+              }
+            }
+          });
+          if (prevMaster && typeof prevMaster.disconnect === "function") {
+            try {
+              prevMaster.disconnect();
+            } catch (_e) {
+              /* Non-fatal */
+            }
+          }
         } catch (_e) {
-          // Non-fatal
+          /* Non-fatal cleanup */
         }
+      };
+
+      if (
+        fadeDuration <= 0 ||
+        !prevMaster ||
+        !sharedAudioCtx ||
+        sharedAudioCtx.state !== "running"
+      ) {
+        executeCleanup();
+        return;
+      }
+
+      try {
+        const now = sharedAudioCtx.currentTime;
+        prevMaster.gain.cancelScheduledValues(now);
+        prevMaster.gain.setValueAtTime(prevMaster.gain.value, now);
+        prevMaster.gain.exponentialRampToValueAtTime(0.0001, now + fadeDuration);
+        setTimeout(executeCleanup, fadeDuration * 1000 + 50);
+      } catch (_e) {
+        executeCleanup();
       }
     },
 
@@ -1694,18 +1719,18 @@
     init() {
       if (isNetworkInitialized || typeof window === "undefined") return this;
 
-      const handleOnline = () => {
+      boundOnlineHandler = () => {
         this.showOnlineBanner();
         networkListeners.forEach((cb) => cb(true));
       };
 
-      const handleOffline = () => {
+      boundOfflineHandler = () => {
         this.showOfflineBanner();
         networkListeners.forEach((cb) => cb(false));
       };
 
-      window.addEventListener("online", handleOnline);
-      window.addEventListener("offline", handleOffline);
+      window.addEventListener("online", boundOnlineHandler);
+      window.addEventListener("offline", boundOfflineHandler);
 
       // Check initial state
       if (!this.isOnline()) {
@@ -1715,7 +1740,35 @@
       isNetworkInitialized = true;
       return this;
     },
+
+    destroy() {
+      if (typeof window !== "undefined") {
+        if (boundOnlineHandler) window.removeEventListener("online", boundOnlineHandler);
+        if (boundOfflineHandler) window.removeEventListener("offline", boundOfflineHandler);
+      }
+      if (onlineDismissTimeout) {
+        clearTimeout(onlineDismissTimeout);
+        onlineDismissTimeout = null;
+      }
+      networkListeners.clear();
+      this.hideBanner();
+      isNetworkInitialized = false;
+      return this;
+    },
   };
+
+  let boundOnlineHandler = null;
+  let boundOfflineHandler = null;
+
+  // Global page unload audio & voice teardown
+  if (typeof window !== "undefined") {
+    const onPageUnload = () => {
+      ambient.stop(0);
+      voice.stop();
+    };
+    window.addEventListener("pagehide", onPageUnload);
+    window.addEventListener("beforeunload", onPageUnload);
+  }
 
   // =========================================================================
   // 10. MAIN UXCORE FACADE & INITIALIZER
@@ -1749,6 +1802,15 @@
       if (options.initTour !== false) {
         this.tour.init();
       }
+      return this;
+    },
+
+    destroy() {
+      this.ambient.stop(0);
+      this.voice.stop();
+      this.shortcuts.destroy();
+      this.network.destroy();
+      this.tour.cleanup();
       return this;
     },
   };

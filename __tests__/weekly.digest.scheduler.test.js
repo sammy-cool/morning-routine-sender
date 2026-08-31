@@ -4,6 +4,18 @@ jest.mock("mjml", () =>
   jest.fn((xml) => ({ html: `<html><body>${xml}</body></html>`, errors: [] })),
 );
 
+jest.mock("../db/knex", () => {
+  const mockDb = jest.fn(() => mockDb);
+  mockDb.schema = {
+    hasTable: jest.fn().mockResolvedValue(true),
+  };
+  mockDb.where = jest.fn().mockReturnThis();
+  mockDb.first = jest.fn().mockResolvedValue(null);
+  mockDb.insert = jest.fn().mockResolvedValue([]);
+  mockDb.update = jest.fn().mockResolvedValue(1);
+  return mockDb;
+});
+
 const { runWeeklyDigestJob } = require("../email-core/emailJobs");
 const emailTracker = require("../email-core/emailTracker");
 const weeklyDigestService = require("../helper/weeklyDigestService");

@@ -13,10 +13,16 @@ const logger = require("../logger");
 // absorbs the mock/retry features from the dead file.
 
 function buildRedisClient() {
-  if (process.env.USE_MOCK_REDIS === "true") {
-    logger.info("⚠️  Using Mock Redis (development only -- not for production)");
+  if (process.env.USE_MOCK_REDIS === "true" || process.env.NODE_ENV === "test") {
+    if (process.env.NODE_ENV !== "test") {
+      logger.info("⚠️  Using Mock Redis (development only -- not for production)");
+    }
     const mockRedis = new RedisMock();
-    mockRedis.on("connect", () => logger.info("✅ Mock Redis ready"));
+    mockRedis.on("connect", () => {
+      if (process.env.NODE_ENV !== "test") {
+        logger.info("✅ Mock Redis ready");
+      }
+    });
     return mockRedis;
   }
 

@@ -1,3 +1,14 @@
+process.env.USE_MOCK_REDIS = "true";
+
+jest.mock("../db/knex", () => ({
+  raw: jest.fn().mockResolvedValue([1]),
+}));
+
+jest.mock("../config/redisClient", () => ({
+  ping: jest.fn().mockResolvedValue("PONG"),
+  quit: jest.fn().mockResolvedValue("OK"),
+}));
+
 const {
   health,
   robots,

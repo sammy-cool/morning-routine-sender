@@ -188,6 +188,9 @@ const PORT = parseInt(process.env.PORT, 10) || 2900;
 const HOST = "0.0.0.0";
 
 let server;
+let scheduleInitTimer = null;
+let cleanupInitTimer = null;
+let isShuttingDown = false;
 
 // Only bind server port when executed directly as main script
 if (require.main === module) {
@@ -198,8 +201,8 @@ if (require.main === module) {
       } Auto-scheduling enabled with node-cron`,
     );
 
-    // Initialize automatic scheduling
-    setTimeout(async () => {
+    // Initialize automatic scheduling with clearable handles
+    scheduleInitTimer = setTimeout(async () => {
       try {
         logger.info("⏰ Initializing automatic email scheduling...");
         await emailScheduler.scheduleAllJobs();
@@ -208,10 +211,10 @@ if (require.main === module) {
           error: error.message,
         });
       }
-    }, 5000); // delay for few seconds to ensure everything is ready
+    }, 5000);
 
-    // Schedule cleanup jobs
-    setTimeout(() => {
+    // Schedule cleanup jobs with clearable handles
+    cleanupInitTimer = setTimeout(() => {
       try {
         emailScheduler.scheduleCleanupJobs();
         logger.info("🧹 Database cleanup scheduled for every (Sunday at 2 AM)");
@@ -229,36 +232,90 @@ if (require.main === module) {
   });
 }
 
-// Graceful shutdown
+// Graceful shutdown with in-flight draining and bounded timeout
 async function gracefulShutdown(signal) {
+  if (isShuttingDown) {
+    logger.warn(`Shutdown already in progress, ignoring duplicate ${signal}`);
+    return;
+  }
+  isShuttingDown = true;
   logger.info(`${signal} received, starting graceful shutdown...`);
 
+  // Force exit after 10 seconds if graceful teardown hangs
+  const forceExitTimeout = setTimeout(() => {
+    logger.error("⚠️ Forceful shutdown triggered: teardown exceeded 10s deadline.");
+    process.exit(1);
+  }, 10000);
+  if (typeof forceExitTimeout.unref === "function") {
+    forceExitTimeout.unref();
+  }
+
+  // 1. Cancel pending startup timers
+  if (scheduleInitTimer) clearTimeout(scheduleInitTimer);
+  if (cleanupInitTimer) clearTimeout(cleanupInitTimer);
+
   try {
+    // 2. Stop incoming requests & drain in-flight connections
     if (server && typeof server.close === "function") {
-      server.close();
+      logger.info("🛑 Closing HTTP server and draining in-flight requests...");
+      if (typeof server.closeIdleConnections === "function") {
+        server.closeIdleConnections();
+      }
+      await new Promise((resolve) => {
+        server.close((err) => {
+          if (err) {
+            logger.warn("Warning while closing HTTP server:", { error: err.message });
+          }
+          resolve();
+        });
+      });
+      logger.info("✅ HTTP server closed cleanly.");
     }
 
-    // Stop all cron jobs
+    // 3. Stop all node-cron schedulers (including system cleanup)
     if (emailScheduler && typeof emailScheduler.stopAllJobs === "function") {
-      emailScheduler.stopAllJobs();
+      emailScheduler.stopAllJobs(true);
+      logger.info("✅ All cron jobs stopped.");
     }
 
+    // 4. Teardown Mail Transporter pool
     await closeTransporterConnection();
 
+    // 5. Teardown Tracker & Knex Database pool
     await emailTracker.close();
-
-    const redis = require("./config/redisClient");
-    if (redis && typeof redis.quit === "function") {
+    const db = require("./db/knex");
+    if (db && typeof db.destroy === "function") {
       try {
-        await redis.quit();
-      } catch (e) {
-        // ignore if already disconnected
+        await db.destroy();
+        logger.info("✅ Knex connection pool destroyed.");
+      } catch (_dbErr) {
+        // Pool already destroyed by emailTracker.close() or disconnected
       }
     }
 
-    logger.info("✅ Graceful shutdown completed");
+    // 6. Gracefully disconnect Redis with timeout
+    const redis = require("./config/redisClient");
+    if (redis && typeof redis.quit === "function") {
+      try {
+        await Promise.race([
+          redis.quit(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Redis quit timeout")), 2000),
+          ),
+        ]);
+        logger.info("✅ Redis connection closed.");
+      } catch (_redisErr) {
+        if (typeof redis.disconnect === "function") {
+          redis.disconnect();
+        }
+      }
+    }
+
+    clearTimeout(forceExitTimeout);
+    logger.info("✅ Graceful shutdown completed cleanly");
     process.exit(signal === "uncaughtException" ? 1 : 0);
   } catch (error) {
+    clearTimeout(forceExitTimeout);
     logger.error("❌ Error during shutdown", { error: error.message, stack: error.stack });
     process.exit(1);
   }
@@ -266,14 +323,24 @@ async function gracefulShutdown(signal) {
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
 process.on("uncaughtException", (error) => {
   console.error("Uncaught exception:", error);
-  logger.error("Uncaught exception", { error: error.message || error, stack: error.stack });
+  logger.error("Uncaught exception", {
+    error: error?.message || String(error),
+    stack: error?.stack,
+  });
   gracefulShutdown("uncaughtException");
 });
+
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled rejection (non-fatal):", reason);
-  logger.error("Unhandled rejection (non-fatal)", { reason });
+  const isErr = reason instanceof Error;
+  logger.error("Unhandled rejection (non-fatal)", {
+    message: isErr ? reason.message : String(reason),
+    stack: isErr ? reason.stack : undefined,
+    name: isErr ? reason.name : undefined,
+  });
 });
 
 module.exports = app;

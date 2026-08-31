@@ -118,50 +118,58 @@ const fileFormat = winston.format.combine(
   }),
 );
 
-// Daily rotate transport for all logs (3-day retention)
-const dailyRotateTransport = new DailyRotateFile({
-  filename: path.join(logsDir, "app-%DATE%.log"),
-  datePattern: "YYYY-MM-DD",
-  maxFiles: "3d",
-  maxSize: "20m",
-  format: fileFormat,
-  zippedArchive: true,
-});
-
-// Daily rotate transport for errors (7-day retention)
-const errorRotateTransport = new DailyRotateFile({
-  filename: path.join(logsDir, "error-%DATE%.log"),
-  datePattern: "YYYY-MM-DD",
-  level: "error",
-  maxFiles: "7d",
-  maxSize: "20m",
-  format: fileFormat,
-  zippedArchive: true,
-});
+const isTestEnv = process.env.NODE_ENV === "test";
 
 let fileLoggingAvailable = false;
-try {
-  if (!fs.existsSync(logsDir)) {
-    fs.mkdirSync(logsDir, { recursive: true });
+let dailyRotateTransport = null;
+let errorRotateTransport = null;
+
+if (!isTestEnv) {
+  try {
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    fs.accessSync(logsDir, fs.constants.W_OK);
+    fileLoggingAvailable = true;
+
+    // Daily rotate transport for all logs (3-day retention)
+    dailyRotateTransport = new DailyRotateFile({
+      filename: path.join(logsDir, "app-%DATE%.log"),
+      datePattern: "YYYY-MM-DD",
+      maxFiles: "3d",
+      maxSize: "20m",
+      format: fileFormat,
+      zippedArchive: true,
+    });
+
+    // Daily rotate transport for errors (7-day retention)
+    errorRotateTransport = new DailyRotateFile({
+      filename: path.join(logsDir, "error-%DATE%.log"),
+      datePattern: "YYYY-MM-DD",
+      level: "error",
+      maxFiles: "7d",
+      maxSize: "20m",
+      format: fileFormat,
+      zippedArchive: true,
+    });
+  } catch (_err) {
+    // Console logging fallback if disk is read-only
   }
-  fs.accessSync(logsDir, fs.constants.W_OK);
-  fileLoggingAvailable = true;
-} catch (err) {
-  // Console logging fallback if disk is read-only
 }
 
 // Create Master Logger
 const transports = [
   new winston.transports.Console({
     format: consoleFormat,
+    silent: isTestEnv && !process.env.DEBUG_TESTS,
   }),
 ];
 
-if (fileLoggingAvailable) {
-  dailyRotateTransport.on("error", (err) => {
+if (fileLoggingAvailable && dailyRotateTransport && errorRotateTransport) {
+  dailyRotateTransport.on("error", (_err) => {
     // Non-fatal stream error
   });
-  errorRotateTransport.on("error", (err) => {
+  errorRotateTransport.on("error", (_err) => {
     // Non-fatal stream error
   });
   transports.push(dailyRotateTransport, errorRotateTransport);
@@ -179,7 +187,7 @@ const logger = winston.createLogger({
   transports,
 });
 
-if (fileLoggingAvailable) {
+if (fileLoggingAvailable && dailyRotateTransport) {
   dailyRotateTransport.on("rotate", (oldFilename, newFilename) => {
     logger.info("📋 Log file rotated", { oldFilename, newFilename });
   });
@@ -206,7 +214,7 @@ if (fileLoggingAvailable) {
         format: fileFormat,
       }),
     );
-  } catch (err) {
+  } catch (_err) {
     // Ignore exception transport error
   }
 }

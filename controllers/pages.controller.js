@@ -26,6 +26,7 @@ function setNoCacheHeaders(res) {
 }
 
 // In-Memory Template Cache for High-Throughput / Zero-Disk-I/O Performance
+const MAX_TEMPLATE_CACHE_SIZE = 50;
 const templateCache = new Map();
 
 function getCachedTemplate(relativePath) {
@@ -36,6 +37,10 @@ function getCachedTemplate(relativePath) {
     const fullPath = path.join(ROOT_DIR, relativePath);
     if (fs.existsSync(fullPath)) {
       const content = fs.readFileSync(fullPath, "utf8");
+      if (templateCache.size >= MAX_TEMPLATE_CACHE_SIZE && !templateCache.has(relativePath)) {
+        const oldest = templateCache.keys().next().value;
+        if (oldest) templateCache.delete(oldest);
+      }
       templateCache.set(relativePath, content);
       return content;
     }

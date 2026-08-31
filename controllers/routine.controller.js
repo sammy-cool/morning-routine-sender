@@ -1514,11 +1514,18 @@ async function liveRoutine(req, res) {
             pingHarm.connect(harmGain);
             harmGain.connect(cafeMaster);
 
+            pingOsc.onended = () => {
+              try { pingOsc.disconnect(); pingGain.disconnect(); } catch (_e) {}
+            };
+            pingHarm.onended = () => {
+              try { pingHarm.disconnect(); harmGain.disconnect(); } catch (_e) {}
+            };
+
             pingOsc.start(now);
             pingHarm.start(now);
             pingOsc.stop(now + pingDuration + 0.02);
             pingHarm.stop(now + pingDuration + 0.02);
-          } catch (err) {}
+          } catch (_err) {}
 
           scheduleNextPing();
         }, delay);
@@ -1616,9 +1623,14 @@ async function liveRoutine(req, res) {
 
           osc.connect(gain);
           gain.connect(forestMaster);
+
+          osc.onended = () => {
+            try { osc.disconnect(); gain.disconnect(); } catch (_e) {}
+          };
+
           osc.start(now);
           osc.stop(now + 0.15);
-        } catch(e) {}
+        } catch(_e) {}
       }
 
       function scheduleNextChirp() {
@@ -1912,6 +1924,15 @@ async function liveRoutine(req, res) {
       if (window.AppBadging) {
         window.AppBadging.updateStreakBadge(${streakCount || 0});
       }
+    });
+
+    // Teardown audio and sprint timer on pagehide
+    window.addEventListener('pagehide', function () {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      stopSoundNodes(0);
     });
   </script>
 </body>

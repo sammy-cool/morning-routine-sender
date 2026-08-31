@@ -5,9 +5,14 @@ const path = require("path");
 const logger = require("../logger");
 const db = require("../db/knex");
 
+const MAX_CACHE_SIZE = 100;
 const cache = new Map();
 
 function updateCache(key, value) {
+  if (cache.size >= MAX_CACHE_SIZE && !cache.has(key)) {
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey) cache.delete(oldestKey);
+  }
   cache.set(key, value);
 }
 

@@ -42,6 +42,12 @@ describe("365-Day Activity & Reflection Heatmap Engine", () => {
     });
   });
 
+  afterEach(async () => {
+    if (mockKnexInstance && typeof mockKnexInstance.destroy === "function") {
+      await mockKnexInstance.destroy();
+    }
+  });
+
   test("getActivityHeatmap returns 365 days of data with correct structure", async () => {
     const heatmap = await journalService.getActivityHeatmap(testEmail, 365);
 

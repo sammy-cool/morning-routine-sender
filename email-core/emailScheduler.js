@@ -428,18 +428,21 @@ async function scheduleAllJobs() {
 }
 
 /**
- * Stop all scheduled jobs
+ * Stop all scheduled jobs (optionally including system maintenance jobs on shutdown)
+ * @param {boolean} [includeSystemJobs=false]
  */
-function stopAllJobs() {
-  logger.info("🛑 Stopping all cron jobs...");
+function stopAllJobs(includeSystemJobs = false) {
+  logger.info("🛑 Stopping cron jobs...", { includeSystemJobs });
 
   const remainingJobs = [];
   for (const jobData of scheduledJobs) {
-    if (jobData.email === "system_cleanup") {
+    if (!includeSystemJobs && jobData.email === "system_cleanup") {
       remainingJobs.push(jobData);
     } else {
-      jobData.job.stop();
-      logger.info("Stopped cron job", { email: jobData.email });
+      if (jobData.job && typeof jobData.job.stop === "function") {
+        jobData.job.stop();
+      }
+      logger.info("Stopped cron job", { email: jobData.email, type: jobData.type });
     }
   }
 
