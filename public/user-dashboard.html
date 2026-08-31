@@ -458,9 +458,10 @@
         overflow: hidden;
         contain: layout paint;
         transform: translateZ(0);
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                    border-color 0.2s ease,
-                    box-shadow 0.2s ease;
+        transition:
+          transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
       }
 
       .card:hover {
@@ -3235,7 +3236,13 @@
     </div>
 
     <!-- Social Streak Card Share Modal -->
-    <div id="streakShareModal" class="share-modal-overlay" style="display: none" aria-hidden="true" inert>
+    <div
+      id="streakShareModal"
+      class="share-modal-overlay"
+      style="display: none"
+      aria-hidden="true"
+      inert
+    >
       <div
         class="share-modal-content"
         role="dialog"
@@ -3299,9 +3306,7 @@
 
         <!-- Quick Copy Options -->
         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
-          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted)">
-            COPY EMBEDS
-          </div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted)">COPY EMBEDS</div>
           <div class="share-actions-grid">
             <button type="button" id="copyShareLinkBtn" class="btn btn-secondary btn-sm">
               <i class="fas fa-link"></i> Copy Link

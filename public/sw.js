@@ -258,8 +258,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req).catch(() => {
         const isJson =
-          req.headers.get("accept")?.includes("application/json") ||
-          url.pathname.includes("/api");
+          req.headers.get("accept")?.includes("application/json") || url.pathname.includes("/api");
         if (isJson) {
           return new Response(
             JSON.stringify({

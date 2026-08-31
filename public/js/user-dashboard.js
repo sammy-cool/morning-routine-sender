@@ -1111,7 +1111,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         }
 
         renderHeatmapGrid(data.days || []);
-} catch (_err) {
+      } catch (_err) {
         // Non-fatal
       }
     }
@@ -1143,8 +1143,18 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
         let lastMonth = -1;
         const monthNames = [
-          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
         ];
 
         for (let i = 0; i < days.length; i += 7) {
@@ -1198,7 +1208,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           if (!day) return;
 
           const moodText = day.completed ? ` • Mood: ${day.moodScore}/5` : " • Inactive";
-          const snippetText = day.oneBigThingSnippet ? `<br/>🎯 ${escapeHtml(day.oneBigThingSnippet)}` : "";
+          const snippetText = day.oneBigThingSnippet
+            ? `<br/>🎯 ${escapeHtml(day.oneBigThingSnippet)}`
+            : "";
 
           if (tooltipRafId) cancelAnimationFrame(tooltipRafId);
           tooltipRafId = requestAnimationFrame(() => {
