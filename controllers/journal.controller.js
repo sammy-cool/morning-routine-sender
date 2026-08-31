@@ -170,6 +170,16 @@ async function exportJournal(req, res) {
       });
     }
 
+    if (format === "csv") {
+      const csv = journalService.generateCsvExport(entries);
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="morning-journal-${todayStr}.csv"`,
+      );
+      return res.send(csv);
+    }
+
     const md = journalService.generateMarkdownExport(email, entries, subscriber);
 
     res.setHeader("Content-Type", "text/markdown; charset=utf-8");

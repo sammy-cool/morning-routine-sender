@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.0] - 2026-08-31
+
+### 🚀 Added
+
+- **Multi-Format Habit & Journal Data Export (CSV, JSON, Markdown)**:
+  - Added RFC 4180 compliant CSV export generator (`journalService.generateCsvExport`) compatible with Microsoft Excel, Apple Numbers, and Google Sheets.
+  - Endpoints `GET /api/journal/export?format=csv|json|markdown` and `GET /me/export?format=csv|json|markdown`.
+  - Frontend 1-click export buttons in the Subscriber Dashboard.
+- **Automated Web Push Morning Wake-Up Notifications**:
+  - Timezone-synchronized background Web Push dispatches triggered alongside morning email and multi-channel webhooks (`pushService.dispatchMorningPushForSubscriber`).
+  - Interactive notification actions (`⚡ Start Ritual` ➔ `/routine`, `🔥 1-Click Check-in` ➔ `/checkin`).
+  - Native PWA app badge synchronization updating device streak icons.
+
+---
+
 ## [2.4.1] - 2026-08-31
 
 ### 🚀 Visual Polish & Interactive Simulator

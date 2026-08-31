@@ -275,6 +275,38 @@ function generateMarkdownExport(email, entries = [], subscriber = null) {
 }
 
 /**
+ * Generates RFC 4180 compliant CSV export for spreadsheet software (Excel, Google Sheets)
+ */
+function generateCsvExport(entries = []) {
+  const headers = [
+    "Date",
+    "Track",
+    "Mood Score",
+    "One Big Thing",
+    "Gratitude",
+    "Reflection",
+    "Created At",
+  ];
+  const escapeCsv = (val) => {
+    if (val === null || val === undefined) return '""';
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
+  const rows = entries.map((entry) => [
+    escapeCsv(entry.entry_date),
+    escapeCsv(entry.track_key || "default"),
+    escapeCsv(entry.mood_score || ""),
+    escapeCsv(entry.one_big_thing || ""),
+    escapeCsv(entry.gratitude || ""),
+    escapeCsv(entry.reflection_text || ""),
+    escapeCsv(entry.created_at ? new Date(entry.created_at).toISOString() : ""),
+  ]);
+
+  return [headers.map((h) => `"${h}"`).join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+}
+
+/**
  * Computes 365-day activity heatmap and analytics summary for a subscriber
  * @param {string} email - Subscriber email
  * @param {number} days - Number of historical days (default: 365)
@@ -426,5 +458,6 @@ module.exports = {
   getHistory,
   getAllEntries,
   generateMarkdownExport,
+  generateCsvExport,
   getActivityHeatmap,
 };

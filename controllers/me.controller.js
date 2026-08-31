@@ -33,33 +33,43 @@ async function getMyHistory(req, res) {
 // GET /me/export-journal
 async function exportJournal(req, res) {
   try {
+    const journalService = require("../helper/journalService");
+    const format = (req.query.format || "markdown").toLowerCase().trim();
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const entries = await journalService.getAllEntries(req.subscriberEmail);
     const subscriber = await sharedData.getUserByEmail(req.subscriberEmail);
-    const history = await emailTracker.getHistory(req.subscriberEmail, 100);
 
-    let md = `# 🌅 Morning Routine Journal & Habit History\n\n`;
-    md += `* **Subscriber:** \`${req.subscriberEmail}\`\n`;
-    md += `* **Current Streak:** 🔥 **${subscriber?.streakCount || 1} Days**\n`;
-    md += `* **Active Persona Track:** \`${subscriber?.routineTrack || subscriber?.templateType || "deep-work"}\`\n`;
-    md += `* **Schedule & Timezone:** \`${subscriber?.cronPattern || "0 8 * * *"}\` (${subscriber?.timezone || "UTC"})\n`;
-    md += `* **Export Date:** ${new Date().toISOString().split("T")[0]}\n\n---\n\n`;
-
-    md += `## 📜 Dispatch & Habit History\n\n`;
-    if (!history || history.length === 0) {
-      md += `*No dispatched routine history yet.*\n`;
-    } else {
-      history.forEach((h, idx) => {
-        md += `### Day ${history.length - idx} • ${new Date(h.sent_at || h.created_at).toDateString()}\n`;
-        md += `- **Status:** ${h.status === "sent" ? "✅ Completed & Sent" : "⚠️ " + (h.status || "Logged")}\n`;
-        md += `- **Template Track:** \`${h.template_type || "classic"}\`\n`;
-        if (h.error_message) md += `- **Notes:** ${h.error_message}\n`;
-        md += `\n`;
+    if (format === "json") {
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="morning-journal-${todayStr}.json"`,
+      );
+      return res.json({
+        subscriber: req.subscriberEmail,
+        exportedAt: new Date().toISOString(),
+        totalEntries: entries.length,
+        entries,
       });
     }
+
+    if (format === "csv") {
+      const csv = journalService.generateCsvExport(entries);
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="morning-journal-${todayStr}.csv"`,
+      );
+      return res.send(csv);
+    }
+
+    const md = journalService.generateMarkdownExport(req.subscriberEmail, entries, subscriber);
 
     res.setHeader("Content-Type", "text/markdown; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="morning-routine-journal-${new Date().toISOString().split("T")[0]}.md"`,
+      `attachment; filename="morning-routine-journal-${todayStr}.md"`,
     );
     res.send(md);
   } catch (error) {

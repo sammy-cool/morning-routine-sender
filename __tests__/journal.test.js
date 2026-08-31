@@ -201,6 +201,14 @@ describe("Morning Reflection & Journaling", () => {
       expect(mdRes.text).toContain("Morning Reflection & Journal Archive");
       expect(mdRes.text).toContain("Day 1 priority");
 
+      const csvRes = await request(app).get(
+        `/api/journal/export?format=csv&email=${encodeURIComponent(email)}&token=${token}`,
+      );
+      expect(csvRes.status).toBe(200);
+      expect(csvRes.headers["content-type"]).toMatch(/text\/csv/);
+      expect(csvRes.text).toContain('"Date","Track","Mood Score"');
+      expect(csvRes.text).toContain("Day 1 priority");
+
       const jsonRes = await request(app).get(
         `/api/journal/export?format=json&email=${encodeURIComponent(email)}&token=${token}`,
       );

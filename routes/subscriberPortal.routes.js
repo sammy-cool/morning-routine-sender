@@ -49,6 +49,7 @@ router.get("/api/coach-personas", meController.getCoachPersonas);
 router.get("/me", requireSubscriberSession, meController.getMe);
 router.get("/me/history", requireSubscriberSession, meController.getMyHistory);
 router.get("/me/export-journal", requireSubscriberSession, meController.exportJournal);
+router.get("/me/export", requireSubscriberSession, meController.exportJournal);
 router.get("/me/streak-card", requireSubscriberSession, meController.getMyStreakCard);
 router.patch("/me", requireSubscriberSession, meController.updateMe);
 router.post("/me/coach-persona", requireSubscriberSession, meController.updateCoachPersona);

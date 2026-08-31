@@ -2007,14 +2007,14 @@
             <button type="submit" class="btn btn-primary" id="saveDashJournalBtn">
               <i class="fas fa-save" aria-hidden="true"></i> Save Reflection
             </button>
-            <div style="display: flex; gap: 8px">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
               <a
-                href="/api/journal/export?format=markdown"
+                href="/api/journal/export?format=csv"
                 class="btn btn-secondary"
                 style="font-size: 12px"
                 download
               >
-                <i class="fas fa-download" aria-hidden="true"></i> Export Markdown
+                <i class="fas fa-file-csv" aria-hidden="true"></i> Export CSV
               </a>
               <a
                 href="/api/journal/export?format=json"
@@ -2023,6 +2023,14 @@
                 download
               >
                 <i class="fas fa-file-code" aria-hidden="true"></i> Export JSON
+              </a>
+              <a
+                href="/api/journal/export?format=markdown"
+                class="btn btn-secondary"
+                style="font-size: 12px"
+                download
+              >
+                <i class="fas fa-download" aria-hidden="true"></i> Export Markdown
               </a>
             </div>
           </div>
@@ -2996,11 +3004,28 @@
             <i class="fas fa-download" aria-hidden="true"></i> Download Vector SVG
           </a>
           <a
+            href="/me/export?format=csv"
+            class="btn btn-secondary"
+            style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px"
+            download
+          >
+            <i class="fas fa-file-csv" aria-hidden="true"></i> Export Habit CSV (.csv)
+          </a>
+          <a
+            href="/me/export?format=json"
+            class="btn btn-secondary"
+            style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px"
+            download
+          >
+            <i class="fas fa-file-code" aria-hidden="true"></i> Export Habit JSON (.json)
+          </a>
+          <a
             href="/me/export-journal"
             class="btn btn-secondary"
             style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px"
+            download
           >
-            <i class="fas fa-file-download" aria-hidden="true"></i> Export Markdown Journal (.md)
+            <i class="fas fa-file-download" aria-hidden="true"></i> Export Markdown (.md)
           </a>
         </div>
       </div>
