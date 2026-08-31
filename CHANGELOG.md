@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.1] - 2026-08-31
+
+### 🛠️ Fixed & Performance
+
+- **Memory Safety, Lifecycle Teardown & Graceful Shutdown**:
+  - **Graceful Server Shutdown & In-Flight Draining**: Implemented asynchronous `server.close()` with keep-alive socket draining (`server.closeIdleConnections`), startup timer cancellation, explicit `db.destroy()` teardown, and 2-second Redis quit deadline with 10-second process watchdog.
+  - **Node-Cron Teardown**: Updated `emailScheduler.stopAllJobs(true)` to fully stop background maintenance and cleanup jobs on process exit.
+  - **LRU In-Memory Cache Bounds**: Bounded `UXCore.cache` (max 100 with O(1) LRU eviction), `sharedData.cache` (max 100), and `pagesController.templateCache` (max 50) to prevent heap leaks.
+  - **AudioNode Graph Garbage Collection**: Guaranteed `onended` disconnect handlers on ephemeral oscillators and `pagehide`/`beforeunload` teardown for SpeechSynthesis and Web Audio engines.
+  - **Zero Open Handle Leaks in Tests**: Disabled `DailyRotateFile` background timers in tests, defaulted `ioredis` to `RedisMock`, and eliminated `--forceExit` from Jest test runner.
+
+---
+
 ## [2.3.0] - 2026-08-31
 
 ### 🚀 Added
@@ -32,12 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Database schema migration `20260831000000_add_streak_freezes_to_subscribers.js` (`streak_freezes` default 2, `freeze_history` jsonb).
   - Automatic freeze shield consumption on 1-day missed gaps (`diffDays === 2`), preserving the user's hard-earned streak count.
   - Endpoints `GET /me/streak-freeze/status` and `POST /me/streak-freeze/use` for manual shield management.
-- **Memory Safety, Lifecycle Teardown & Graceful Shutdown**:
-  - **Graceful Server Shutdown & In-Flight Draining**: Implemented asynchronous `server.close()` with keep-alive socket draining (`server.closeIdleConnections`), startup timer cancellation, explicit `db.destroy()` teardown, and 2-second Redis quit deadline with 10-second process watchdog.
-  - **Node-Cron Teardown**: Updated `emailScheduler.stopAllJobs(true)` to fully stop background maintenance and cleanup jobs on process exit.
-  - **LRU In-Memory Cache Bounds**: Bounded `UXCore.cache` (max 100 with O(1) LRU eviction), `sharedData.cache` (max 100), and `pagesController.templateCache` (max 50) to prevent heap leaks.
-  - **AudioNode Graph Garbage Collection**: Guaranteed `onended` disconnect handlers on ephemeral oscillators and `pagehide`/`beforeunload` teardown for SpeechSynthesis and Web Audio engines.
-  - **Zero Open Handle Leaks in Tests**: Disabled `DailyRotateFile` background timers in tests, defaulted `ioredis` to `RedisMock`, and eliminated `--forceExit` from Jest test runner.
+- **Journaling Micro-Interactions & Hotkeys**:
+  - Auto-expanding textareas on input.
+  - Live character and word count tracking with "Thoughtful Reflection ✓" badge indicator.
+  - `Ctrl+Enter` / `Cmd+Enter` keyboard shortcut to save reflections instantly.
 
 ---
 
