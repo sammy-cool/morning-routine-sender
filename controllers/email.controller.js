@@ -78,7 +78,7 @@ async function unsubscribe(req, res) {
   res.set("Content-Type", "text/html; charset=utf-8");
   res.set("Cache-Control", "no-cache, no-store, must-revalidate");
 
-  function renderPage(title, message, isSuccess = false, emailParam = "") {
+  function renderPage(title, message, isSuccess = false, _emailParam = "") {
     return res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>

@@ -45,7 +45,7 @@ function validateSubscriberInput(
     try {
       Intl.DateTimeFormat(undefined, { timeZone: tz });
       return true;
-    } catch (e) {
+    } catch (_e) {
       return false;
     }
   }

@@ -85,7 +85,7 @@ const consoleFormat = winston.format.combine(
     if (Object.keys(cleanMeta).length > 0) {
       try {
         metaStr = "\n  " + safeStringify(cleanMeta, 2).replace(/\n/g, "\n  ");
-      } catch (e) {
+      } catch (_e) {
         metaStr = "\n  " + util.inspect(cleanMeta, { depth: 3, colors: true });
       }
     }

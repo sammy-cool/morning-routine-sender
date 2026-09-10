@@ -79,7 +79,7 @@ module.exports = {
       idleTimeoutMillis: 30000,
       afterCreate: (conn, done) => {
         if (conn && typeof conn.on === "function") {
-          conn.on("error", (err) => {
+          conn.on("error", (_err) => {
             // Silently absorb idle connection termination so pool replaces socket
           });
         }
@@ -103,7 +103,7 @@ module.exports = {
       propagateCreateError: false,
       afterCreate: (conn, done) => {
         if (conn && typeof conn.on === "function") {
-          conn.on("error", (err) => {
+          conn.on("error", (_err) => {
             // Silently absorb idle connection termination so pool replaces socket
           });
         }

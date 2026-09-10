@@ -83,7 +83,7 @@ function createTransporter() {
 
   // Verify connection configuration on startup (optional but recommended)
   if (process.env.SMTP_VERIFY_ON_STARTUP !== "false") {
-    transporter.verify((error, success) => {
+    transporter.verify((error, _success) => {
       if (error) {
         logger.error("❌ SMTP configuration error:", error.message);
         logger.error("Please verify your SMTP settings in .env file");
@@ -111,7 +111,7 @@ function createTransporter() {
  */
 async function closeTransporter(transporter) {
   if (transporter?.close) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       transporter.close();
       logger.info("📪 SMTP transporter closed");
       resolve();

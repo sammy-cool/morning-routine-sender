@@ -22,7 +22,7 @@ async function getSessionEmail(req) {
   if (!sessionToken) return null;
   try {
     return await redis.get(`subscriber_session:${sessionToken}`);
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 }
