@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.8] - 2026-08-31
+
+### ⚙️ PWA Asset Generation, Client DOM Lifecycle, Schedulers & Deliverability DNS Guard Suite
+
+- **Pure Node PWA Visual Asset Engine & CLI Utilities (`__tests__/scripts.node.test.js`)**:
+  - Added comprehensive test suite covering 24 scenarios across `scripts/generate-pwa-assets.js`, `scripts/test-smtp.js`, and `scripts/monitor.js`.
+  - Validated pure Node.js IEEE 802.3 32-bit CRC32 algorithm with standard test vectors (`0x00000000`, `0xCBF43926`).
+  - Validated pure Node.js PNG encoder emitting valid 8-byte PNG signature, IHDR chunk (8-bit depth, RGBA type 6), row filter byte 0, zlib compressed IDAT chunk, and IEND trailer.
+  - Validated 2D software rasterizer (`Canvas2D`): bounds-checked clipping, alpha blending compositing, fillRect, rounded rects, circles, lines, gradients, polygons, equalizers, and 5x4 dot-matrix font renderer.
+  - Validated SMTP connection verification script (`scripts/test-smtp.js`) with exit code mocking (0 on success, 1 on connection/send failure).
+  - Validated system health monitoring engine (`scripts/monitor.js`) covering `/health`, `/scheduled-jobs`, and `/admin/database-stats` probes.
+  - Added CLI execution guards (`if (require.main === module)`) and exports to `generate-pwa-assets.js`, `test-smtp.js`, and `monitor.js`.
+- **Browser & Client DOM Script Interactions (`__tests__/public.jsdom.test.js`)**:
+  - Added test suite covering 19 client-side browser scenarios across `public/js/landing-page-modal.js`, `public/js/skeleton-loader.js`, `public/js/pwa-install.js`, `public/js/subscriber-login.js`, and `public/js/subscriber-signup.js`.
+  - Validated admin modal focus trapping, accessibility attributes (`inert`, `aria-hidden`, `aria-expanded`), Escape key listener, and secret-based one-time key generation flow.
+  - Validated skeleton loader particle burst animations inside `#logoBox`, 300ms transition fade-out, and DOM cleanup.
+  - Validated PWA installation banner lifecycle, `beforeinstallprompt` event interception, standalone mode detection, 7-day dismissal cooldown in `localStorage`, and `appinstalled` celebration toast.
+  - Validated subscriber login and signup forms: honeypot bot trap field forwarding, button disable states during fetch, CTA toast links, and server error response parsing.
+- **Email Scheduler & Recurring Cron Jobs Engine (`__tests__/email.jobs.scheduler.test.js`)**:
+  - Added test suite covering 16 scenarios across `email-core/emailJobs.js` and `email-core/emailScheduler.js`.
+  - Validated daily routine dispatch and Sunday weekly digest cron scheduling with per-user timezone support.
+  - Validated pre-send suppression checks with admin skip secret key override bypass (`ADMIN_SKIP_KEY`).
+  - Validated duplicate send skipping via `wasEmailSentToday` and `wasEmailSentThisWeek`.
+  - Validated transient retry recovery using `retryWithBackoff`, error classification diagnostics, and non-blocking Web Push & Multi-Channel notifications.
+  - Dynamic evaluation of `process.env.ADMIN_EMAIL` in `alertAdmin()` to prevent undefined recipient alerts.
+- **Deliverability DNS Guard, Tokens & Curated Sparks Matrix (`__tests__/dnsGuard.sparks.token.test.js`)**:
+  - Added test suite covering 20 scenarios across `helper/dnsGuard.js`, `helper/unsubscribeToken.js`, `helper/curatedSparks.js`, and `helper/read-db.js`.
+  - Validated DNS deliverability audit (`performDeliverabilityAudit`): SPF validation (single record RFC check, `+all` / `?all` warnings, lookup count bounds), DKIM selector inspection (1024-bit vs 2048-bit key length warnings), DMARC policy compliance, and MX priority sorting.
+  - Validated deterministic action-scoped HMAC SHA-256 tokens (`generateActionToken`, `verifyActionToken`) and constant-time comparison timing attack resistance.
+  - Validated 5 coach persona specifications (`stoic`, `relentless`, `zen`, `tech-lead`, `optimist`), streak milestone tiers (1, 3, 7, 14, 30, 60, 100), and deterministic seed selection.
+  - Validated `readDb()` Knex database inspector query and error handling.
+- **Total Test Suite Metrics**:
+  - Expanded test suites to **54 passed, 54 total suites** (**700 tests passing, 100% green**).
+
+---
+
 ## [2.6.7] - 2026-08-31
 
 ### 📱 Web Push Notifications, Magic Link Auth Lifecycle, Webhook Parsers & CLI Scripts Suite

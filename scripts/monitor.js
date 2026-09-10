@@ -1,6 +1,4 @@
 // scripts/monitor.js - Health monitoring script
-const logger = require("../logger");
-
 const BASE_URL = process.env.BASE_URL || "http://localhost:2900";
 
 async function healthCheck() {
@@ -49,5 +47,13 @@ async function runMonitoring() {
   console.log("\n✅ Monitoring complete");
 }
 
-// Run monitoring
-runMonitoring().catch(console.error);
+if (require.main === module) {
+  runMonitoring().catch(console.error);
+}
+
+module.exports = {
+  healthCheck,
+  checkScheduledJobs,
+  getDatabaseStats,
+  runMonitoring,
+};

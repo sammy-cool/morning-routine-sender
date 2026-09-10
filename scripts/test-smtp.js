@@ -42,6 +42,7 @@ async function testSMTP() {
     transporter.close();
 
     process.exit(0);
+    return;
   } catch (error) {
     console.error("❌ SMTP Test Failed:\n");
     console.error(`   Error: ${error.message}`);
@@ -58,7 +59,12 @@ async function testSMTP() {
     console.error("   5. Check firewall/network allows outbound SMTP");
 
     process.exit(1);
+    return;
   }
 }
 
-testSMTP();
+if (require.main === module) {
+  testSMTP();
+}
+
+module.exports = { testSMTP };

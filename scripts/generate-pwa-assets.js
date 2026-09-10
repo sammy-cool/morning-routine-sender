@@ -1230,8 +1230,19 @@ function generateMobileScreenshot() {
   console.log(`✓ Generated ${destPng} (750x1334)`);
 }
 
-console.log("Generating PWA Visual Assets...");
-generateBrandIcon();
-generateDesktopScreenshot();
-generateMobileScreenshot();
-console.log("✓ All PWA visual assets successfully generated in public/assets/");
+if (require.main === module) {
+  console.log("Generating PWA Visual Assets...");
+  generateBrandIcon();
+  generateDesktopScreenshot();
+  generateMobileScreenshot();
+  console.log("✓ All PWA visual assets successfully generated in public/assets/");
+}
+
+module.exports = {
+  encodePNG,
+  Canvas2D,
+  crc32,
+  generateBrandIcon,
+  generateDesktopScreenshot,
+  generateMobileScreenshot,
+};
