@@ -1,24 +1,17 @@
 #!/usr/bin/env node
 // scripts/verify-deployment.js
-const args = process.argv.slice(2);
-const cliUrl = args.find((arg) => arg.startsWith("http://") || arg.startsWith("https://"));
-const isDeep = args.includes("--deep") || process.env.VERIFY_DEEP === "true";
 
-const rawTarget =
-  cliUrl || process.env.RENDER_URL || process.env.BASE_URL || "http://localhost:2900";
-const TARGET_URL = rawTarget.replace(/\/+$/, "");
-const MAX_ATTEMPTS = parseInt(process.env.MAX_VERIFY_ATTEMPTS, 10) || 15;
-const TIMEOUT_MS = parseInt(process.env.VERIFY_TIMEOUT_MS, 10) || 5000;
 const INITIAL_DELAY_MS = 2000;
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function checkEndpoint(url) {
+async function checkEndpoint(url, timeoutMs = null) {
+  const effectiveTimeout = timeoutMs || parseInt(process.env.VERIFY_TIMEOUT_MS, 10) || 5000;
   const startTime = Date.now();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
 
   try {
     const res = await fetch(url, {
@@ -37,7 +30,21 @@ async function checkEndpoint(url) {
   }
 }
 
-async function verifyDeployment() {
+async function verifyDeployment(options = {}) {
+  const args = options.argv || process.argv.slice(2);
+  const cliUrl = args.find((arg) => arg.startsWith("http://") || arg.startsWith("https://"));
+  const isDeep = args.includes("--deep") || process.env.VERIFY_DEEP === "true";
+
+  const rawTarget =
+    options.targetUrl ||
+    cliUrl ||
+    process.env.RENDER_URL ||
+    process.env.BASE_URL ||
+    "http://localhost:2900";
+  const TARGET_URL = rawTarget.replace(/\/+$/, "");
+  const MAX_ATTEMPTS = parseInt(options.maxAttempts || process.env.MAX_VERIFY_ATTEMPTS, 10) || 15;
+  const TIMEOUT_MS = parseInt(options.timeoutMs || process.env.VERIFY_TIMEOUT_MS, 10) || 5000;
+
   const healthEndpoint = isDeep ? `${TARGET_URL}/health?deep=true` : `${TARGET_URL}/health`;
 
   console.log("\n==================================================");
@@ -76,6 +83,7 @@ async function verifyDeployment() {
 
       console.log("\n🎉 [DEPLOYMENT SUCCESSFUL] All verification gates passed.\n");
       process.exit(0);
+      return;
     }
 
     const failureReason = result.error || `HTTP ${result.status} - ${JSON.stringify(result.data)}`;
@@ -94,6 +102,11 @@ async function verifyDeployment() {
     `\n❌ [DEPLOYMENT FAILED] Health verification timed out after ${MAX_ATTEMPTS} attempts.`,
   );
   process.exit(1);
+  return;
 }
 
-verifyDeployment();
+if (require.main === module) {
+  verifyDeployment();
+}
+
+module.exports = { verifyDeployment, checkEndpoint, sleep };

@@ -75,12 +75,16 @@ async function migrateUsers() {
   }
 }
 
-migrateUsers()
-  .then(() => {
-    console.log("Subscriber migration completed successfully");
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error("Subscriber migration failed:", error);
-    process.exit(1);
-  });
+if (require.main === module) {
+  migrateUsers()
+    .then(() => {
+      console.log("Subscriber migration completed successfully");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("Subscriber migration failed:", error);
+      process.exit(1);
+    });
+}
+
+module.exports = { migrateUsers, LEGACY_USERS };

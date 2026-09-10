@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.7] - 2026-08-31
+
+### 📱 Web Push Notifications, Magic Link Auth Lifecycle, Webhook Parsers & CLI Scripts Suite
+
+- **Web Push Notifications Architecture & Endpoints (`__tests__/push.notifications.complete.test.js`)**:
+  - Added comprehensive test suite covering all 52 push notification scenarios across `push-core/pushService.js`, `controllers/push.controller.js`, and `routes/push.routes.js`.
+  - Validated VAPID keys initialization, public key distribution (`GET /api/push/vapid-public-key`), browser registration (`POST /api/push/subscribe`), unsubscription (`POST /api/push/unsubscribe`), and test push dispatching (`POST /api/push/send-test`, `POST /api/push/test`).
+  - Validated automatic deactivation and dead-endpoint pruning upon receiving HTTP 410 Gone and 404 Not Found from push services.
+  - Validated transient retry tracking and attempt incrementing for HTTP 429 Rate Limit, 500 Internal Error, and 503 Service Unavailable.
+  - Fixed subscriber email case-normalization bug in [`push-core/pushService.js`](file:///home/smarty/projects/morning-routine-sender/push-core/pushService.js) before querying `db("subscribers")` for `subscriber_id`.
+  - Converted `isConfigured` in `pushService.js` to a dynamic getter wrapping `initVapid()`.
+- **Subscriber Authentication & Magic Link Lifecycle (`__tests__/subscriber.auth.lifecycle.test.js`)**:
+  - Added test suite for subscriber magic link authentication across 24 test scenarios.
+  - Validated 256-bit CSPRNG token generation, Redis storage with 15-minute TTL, single-use token consumption, and 30-day signed `mrn_session` cookie creation.
+  - Validated user enumeration prevention: identical status codes and generic messaging for existing, non-existing, and invalid format email requests.
+  - Validated hidden honeypot bot defense, replay attack prevention, and session profile authorization (`GET /me`).
+- **Webhook Parsers, Error Classification & Retry Utilities (`__tests__/webhooks.parsers.classification.test.js`)**:
+  - Added test suite for webhook normalization across 35 test scenarios covering 4 ESP formats: SendGrid, Mailgun, Postmark, and Resend.
+  - Validated HMAC SHA-256 signature verification and payload tampering detection.
+  - Validated error classifier distinguishing transient retryable SMTP/HTTP codes (421, 450, 451, 452, 429, 502, 503, 504) from permanent fatal codes (550-554, 400, 401, 403, 404).
+  - Validated exponential backoff with decorrelated half-jitter bounded within $[0.5 \times \text{expCap}, \text{expCap}]$.
+- **Database Maintenance & Migration Scripts (`__tests__/scripts.maintenance.migration.test.js`)**:
+  - Added test suite covering 21 CLI and maintenance script scenarios.
+  - Validated `run-db-maintenance.js` executing `VACUUM (ANALYZE)` across all 6 core PostgreSQL tables with isolated error resilience.
+  - Validated `migrate-json-to-db.js` chunked batch inserts, date formatting, and automated JSON backup renaming.
+  - Validated `migrate-users-to-db.js` idempotent merge and streak data preservation (`streak_count`, `last_checkin_date`, `streak_freeze_count`, `routine_track`).
+  - Added `if (require.main === module)` CLI execution guards and module exports to `migrate-json-to-db.js`, `migrate-users-to-db.js`, and `verify-deployment.js`.
+  - Added explicit `return` statements after `process.exit` in `verify-deployment.js` to prevent lingering retry loops.
+- **Total Test Suite Metrics**:
+  - Test suite coverage expanded to **50 passed, 50 total suites** (**621 tests passing, 100% green**).
+
+---
+
 ## [2.6.6] - 2026-08-31
 
 ### 🔐 Admin Authentication, Telemetry Operations, Email Tracker Lifecycle & Dual Auth Security

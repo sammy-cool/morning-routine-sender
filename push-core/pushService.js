@@ -26,8 +26,6 @@ function initVapid() {
   }
 }
 
-const isConfigured = initVapid();
-
 /**
  * Register or update a browser push subscription
  */
@@ -47,9 +45,10 @@ async function registerSubscription(subscriberEmail, subscription, userAgent = "
     throw new Error("Missing p256dh or auth subscription keys");
   }
 
+  const normalizedEmail = subscriberEmail.toLowerCase().trim();
   let subscriberId = null;
   try {
-    const subscriber = await db("subscribers").where("email", subscriberEmail).first();
+    const subscriber = await db("subscribers").where("email", normalizedEmail).first();
     if (subscriber) subscriberId = subscriber.id;
   } catch (_err) {
     // Database query error fallback
@@ -57,7 +56,7 @@ async function registerSubscription(subscriberEmail, subscription, userAgent = "
 
   const row = {
     subscriber_id: subscriberId,
-    subscriber_email: subscriberEmail.toLowerCase().trim(),
+    subscriber_email: normalizedEmail,
     endpoint,
     p256dh,
     auth,
@@ -204,7 +203,7 @@ async function sendToSubscriptionRecord(subRecord, payloadObj) {
  * Morning Wake-Up Push Dispatcher for a single subscriber
  */
 async function dispatchMorningPushForSubscriber(subscriber) {
-  if (!isConfigured) return { status: "skipped", reason: "vapid_not_configured" };
+  if (!initVapid()) return { status: "skipped", reason: "vapid_not_configured" };
 
   const subscriptions = await db("push_subscriptions").where({
     subscriber_email: subscriber.email.toLowerCase().trim(),
@@ -230,7 +229,10 @@ async function dispatchMorningPushForSubscriber(subscriber) {
 }
 
 module.exports = {
-  isConfigured,
+  get isConfigured() {
+    return initVapid();
+  },
+  initVapid,
   registerSubscription,
   unsubscribeEndpoint,
   buildRoutinePushPayload,

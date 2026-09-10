@@ -33,7 +33,7 @@ async function migrateData() {
       }
     } else {
       // Handle object-based structure
-      for (const [key, value] of Object.entries(jsonData)) {
+      for (const [_key, value] of Object.entries(jsonData)) {
         records.push({
           recipient_email: value.email,
           template_type: value.template || "default",
@@ -60,12 +60,16 @@ async function migrateData() {
   }
 }
 
-migrateData()
-  .then(() => {
-    console.log("Migration completed successfully");
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error("Migration failed:", error);
-    process.exit(1);
-  });
+if (require.main === module) {
+  migrateData()
+    .then(() => {
+      console.log("Migration completed successfully");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("Migration failed:", error);
+      process.exit(1);
+    });
+}
+
+module.exports = { migrateData };
