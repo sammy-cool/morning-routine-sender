@@ -29,6 +29,27 @@ jest.mock("../config/mailTransporter", () => {
   };
 });
 
+jest.mock("../helper/util", () => {
+  const actual = jest.requireActual("../helper/util");
+  return {
+    ...actual,
+    dailyDevNews: jest.fn().mockResolvedValue({
+      title: "Tech News Headline",
+      description: "Summary of latest developer updates",
+      url: "https://news.example.com",
+    }),
+  };
+});
+
+jest.mock("../helper/aiSparkGenerator", () => ({
+  getDailyMorningSpark: jest.fn().mockResolvedValue({
+    sparkReflection: "Master your internal focus.",
+    microAction: "Define one critical task.",
+    focusMantra: "Deep work wins.",
+    isCurated: true,
+  }),
+}));
+
 const sharedData = require("../helper/shared-data");
 const emailService = require("../email-core/emailService");
 const weeklyDigestService = require("../helper/weeklyDigestService");
