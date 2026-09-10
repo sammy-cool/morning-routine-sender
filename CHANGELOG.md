@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.9] - 2026-08-31
+
+### 📓 Reflection Journal Service, 365-Day Activity Heatmap & Vector Streak Badge Engine
+
+- **Reflection Journal Service & CSV Injection Sanitization (`__tests__/journal.service.heatmap.test.js`)**:
+  - Added comprehensive test suite covering 21 scenarios across `helper/journalService.js` and `helper/streakCardGenerator.js`.
+  - Validated subscriber email normalization (`normalizeEmail`), localized timezone resolution (`getTodayDateInTimezone`), and subscriber context loading with requested date overrides.
+  - Validated strict `mood_score` integer range validation ($1 \le \text{mood} \le 5$) and rejection of invalid values.
+  - Validated idempotent upsert logic (`saveEntry`): updating existing records vs inserting new entries and resolving `subscriber_id`.
+  - Validated historical query pagination with bound clamping ($1 \le \text{limit} \le 100$, $\text{offset} \ge 0$).
+  - Validated Markdown reflection archive generation with average mood metrics, emoji mindset indicators, priority tasks, and gratitude highlights.
+  - Validated RFC 4180 CSV export with formula injection sanitization (DDE prevention: neutralizing strings starting with `=`, `+`, `-`, `@`, `\t`, `\r` by prefixing `'`).
+- **365-Day Continuous Activity Heatmap Time Series**:
+  - Validated 365-day continuous chronological time-series generation, mapping activity to intensity levels 0-4.
+  - Validated current streak backwards walk computation, longest streak retention, and completion percentage calculation.
+- **Dynamic Vector Streak Card & QR Matrix Generator**:
+  - Validated XML special character escaping (`&`, `<`, `>`, `"`, `'`).
+  - Validated escalating milestone title thresholds (`First Light`, `Kinetic Momentum`, `Weekly Champion`, `Iron Consistency`, `Unbreakable Flow`, `Titan Habit`, `Master of Morning`).
+  - Validated track metadata resolution (icons, colors, labels across 5 tracks).
+  - Validated pure SVG vector QR code matrix generator with finder patterns, timing patterns, and FNV-1a hash distribution.
+  - Validated full 1200x630 vector SVG badge card assembly with cyberpunk gradient cards, flame streak glows, and QR verification module.
+- **Total Test Suite Metrics**:
+  - Expanded test suites to **55 passed, 55 total suites** (**721 tests passing, 100% green**).
+
+---
+
 ## [2.6.8] - 2026-08-31
 
 ### ⚙️ PWA Asset Generation, Client DOM Lifecycle, Schedulers & Deliverability DNS Guard Suite
