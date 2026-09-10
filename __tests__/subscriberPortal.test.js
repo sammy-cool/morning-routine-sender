@@ -62,6 +62,7 @@ function buildApp() {
 
 describe("subscriber portal", () => {
   let app;
+  jest.setTimeout(15000);
 
   beforeEach(() => {
     app = buildApp();

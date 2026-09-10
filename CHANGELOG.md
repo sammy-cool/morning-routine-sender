@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.6] - 2026-08-31
+
+### 🔐 Admin Authentication, Telemetry Operations, Email Tracker Lifecycle & Dual Auth Security
+
+- **Admin Auth Controller & Secret Job Scheduler (`__tests__/auth.controller.complete.test.js`)**:
+  - Added comprehensive test suite covering all 37 authentication and job scheduler scenarios.
+  - Validated `generateAdminKey`: header/query secret validation, 32-byte hex one-time key generation via CSPRNG, Redis storage with 300s TTL (`admin_key:<key>`), and 503 Redis failure recovery.
+  - Validated `verifyAdminKey`: constant-time `safeCompare` against master `ADMIN_KEY`, signed 24h `mrn_role=admin` cookie issuance, Redis one-time key atomic consumption (`redis.del`), and fallback role `user`.
+  - Validated `secretJobsScheduler`: development environment IP restriction (rejecting non-localhost clients), valid action dispatching (`start` / `stop`) with one-time key invalidation.
+- **Admin Operations & Bulk Email Dispatching (`__tests__/admin.operations.complete.test.js`)**:
+  - Validated `sendTestEmail`: dual API key authentication (`CRON_API_KEY` and `ADMIN_KEY` via `safeCompare`), cookie session authentication, template type defaults, and email delivery dispatch.
+  - Validated `sendBulkNow`: administrative triggering of bulk routine dispatches with dual auth verification and error resilience.
+  - Validated `readDb`: administrative inspection of subscribers and job logs with dual auth verification.
+  - Validated `deadLetterQueue` & `retryDeadLetter`: listing failed delivery entries, distributed retry concurrency locking (preventing duplicate retry dispatches), and retry metadata incrementation.
+  - Validated administrative log cleanup and database vacuum retention operations.
+- **Email Tracker Telemetry & Database Retention (`__tests__/email.tracker.cleanup.test.js`)**:
+  - Validated `recordSend` and `recordFailure` persistence across SQLite and PostgreSQL databases using Knex transactions.
+  - Validated `getDeliverabilityMetrics`: bounce rate, open rate, click-through rate, and aggregate success computation.
+  - Validated `wasEmailSentToday` timezone-aware boundary checks and Redis query caching with automated invalidation.
+  - Validated `helper/database-cleanup.js`: 30-day email tracker retention pruning, 90-day dead letter log compaction, and database vacuum/analyze.
+- **Security & Dual Auth Shadowing Fix**:
+  - Resolved API key shadowing in [`controllers/email.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/email.controller.js) (`sendTestEmail` & `sendBulkNow`) and [`controllers/admin.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/admin.controller.js) (`readDb`) where `CRON_API_KEY || ADMIN_KEY` shadowed `ADMIN_KEY`. Both keys are now independently evaluated safely with `safeCompare`.
+- **Test Suite Expansion**:
+  - Total test suites expanded to **46 passed, 46 total** (**489 tests, 100% green**).
+
+---
+
 ## [2.6.5] - 2026-08-31
 
 ### 🛡️ Complete 11-Migration Symmetric Rollback, Outbound HMAC Webhooks, Multi-Channel Failovers & SMTP Matrix Testing

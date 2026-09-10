@@ -6,9 +6,11 @@ const { safeCompare } = require("../helper/util");
 // GET /read-db
 async function readDb(req, res) {
   const isAdminSession = req.signedCookies?.mrn_role === "admin";
-  const expectedKey = process.env.CRON_API_KEY || process.env.ADMIN_KEY;
   const apiKey = req.get("x-cron-key") || req.get("x-admin-secret") || req.query.key;
-  const isKeyValid = expectedKey && apiKey && safeCompare(apiKey, expectedKey);
+  const isKeyValid =
+    Boolean(apiKey) &&
+    ((Boolean(process.env.CRON_API_KEY) && safeCompare(apiKey, process.env.CRON_API_KEY)) ||
+      (Boolean(process.env.ADMIN_KEY) && safeCompare(apiKey, process.env.ADMIN_KEY)));
 
   if (!isAdminSession && !isKeyValid) {
     logger.error("Forbidden: admin access or valid API key required");
