@@ -193,6 +193,7 @@ function renderCheckinPage(res, data) {
   <link rel="prefetch" href="/routine">
   <link rel="prefetch" href="/user-dashboard">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/responsive-layout.css">
   <style>
     :root {
       --bg: #050608;
@@ -482,6 +483,7 @@ async function liveRoutine(req, res) {
   <link rel="preload" href="/assets/logo.svg" as="image" type="image/svg+xml" fetchpriority="high">
   <link rel="prefetch" href="/user-dashboard">
   <link rel="prefetch" href="/about">
+  <link rel="stylesheet" href="/css/responsive-layout.css">
   <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer crossorigin="anonymous"></script>
   <script src="/js/offline-sync.js?v=4.3.0" defer></script>

@@ -2255,6 +2255,66 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     });
 
+    // ==========================================
+    // 8. Mobile Action Dock Controller
+    // ==========================================
+    const dockCheckinBtn = document.getElementById("dockCheckinBtn");
+    const dockTimerBtn = document.getElementById("dockTimerBtn");
+    const dockAmbientBtn = document.getElementById("dockAmbientBtn");
+    const dockJournalBtn = document.getElementById("dockJournalBtn");
+    const dockPrefsBtn = document.getElementById("dockPrefsBtn");
+
+    if (dockCheckinBtn) {
+      dockCheckinBtn.addEventListener("click", () => {
+        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.medium();
+        if (
+          dashboardCheckinBtn &&
+          !dashboardCheckinBtn.disabled &&
+          dashboardCheckinBtn.offsetParent !== null
+        ) {
+          dashboardCheckinBtn.click();
+        } else {
+          scrollToSection("streakHeroCard");
+        }
+      });
+    }
+
+    if (dockTimerBtn) {
+      dockTimerBtn.addEventListener("click", () => {
+        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.light();
+        window.location.href = "/routine";
+      });
+    }
+
+    if (dockAmbientBtn) {
+      dockAmbientBtn.addEventListener("click", () => {
+        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.light();
+        if (ambientSoundBtn) {
+          ambientSoundBtn.click();
+        } else {
+          scrollToSection("coachPersonaCard");
+        }
+      });
+    }
+
+    if (dockJournalBtn) {
+      dockJournalBtn.addEventListener("click", () => {
+        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.light();
+        scrollToSection("dashboardJournalCard");
+        const input =
+          document.getElementById("dashOneBigThing") ||
+          document.getElementById("dashReflectionText");
+        if (input) setTimeout(() => input.focus(), 350);
+      });
+    }
+
+    if (dockPrefsBtn) {
+      dockPrefsBtn.addEventListener("click", () => {
+        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.light();
+        scrollToSection("subscriptionCard");
+      });
+    }
+
     loadDashboard();
     syncNotificationState();
   })();

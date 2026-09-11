@@ -1,0 +1,614 @@
+/**
+ * Morning Routine Sender - Universal Modern Responsive Design System
+ * Cross-Platform, Cross-Browser (iOS, Android, macOS, Windows, Linux)
+ * Mobile-First, Fluid Typography, Dynamic Viewports & Safe Area Support
+ */
+
+:root {
+  /* Dynamic Palette */
+  --bg-main: #050608;
+  --bg-surface: #0a0e17;
+  --bg-card: rgba(12, 17, 29, 0.78);
+  --bg-card-hover: rgba(18, 24, 40, 0.88);
+  --bg-card-active: rgba(24, 32, 54, 0.95);
+  --bg-glass: rgba(10, 14, 23, 0.75);
+  --bg-glass-input: rgba(15, 23, 42, 0.65);
+
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-hover: rgba(124, 58, 237, 0.45);
+  --border-active: #7c3aed;
+
+  /* Primary Brand */
+  --primary: #7c3aed;
+  --primary-glow: rgba(124, 58, 237, 0.4);
+  --primary-glow-lg: rgba(124, 58, 237, 0.25);
+  --primary-hover: #6d28d9;
+  --primary-active: #5b21b6;
+  --primary-surface: rgba(124, 58, 237, 0.12);
+
+  /* Accents */
+  --accent-cyan: #22d3ee;
+  --accent-cyan-surface: rgba(34, 211, 238, 0.12);
+  --accent-emerald: #10b981;
+  --accent-emerald-surface: rgba(16, 185, 129, 0.12);
+  --accent-amber: #f59e0b;
+  --accent-amber-surface: rgba(245, 158, 11, 0.12);
+  --accent-rose: #f43f5e;
+  --accent-rose-surface: rgba(244, 63, 94, 0.12);
+  --accent-blue: #3b82f6;
+  --accent-blue-surface: rgba(59, 130, 246, 0.12);
+  --accent-violet: #8b5cf6;
+  --accent-violet-surface: rgba(139, 92, 246, 0.12);
+
+  /* Typography Colors */
+  --text-main: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  /* Fluid Spacing Scale */
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Fluid Typography Scale */
+  --font-hero: clamp(2rem, 5vw + 1rem, 3.85rem);
+  --font-h1: clamp(1.65rem, 3.5vw + 0.5rem, 2.75rem);
+  --font-h2: clamp(1.3rem, 2.5vw + 0.4rem, 2rem);
+  --font-h3: clamp(1.1rem, 1.8vw + 0.3rem, 1.45rem);
+  --font-body: clamp(0.925rem, 0.4vw + 0.8rem, 1.05rem);
+  --font-small: clamp(0.775rem, 0.3vw + 0.7rem, 0.875rem);
+
+  /* Radii */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-subtle: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-elevated: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 25px -5px var(--primary-glow);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ==========================================================================
+   1. Cross-Platform Resets & Normalizations (iOS, Android, Safari, Chrome)
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  font-family:
+    "Plus Jakarta Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* iOS Safari Safe Area Inset Support */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Cross-Browser Custom Scrollbars */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.5) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.4);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.7);
+}
+
+/* Touch-friendly Inputs: Minimum 16px font-size to prevent iOS Safari auto-zoom */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  font-size: 16px;
+  touch-action: manipulation;
+}
+
+/* Keyboard Accessibility Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* Motion-Sensitive Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   2. Responsive Layout Containers & Fluid Grids
+   ========================================================================== */
+.container-responsive {
+  width: 100%;
+  max-width: 1240px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(16px, 4vw, 32px);
+  padding-right: clamp(16px, 4vw, 32px);
+}
+
+.layout-grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(16px, 2.5vw, 28px);
+}
+
+.layout-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(16px, 2.5vw, 28px);
+}
+
+.layout-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 24px);
+}
+
+.layout-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(14px, 2vw, 22px);
+}
+
+@media (max-width: 1024px) {
+  .layout-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .layout-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .layout-grid-2,
+  .layout-grid-3,
+  .layout-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   3. Glassmorphism Components & Touch-Target Enhancements
+   ========================================================================== */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition-smooth);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-elevated), var(--shadow-glow);
+}
+
+.glass-card-interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+.glass-card-interactive:active {
+  transform: scale(0.985);
+}
+
+/* Touch targets >= 44x44px for WCAG 2.5.5 compliance */
+.btn-touch {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition-smooth);
+}
+
+.btn-primary-glow {
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: #fff;
+  box-shadow: 0 4px 18px -2px var(--primary-glow);
+}
+
+.btn-primary-glow:hover {
+  box-shadow: 0 6px 24px -1px var(--primary-glow);
+  transform: translateY(-1px);
+}
+
+.btn-secondary-glass {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+}
+
+.btn-secondary-glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-medium);
+}
+
+/* Form Inputs */
+.input-responsive {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--bg-glass-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.input-responsive:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-surface);
+}
+
+/* ==========================================================================
+   4. Floating Mobile Quick-Action Navigation Dock
+   ========================================================================== */
+.mobile-action-dock {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 990;
+  background: rgba(8, 12, 20, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-subtle);
+  padding: 8px 16px max(8px, env(safe-area-inset-bottom, 8px));
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 768px) {
+  .mobile-action-dock {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+
+  /* Add bottom clearance on mobile to prevent content obstruction */
+  body.has-dock {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 8px));
+  }
+}
+
+.dock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dock-item i {
+  font-size: 18px;
+}
+
+.dock-item.active,
+.dock-item:hover {
+  color: var(--primary);
+}
+
+.dock-item.active i {
+  filter: drop-shadow(0 0 8px var(--primary-glow));
+}
+
+/* ==========================================================================
+   5. Dynamic Header & Mobile Navigation Drawer
+   ========================================================================== */
+.nav-header-glass {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(5, 6, 8, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: var(--transition-smooth);
+}
+
+.nav-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.brand-logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+/* Mobile Hamburger Toggle */
+.mobile-nav-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  border-radius: var(--radius-sm);
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.mobile-nav-toggle:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 768px) {
+  .mobile-nav-toggle {
+    display: flex;
+  }
+  .desktop-nav-links {
+    display: none !important;
+  }
+}
+
+/* Slide-out Mobile Navigation Drawer */
+.mobile-nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1099;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-nav-backdrop.active {
+  display: block;
+  opacity: 1;
+}
+
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(85vw, 340px);
+  height: 100%;
+  height: 100dvh;
+  background: #090d16;
+  border-left: 1px solid var(--border-subtle);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-top: max(24px, env(safe-area-inset-top));
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+.mobile-nav-drawer.active {
+  transform: translateX(0);
+}
+
+.mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mobile-drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.mobile-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  transition: var(--transition-fast);
+}
+
+.mobile-drawer-link i {
+  font-size: 18px;
+  width: 24px;
+  color: var(--text-muted);
+}
+
+.mobile-drawer-link:hover,
+.mobile-drawer-link.active {
+  color: #fff;
+  background: var(--primary-surface);
+  border-left: 3px solid var(--primary);
+}
+
+.mobile-drawer-link:hover i,
+.mobile-drawer-link.active i {
+  color: var(--primary);
+}
+
+/* ==========================================================================
+   6. Universal Modern Grid Footer (4-Column Desktop, 1-Column Mobile)
+   ========================================================================== */
+.footer-responsive {
+  margin-top: auto;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(4, 6, 10, 0.95);
+  padding-top: clamp(32px, 6vw, 64px);
+  padding-bottom: clamp(32px, 6vw, 48px);
+  position: relative;
+  z-index: 10;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: clamp(24px, 4vw, 48px);
+  margin-bottom: 40px;
+}
+
+@media (max-width: 992px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.footer-col-title {
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  transition: var(--transition-fast);
+}
+
+.footer-links a:hover {
+  color: var(--primary);
+  padding-left: 3px;
+}
+
+.footer-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-dim);
+  font-size: 13px;
+}

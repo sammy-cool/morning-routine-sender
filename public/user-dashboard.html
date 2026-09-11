@@ -20,6 +20,7 @@
     <link rel="apple-touch-icon" sizes="192x192" href="/assets/mrn-brand-ico.png" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="/css/loader.css" />
+    <link rel="stylesheet" href="/css/responsive-layout.css" />
 
     <!-- Resource Hints & DNS Prefetching -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -1820,7 +1821,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="has-dock">
     <!-- Accessible Heading -->
     <h1
       class="visually-hidden"
@@ -4238,6 +4239,35 @@
         });
       })();
     </script>
+    <!-- Cross-Platform Mobile Action Dock -->
+    <nav class="mobile-action-dock" id="mobileActionDock" aria-label="Mobile quick actions">
+      <button type="button" class="dock-item" id="dockCheckinBtn" aria-label="Check in habit">
+        <i class="fas fa-fire-flame-curved" style="color: #ef4444" aria-hidden="true"></i>
+        <span>Check-in</span>
+      </button>
+      <button type="button" class="dock-item" id="dockTimerBtn" aria-label="Focus sprint timer">
+        <i class="fas fa-stopwatch" style="color: var(--primary)" aria-hidden="true"></i>
+        <span>Timer</span>
+      </button>
+      <button type="button" class="dock-item" id="dockAmbientBtn" aria-label="Toggle ambient audio">
+        <i class="fas fa-headphones" style="color: var(--accent-cyan)" aria-hidden="true"></i>
+        <span>Sound</span>
+      </button>
+      <button
+        type="button"
+        class="dock-item"
+        id="dockJournalBtn"
+        aria-label="Write reflection journal"
+      >
+        <i class="fas fa-book-open" style="color: var(--accent-emerald)" aria-hidden="true"></i>
+        <span>Journal</span>
+      </button>
+      <button type="button" class="dock-item" id="dockPrefsBtn" aria-label="Adjust preferences">
+        <i class="fas fa-sliders" style="color: var(--text-muted)" aria-hidden="true"></i>
+        <span>Settings</span>
+      </button>
+    </nav>
+
     <script defer src="/js/user-dashboard.js?v=4.3.0"></script>
   </body>
 </html>
