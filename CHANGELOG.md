@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.0] - 2026-09-11
+
+### 🌟 Universal Cross-Platform Layout, Pomodoro Companion, iCal Sync, Offline PWA & Enhanced Toast System
+
+- **Universal Cross-Platform Responsive Layout & Mobile Action Dock**:
+  - Implemented responsive fluid layout system and safe-area insets across all platform pages (`/routine`, `/user-dashboard`, `/about`, `/streak/:handleOrEmail`, and `/admin-dashboard`).
+  - Added sticky tactile mobile action docks for 1-click habit check-in, focus sprint launcher, and navigation on handheld devices.
+- **Enhanced Focus & Routine Companion (`/routine`)**:
+  - Added Pomodoro timer modes: Focus sprint, Short break (5m), and Long break (15m) with smooth animated progress bar.
+  - Implemented distraction-free fullscreen focus mode (`⛶`) and responsive keyboard shortcuts (`Space` to toggle, `R` to reset, `M` to mute/unmute, `F` for fullscreen).
+  - Integrated 7 procedural Web Audio soundscapes (Rain, Ocean Waves, Binaural Alpha Beats, Deep Flow, Theta Waves, Cozy Cafe, Forest Birds) with volume control.
+- **PWA Service Worker Offline Sync & Journal Queueing**:
+  - Implemented Service Worker IndexedDB queue for offline morning reflection journals with auto-replay and background sync upon reconnection.
+  - Added native App Badging API sync for active streak counts on desktop and mobile home screens.
+- **RFC 5545 iCalendar (.ics) Feed & Webcal Subscription**:
+  - Implemented dynamic RFC 5545 calendar event generation (`/me/calendar.ics`) for habit rituals and focus blocks.
+  - Added 1-click Webcal URL subscription button and downloadable `.ics` exports for Apple Calendar, Google Calendar, and Outlook.
+- **Weekly Habit Consistency Report Card & Social Scorecard**:
+  - Created dynamic SVG report card generator (`/streak/:handleOrEmail/weekly-card.svg`) computing 7-day consistency grades (`A+` to `D`), total focus minutes, and active streaks.
+  - Added dual-card switcher in the share modal to toggle between the unbroken streak badge and the 7-day consistency scorecard.
+- **Universal Glassmorphic Toast Notifications (`customizable-toast-notification`)**:
+  - Upgraded npm package integration with theme-aware high-contrast glassmorphism (`rgba(12, 17, 29, 0.96)`, Solar, Emerald, Cyberpunk).
+  - Added dynamic intent-based progress bar colors (emerald success, rose error, amber warning, purple info).
+  - Implemented interactive `"Undo ↺"` CTA toasts for habit steps, countdown completions, soundscape switches, and offline sync notifications across all views.
+- **Complete Test Matrix & Quality Gates**:
+  - **All 58 test suites passed with 749/749 tests passing** (`npm test -- --ci --maxWorkers=2`).
+  - 100% Prettier formatting compliance (`npm run format:check`).
+  - Zero ESLint errors or warnings (`npm run lint`).
+  - JavaScript AST syntax verification passed across all directories (`npm run check:syntax`).
+
+---
+
 ## [2.7.0] - 2026-09-11
 
 ### 🚀 Dynamic Custom Habits, Responsive UI Overhaul & Tunable Brainwave Engine
