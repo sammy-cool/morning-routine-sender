@@ -527,10 +527,42 @@
           grid-template-columns: 1fr;
         }
         aside.sidebar {
-          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: 280px;
+          z-index: 200;
+          transform: translateX(-100%);
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
+          display: flex;
+        }
+        aside.sidebar.sidebar-open {
+          transform: translateX(0);
+        }
+        .sidebar-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.65);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          z-index: 190;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.25s ease;
+        }
+        .sidebar-backdrop.active {
+          opacity: 1;
+          pointer-events: auto;
         }
         main.main-content {
-          padding: 20px;
+          padding: 20px 16px;
+          margin-left: 0;
+          width: 100%;
+        }
+        .sidebar-mobile-toggle {
+          display: inline-flex !important;
         }
       }
 
@@ -841,15 +873,30 @@
         header.topbar {
           flex-direction: column;
           align-items: stretch;
+          gap: 16px;
+        }
+        .header-title-wrap h1 {
+          font-size: 20px;
+        }
+        .header-title-wrap p {
+          font-size: 13px;
         }
         .header-actions {
-          flex-direction: column;
+          display: flex;
+          flex-wrap: wrap;
           width: 100%;
+          gap: 8px;
         }
-        .cmd-trigger,
-        .header-actions .btn {
+        .cmd-trigger {
           width: 100%;
+          order: -1;
+        }
+        .header-actions .btn {
+          flex: 1 1 calc(50% - 4px);
+          min-width: 120px;
           justify-content: center;
+          font-size: 13px;
+          padding: 8px 12px;
         }
         .modal-dialog {
           padding: 20px 16px;
@@ -858,6 +905,64 @@
         main.main-content {
           padding: 16px;
           gap: 20px;
+        }
+      }
+
+      /* Admin Global Footer */
+      footer.admin-global-footer {
+        margin-top: 40px;
+        padding-top: 24px;
+        padding-bottom: max(24px, env(safe-area-inset-bottom, 16px));
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .admin-footer-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .admin-footer-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .admin-footer-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .admin-footer-right a {
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: var(--transition);
+      }
+
+      .admin-footer-right a:hover {
+        color: var(--text-main);
+      }
+
+      @media (max-width: 640px) {
+        footer.admin-global-footer {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
         }
       }
 
@@ -1316,14 +1421,29 @@
         </button>
       </div>
     </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleAdminSidebar(false)"></div>
 
     <!-- Main Workspace -->
     <main class="main-content">
       <!-- Top Navigation & Global Header -->
       <header class="topbar">
         <div class="header-title-wrap">
-          <h1>Admin Command Center</h1>
-          <p>Real-time delivery pipelines, subscribers telemetry, and automated dispatcher.</p>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <button
+              type="button"
+              class="btn btn-glass sidebar-mobile-toggle"
+              id="adminSidebarToggleBtn"
+              onclick="toggleAdminSidebar()"
+              aria-label="Toggle Navigation Menu"
+              style="display: none; padding: 10px 14px; font-size: 15px"
+            >
+              <i class="fas fa-bars"></i>
+            </button>
+            <div>
+              <h1>Admin Command Center</h1>
+              <p>Real-time delivery pipelines, subscribers telemetry, and automated dispatcher.</p>
+            </div>
+          </div>
         </div>
 
         <div class="header-actions">
@@ -2449,6 +2569,26 @@
           </div>
         </div>
       </section>
+
+      <!-- Admin Global Footer -->
+      <footer class="admin-global-footer">
+        <div class="admin-footer-left">
+          <div class="admin-footer-badge">
+            <span class="pulse-dot"></span>
+            <span>Cluster: Operational</span>
+          </div>
+          <span style="font-size: 12px; color: var(--text-muted)">
+            Morning Routine Command Center &bull; v2.6.10
+          </span>
+        </div>
+        <div class="admin-footer-right">
+          <a href="/" target="_blank" rel="noopener"><i class="fas fa-home"></i> Public Site</a>
+          <a href="/about" target="_blank" rel="noopener"
+            ><i class="fas fa-info-circle"></i> About</a
+          >
+          <a href="#section-overview"><i class="fas fa-arrow-up"></i> Top</a>
+        </div>
+      </footer>
     </main>
 
     <!-- Modal: Add / Edit Subscriber -->
@@ -4475,9 +4615,26 @@ Loading records…</pre>
         }
       }
 
+      function toggleAdminSidebar(forceState) {
+        const sidebar = document.querySelector("aside.sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+        if (!sidebar) return;
+        const isOpen =
+          typeof forceState === "boolean"
+            ? forceState
+            : !sidebar.classList.contains("sidebar-open");
+        sidebar.classList.toggle("sidebar-open", isOpen);
+        if (backdrop) backdrop.classList.toggle("active", isOpen);
+        const toggleBtn = document.getElementById("adminSidebarToggleBtn");
+        if (toggleBtn) toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+
       function scrollToSection(id) {
         const el = document.getElementById(id);
         if (el) el.scrollIntoView({ behavior: "smooth" });
+        if (window.innerWidth <= 1100) {
+          toggleAdminSidebar(false);
+        }
       }
 
       function clearActivityStream() {

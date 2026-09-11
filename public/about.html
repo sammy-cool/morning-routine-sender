@@ -1114,12 +1114,23 @@
         .creator-actions .btn {
           width: 100%;
         }
+        footer.footer {
+          padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 84px);
+        }
         .footer-wrap {
           flex-direction: column;
           text-align: center;
+          gap: 16px;
         }
         .footer-links {
           justify-content: center;
+          gap: 12px 18px;
+        }
+        .footer-links a {
+          display: inline-flex;
+          align-items: center;
+          min-height: 36px;
+          padding: 4px 8px;
         }
       }
     </style>

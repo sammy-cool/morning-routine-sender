@@ -503,6 +503,64 @@ async function liveRoutine(req, res) {
       flex-wrap: wrap;
       gap: 12px;
     }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 560px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+      }
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .card {
+        padding: 24px 18px !important;
+        border-radius: 20px !important;
+      }
+      .timer-display {
+        font-size: 38px !important;
+      }
+    }
+    .routine-footer {
+      margin-top: 36px;
+      padding: 24px 16px max(24px, env(safe-area-inset-bottom));
+      text-align: center;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .routine-footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+    .routine-footer-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .routine-footer-link:hover {
+      color: #fff;
+    }
+    .routine-footer-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      opacity: 0.75;
+    }
     .brand {
       display: flex;
       align-items: center;
@@ -886,7 +944,7 @@ async function liveRoutine(req, res) {
       <a href="/" class="brand" aria-label="Morning Routine Home">
         <img src="/assets/logo.svg" alt="Logo" width="28" height="28" style="border-radius: 8px;"> Morning Routine
       </a>
-      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <div class="header-actions">
         <div class="streak-pill">
           🔥 ${streakCount}-Day Streak
         </div>
@@ -1100,6 +1158,17 @@ async function liveRoutine(req, res) {
         ⚡ Complete Routine & Maintain Streak
       </a>
     </div>
+
+    <!-- Routine Companion Responsive Footer -->
+    <footer class="routine-footer" role="contentinfo">
+      <div class="routine-footer-links">
+        <a href="/" class="routine-footer-link">🏠 Home</a>
+        <a href="/user-dashboard" class="routine-footer-link">📊 Dashboard</a>
+        <a href="/about" class="routine-footer-link">ℹ️ About</a>
+        <a href="/unsubscribe" class="routine-footer-link">⚙️ Preferences</a>
+      </div>
+      <p class="routine-footer-note">Morning Routine Sender • Daily Focus Companion</p>
+    </footer>
   </div>
 
   <script>

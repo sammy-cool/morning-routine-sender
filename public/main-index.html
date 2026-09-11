@@ -334,8 +334,62 @@
       .nav-links {
         display: flex;
         align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .mobile-nav-actions {
+        display: none;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .mobile-subscribe-pill {
+        display: none;
+      }
+
+      .mobile-menu-toggle {
+        display: none;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-main);
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        transition: var(--transition);
+        padding: 0;
+      }
+
+      .mobile-menu-toggle:hover,
+      .mobile-menu-toggle:focus-visible {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--border-hover);
+        outline: none;
+      }
+
+      .hamburger-bar {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background-color: var(--text-main);
+        border-radius: 2px;
+        transition:
+          transform 0.25s ease,
+          opacity 0.25s ease;
+      }
+
+      .mobile-menu-toggle.active .hamburger-bar:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+      }
+      .mobile-menu-toggle.active .hamburger-bar:nth-child(2) {
+        opacity: 0;
+      }
+      .mobile-menu-toggle.active .hamburger-bar:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
       }
 
       .live-hud-pill {
@@ -870,28 +924,154 @@
       /* Footer */
       footer.footer {
         border-top: 1px solid var(--border-subtle);
-        padding: 40px 0;
-        background: rgba(5, 6, 8, 0.8);
+        padding: 56px 0 max(32px, env(safe-area-inset-bottom, 24px));
+        background: linear-gradient(180deg, rgba(8, 12, 22, 0.75) 0%, rgba(5, 6, 8, 0.98) 100%);
         font-size: 14px;
         color: var(--text-muted);
         backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
       }
 
-      .footer-wrap {
+      .footer-container {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+      }
+
+      .footer-top-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1.2fr 1.2fr;
+        gap: 40px;
+      }
+
+      .footer-brand-col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .footer-desc {
+        color: var(--text-muted);
+        font-size: 13.5px;
+        line-height: 1.6;
+        max-width: 360px;
+      }
+
+      .footer-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: var(--accent-emerald);
+        width: fit-content;
+      }
+
+      .status-dot-pulse {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        box-shadow: 0 0 8px var(--accent-emerald);
+        animation: pulseLive 2s infinite ease-in-out;
+      }
+
+      .footer-nav-col {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .footer-heading {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-main);
+        margin: 0;
+      }
+
+      .footer-link-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .footer-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 13.5px;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+      }
+
+      .footer-link:hover {
+        color: var(--text-main);
+        transform: translateX(3px);
+      }
+
+      .footer-track-item {
+        color: var(--text-muted);
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+      }
+
+      .footer-admin-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 13.5px;
+        font-weight: 500;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        transition: var(--transition);
+        min-height: 30px;
+      }
+
+      .footer-admin-btn:hover {
+        color: var(--accent-amber);
+        transform: translateX(3px);
+      }
+
+      .footer-bottom-bar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 20px;
+        gap: 16px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-subtle);
+        font-size: 13px;
+        color: var(--text-muted);
         flex-wrap: wrap;
       }
 
-      .footer-links a {
-        color: var(--text-muted);
-        text-decoration: none;
-        transition: var(--transition);
+      .footer-bottom-meta {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
       }
-      .footer-links a:hover {
-        color: var(--text-main);
+
+      .meta-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
       }
 
       /* PWA Banner */
@@ -925,9 +1105,97 @@
         line-height: 1.5;
       }
 
-      @media (max-width: 768px) {
+      @media (max-width: 1024px) {
+        .footer-top-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 32px;
+        }
+      }
+
+      @media (max-width: 860px) {
+        header.navbar {
+          padding: max(12px, env(safe-area-inset-top, 12px)) 16px 12px 16px;
+        }
+
+        .mobile-nav-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .mobile-subscribe-pill {
+          display: inline-flex;
+          padding: 7px 12px;
+          font-size: 12px;
+          border-radius: 10px;
+        }
+
+        .mobile-menu-toggle {
+          display: flex;
+        }
+
+        .desktop-subscribe-btn {
+          display: none;
+        }
+
+        .nav-links {
+          position: fixed;
+          top: 67px;
+          left: 0;
+          right: 0;
+          width: 100%;
+          background: rgba(8, 12, 22, 0.98);
+          backdrop-filter: blur(28px);
+          -webkit-backdrop-filter: blur(28px);
+          border-bottom: 1px solid var(--border-subtle);
+          box-shadow: 0 24px 48px rgba(0, 0, 0, 0.75);
+          padding: 0 20px;
+          max-height: 0;
+          opacity: 0;
+          pointer-events: none;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+          transition:
+            max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 0.25s ease,
+            padding 0.35s ease;
+          z-index: 85;
+        }
+
+        .nav-links.nav-open {
+          max-height: calc(100vh - 75px);
+          overflow-y: auto;
+          opacity: 1;
+          pointer-events: auto;
+          padding: 16px 20px 24px;
+        }
+
+        .nav-links .btn {
+          width: 100%;
+          justify-content: flex-start;
+          padding: 12px 16px;
+          font-size: 14px;
+          border-radius: 12px;
+          min-height: 46px;
+        }
+
+        .nav-links .btn span {
+          display: inline !important;
+        }
+
+        .nav-links .live-hud-pill {
+          width: 100%;
+          justify-content: center;
+          padding: 10px 14px;
+          margin-bottom: 4px;
+          display: inline-flex;
+        }
+
         .pwa-banner {
-          bottom: calc(env(safe-area-inset-bottom, 16px) + 78px);
+          bottom: calc(env(safe-area-inset-bottom, 16px) + 16px);
           left: 16px;
           right: 16px;
           width: calc(100% - 32px);
@@ -935,32 +1203,22 @@
           border-radius: 20px;
           z-index: 90;
         }
+      }
 
-        /* Mobile bottom nav style for header links */
-        header.navbar {
-          padding: 16px;
+      @media (max-width: 640px) {
+        footer.footer {
+          padding: 40px 0 max(32px, env(safe-area-inset-bottom, 24px));
         }
-        .nav-links {
-          position: fixed;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(12, 17, 29, 0.9);
-          backdrop-filter: blur(30px);
-          border: 1px solid var(--border-subtle);
-          border-radius: 100px;
-          padding: 8px 12px;
-          z-index: 100;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+        .footer-top-grid {
+          grid-template-columns: 1fr;
+          gap: 28px;
         }
-        .nav-links .btn {
-          padding: 8px 12px;
-        }
-        .nav-links .btn span {
-          display: none;
-        }
-        .live-hud-pill {
-          display: none;
+
+        .footer-bottom-bar {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
         }
       }
 
@@ -1015,29 +1273,55 @@
           <span class="brand-name">Morning Routine</span>
         </a>
 
-        <div class="nav-links">
+        <!-- Mobile Header Quick Controls -->
+        <div class="mobile-nav-actions">
+          <a
+            class="btn btn-primary btn-sm mobile-subscribe-pill"
+            href="#signupView"
+            aria-label="Subscribe Free"
+          >
+            <i class="fas fa-bolt"></i> <span>Subscribe</span>
+          </a>
+          <button
+            type="button"
+            class="mobile-menu-toggle"
+            id="mobileNavToggleBtn"
+            aria-label="Toggle Navigation Menu"
+            aria-expanded="false"
+            aria-controls="navLinksMenu"
+          >
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+          </button>
+        </div>
+
+        <nav class="nav-links" id="navLinksMenu" aria-label="Main Navigation">
           <div class="live-hud-pill">
             <span class="live-hud-dot"></span>
             <span id="liveClockBadge">08:00 AM</span>
           </div>
 
-          <a href="/about" class="btn btn-glass btn-sm"
-            ><i class="fas fa-info-circle"></i> <span>About</span></a
-          >
-          <a href="/routine" class="btn btn-glass btn-sm"
-            ><i class="fas fa-compass" style="color: var(--accent-cyan)"></i>
-            <span>Focus Companion</span></a
-          >
+          <a href="/about" class="btn btn-glass btn-sm">
+            <i class="fas fa-info-circle"></i> <span>About</span>
+          </a>
+          <a href="/routine" class="btn btn-glass btn-sm">
+            <i class="fas fa-compass" style="color: var(--accent-cyan)"></i>
+            <span>Focus Companion</span>
+          </a>
+          <a href="/user-dashboard" class="btn btn-glass btn-sm">
+            <i class="fas fa-user-circle"></i> <span>Dashboard</span>
+          </a>
           <button id="pwaNavInstallBtn" class="btn btn-glass btn-sm" style="display: none">
             <i class="fas fa-download"></i> <span>Install App</span>
           </button>
           <button type="button" class="btn btn-glass btn-sm" id="openModalBtn">
             <i class="fas fa-key"></i> <span>Admin</span>
           </button>
-          <a class="btn btn-primary btn-sm" href="#signupView"
-            ><i class="fas fa-bolt"></i> <span>Subscribe Free</span></a
-          >
-        </div>
+          <a class="btn btn-primary btn-sm desktop-subscribe-btn" href="#signupView">
+            <i class="fas fa-bolt"></i> <span>Subscribe Free</span>
+          </a>
+        </nav>
       </div>
     </header>
 
@@ -1438,33 +1722,101 @@
 
     <!-- Footer -->
     <footer class="footer" id="mainRootFooter">
-      <div class="container footer-wrap">
-        <div>&copy; 2026 Morning Routine Sender • Unshakable Morning Discipline Architecture</div>
-        <nav
-          class="footer-links"
-          style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap; font-weight: 600"
-        >
-          <a href="/">Home</a>
-          <a href="/about">About</a>
-          <a href="/routine">Focus Companion</a>
-          <a href="/user-dashboard">Dashboard</a>
-          <a href="/unsubscribe">Preferences</a>
-          <button
-            type="button"
-            onclick="document.getElementById('openModalBtn').click()"
-            style="
-              background: none;
-              border: none;
-              color: var(--text-muted);
-              cursor: pointer;
-              font-size: 14px;
-              font-weight: 600;
-              font-family: inherit;
-            "
-          >
-            Admin Access
-          </button>
-        </nav>
+      <div class="container footer-container">
+        <div class="footer-top-grid">
+          <!-- Col 1: Brand & Mission -->
+          <div class="footer-brand-col">
+            <a href="/" class="brand-logo" aria-label="Morning Routine Sender Home">
+              <div class="brand-icon">
+                <img src="/assets/logo.svg" alt="Logo" width="28" height="28" />
+              </div>
+              <span class="brand-name">Morning Routine</span>
+            </a>
+            <p class="footer-desc">
+              Automated, timezone-aware morning routines, curated coach mantras, and ritual tracking
+              engineered for consistent peak performance.
+            </p>
+            <div class="footer-status-pill">
+              <span class="status-dot-pulse"></span>
+              <span>All Systems Operational • 99.98% Uptime</span>
+            </div>
+          </div>
+
+          <!-- Col 2: Ritual Suite -->
+          <div class="footer-nav-col">
+            <h4 class="footer-heading">Ritual Suite</h4>
+            <ul class="footer-link-list">
+              <li><a href="/" class="footer-link">Home Portal</a></li>
+              <li>
+                <a href="/routine" class="footer-link">
+                  <i
+                    class="fas fa-compass"
+                    style="color: var(--accent-cyan); font-size: 12px; margin-right: 6px"
+                  ></i>
+                  Live Focus Companion
+                </a>
+              </li>
+              <li><a href="/user-dashboard" class="footer-link">Subscriber Dashboard</a></li>
+              <li><a href="/about" class="footer-link">Philosophy &amp; Science</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 3: Habit Tracks -->
+          <div class="footer-nav-col">
+            <h4 class="footer-heading">5 Coach Tracks</h4>
+            <ul class="footer-link-list">
+              <li><span class="footer-track-item">⚡ Deep Work &amp; Builder</span></li>
+              <li><span class="footer-track-item">🧘 Stoic Mindfulness</span></li>
+              <li><span class="footer-track-item">💼 Executive Velocity</span></li>
+              <li><span class="footer-track-item">📚 Relentless Learning</span></li>
+              <li><span class="footer-track-item">🖋️ Mindset Reflection</span></li>
+            </ul>
+          </div>
+
+          <!-- Col 4: Preferences & Admin -->
+          <div class="footer-nav-col">
+            <h4 class="footer-heading">Self-Service &amp; Ops</h4>
+            <ul class="footer-link-list">
+              <li><a href="/unsubscribe" class="footer-link">Manage Email Preferences</a></li>
+              <li><a href="/user-dashboard" class="footer-link">Export Data (CSV / MD)</a></li>
+              <li>
+                <button
+                  type="button"
+                  class="footer-admin-btn"
+                  onclick="document.getElementById('openModalBtn').click()"
+                  aria-label="Open Admin Command Center Login"
+                >
+                  <i
+                    class="fas fa-key"
+                    style="font-size: 11px; margin-right: 6px; color: var(--accent-amber)"
+                  ></i>
+                  Admin Command Center
+                </button>
+              </li>
+              <li>
+                <a href="/manifest.json" target="_blank" rel="noopener" class="footer-link"
+                  >PWA Manifest Spec</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom-bar">
+          <div class="footer-copyright">
+            &copy; 2026 Morning Routine Sender • Unshakable Morning Discipline Architecture
+          </div>
+          <div class="footer-bottom-meta">
+            <span class="meta-tag"
+              ><i class="fas fa-shield-alt" style="color: var(--accent-cyan)"></i> CSPRNG
+              Encrypted</span
+            >
+            <span class="meta-tag"
+              ><i class="fas fa-globe" style="color: var(--accent-emerald)"></i> Timezone
+              Resolved</span
+            >
+          </div>
+        </div>
       </div>
     </footer>
 
@@ -1642,6 +1994,51 @@
       }
       setInterval(updateLiveClock, 1000);
       updateLiveClock();
+
+      // Mobile Navigation Drawer Toggle Handler
+      (function initMobileNav() {
+        const toggleBtn = document.getElementById("mobileNavToggleBtn");
+        const navMenu = document.getElementById("navLinksMenu");
+        if (!toggleBtn || !navMenu) return;
+
+        function setNavState(isOpen) {
+          navMenu.classList.toggle("nav-open", isOpen);
+          toggleBtn.classList.toggle("active", isOpen);
+          toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        }
+
+        toggleBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const shouldOpen = !navMenu.classList.contains("nav-open");
+          setNavState(shouldOpen);
+        });
+
+        // Auto close when link or button is clicked
+        navMenu.querySelectorAll("a, button").forEach(function (el) {
+          el.addEventListener("click", function () {
+            setNavState(false);
+          });
+        });
+
+        // Close on Escape key
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && navMenu.classList.contains("nav-open")) {
+            setNavState(false);
+            toggleBtn.focus();
+          }
+        });
+
+        // Close on click outside
+        document.addEventListener("click", function (e) {
+          if (
+            navMenu.classList.contains("nav-open") &&
+            !navMenu.contains(e.target) &&
+            !toggleBtn.contains(e.target)
+          ) {
+            setNavState(false);
+          }
+        });
+      })();
     </script>
 
     <script defer src="/js/landing-page-modal.js?v=4.2.0"></script>
