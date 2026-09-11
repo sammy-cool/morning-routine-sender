@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.0] - 2026-09-11
+
+### 🚀 Dynamic Custom Habits, Responsive UI Overhaul & Tunable Brainwave Engine
+
+- **Distortion-Free Responsive UI/UX Overhaul**:
+  - Eliminated header and footer clipping and distortion across all viewports (`main-index.html`, `user-dashboard.html`, `about.html`, `offline.html`, and `admin-dashboard.html`).
+  - Added slide-out accessible mobile navigation drawers with backdrop blur, keyboard trap, and ARIA attributes.
+  - Modernized footer with responsive 4-column CSS grid, system status badge, and safe-area inset padding (`env(safe-area-inset-bottom)`).
+- **Comprehensive Frontend Performance & Resource Hints**:
+  - Audited and implemented resource hints (`preload`, `prefetch`, `dns-prefetch`, `preconnect`) across all views.
+  - Implemented lazy loading (`loading="lazy"`, `decoding="async"`) for below-the-fold assets, with high-priority preloads for critical fonts and logos.
+  - Added script execution optimization (`defer`, `type="module"`) eliminating render-blocking stylesheets and scripts.
+- **Dynamic Subscriber Custom Habits & Configurable Focus Sprints**:
+  - Added personalized custom habit checklists per subscriber with 1-click addition, deletion, and track-reset capabilities.
+  - Added configurable focus sprint duration timer (5 to 180 minutes) with preset badges (15m, 25m Pomodoro, 45m, 60m Deep Work) and real-time dashboard countdown.
+- **Dynamic Daily Quotes Rotation, Curated Sparks & Knowledge Categories**:
+  - Expanded `TRACK_CONFIGS` to 8+ quotes and 8+ rituals per track across all 7 tracks (`deep-work`, `mindfulness`, `executive`, `learning`, `classic`, `career`, `reflection`).
+  - Implemented deterministic daily rotation hashing (`dateStr` + `email` + `seed`) and personal mantra overrides.
+  - Added morning news knowledge category selector (`all`, `tech`, `ai`, `science`, `finance`, `wellness`) and distraction-free `off` mode.
+  - Added 6th AI Coach Persona (`custom` / "Personalized Mentor") with customizable system prompt directives up to 500 characters.
+- **Self-Sustaining Milestone Streak Freeze Refill Loop & Multi-Channel Parity**:
+  - Added automatic +1 streak freeze shield reward on every 7-day consistency milestone (`streakCount % 7 === 0`), capped at 3 shields.
+  - Added `streak.freeze_activated` and `streak.milestone_reached` outbound webhook triggers.
+  - Added full color code parity for `career` (`0x3b82f6`) and `reflection` (`0x8b5cf6`) tracks in Discord/Telegram dispatches, with subscriber custom mantra inheritance.
+  - Added dynamic weekly digest day naming (`${dayName} Weekly Streak Digest`) and context-aware morning routine email subjects.
+- **Tunable Brainwave Soundscape Engine**:
+  - Upgraded Web Audio synthesizer in `UXCore.ambient` with tunable binaural beat frequencies: Theta (6Hz), Alpha (10Hz), Beta (18Hz), Gamma (40Hz).
+  - Added real-time soundscape volume calibration (`setVolume`, `getVolume`) with `localStorage` persistence and dashboard volume slider.
+- **Dynamic System Broadcast Announcement Banner**:
+  - Integrated dynamic admin broadcast message via Redis (`system:broadcast:message`) or environment (`SYSTEM_ANNOUNCEMENT`) rendered at the top of the user dashboard with dismissal controls.
+- **Quality Gates & Test Coverage**:
+  - Added dedicated test suite `__tests__/dynamic.configurability.complete.test.js` covering all dynamic transformations.
+  - All 56 test suites passing (**734/734 tests passing, 100% green**).
+  - Zero ESLint warnings or errors (`npm run lint`), 100% Prettier compliance (`npm run format:check`), and AST syntax validation (`npm run check:syntax`).
+
+---
+
 ## [2.6.10] - 2026-09-10
 
 ### 🧹 Pristine Code Quality & Zero-Warning ESLint 9 Hardening
