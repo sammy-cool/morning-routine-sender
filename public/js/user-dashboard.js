@@ -26,6 +26,14 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const historyList = document.getElementById("historyList");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    const prefFocusDuration = document.getElementById("prefFocusDuration");
+    const durationSelectBtns = document.querySelectorAll(".duration-select-btn");
+    const customHabitsContainer = document.getElementById("customHabitsContainer");
+    const newHabitInput = document.getElementById("newHabitInput");
+    const addHabitBtn = document.getElementById("addHabitBtn");
+    const resetHabitsBtn = document.getElementById("resetHabitsBtn");
+    let currentCustomHabits = [];
+
     let currentSubscriber = null;
 
     // Toast helper with full customizable-toast-notification capabilities
@@ -179,6 +187,52 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       prefTz.value = sub.timezone || "Asia/Kolkata";
       pauseResumeBtn.textContent = isActive ? "Pause my routine" : "Resume my routine";
       pauseResumeBtn.className = "btn " + (isActive ? "btn-warning" : "btn-success");
+
+      // Sprint Duration
+      const duration = Number(sub.focusDurationMinutes) || 25;
+      setFocusDurationUI(duration);
+
+      // Custom Habits
+      currentCustomHabits = Array.isArray(sub.customHabits) ? [...sub.customHabits] : [];
+      renderCustomHabitsList();
+    }
+
+    function setFocusDurationUI(mins) {
+      const val = Math.max(5, Math.min(Number(mins) || 25, 180));
+      if (prefFocusDuration) prefFocusDuration.value = val;
+      if (durationSelectBtns) {
+        durationSelectBtns.forEach((btn) => {
+          const btnMins = Number(btn.getAttribute("data-mins"));
+          if (btnMins === val) {
+            btn.classList.remove("btn-secondary");
+            btn.classList.add("btn-primary");
+          } else {
+            btn.classList.remove("btn-primary");
+            btn.classList.add("btn-secondary");
+          }
+        });
+      }
+    }
+
+    function renderCustomHabitsList() {
+      if (!customHabitsContainer) return;
+      if (!currentCustomHabits.length) {
+        customHabitsContainer.innerHTML =
+          '<div class="small" style="color: var(--text-muted); font-style: italic; padding: 6px 0;">Currently using track default habits. Add custom habits below to personalize your routine.</div>';
+        return;
+      }
+      customHabitsContainer.innerHTML = currentCustomHabits
+        .map(
+          (habit, idx) => `
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 12px; gap: 8px;">
+          <span style="font-size: 13.5px; color: var(--text-main); word-break: break-word;">${escapeHtml(habit)}</span>
+          <button type="button" class="remove-habit-btn" data-index="${idx}" style="background: none; border: none; color: #f87171; font-size: 16px; cursor: pointer; padding: 2px 6px; border-radius: 4px;" title="Remove habit" aria-label="Remove habit">
+            &times;
+          </button>
+        </div>
+      `,
+        )
+        .join("");
     }
 
     function renderHistory(history) {
@@ -289,11 +343,15 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const cronValue =
           visualTimeSelect.value === "custom" ? prefCron.value.trim() : visualTimeSelect.value;
 
+        const durationVal = prefFocusDuration ? Number(prefFocusDuration.value) || 25 : 25;
+
         const body = {
           cronPattern: cronValue || "0 8 * * *",
           timezone: prefTz.value.trim() || "Asia/Kolkata",
           routineTrack: prefTrack.value || "deep-work",
           templateType: prefTrack.value || "deep-work",
+          focusDurationMinutes: durationVal,
+          customHabits: currentCustomHabits,
         };
 
         const resp = await fetch("/me", {
@@ -328,6 +386,74 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         savePrefsBtn.disabled = false;
       }
     });
+
+    // Focus duration preset listeners
+    if (durationSelectBtns) {
+      durationSelectBtns.forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const mins = Number(this.getAttribute("data-mins"));
+          setFocusDurationUI(mins);
+        });
+      });
+    }
+
+    if (prefFocusDuration) {
+      prefFocusDuration.addEventListener("input", function () {
+        setFocusDurationUI(this.value);
+      });
+    }
+
+    // Custom habits event handlers
+    function addCustomHabitFromInput() {
+      if (!newHabitInput) return;
+      const text = newHabitInput.value.trim();
+      if (!text) return;
+      if (currentCustomHabits.length >= 10) {
+        showToast("Maximum 10 custom habits allowed.", "warn");
+        return;
+      }
+      if (currentCustomHabits.includes(text)) {
+        showToast("This habit is already in your checklist.", "info");
+        return;
+      }
+      currentCustomHabits.push(text);
+      newHabitInput.value = "";
+      renderCustomHabitsList();
+    }
+
+    if (addHabitBtn) {
+      addHabitBtn.addEventListener("click", addCustomHabitFromInput);
+    }
+
+    if (newHabitInput) {
+      newHabitInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addCustomHabitFromInput();
+        }
+      });
+    }
+
+    if (customHabitsContainer) {
+      customHabitsContainer.addEventListener("click", function (e) {
+        const removeBtn = e.target.closest(".remove-habit-btn");
+        if (removeBtn) {
+          const idx = Number(removeBtn.getAttribute("data-index"));
+          if (!isNaN(idx) && idx >= 0 && idx < currentCustomHabits.length) {
+            currentCustomHabits.splice(idx, 1);
+            renderCustomHabitsList();
+          }
+        }
+      });
+    }
+
+    if (resetHabitsBtn) {
+      resetHabitsBtn.addEventListener("click", function () {
+        currentCustomHabits = [];
+        renderCustomHabitsList();
+        showToast("Reset habits to track defaults. Save to apply.", "info");
+      });
+    }
 
     pauseResumeBtn.addEventListener("click", async function () {
       if (!currentSubscriber) return;

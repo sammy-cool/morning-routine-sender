@@ -62,6 +62,14 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     const checkinToken = generateActionToken(userData.email, "checkin");
     const routineToken = generateActionToken(userData.email, "routine");
 
+    const activeChecklist =
+      Array.isArray(userData.customHabits) && userData.customHabits.length > 0
+        ? userData.customHabits
+        : trackInfo.checklist || [];
+
+    const focusDuration = Number(userData.focusDurationMinutes) || 25;
+    const routineQueryDuration = focusDuration !== 25 ? `&duration=${focusDuration}` : "";
+
     const data = {
       logoUrl: process.env.LOGO_URL || `${baseUrl}/assets/logo.png`,
       userName: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
@@ -71,15 +79,16 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       trackBadge: trackBadge,
       dailyQuote: dailyQuote,
       dailyTip: dailyTip,
-      checklist: trackInfo.checklist || [],
+      checklist: activeChecklist,
+      focusDurationMinutes: focusDuration,
       coachPersona: userData.coachPersona || "stoic",
       aiSparkReflection: morningSpark.sparkReflection,
       aiMicroAction: morningSpark.microAction,
       aiFocusMantra: morningSpark.focusMantra,
       aiSourceBadge: morningSpark.source === "curated" ? "Curated Spark" : "AI Spark",
       streakTier: morningSpark.streakTier,
-      ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}`,
-      ctaText: "⚡ Open Interactive Routine & Focus Timer",
+      ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}${routineQueryDuration}`,
+      ctaText: `⚡ Open Interactive Routine & ${focusDuration}-Min Focus Timer`,
       checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}`,
       preferencesUrl: `${baseUrl}/user-dashboard`,
       trendingNews,

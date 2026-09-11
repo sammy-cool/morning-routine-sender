@@ -240,16 +240,26 @@ async function updateCoachPersona(req, res) {
   }
 }
 
-// PATCH /me  { templateType?, routineTrack?, cronPattern?, timezone?, isActive? }
+// PATCH /me  { templateType?, routineTrack?, cronPattern?, timezone?, isActive?, focusDurationMinutes?, customHabits? }
 async function updateMe(req, res) {
-  const { templateType, routineTrack, cronPattern, timezone, isActive } = req.body || {};
+  const {
+    templateType,
+    routineTrack,
+    cronPattern,
+    timezone,
+    isActive,
+    focusDurationMinutes,
+    customHabits,
+  } = req.body || {};
 
   if (
     templateType === undefined &&
     routineTrack === undefined &&
     cronPattern === undefined &&
     timezone === undefined &&
-    isActive === undefined
+    isActive === undefined &&
+    focusDurationMinutes === undefined &&
+    customHabits === undefined
   ) {
     return res.status(400).json({ error: "No fields provided to update" });
   }
@@ -258,6 +268,29 @@ async function updateMe(req, res) {
     { templateType, routineTrack, cronPattern, timezone },
     { requireEmail: false },
   );
+
+  if (focusDurationMinutes !== undefined) {
+    const parsedMins = Number(focusDurationMinutes);
+    if (!Number.isInteger(parsedMins) || parsedMins < 5 || parsedMins > 180) {
+      errors.push("focusDurationMinutes must be an integer between 5 and 180");
+    }
+  }
+
+  if (customHabits !== undefined) {
+    if (!Array.isArray(customHabits)) {
+      errors.push("customHabits must be an array of habit strings");
+    } else if (customHabits.length > 10) {
+      errors.push("customHabits cannot exceed 10 habit items");
+    } else {
+      for (const h of customHabits) {
+        if (typeof h !== "string" || !h.trim() || h.trim().length > 100) {
+          errors.push("Each custom habit must be a non-empty string under 100 characters");
+          break;
+        }
+      }
+    }
+  }
+
   if (errors.length > 0) {
     return res.status(400).json({ errors });
   }
@@ -268,6 +301,12 @@ async function updateMe(req, res) {
     if (routineTrack !== undefined) updates.routineTrack = routineTrack;
     if (cronPattern !== undefined) updates.cronPattern = cronPattern;
     if (timezone !== undefined) updates.timezone = timezone;
+    if (focusDurationMinutes !== undefined) {
+      updates.focusDurationMinutes = Number(focusDurationMinutes);
+    }
+    if (customHabits !== undefined) {
+      updates.customHabits = customHabits.map((h) => String(h).trim()).filter(Boolean);
+    }
 
     if (Object.keys(updates).length > 0) {
       await sharedData.updateUser(req.subscriberEmail, updates);

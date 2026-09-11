@@ -391,11 +391,54 @@ async function getUsers() {
   }
 }
 
+const userExtensionsCache = new Map();
+
+/**
+ * Retrieve dynamic subscriber extensions (custom habits, custom focus duration)
+ */
+async function getUserExtensions(email) {
+  if (!email) return {};
+  const cleanEmail = String(email).toLowerCase().trim();
+  if (userExtensionsCache.has(cleanEmail)) {
+    return userExtensionsCache.get(cleanEmail);
+  }
+  try {
+    const redis = require("../config/redisClient");
+    const raw = await redis.get(`subscriber:ext:${cleanEmail}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      userExtensionsCache.set(cleanEmail, parsed);
+      return parsed;
+    }
+  } catch (_err) {
+    // Redis unavailable fallback
+  }
+  return {};
+}
+
+/**
+ * Persist dynamic subscriber extensions
+ */
+async function saveUserExtensions(email, extensions) {
+  if (!email) return;
+  const cleanEmail = String(email).toLowerCase().trim();
+  const existing = await getUserExtensions(cleanEmail);
+  const updated = { ...existing, ...extensions };
+  userExtensionsCache.set(cleanEmail, updated);
+  try {
+    const redis = require("../config/redisClient");
+    await redis.set(`subscriber:ext:${cleanEmail}`, JSON.stringify(updated));
+  } catch (_err) {
+    // Redis unavailable fallback
+  }
+}
+
 /**
  * Get subscriber by email
  */
 async function getUserByEmail(email) {
   email = email?.toLowerCase().trim();
+  const ext = await getUserExtensions(email);
   try {
     const row = await db("subscribers")
       .where("email", email)
@@ -433,6 +476,9 @@ async function getUserByEmail(email) {
 
     return {
       ...row,
+      ...ext,
+      focusDurationMinutes: Number(ext.focusDurationMinutes) || 25,
+      customHabits: Array.isArray(ext.customHabits) ? ext.customHabits : [],
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: Number(row.streakCount) || 0,
       streakFreezes:
@@ -459,6 +505,9 @@ async function getUserByEmail(email) {
     if (!row) return null;
     return {
       ...row,
+      ...ext,
+      focusDurationMinutes: Number(ext.focusDurationMinutes) || 25,
+      customHabits: Array.isArray(ext.customHabits) ? ext.customHabits : [],
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: 0,
       streakFreezes: 2,
@@ -559,6 +608,15 @@ async function updateUser(email, updates) {
       typeof updates.freezeHistory === "string"
         ? updates.freezeHistory
         : JSON.stringify(updates.freezeHistory);
+  }
+
+  if (updates.focusDurationMinutes !== undefined || updates.customHabits !== undefined) {
+    await saveUserExtensions(email, {
+      ...(updates.focusDurationMinutes !== undefined
+        ? { focusDurationMinutes: Number(updates.focusDurationMinutes) }
+        : {}),
+      ...(updates.customHabits !== undefined ? { customHabits: updates.customHabits } : {}),
+    });
   }
 
   try {
@@ -826,4 +884,6 @@ module.exports = {
   updateUser,
   setUserActive,
   getAllUsers,
+  getUserExtensions,
+  saveUserExtensions,
 };

@@ -405,11 +405,19 @@ async function liveRoutine(req, res) {
     name: subscriber?.name || "",
   });
 
+  const activeHabits =
+    Array.isArray(subscriber?.customHabits) && subscriber.customHabits.length > 0
+      ? subscriber.customHabits
+      : trackContent.checklist || [];
+
+  const rawDuration = Number(req.query.duration) || Number(subscriber?.focusDurationMinutes) || 25;
+  const initialDurationMins = Math.max(5, Math.min(rawDuration, 180));
+
   const checkinHref = activeEmail
     ? "/checkin?email=" + encodeURIComponent(activeEmail) + "&token=" + (token || "")
     : "/user-dashboard";
 
-  const checklistHtml = trackContent.checklist
+  const checklistHtml = activeHabits
     .map(
       (item, idx) => `
           <label class="checklist-item" id="item-${idx}">
@@ -711,6 +719,27 @@ async function liveRoutine(req, res) {
       justify-content: center;
       gap: 10px;
     }
+    .duration-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 9999px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .duration-pill:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .duration-pill.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
     .btn {
       padding: 10px 20px;
       border-radius: 10px;
@@ -1007,8 +1036,17 @@ async function liveRoutine(req, res) {
 
       <!-- Focus Sprint Timer -->
       <div class="timer-card">
-        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">25-MINUTE FOCUS SPRINT TIMER</div>
-        <div class="timer-display" id="timerDisplay">25:00</div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; font-weight: 700; letter-spacing: 0.5px;">
+          ⏱️ <span id="sprintDurationLabel">${initialDurationMins}</span>-MINUTE FOCUS SPRINT TIMER
+        </div>
+        <div class="timer-presets" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+          <button type="button" class="duration-pill ${initialDurationMins === 15 ? "active" : ""}" onclick="setSprintDuration(15)">15m</button>
+          <button type="button" class="duration-pill ${initialDurationMins === 25 ? "active" : ""}" onclick="setSprintDuration(25)">25m</button>
+          <button type="button" class="duration-pill ${initialDurationMins === 45 ? "active" : ""}" onclick="setSprintDuration(45)">45m</button>
+          <button type="button" class="duration-pill ${initialDurationMins === 50 ? "active" : ""}" onclick="setSprintDuration(50)">50m</button>
+          <button type="button" class="duration-pill ${initialDurationMins === 60 ? "active" : ""}" onclick="setSprintDuration(60)">60m</button>
+        </div>
+        <div class="timer-display" id="timerDisplay">${String(initialDurationMins).padStart(2, "0")}:00</div>
         <div class="timer-controls">
           <button class="btn btn-start" id="startBtn" onclick="startTimer()">Start Sprint</button>
           <button class="btn btn-pause" id="pauseBtn" onclick="pauseTimer()" style="display:none;">Pause</button>
@@ -1189,7 +1227,8 @@ async function liveRoutine(req, res) {
       el.classList.toggle('done');
     }
 
-    let timeLeft = 25 * 60;
+    let durationMinutes = ${initialDurationMins};
+    let timeLeft = durationMinutes * 60;
     let timerInterval = null;
 
     function formatTime(seconds) {
@@ -1898,9 +1937,24 @@ async function liveRoutine(req, res) {
       document.getElementById('pauseBtn').style.display = 'none';
     }
 
+    function setSprintDuration(mins) {
+      pauseTimer();
+      durationMinutes = Math.max(5, Math.min(Number(mins) || 25, 180));
+      timeLeft = durationMinutes * 60;
+      document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+      const label = document.getElementById('sprintDurationLabel');
+      if (label) label.textContent = durationMinutes;
+      document.querySelectorAll('.duration-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.trim() === durationMinutes + 'm');
+      });
+      try {
+        localStorage.setItem('mrn_focus_duration', String(durationMinutes));
+      } catch (_e) {}
+    }
+
     function resetTimer() {
       pauseTimer();
-      timeLeft = 25 * 60;
+      timeLeft = durationMinutes * 60;
       document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
     }
 
@@ -2026,6 +2080,12 @@ async function liveRoutine(req, res) {
     // Auto-load journal on page load
     document.addEventListener('DOMContentLoaded', function () {
       loadTodayJournal();
+      try {
+        const savedDuration = parseInt(localStorage.getItem('mrn_focus_duration'), 10);
+        if (savedDuration && savedDuration >= 5 && savedDuration <= 180 && !window.location.search.includes('duration=')) {
+          setSprintDuration(savedDuration);
+        }
+      } catch (_e) {}
       if (window.AppBadging) {
         window.AppBadging.updateStreakBadge(${streakCount || 0});
       }

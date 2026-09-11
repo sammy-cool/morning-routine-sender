@@ -173,6 +173,13 @@ const CURATED_SPARK_MATRIX = {
         microAction: "Take 3 deep, slow breaths before touching any screen or notification.",
         focusMantra: "Turn obstacle into fuel.",
       },
+      {
+        sparkReflection:
+          "Begin each morning by telling yourself: today I will encounter the busybody, the ungrateful, the arrogant, the deceitful. I can be harmed by none because I know virtue.",
+        microAction:
+          "Set a calm boundary: commit to not reacting emotionally to the first unforeseen disruption today.",
+        focusMantra: "Anchor in composure.",
+      },
     ],
     "tier-3": [
       {
@@ -181,6 +188,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Write down 1 Stoic intention for how you will respond when interrupted today.",
         focusMantra: "Stillness amidst turbulence.",
+      },
+      {
+        sparkReflection:
+          "Three mornings of intentional living. Small habits compound quietly. Protect your inner citadel against mindless browsing.",
+        microAction:
+          "Dedicate your first 15 minutes exclusively to deep concentration before opening your communication channels.",
+        focusMantra: "Protect the citadel.",
       },
     ],
     "tier-7": [
@@ -191,6 +205,13 @@ const CURATED_SPARK_MATRIX = {
           "Perform a 60-second negative visualization (premeditatio malorum) to inoculate your mind against surprise disruptions.",
         focusMantra: "Unshakable internal citadel.",
       },
+      {
+        sparkReflection:
+          "Seven mornings of self-mastery. Freedom is the only worthy goal in life. It is won by disregarding things that lie beyond our control.",
+        microAction:
+          "List two things you spent energy worrying about this week that had zero bearing on your true virtue.",
+        focusMantra: "Sovereign over self.",
+      },
     ],
     "tier-14": [
       {
@@ -199,6 +220,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Review your morning priorities through the lens of timeless virtue: Wisdom, Courage, Justice, Moderation.",
         focusMantra: "Virtue is the sole good.",
+      },
+      {
+        sparkReflection:
+          "Fourteen days of steadfast resolve. Waste no more time arguing about what a good person should be. Be one.",
+        microAction:
+          "Take immediate action on an ethical duty or obligation you have been putting off.",
+        focusMantra: "Action over debate.",
       },
     ],
     "tier-30": [
@@ -209,6 +237,13 @@ const CURATED_SPARK_MATRIX = {
           "Pause for 2 minutes before starting your first major task and recommit to single-minded purpose.",
         focusMantra: "Master of my mind.",
       },
+      {
+        sparkReflection:
+          "A full month of philosophical resilience. You have shifted from reacting to life to responding with measured deliberate reason.",
+        microAction:
+          "Review your progress in your journal and acknowledge how far your emotional equanimity has developed.",
+        focusMantra: "Equanimity in all things.",
+      },
     ],
     "tier-60": [
       {
@@ -217,6 +252,13 @@ const CURATED_SPARK_MATRIX = {
         microAction: "Mentor or inspire one peer today with patient presence and calm judgment.",
         focusMantra: "Wisdom through equanimity.",
       },
+      {
+        sparkReflection:
+          "Sixty mornings of quiet grandeur. Like an emerald that retains its luster though left untrumpeted, your virtue speaks for itself.",
+        microAction:
+          "Execute your work today with excellence, seeking zero public acclaim or vanity praise.",
+        focusMantra: "Integrity in silence.",
+      },
     ],
     "tier-100": [
       {
@@ -224,6 +266,13 @@ const CURATED_SPARK_MATRIX = {
           "100+ Days of Stoic Century Mastery. You stand as a lighthouse in any storm, unmoving and serene.",
         microAction: "Reflect on how your reactions have transformed over the last 100 mornings.",
         focusMantra: "Eternal inner peace.",
+      },
+      {
+        sparkReflection:
+          "Century milestone reached. You have cultivated a temperament that welcomes whatever destiny offers with grace (Amor Fati).",
+        microAction:
+          "Write down three words that define your philosophy of life going forward into your next century.",
+        focusMantra: "Amor fati, eternal strength.",
       },
     ],
   },
@@ -243,6 +292,13 @@ const CURATED_SPARK_MATRIX = {
           "Identify the #1 task you've been procrastinating on and schedule it for your first 45 minutes.",
         focusMantra: "Attack the hardest first.",
       },
+      {
+        sparkReflection:
+          "Friction is your compass. Where you feel resistance is exactly where your breakthrough lies.",
+        microAction:
+          "Step straight into a cold shower or splash freezing water on your face right now.",
+        focusMantra: "Embrace the friction.",
+      },
     ],
     "tier-3": [
       {
@@ -251,6 +307,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Turn your phone on Do Not Disturb and lock in a 60-minute non-negotiable execution block.",
         focusMantra: "Discipline over emotion.",
+      },
+      {
+        sparkReflection:
+          "Three days in. Anyone can start on Monday with enthusiasm; champions execute when nobody is clapping.",
+        microAction:
+          "Clear your workspace of all clutter. Leave only your primary sprint objective visible.",
+        focusMantra: "Execute in obscurity.",
       },
     ],
     "tier-7": [
@@ -261,6 +324,13 @@ const CURATED_SPARK_MATRIX = {
           "Review today's goals and increase your output target on your top priority by 10%.",
         focusMantra: "Relentless forward pressure.",
       },
+      {
+        sparkReflection:
+          "One full week of dominance. Consistency is your weapon. Don't look back; accelerate through the finish line.",
+        microAction:
+          "Identify the biggest time-vampire from this week and ruthlessly cut it from your schedule.",
+        focusMantra: "Relentless elimination.",
+      },
     ],
     "tier-14": [
       {
@@ -269,6 +339,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Eliminate one comfortable distraction that has crept into your morning routine.",
         focusMantra: "Outwork your yesterday self.",
+      },
+      {
+        sparkReflection:
+          "Fourteen days of unrelenting execution. You are conditioning your mind to ignore self-doubt and demand results.",
+        microAction:
+          "Set a timer for a 45-minute sprint and maintain 100% velocity without taking your hands off the keyboard.",
+        focusMantra: "Sprint through walls.",
       },
     ],
     "tier-30": [
@@ -279,6 +356,13 @@ const CURATED_SPARK_MATRIX = {
           "Set a grueling sprint deliverable for this morning and execute without a single glance at social feeds.",
         focusMantra: "Unbreakable mental armor.",
       },
+      {
+        sparkReflection:
+          "A month of unyielding momentum. You don't hope for results; you execute with surgical precision until the mission is done.",
+        microAction:
+          "Identify an ambitious quarterly milestone and double down on the key lead metric starting today.",
+        focusMantra: "Extreme ownership.",
+      },
     ],
     "tier-60": [
       {
@@ -286,6 +370,13 @@ const CURATED_SPARK_MATRIX = {
           "60 days of absolute execution. You don't hope for results; you manufacture them through savage daily consistency.",
         microAction: "Tackle the most intimidating problem on your plate before lunch.",
         focusMantra: "Dominate the standard.",
+      },
+      {
+        sparkReflection:
+          "Sixty days of relentless performance. You are in the top 1% of consistency. Never let complacency infiltrate your perimeter.",
+        microAction:
+          "Do a 5-minute debrief of yesterday's bottleneck and permanently engineer it out of your workflow.",
+        focusMantra: "Never settle, keep hunting.",
       },
     ],
     "tier-100": [
@@ -295,6 +386,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Write down your next 100-day impossible goal and take the first step right now.",
         focusMantra: "Master of relentless grit.",
+      },
+      {
+        sparkReflection:
+          "Century of relentless fire. You have proven that discipline is not a momentary feeling, but an uncompromising lifestyle.",
+        microAction:
+          "Raise the bar on everything you touch today. Set the standard for everyone around you.",
+        focusMantra: "Unrivaled operational intensity.",
       },
     ],
   },
@@ -307,6 +405,13 @@ const CURATED_SPARK_MATRIX = {
           "Close your eyes and complete 5 cycles of mindful box breathing (4s in, 4s hold, 4s out, 4s hold).",
         focusMantra: "Present in this breath.",
       },
+      {
+        sparkReflection:
+          "When you walk, walk. When you eat, eat. Do not rush through the morning to reach an imaginary destination.",
+        microAction:
+          "Feel your feet firmly on the ground for 60 seconds, noticing the stability of the earth beneath you.",
+        focusMantra: "Rooted in stillness.",
+      },
     ],
     "tier-3": [
       {
@@ -316,6 +421,13 @@ const CURATED_SPARK_MATRIX = {
           "Drink your morning tea or coffee in complete silence without looking at any device.",
         focusMantra: "Mindful in every sip.",
       },
+      {
+        sparkReflection:
+          "Three mornings of conscious awareness. The river flows naturally without force. Move with ease, not friction.",
+        microAction:
+          "Soften your shoulders and release any tension held in your jaw before beginning your work.",
+        focusMantra: "Effortless flow.",
+      },
     ],
     "tier-7": [
       {
@@ -323,6 +435,13 @@ const CURATED_SPARK_MATRIX = {
           "7 days of mindful presence. Like still water that reflects the moon, a calm mind sees all things clearly.",
         microAction: "Take a 5-minute silent morning walk with gentle awareness of your senses.",
         focusMantra: "Stillness reflects clarity.",
+      },
+      {
+        sparkReflection:
+          "A full week of gentle consistency. You have learned that true strength is not frantic action, but serene presence.",
+        microAction:
+          "Pause before speaking or typing in your first interaction today and listen with complete presence.",
+        focusMantra: "Listen before responding.",
       },
     ],
     "tier-14": [
@@ -333,6 +452,13 @@ const CURATED_SPARK_MATRIX = {
           "Perform a 60-second mindful body scan, letting tension melt from your neck and shoulders.",
         focusMantra: "Calm within, clear without.",
       },
+      {
+        sparkReflection:
+          "Fourteen days of anchored peace. You are the sky; everything else is just passing weather.",
+        microAction:
+          "When a stressful thought arises today, acknowledge it gently like a passing cloud and let it drift by.",
+        focusMantra: "Spacious awareness.",
+      },
     ],
     "tier-30": [
       {
@@ -341,6 +467,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Approach your hardest challenge today with the fresh curiosity of beginner's mind (Shoshin).",
         focusMantra: "Fresh mind, boundless peace.",
+      },
+      {
+        sparkReflection:
+          "One month of mindful living. You have transformed routine into ritual, and morning into a temple of presence.",
+        microAction:
+          "Sit quietly for 3 full minutes with eyes closed before looking at your task list.",
+        focusMantra: "Quiet sanctuary within.",
       },
     ],
     "tier-60": [
@@ -351,6 +484,13 @@ const CURATED_SPARK_MATRIX = {
           "Pause before opening your inbox and set an intention of mindful presence for your communications.",
         focusMantra: "Unshakable inner calm.",
       },
+      {
+        sparkReflection:
+          "Sixty mornings of luminous awareness. Deep roots are never moved by the wind.",
+        microAction:
+          "Send a wave of unconditional compassion to someone in your life experiencing difficulty.",
+        focusMantra: "Deep roots, calm branches.",
+      },
     ],
     "tier-100": [
       {
@@ -358,6 +498,13 @@ const CURATED_SPARK_MATRIX = {
           "100+ Days of Zen Mastery. You embody living meditation in every action, word, and breath.",
         microAction: "Share a moment of unconditional gratitude with someone you value today.",
         focusMantra: "Master of Zen harmony.",
+      },
+      {
+        sparkReflection:
+          "Century of mindful presence. Every moment has become an open doorway to peace and timeless wisdom.",
+        microAction:
+          "Dedicate your actions today to the peace, clarity, and well-being of everyone you encounter.",
+        focusMantra: "Awakened in every step.",
       },
     ],
   },
@@ -370,6 +517,13 @@ const CURATED_SPARK_MATRIX = {
           "Close all Slack/Discord channels and open only the single repository/spec needed for your #1 ticket.",
         focusMantra: "Maximize signal, minimize noise.",
       },
+      {
+        sparkReflection:
+          "Good code solves the immediate requirement. Great engineering designs the system so the problem cannot occur again.",
+        microAction:
+          "Write down the single invariant your system must satisfy before beginning your implementation.",
+        focusMantra: "Solve the root cause.",
+      },
     ],
     "tier-3": [
       {
@@ -378,6 +532,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Write out the 3 core invariants for today's technical deliverable before writing implementation code.",
         focusMantra: "Design cleanly, execute fast.",
+      },
+      {
+        sparkReflection:
+          "Premature optimization is the root of all evil. Build the clean, modular baseline first; profile before tuning.",
+        microAction:
+          "Identify one complex branch or conditional in your recent work and plan a cleaner abstraction.",
+        focusMantra: "Measure before optimizing.",
       },
     ],
     "tier-7": [
@@ -388,6 +549,13 @@ const CURATED_SPARK_MATRIX = {
           "Audit your tech debt backlog and schedule 30 minutes to refactor one high-friction module.",
         focusMantra: "Compounding code craft.",
       },
+      {
+        sparkReflection:
+          "One week of disciplined development rituals. Clean architecture is not a luxury; it is the compounding velocity of the team.",
+        microAction:
+          "Add comprehensive integration test coverage to your most fragile code path today.",
+        focusMantra: "Test-driven confidence.",
+      },
     ],
     "tier-14": [
       {
@@ -396,6 +564,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Decline or delegate at least one synchronous status meeting that could be an asynchronous PR.",
         focusMantra: "Protect prime focus hours.",
+      },
+      {
+        sparkReflection:
+          "Fourteen days of systematic execution. Treat your personal time and cognitive bandwidth like high-availability compute.",
+        microAction:
+          "Turn off all browser badges and notifications during your morning deep work block.",
+        focusMantra: "Zero context switching.",
       },
     ],
     "tier-30": [
@@ -406,6 +581,13 @@ const CURATED_SPARK_MATRIX = {
           "Draft a 1-page architecture decision record (ADR) for your next major system improvement.",
         focusMantra: "Systematic high-leverage impact.",
       },
+      {
+        sparkReflection:
+          "One month of architectural leadership. You balance velocity with technical health, shipping robust code that endures.",
+        microAction:
+          "Identify an operational metric that could use an automated alerting threshold and implement it.",
+        focusMantra: "Build for resilience.",
+      },
     ],
     "tier-60": [
       {
@@ -415,6 +597,13 @@ const CURATED_SPARK_MATRIX = {
           "Automate or script one repetitive manual workflow that steals 10 minutes from your team daily.",
         focusMantra: "Automate friction away.",
       },
+      {
+        sparkReflection:
+          "Sixty days of engineering craft. The difference between an ordinary engineer and a principal architect is deliberate focus on compounding leverage.",
+        microAction:
+          "Share a concise architectural insight or design pattern with a junior colleague.",
+        focusMantra: "Multiply the team.",
+      },
     ],
     "tier-100": [
       {
@@ -423,6 +612,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Mentor an engineer on how you organize your mornings for uninterrupted deep flow state.",
         focusMantra: "Master of engineering leverage.",
+      },
+      {
+        sparkReflection:
+          "Century of staff-level discipline. You have engineered a life and routine that operates with near-zero friction and maximum throughput.",
+        microAction:
+          "Document your core engineering heuristics into an enduring personal manifesto.",
+        focusMantra: "Architect of compounding leverage.",
       },
     ],
   },
@@ -435,6 +631,13 @@ const CURATED_SPARK_MATRIX = {
           "Write down 3 things you are genuinely excited about creating or experiencing today.",
         focusMantra: "Rise with joy and purpose.",
       },
+      {
+        sparkReflection:
+          "Your attitude is your signature. Bring enthusiasm, curiosity, and high energy into everything you touch this morning.",
+        microAction:
+          "Stand tall, smile broadly, and express heartfelt gratitude for this fresh, brand-new day.",
+        focusMantra: "Spark vibrant energy.",
+      },
     ],
     "tier-3": [
       {
@@ -443,6 +646,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Step into the morning sunlight for 3 minutes and take 3 deep revitalizing breaths.",
         focusMantra: "Bright light, vibrant mind.",
+      },
+      {
+        sparkReflection:
+          "Three days of radiant positivity! Consistency is the soil in which your biggest dreams blossom into reality.",
+        microAction:
+          "Play an uplifting instrumental song that charges you with motivation and joy.",
+        focusMantra: "Vibrant momentum.",
       },
     ],
     "tier-7": [
@@ -453,6 +663,13 @@ const CURATED_SPARK_MATRIX = {
           "Send a genuine 1-sentence note of encouragement or appreciation to a teammate or loved one.",
         focusMantra: "Radiate positive power.",
       },
+      {
+        sparkReflection:
+          "Seven mornings of unstoppable sunshine. When you choose optimism, doors swing open and solutions appear.",
+        microAction:
+          "Celebrate your 7-day milestone by treating yourself to your favorite morning fruit or drink.",
+        focusMantra: "Celebrate every win.",
+      },
     ],
     "tier-14": [
       {
@@ -461,6 +678,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Celebrate your consistency with a proud victory fist pump and your favorite morning music.",
         focusMantra: "Unstoppable daily joy.",
+      },
+      {
+        sparkReflection:
+          "Fourteen days of genuine optimism. You don't just react to the weather; you bring your own sunshine wherever you go.",
+        microAction:
+          "Reframe a challenge you've been dreading into an exciting opportunity to showcase your creativity.",
+        focusMantra: "Bring the sunshine.",
       },
     ],
     "tier-30": [
@@ -471,6 +695,12 @@ const CURATED_SPARK_MATRIX = {
           "Plan an energizing reward or healthy celebration for reaching your 30-day streak!",
         focusMantra: "Gratitude unlocks abundance.",
       },
+      {
+        sparkReflection:
+          "A full month of radiant momentum. Your optimistic spirit is not a facade—it is an unshakable reservoir of resilience and joy.",
+        microAction: "List 5 unexpected blessings that arrived over your past 30 mornings.",
+        focusMantra: "Abundance in all moments.",
+      },
     ],
     "tier-60": [
       {
@@ -480,6 +710,12 @@ const CURATED_SPARK_MATRIX = {
           "Turn one minor annoyance from yesterday into an opportunity for growth and laughter today.",
         focusMantra: "Every obstacle is opportunity.",
       },
+      {
+        sparkReflection:
+          "Sixty mornings of contagious joy! You inspire everyone around you simply by being an unwavering beacon of optimism.",
+        microAction: "Make someone laugh or smile unexpectedly during your morning conversations.",
+        focusMantra: "Beacon of joy.",
+      },
     ],
     "tier-100": [
       {
@@ -488,6 +724,13 @@ const CURATED_SPARK_MATRIX = {
         microAction:
           "Look in the mirror, celebrate your 100-day transformation, and step boldly into the day with a smile!",
         focusMantra: "Master of radiant energy.",
+      },
+      {
+        sparkReflection:
+          "Century of radiant light! You have demonstrated that a joyful, grateful, and determined heart can conquer any mountain.",
+        microAction:
+          "Write a letter of gratitude to yourself for honoring your potential for 100 consecutive mornings.",
+        focusMantra: "Eternal fountain of joy.",
       },
     ],
   },
