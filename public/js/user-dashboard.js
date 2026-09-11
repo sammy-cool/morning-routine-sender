@@ -809,6 +809,17 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             if (typeof globalThis.checkAndTriggerMilestoneCelebration === "function") {
               globalThis.checkAndTriggerMilestoneCelebration(finalStreak);
             }
+
+            // Refresh accountability squad, habit analytics, and daily briefing
+            if (typeof loadAccountabilitySquad === "function") {
+              loadAccountabilitySquad();
+            }
+            if (typeof loadHabitAnalytics === "function") {
+              loadHabitAnalytics();
+            }
+            if (typeof loadDailyBriefing === "function") {
+              loadDailyBriefing();
+            }
           } else {
             // Rollback optimistic state gracefully
             showToast(
@@ -1033,6 +1044,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
               origin: { y: 0.6 },
               colors: ["#6366f1", "#10b981", "#f59e0b"],
             });
+          }
+
+          // Refresh habit analytics with new journal entry
+          if (typeof loadHabitAnalytics === "function") {
+            loadHabitAnalytics();
           }
         } else {
           showToast(data.error || "Failed to save reflection.", "warn");

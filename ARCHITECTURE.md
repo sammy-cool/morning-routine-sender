@@ -180,6 +180,8 @@ The database layer utilizes **PostgreSQL** with **Knex.js** migrations:
 | `20260829010000_add_channels_to_subscribers.js`          | Adds `discord_webhook_url`, `telegram_chat_id`, `channels_enabled`                       |
 | `20260829020000_add_coach_persona_to_subscribers.js`     | Adds `coach_persona` (stoic, relentless, zen, tech-lead, optimist)                       |
 | `20260829030000_add_outbound_webhooks_to_subscribers.js` | Adds `webhook_endpoint_url`, `webhook_secret`, `webhook_enabled`                         |
+| `20260831000000_add_streak_freezes_to_subscribers.js`    | Adds `streak_freezes`, `freeze_history`                                                  |
+| `20260912000000_create_accountability_squads_tables.js`  | Creates `accountability_squads` and `squad_members` tables with cascade deletion         |
 
 ---
 
@@ -193,7 +195,7 @@ The database layer utilizes **PostgreSQL** with **Knex.js** migrations:
    - `/login` and `/subscribe` always return consistent timing-safe success responses regardless of whether the email is present in the database.
 
 3. **Stateless HMAC Action Tokens**:
-   - Unsubscribe links (`/unsubscribe?email=...&token=...`) use stateless HMAC-SHA256 signatures verified with `crypto.timingSafeEqual()`.
+   - Unsubscribe links (`/unsubscribe?email=...&token=...`) and push check-in actions use stateless HMAC-SHA256 signatures verified with `crypto.timingSafeEqual()`.
 
 4. **Anti-Spam Honeypot Defenses**:
    - `middleware/honeypot.js` monitors hidden form fields (`website`, `hp_username`) and silently drops automated bot submissions.
@@ -205,9 +207,12 @@ The database layer utilizes **PostgreSQL** with **Knex.js** migrations:
 All unit and integration tests live in `__tests__/`:
 
 - **Fast, Isolated, Zero-Dependency**: External networks, SMTP servers, AI LLMs, and Redis are completely mocked with deterministic stubs.
-- **34 Test Suites (211/211 Passing)**:
-  - Database schema and migration rollback consistency.
+- **61 Test Suites (763/763 Passing)**:
+  - Database schema and symmetric migration rollback consistency across all 12 migrations.
   - SWR caching, haptics, Web Audio, and keyboard hotkey dispatching (`ux.core.test.js`).
+  - Accountability squads lifecycle & peer streaks (`squad.lifecycle.test.js`).
+  - Habit analytics & morning audio briefings (`analytics.briefing.test.js`).
+  - Web push action buttons & Schema.org email markup (`push.actions.schema.test.js`).
   - Multi-channel notification delivery (Discord embeds, Telegram bot API).
   - Outbound webhook HMAC signature validation.
   - Sunday weekly digest compilation & scheduler de-duplication.

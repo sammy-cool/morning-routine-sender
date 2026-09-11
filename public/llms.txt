@@ -14,6 +14,9 @@ Morning Routine Sender delivers personalized, high-signal morning rituals direct
   4. *Lifelong Learner*: Mental models, active recall principles, and book insights.
   5. *Morning Energizer*: Affirmations, hydration prompts, and morning momentum.
 - **Habit Streak & Focus Companion**: 1-click email check-in tracking with instant live web timer and procedural Web Audio ambient focus soundscapes (Rain & Storm, Ocean Waves, 40Hz Binaural Beats, Deep Flow Tone).
+- **Accountability Squads & Peer Streaks**: Collaborative habit squads (up to 5 peers) with unique invite codes, collective aggregate streaks, and real-time team accountability.
+- **Deep Habit Analytics & Audio Briefings**: 7d/30d completion metrics, time-of-day peak energy windows, and persona-tailored morning audio briefings.
+- **Rich Push Notification Actions**: 1-click lock screen check-ins, routine launchers, and 15-minute snoozes via Service Worker.
 - **Privacy & Security**: Zero tracking pixels, passwordless magic links, instant self-service preference management, and RFC-compliant 1-click unsubscribe.
 
 ## Public Endpoints & Resources

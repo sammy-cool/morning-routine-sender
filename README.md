@@ -4,16 +4,26 @@
 [![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Knex-336791?style=flat-square&logo=postgresql&logoColor=white)](https://knexjs.org)
 [![Redis](https://img.shields.io/badge/Redis-ioredis-dc382d?style=flat-square&logo=redis&logoColor=white)](https://redis.io)
-[![Tests](https://img.shields.io/badge/Tests-211%2F211%20Passing-10b981?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io)
+[![Tests](https://img.shields.io/badge/Tests-763%2F763%20Passing-10b981?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io)
 [![Version](https://img.shields.io/badge/Version-v2.2.0-6366f1?style=flat-square)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-6366f1?style=flat-square)](./LICENSE)
 
-An enterprise-ready **Node.js/Express** automation platform that dispatches personalized, responsive morning routine emails (powered by **MJML**, daily motivation quotes, and curated tech news) on custom cron schedules. Equipped with a next-gen **Obsidian Glassmorphism Admin Command Center (`/admin-dashboard`)**, a passwordless **Subscriber Magic-Link Portal (`/user-dashboard`)**, **SWR Caching & Optimistic UI**, **Procedural Web Audio synthesis**, **Mobile Haptic Feedback**, **365-Day Activity Heatmaps**, **AI Morning Coach Personas**, **Outbound Automation Webhooks**, **Dynamic SVG Streak Share Cards**, **Sunday Weekly Digests**, and a high-performance **Winston Telemetry Logger**.
+An enterprise-ready **Node.js/Express** automation platform that dispatches personalized, responsive morning routine emails (powered by **MJML**, daily motivation quotes, and curated tech news) on custom cron schedules. Equipped with a next-gen **Obsidian Glassmorphism Admin Command Center (`/admin-dashboard`)**, a passwordless **Subscriber Magic-Link Portal (`/user-dashboard`)**, **SWR Caching & Optimistic UI**, **Accountability Squads & Peer Streaks**, **AI Morning Audio Briefings**, **Deep Habit Analytics**, **Procedural Web Audio synthesis**, **Mobile Haptic Feedback**, **365-Day Activity Heatmaps**, **AI Morning Coach Personas**, **Outbound Automation Webhooks**, **Dynamic SVG Streak Share Cards**, **Sunday Weekly Digests**, and a high-performance **Winston Telemetry Logger**.
 
 ---
 
 ## ⚡ Key Features
 
+- 👥 **Accountability Squads & Peer Streaks**:
+  - Form peer squads (up to 5 members), generate unique invite codes (`SQUAD-XXXX`), track collective aggregate streaks, and review live peer check-in status.
+- 📈 **Deep Habit Analytics & Time-of-Day Insights**:
+  - 7-day and 30-day consistency percentage calculations, 4-week day-of-week breakdown, and peak energy time-of-day distribution buckets (Early Morning, Core Morning, Afternoon, Evening).
+- 🎙️ **AI Morning Audio Briefing Service**:
+  - Dynamic audio briefings generated with persona-tailored speech directives (Stoic Sage, High-Performance Coach, Monk, Ruthless Leader, Visionary Strategist) and browser SpeechSynthesis narration.
+- 🔔 **Rich Push Notification Actions & Lock-Screen Check-In**:
+  - Web Push notifications with interactive actions (`🔥 Check-in Now`, `⚡ Start Ritual`, `⏰ Snooze 15m`) and Service Worker background 1-click execution.
+- ✉️ **Gmail & Schema.org 1-Click Interactive Markup**:
+  - Injected Schema.org JSON-LD `EmailMessage` interactive action markup enabling 1-click check-ins straight from Gmail inbox lists.
 - ⚡ **Next-Gen Client UX Engine (`UXCore`)**:
   - **SWR (Stale-While-Revalidate) Caching**: `<10ms` instant page renders for subscriber profiles, 365-day heatmaps, and journal notes.
   - **Optimistic UI Updates**: Instant streak increment and reflection status indicators with resilient auto-rollback.
