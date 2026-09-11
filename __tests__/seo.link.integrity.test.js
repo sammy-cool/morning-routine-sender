@@ -21,6 +21,7 @@ describe("🔍 SEO, Social Metadata, Discovery & Link Integrity Suite", () => {
   describe("1. Static Asset File Integrity", () => {
     const requiredFiles = [
       "public/assets/logo.svg",
+      "public/assets/logo.png",
       "public/assets/mrn-brand-ico.png",
       "public/assets/screenshot-desktop.png",
       "public/assets/screenshot-mobile.png",
@@ -31,6 +32,7 @@ describe("🔍 SEO, Social Metadata, Discovery & Link Integrity Suite", () => {
       "public/llms.txt",
       "public/llms-full.txt",
       "public/css/loader.css",
+      "public/css/responsive-layout.css",
       "public/js/landing-page-modal.js",
       "public/js/subscriber-login.js",
       "public/js/subscriber-signup.js",

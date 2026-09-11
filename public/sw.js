@@ -1,18 +1,23 @@
-const CACHE_VERSION = "v4.4.0";
+const CACHE_VERSION = "v4.5.0";
 const CACHE_NAME = `mrn-pwa-${CACHE_VERSION}`;
 
 // STATIC ASSETS ONLY (NO HTML, NO AUTH, NO SUBSCRIBER DATA)
 const STATIC_ASSETS = [
   "/favicon.ico",
   "/manifest.json",
-  "/css/loader.css",
+  "/assets/logo.svg",
+  "/assets/logo.png",
   "/assets/mrn-brand-ico.png",
   "/assets/screenshot-desktop.png",
   "/assets/screenshot-mobile.png",
+  "/css/loader.css",
+  "/css/responsive-layout.css",
   "/offline",
   "/js/offline-sync.js",
   "/js/app-badging.js",
   "/js/ux-core.js",
+  "/llms.txt",
+  "/llms-full.txt",
 ];
 
 // External CDN vendor libs to cache
