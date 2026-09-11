@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.9.0] - 2026-09-11
+
+### 🚀 Vector Favicon Brand Transformation, Universal Smooth Scrolling & Unified Cross-Device Responsive Layout
+
+- **Vector SVG Logo & High-Resolution PWA Brand Assets**:
+  - Transformed `public/favicon.ico` into an official scalable vector SVG logo ([`public/assets/logo.svg`](file:///home/smarty/projects/morning-routine-sender/public/assets/logo.svg)) with exact pixel geometry, Cyan (`#30e8ff`) to Electric Indigo (`#6366f1`) vertical gradient aura, and midnight obsidian squircle frame.
+  - Resampled `favicon.ico` via pure Node.js bicubic super-sampling into high-res 512×512 PNG ([`public/assets/mrn-brand-ico.png`](file:///home/smarty/projects/morning-routine-sender/public/assets/mrn-brand-ico.png) and `public/assets/logo.png`) for PWA manifest, iOS Apple Touch Icon, Android launcher, and Web Push notifications.
+  - Upgraded [`scripts/generate-pwa-assets.js`](file:///home/smarty/projects/morning-routine-sender/scripts/generate-pwa-assets.js) with `generateLogoSvg()` and enhanced `generateBrandIcon()`.
+  - Added SVG vector icon support to [`public/manifest.json`](file:///home/smarty/projects/morning-routine-sender/public/manifest.json).
+
+- **Universal Smooth Scrolling & Momentum Touch Physics Across Scenarios**:
+  - Enforced root-level `scroll-behavior: smooth` on both `html` and `body` with `scroll-padding-top: 5rem` to prevent sticky navigation bar overlap when jumping to anchor sections.
+  - Added responsive mobile dock clearance (`scroll-padding-bottom: 6rem` on `<= 768px`) ensuring bottom floating action docks never obscure focused inputs or scrolled anchor sections.
+  - Added momentum touch physics (`-webkit-overflow-scrolling: touch`) and overscroll containment (`overscroll-behavior: contain`) to prevent scroll chaining on tables, heatmaps, and bottom sheets.
+  - Added `UXCore.scroll` engine (`init()`, `to()`, `top()`) in [`public/js/ux-core.js`](file:///home/smarty/projects/morning-routine-sender/public/js/ux-core.js) with universal anchor click interceptor (`a[href^="#"]`) and reduced-motion accessibility support.
+
+- **Unified Responsive Design System Across All 8 Surfaces**:
+  - Standardized modern obsidian glassmorphic aesthetic (`#06080e`, `backdrop-filter: blur(16px)`), fluid clamp typography, tactile touch buttons (min 44×44px), and native slide-up bottom sheets (`.modal-bottom-sheet`).
+  - Cohesive visual hierarchy across `main-index.html`, `user-dashboard.html`, `about.html`, `offline.html`, `admin-dashboard.html`, `/routine`, `/checkin`, `/streak/:handleOrEmail`.
+  - Enforced `16px` font size on all input fields to permanently eliminate iOS Safari's disruptive auto-zooming bug, combined with dynamic viewport units (`100dvh`).
+
+- **Interactive Push Action Buttons & Schema.org Email Markup**:
+  - Web Push Notification action buttons: 1-click habit check-in, snooze, and focus routine launcher.
+  - Schema.org `OneClickCheckinAction` markup in daily routine emails for interactive ESP inbox check-ins (Gmail, Apple Mail).
+
+- **Accountability Squads & Social Consistency Pods**:
+  - Multi-tenant accountability squads (`/squads/*`), squad leaderboards, privacy controls, and team streak multipliers.
+
+- **Habit Analytics & AI Voice Audio Briefing**:
+  - Habit consistency scorecard and streak analytics (`/me/analytics`).
+  - Curated morning audio briefing generator and Web Speech player (`/me/briefing`).
+
+- **Complete Test Matrix & Quality Gates**:
+  - **All 61 test suites passed with 767/767 tests passing (100%)**.
+  - Zero ESLint errors or warnings (`npm run lint`).
+  - 100% Prettier formatting compliance (`npm run format:check`).
+  - AST syntax validation passed across all JavaScript files.
+
+---
+
 ## [2.8.0] - 2026-09-11
 
 ### 🌟 Universal Cross-Platform Layout, Pomodoro Companion, iCal Sync, Offline PWA & Enhanced Toast System
