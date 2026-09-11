@@ -727,6 +727,68 @@ async function liveRoutine(req, res) {
       padding: 24px;
       margin-bottom: 24px;
       border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    .timer-card:fullscreen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #050608;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      border-radius: 0;
+      padding: 32px;
+    }
+    .timer-card:fullscreen .timer-display {
+      font-size: clamp(64px, 14vw, 150px);
+      margin-bottom: 24px;
+    }
+    .timer-card:fullscreen .timer-progress-track {
+      max-width: 500px;
+      height: 8px;
+    }
+    .timer-mode-group {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+    .timer-mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      border-radius: 9999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .timer-mode-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+    .timer-progress-track {
+      width: 100%;
+      max-width: 320px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      margin: 0 auto 16px auto;
+      overflow: hidden;
+    }
+    .timer-progress-fill {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--emerald));
+      border-radius: 9999px;
+      transition: width 0.3s ease;
     }
     .timer-display {
       font-family: 'JetBrains Mono', monospace;
@@ -774,6 +836,25 @@ async function liveRoutine(req, res) {
     .btn-start { background: var(--emerald); color: #fff; }
     .btn-pause { background: var(--amber); color: #fff; }
     .btn-reset { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .btn-fullscreen {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    .btn-fullscreen:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+    .binaural-layer-box {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: left;
+    }
     .btn-checkin {
       width: 100%;
       padding: 16px;
@@ -1057,22 +1138,43 @@ async function liveRoutine(req, res) {
       </div>
 
       <!-- Focus Sprint Timer -->
-      <div class="timer-card">
-        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; font-weight: 700; letter-spacing: 0.5px;">
-          ⏱️ <span id="sprintDurationLabel">${initialDurationMins}</span>-MINUTE FOCUS SPRINT TIMER
+      <div class="timer-card" id="focusTimerCard">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div style="font-size: 13px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">
+            ⏱️ <span id="sprintDurationLabel">${initialDurationMins}</span>-MINUTE FOCUS SPRINT TIMER
+          </div>
+          <button type="button" class="btn btn-fullscreen" id="fullscreenToggleBtn" onclick="toggleFullscreen()" title="Fullscreen Focus Mode (F)" aria-label="Toggle Fullscreen Focus">
+            <span id="fullscreenIcon">⛶</span> Fullscreen
+          </button>
         </div>
-        <div class="timer-presets" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+
+        <div class="timer-mode-group" role="tablist" aria-label="Timer modes">
+          <button type="button" class="timer-mode-btn active" id="modeFocusBtn" onclick="setTimerMode('focus')">🎯 Focus</button>
+          <button type="button" class="timer-mode-btn" id="modeShortBreakBtn" onclick="setTimerMode('short-break')">☕ Short Break (5m)</button>
+          <button type="button" class="timer-mode-btn" id="modeLongBreakBtn" onclick="setTimerMode('long-break')">🧘 Long Break (15m)</button>
+        </div>
+
+        <div class="timer-presets" id="timerPresetsRow" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
           <button type="button" class="duration-pill ${initialDurationMins === 15 ? "active" : ""}" onclick="setSprintDuration(15)">15m</button>
           <button type="button" class="duration-pill ${initialDurationMins === 25 ? "active" : ""}" onclick="setSprintDuration(25)">25m</button>
           <button type="button" class="duration-pill ${initialDurationMins === 45 ? "active" : ""}" onclick="setSprintDuration(45)">45m</button>
           <button type="button" class="duration-pill ${initialDurationMins === 50 ? "active" : ""}" onclick="setSprintDuration(50)">50m</button>
           <button type="button" class="duration-pill ${initialDurationMins === 60 ? "active" : ""}" onclick="setSprintDuration(60)">60m</button>
         </div>
+
         <div class="timer-display" id="timerDisplay">${String(initialDurationMins).padStart(2, "0")}:00</div>
+
+        <div class="timer-progress-track">
+          <div class="timer-progress-fill" id="timerProgressFill"></div>
+        </div>
+
         <div class="timer-controls">
           <button class="btn btn-start" id="startBtn" onclick="startTimer()">Start Sprint</button>
           <button class="btn btn-pause" id="pauseBtn" onclick="pauseTimer()" style="display:none;">Pause</button>
           <button class="btn btn-reset" onclick="resetTimer()">Reset</button>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 12px; opacity: 0.7;">
+          Hotkeys: <kbd style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">Space</kbd> Start/Pause • <kbd style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">R</kbd> Reset • <kbd style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">M</kbd> Mute • <kbd style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">F</kbd> Fullscreen
         </div>
       </div>
 
@@ -1166,6 +1268,21 @@ async function liveRoutine(req, res) {
           <input type="checkbox" id="autoStartSound" checked>
           <span>Auto-start ambient soundscape when 25-min sprint timer starts</span>
         </label>
+
+        <div class="binaural-layer-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #cbd5e1; cursor: pointer;">
+              <input type="checkbox" id="binauralOverlayToggle" onchange="toggleBinauralOverlay()">
+              <span>🧠 Layer Binaural Beats with Soundscape</span>
+            </label>
+            <select id="binauralBeatSelect" onchange="updateBinauralFrequency()" style="background: #0f1423; color: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 12px; outline: none;">
+              <option value="40">40Hz Gamma (Deep Flow & Focus)</option>
+              <option value="18">18Hz Beta (Active Problem Solving)</option>
+              <option value="10" selected>10Hz Alpha (Relaxed Alertness)</option>
+              <option value="6">6Hz Theta (Creative Meditation)</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- Daily Reflection & Morning Journal Card -->
@@ -1249,14 +1366,24 @@ async function liveRoutine(req, res) {
       el.classList.toggle('done');
     }
 
+    let timerMode = 'focus';
     let durationMinutes = ${initialDurationMins};
-    let timeLeft = durationMinutes * 60;
+    let totalDurationSeconds = durationMinutes * 60;
+    let timeLeft = totalDurationSeconds;
     let timerInterval = null;
 
     function formatTime(seconds) {
       const m = Math.floor(seconds / 60).toString().padStart(2, '0');
       const s = (seconds % 60).toString().padStart(2, '0');
       return m + ':' + s;
+    }
+
+    function updateProgressBar() {
+      const fill = document.getElementById('timerProgressFill');
+      if (fill && totalDurationSeconds > 0) {
+        const pct = Math.max(0, Math.min(100, (timeLeft / totalDurationSeconds) * 100));
+        fill.style.width = pct + '%';
+      }
     }
 
     // --- Web Audio Ambient Soundscape Generator Engine ---
@@ -1822,7 +1949,83 @@ async function liveRoutine(req, res) {
 
     const PRESETS = ['rain', 'waves', 'binaural', 'flow', 'theta', 'cafe', 'forest'];
 
+    let binauralActiveNodes = [];
+    let isBinauralOverlayActive = false;
+
+    function buildBinauralLayer(ctx, outNode, hz = 10) {
+      const layerMaster = ctx.createGain();
+      layerMaster.gain.setValueAtTime(0.001, ctx.currentTime);
+      layerMaster.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.3);
+      layerMaster.connect(outNode);
+
+      const carrier = 200;
+      const leftOsc = ctx.createOscillator();
+      leftOsc.type = 'sine';
+      leftOsc.frequency.setValueAtTime(carrier, ctx.currentTime);
+
+      const rightOsc = ctx.createOscillator();
+      rightOsc.type = 'sine';
+      rightOsc.frequency.setValueAtTime(carrier + hz, ctx.currentTime);
+
+      const pannerLeft = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      if (pannerLeft) {
+        pannerLeft.pan.setValueAtTime(-0.8, ctx.currentTime);
+        leftOsc.connect(pannerLeft);
+        pannerLeft.connect(layerMaster);
+      } else {
+        leftOsc.connect(layerMaster);
+      }
+
+      const pannerRight = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      if (pannerRight) {
+        pannerRight.pan.setValueAtTime(0.8, ctx.currentTime);
+        rightOsc.connect(pannerRight);
+        pannerRight.connect(layerMaster);
+      } else {
+        rightOsc.connect(layerMaster);
+      }
+
+      leftOsc.start();
+      rightOsc.start();
+      return [leftOsc, rightOsc, layerMaster];
+    }
+
+    function stopBinauralLayer() {
+      if (binauralActiveNodes.length === 0) return;
+      const nodes = [...binauralActiveNodes];
+      binauralActiveNodes = [];
+      nodes.forEach(n => {
+        try { if (n.stop) n.stop(); if (n.disconnect) n.disconnect(); } catch(_e) {}
+      });
+    }
+
+    function toggleBinauralOverlay() {
+      const toggle = document.getElementById('binauralOverlayToggle');
+      if (!toggle) return;
+      const ctx = getAudioContext();
+      if (toggle.checked) {
+        const select = document.getElementById('binauralBeatSelect');
+        const hz = Number(select?.value) || 10;
+        stopBinauralLayer();
+        binauralActiveNodes = buildBinauralLayer(ctx, masterGainNode, hz);
+        isBinauralOverlayActive = true;
+      } else {
+        stopBinauralLayer();
+        isBinauralOverlayActive = false;
+      }
+    }
+
+    function updateBinauralFrequency() {
+      if (!isBinauralOverlayActive) return;
+      toggleBinauralOverlay();
+    }
+
     function stopSoundNodes(duration = 0.15) {
+      stopBinauralLayer();
+      const toggle = document.getElementById('binauralOverlayToggle');
+      if (toggle) toggle.checked = false;
+      isBinauralOverlayActive = false;
+
       if (activeNodes.length === 0) return;
       const nodes = [...activeNodes];
       activeNodes = [];
@@ -1905,6 +2108,11 @@ async function liveRoutine(req, res) {
       }
     }
 
+    function updateTimerDisplay() {
+      document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+      updateProgressBar();
+    }
+
     function startTimer() {
       if (timerInterval) return;
       document.getElementById('startBtn').style.display = 'none';
@@ -1918,7 +2126,7 @@ async function liveRoutine(req, res) {
       timerInterval = setInterval(() => {
         if (timeLeft > 0) {
           timeLeft--;
-          document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+          updateTimerDisplay();
         } else {
           clearInterval(timerInterval);
           timerInterval = null;
@@ -1928,8 +2136,11 @@ async function liveRoutine(req, res) {
             updateSoundUI();
           }
           if (typeof customizableToast !== "undefined" && typeof customizableToast.createToast === "function") {
+            const isBreak = timerMode.includes('break');
             customizableToast.createToast({
-              message: "🎉 <b>Focus sprint completed!</b> Great job maintaining morning momentum.",
+              message: isBreak
+                ? "☕ <b>Break completed!</b> Ready to dive back into deep work?"
+                : "🎉 <b>Focus sprint completed!</b> Great job maintaining morning momentum.",
               type: "success",
               allowHtml: true,
               showProgressBar: true,
@@ -1959,16 +2170,54 @@ async function liveRoutine(req, res) {
       document.getElementById('pauseBtn').style.display = 'none';
     }
 
+    function setTimerMode(mode) {
+      pauseTimer();
+      timerMode = mode;
+      const presetsRow = document.getElementById('timerPresetsRow');
+      const label = document.getElementById('sprintDurationLabel');
+
+      document.querySelectorAll('.timer-mode-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(
+        mode === 'focus' ? 'modeFocusBtn' : mode === 'short-break' ? 'modeShortBreakBtn' : 'modeLongBreakBtn'
+      );
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (mode === 'focus') {
+        if (presetsRow) presetsRow.style.display = 'flex';
+        totalDurationSeconds = durationMinutes * 60;
+        timeLeft = totalDurationSeconds;
+        if (label) label.textContent = durationMinutes;
+      } else if (mode === 'short-break') {
+        if (presetsRow) presetsRow.style.display = 'none';
+        totalDurationSeconds = 5 * 60;
+        timeLeft = totalDurationSeconds;
+        if (label) label.textContent = '5';
+      } else if (mode === 'long-break') {
+        if (presetsRow) presetsRow.style.display = 'none';
+        totalDurationSeconds = 15 * 60;
+        timeLeft = totalDurationSeconds;
+        if (label) label.textContent = '15';
+      }
+      updateTimerDisplay();
+    }
+
     function setSprintDuration(mins) {
       pauseTimer();
+      timerMode = 'focus';
+      document.querySelectorAll('.timer-mode-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('modeFocusBtn')?.classList.add('active');
+      const presetsRow = document.getElementById('timerPresetsRow');
+      if (presetsRow) presetsRow.style.display = 'flex';
+
       durationMinutes = Math.max(5, Math.min(Number(mins) || 25, 180));
-      timeLeft = durationMinutes * 60;
-      document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+      totalDurationSeconds = durationMinutes * 60;
+      timeLeft = totalDurationSeconds;
       const label = document.getElementById('sprintDurationLabel');
       if (label) label.textContent = durationMinutes;
       document.querySelectorAll('.duration-pill').forEach(btn => {
         btn.classList.toggle('active', btn.textContent.trim() === durationMinutes + 'm');
       });
+      updateTimerDisplay();
       try {
         localStorage.setItem('mrn_focus_duration', String(durationMinutes));
       } catch (_e) {}
@@ -1976,9 +2225,44 @@ async function liveRoutine(req, res) {
 
     function resetTimer() {
       pauseTimer();
-      timeLeft = durationMinutes * 60;
-      document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+      timeLeft = totalDurationSeconds;
+      updateTimerDisplay();
     }
+
+    function toggleFullscreen() {
+      const card = document.getElementById('focusTimerCard');
+      if (!card) return;
+      if (!document.fullscreenElement) {
+        if (card.requestFullscreen) {
+          card.requestFullscreen().catch(() => {});
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      const isFs = !!document.fullscreenElement;
+      const fsIcon = document.getElementById('fullscreenIcon');
+      if (fsIcon) fsIcon.textContent = isFs ? '✕' : '⛶';
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (timerInterval) pauseTimer();
+        else startTimer();
+      } else if (e.key === 'r' || e.key === 'R') {
+        resetTimer();
+      } else if (e.key === 'm' || e.key === 'M') {
+        toggleSound();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
 
     // --- Morning Mindset & Journaling State Manager ---
     let selectedMoodScore = 5;

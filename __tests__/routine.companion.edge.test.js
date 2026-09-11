@@ -105,4 +105,17 @@ describe("Live Routine Companion Edge Cases (/routine)", () => {
     expect(res.text).toContain("Deep Flow Tone");
     expect(res.text).toContain("AudioContext");
   });
+
+  test("renders enhanced timer controls: modes, progress bar, fullscreen toggle, and binaural overlay", async () => {
+    const res = await request(app).get("/routine");
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('id="focusTimerCard"');
+    expect(res.text).toContain('id="modeFocusBtn"');
+    expect(res.text).toContain('id="modeShortBreakBtn"');
+    expect(res.text).toContain('id="modeLongBreakBtn"');
+    expect(res.text).toContain('id="fullscreenToggleBtn"');
+    expect(res.text).toContain('id="timerProgressFill"');
+    expect(res.text).toContain('id="binauralOverlayToggle"');
+    expect(res.text).toContain('id="binauralBeatSelect"');
+  });
 });
