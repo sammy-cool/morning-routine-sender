@@ -44,4 +44,31 @@ describe("SVG Streak Share Card Generator", () => {
     expect(svg).toContain("SCAN QR TO VERIFY");
     expect(svg).toContain("</svg>");
   });
+
+  test("generateWeeklyReportCardSvg returns valid weekly habit consistency SVG", () => {
+    const { generateWeeklyReportCardSvg } = require("../helper/streakCardGenerator");
+    const svg = generateWeeklyReportCardSvg({
+      name: "Smarty",
+      streak: 14,
+      track: "mindfulness",
+      grade: "A+",
+      completionRate: "100%",
+      activeDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      dayStatuses: [true, true, true, true, true, true, false],
+      focusMinutes: 150,
+      journalsLogged: 6,
+      verifyUrl: "https://morningroutine.app/routine",
+    });
+
+    expect(svg).toBeTruthy();
+    expect(svg).toContain('<svg width="1200" height="630"');
+    expect(svg).toContain("GRADE: A+");
+    expect(svg).toContain("100% Weekly Consistency Rate");
+    expect(svg).toContain("@Smarty");
+    expect(svg).toContain("⚡ 150m");
+    expect(svg).toContain("🔥 14 Days");
+    expect(svg).toContain("✍️ 6 Logged");
+    expect(svg).toContain("SCAN QR TO VERIFY");
+    expect(svg).toContain("</svg>");
+  });
 });

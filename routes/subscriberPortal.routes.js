@@ -37,10 +37,13 @@ router.post("/checkin", routineController.checkin);
 router.post("/api/subscribers/checkin", routineController.checkin);
 router.get("/routine", routineController.liveRoutine);
 
-// Dynamic Social Streak Badge SVG
+// Dynamic Social Streak Badge SVG & Weekly Habit Report Card SVG
 router.get("/api/streak-card", meController.getStreakCard);
 router.get("/api/streak-card.svg", meController.getStreakCard);
 router.get("/api/streak-card/:email/card.svg", meController.getStreakCard);
+router.get("/api/weekly-report", meController.getWeeklyReportCard);
+router.get("/api/weekly-report.svg", meController.getWeeklyReportCard);
+router.get("/api/weekly-report/:email/card.svg", meController.getWeeklyReportCard);
 
 // Public AI Coach Personas Registry
 router.get("/api/coach-personas", meController.getCoachPersonas);
@@ -54,6 +57,8 @@ router.get("/me/calendar.ics", requireSubscriberSession, meController.exportCale
 router.get("/me/calendar", requireSubscriberSession, meController.exportCalendar);
 router.get("/calendar/feed/:token", meController.getCalendarFeedByToken);
 router.get("/me/streak-card", requireSubscriberSession, meController.getMyStreakCard);
+router.get("/me/weekly-report.svg", requireSubscriberSession, meController.getMyWeeklyReportCard);
+router.get("/me/weekly-report", requireSubscriberSession, meController.getMyWeeklyReportCard);
 router.patch("/me", requireSubscriberSession, meController.updateMe);
 router.patch("/me/preferences", requireSubscriberSession, meController.updateMe);
 router.post("/me/preferences", requireSubscriberSession, meController.updateMe);

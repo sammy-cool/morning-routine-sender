@@ -2,7 +2,7 @@ const logger = require("../logger");
 const sharedData = require("../helper/shared-data");
 const emailTracker = require("../email-core/emailTracker");
 const { validateSubscriberInput } = require("../helper/validateSubscriber");
-const { generateStreakSvg } = require("../helper/streakCardGenerator");
+const { generateStreakSvg, generateWeeklyReportCardSvg } = require("../helper/streakCardGenerator");
 
 // GET /me
 async function getMe(req, res) {
@@ -310,6 +310,135 @@ async function getMyStreakCard(req, res) {
     logger.error("Failed to fetch authenticated streak card", { error: error.message });
     res.status(500).json({ error: "Failed to generate your streak card" });
   }
+}
+
+// GET /api/weekly-report.svg & GET /api/weekly-report/:email/card.svg & GET /me/weekly-report.svg
+async function getWeeklyReportCard(req, res) {
+  try {
+    const rawEmail = req.params?.email || req.query?.email || req.subscriberEmail;
+    let subscriber = null;
+    if (rawEmail) {
+      const cleanEmail = rawEmail.trim().toLowerCase();
+      if (cleanEmail.includes("@")) {
+        subscriber = await sharedData.getUserByEmail(cleanEmail);
+      } else {
+        const db = require("../db/knex");
+        const row = await db("subscribers")
+          .where("email", cleanEmail)
+          .orWhere("email", "like", `${cleanEmail}@%`)
+          .first();
+        if (row) {
+          subscriber = {
+            ...row,
+            streakCount: Number(row.streak_count) || 0,
+            routineTrack: row.routine_track || row.template_type || "deep-work",
+          };
+        }
+      }
+    }
+
+    const streak = subscriber ? (subscriber.streakCount ?? 1) : Number(req.query.streak) || 7;
+    const track = subscriber
+      ? subscriber.routineTrack || subscriber.templateType || "deep-work"
+      : req.query.track || "deep-work";
+
+    const officialDomain =
+      req.app?.locals?.officialDomain ||
+      process.env.RENDER_URL ||
+      "https://morning-routine-sender.onrender.com";
+
+    const name = subscriber?.email
+      ? subscriber.email.split("@")[0]
+      : rawEmail
+        ? rawEmail.split("@")[0]
+        : req.query.name || "Morning Builder";
+
+    let activeDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    let dayStatuses = [true, true, true, true, true, true, true];
+    let completionRate = "100%";
+    let grade = "A+";
+    let journalsLogged = 7;
+    let focusMinutes = 175;
+
+    if (subscriber && subscriber.email) {
+      try {
+        const {
+          getSubscriberWeeklyMetrics,
+          getPast7Dates,
+        } = require("../helper/weeklyDigestService");
+        const metrics = await getSubscriberWeeklyMetrics(
+          subscriber.email,
+          subscriber.timezone || "UTC",
+        );
+        if (metrics && Array.isArray(metrics.completionCalendar)) {
+          const past7 = getPast7Dates(subscriber.timezone || "UTC");
+          activeDays = past7.map((d) =>
+            new Intl.DateTimeFormat("en-US", {
+              timeZone: subscriber.timezone || "UTC",
+              weekday: "short",
+            }).format(d.fullDate),
+          );
+          dayStatuses = metrics.completionCalendar.map((c) => Boolean(c.completed));
+          const rateNum = metrics.completionRate ?? 100;
+          completionRate = `${rateNum}%`;
+          if (rateNum === 100) grade = "A+";
+          else if (rateNum >= 85) grade = "A";
+          else if (rateNum >= 70) grade = "B";
+          else if (rateNum >= 50) grade = "C";
+          else grade = "D";
+
+          const completedCount = metrics.completedDaysCount || 0;
+          focusMinutes = completedCount * 25;
+          journalsLogged = completedCount;
+        }
+      } catch (metricsErr) {
+        logger.warn("Could not compute weekly metrics for report card", {
+          error: metricsErr.message,
+        });
+      }
+    } else {
+      if (req.query.grade) grade = String(req.query.grade).toUpperCase();
+      if (req.query.rate) completionRate = `${parseInt(req.query.rate, 10) || 100}%`;
+    }
+
+    const svg = generateWeeklyReportCardSvg({
+      name,
+      streak,
+      track,
+      grade,
+      completionRate,
+      activeDays,
+      dayStatuses,
+      focusMinutes,
+      journalsLogged,
+      verifyUrl: `${officialDomain}/routine`,
+    });
+
+    res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=1800, s-maxage=3600, stale-while-revalidate=86400",
+    );
+    if (req.query.download === "true" || req.query.download === "1") {
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="weekly-habit-report-${name}.svg"`,
+      );
+    }
+    return res.send(svg);
+  } catch (error) {
+    logger.error("Failed to generate weekly report card SVG", { error: error.message });
+    return res
+      .status(500)
+      .send(
+        '<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="630" fill="#07090e"/><text x="600" y="315" fill="#f43f5e" text-anchor="middle" font-family="sans-serif" font-size="24">Error generating weekly report card</text></svg>',
+      );
+  }
+}
+
+// GET /me/weekly-report & GET /me/weekly-report.svg (authenticated)
+async function getMyWeeklyReportCard(req, res) {
+  return getWeeklyReportCard(req, res);
 }
 
 // GET /api/coach-personas
@@ -889,4 +1018,6 @@ module.exports = {
   useStreakFreeze,
   exportCalendar,
   getCalendarFeedByToken,
+  getWeeklyReportCard,
+  getMyWeeklyReportCard,
 };
