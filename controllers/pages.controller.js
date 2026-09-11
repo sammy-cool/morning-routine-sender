@@ -399,11 +399,12 @@ async function streakShare(req, res) {
         radial-gradient(circle at 15% 80%, rgba(52, 211, 153, 0.1) 0%, transparent 45%);
       color: var(--text-main);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 36px 16px;
+      padding: max(36px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(36px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
     .share-container {
       width: 100%;

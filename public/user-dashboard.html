@@ -2439,24 +2439,12 @@
           </button>
         </div>
 
-        <div
-          style="
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-subtle);
-            border-radius: 16px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-          "
-        >
+        <div class="briefing-player-wrap">
           <div style="display: flex; align-items: center; gap: 14px">
             <button
               type="button"
               id="playBriefingBtn"
-              class="btn btn-primary"
+              class="btn btn-primary touch-btn"
               style="
                 width: 44px;
                 height: 44px;
@@ -2548,14 +2536,7 @@
           </span>
         </div>
 
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-          "
-        >
+        <div class="analytics-metric-tiles" style="margin-bottom: 20px">
           <div
             style="
               background: rgba(0, 0, 0, 0.25);
@@ -2662,10 +2643,7 @@
           </div>
         </div>
 
-        <div
-          style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px"
-          class="analytics-charts-grid"
-        >
+        <div class="analytics-charts-grid">
           <div
             style="
               background: rgba(0, 0, 0, 0.2);
@@ -2769,7 +2747,7 @@
               <button
                 type="button"
                 id="copySquadCodeBtn"
-                class="btn btn-ghost"
+                class="btn btn-ghost touch-btn"
                 style="padding: 6px 12px; font-size: 12px"
               >
                 <i class="fas fa-copy"></i> <span id="squadCodeLabel">Invite Code</span>
@@ -2777,33 +2755,19 @@
               <button
                 type="button"
                 id="leaveSquadBtn"
-                class="btn btn-ghost"
+                class="btn btn-ghost touch-btn"
                 style="padding: 6px 12px; font-size: 12px; color: #f87171"
               >
                 <i class="fas fa-sign-out-alt"></i> Leave
               </button>
             </div>
           </div>
-          <div
-            id="squadMembersList"
-            style="
-              display: grid;
-              grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-              gap: 12px;
-            "
-          ></div>
+          <div id="squadMembersList" class="squad-member-grid"></div>
         </div>
 
         <!-- Not In Squad View -->
         <div id="noSquadView" style="display: block">
-          <div
-            style="
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-              gap: 16px;
-            "
-            class="squad-actions-grid"
-          >
+          <div class="layout-grid-auto squad-actions-grid">
             <div
               style="
                 background: rgba(0, 0, 0, 0.2);

@@ -1277,7 +1277,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="has-dock">
     <!-- Animated Background -->
     <div class="bg-mesh">
       <div class="blob blob-1"></div>
@@ -2084,6 +2084,30 @@
         });
       })();
     </script>
+
+    <!-- Cross-Platform Mobile Action Dock for Landing / PWA -->
+    <nav
+      class="mobile-action-dock"
+      id="mobileLandingActionDock"
+      aria-label="Mobile navigation shortcuts"
+    >
+      <a href="/routine" class="dock-item" aria-label="Open Focus Companion">
+        <i class="fas fa-compass" style="color: var(--accent-cyan)" aria-hidden="true"></i>
+        <span>Companion</span>
+      </a>
+      <a href="#signupView" class="dock-item active" id="dockSignupBtn" aria-label="Subscribe Free">
+        <i class="fas fa-bolt" style="color: var(--primary)" aria-hidden="true"></i>
+        <span>Subscribe</span>
+      </a>
+      <a href="/user-dashboard" class="dock-item" aria-label="Member Dashboard">
+        <i class="fas fa-user-circle" style="color: var(--accent-emerald)" aria-hidden="true"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/about" class="dock-item" aria-label="About Morning Routine">
+        <i class="fas fa-info-circle" style="color: var(--text-muted)" aria-hidden="true"></i>
+        <span>About</span>
+      </a>
+    </nav>
 
     <script defer src="/js/landing-page-modal.js?v=4.2.0"></script>
     <script defer src="/js/subscriber-login.js?v=4.2.0"></script>

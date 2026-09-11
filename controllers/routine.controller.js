@@ -214,6 +214,7 @@ function renderCheckinPage(res, data) {
         radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.12) 0%, transparent 45%);
       color: var(--text-main);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -545,6 +546,7 @@ async function liveRoutine(req, res) {
         radial-gradient(circle at 100% 50%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
       color: var(--text-main);
       min-height: 100vh;
+      min-height: 100dvh;
       transition: background-color 0.3s ease;
       padding: max(32px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }

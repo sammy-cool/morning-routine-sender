@@ -1152,7 +1152,7 @@
     </style>
   </head>
 
-  <body>
+  <body class="has-dock">
     <!-- Top Header Navbar -->
     <header class="navbar" id="mainHeader">
       <div class="container nav-wrap">
@@ -1658,5 +1658,25 @@
           });
       }
     </script>
+
+    <!-- Cross-Platform Mobile Action Dock for About Page -->
+    <nav class="mobile-action-dock" id="mobileAboutActionDock" aria-label="Mobile quick actions">
+      <a href="/" class="dock-item" aria-label="Return to Home">
+        <i class="fas fa-home" style="color: var(--primary)" aria-hidden="true"></i>
+        <span>Home</span>
+      </a>
+      <a href="/routine" class="dock-item" aria-label="Focus Companion">
+        <i class="fas fa-compass" style="color: var(--accent-cyan)" aria-hidden="true"></i>
+        <span>Companion</span>
+      </a>
+      <a href="/user-dashboard" class="dock-item" aria-label="Member Dashboard">
+        <i class="fas fa-user-circle" style="color: var(--accent-emerald)" aria-hidden="true"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/about" class="dock-item active" aria-label="About Page">
+        <i class="fas fa-info-circle" style="color: var(--accent-amber)" aria-hidden="true"></i>
+        <span>About</span>
+      </a>
+    </nav>
   </body>
 </html>

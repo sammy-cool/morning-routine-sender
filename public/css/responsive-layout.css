@@ -612,3 +612,265 @@ button {
   color: var(--text-dim);
   font-size: 13px;
 }
+
+/* ==========================================================================
+   7. Modern Glassmorphic Cards & Elevated Surfaces
+   ========================================================================== */
+.card-modern {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: clamp(16px, 3vw, 28px);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-modern:hover {
+  border-color: var(--border-hover);
+  box-shadow:
+    var(--shadow-elevated),
+    0 0 24px -6px var(--primary-glow);
+}
+
+.card-hero-flame {
+  background: linear-gradient(
+    145deg,
+    rgba(124, 58, 237, 0.12) 0%,
+    rgba(12, 17, 29, 0.85) 60%,
+    rgba(34, 211, 238, 0.08) 100%
+  );
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  box-shadow:
+    0 20px 40px -15px rgba(0, 0, 0, 0.7),
+    0 0 35px -8px var(--primary-glow);
+}
+
+/* ==========================================================================
+   8. Responsive Analytics, Squad & Audio Briefing Grids
+   ========================================================================== */
+.analytics-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(12px, 2vw, 20px);
+}
+
+@media (max-width: 768px) {
+  .analytics-charts-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.analytics-metric-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  gap: clamp(10px, 1.5vw, 16px);
+}
+
+.briefing-player-wrap {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: clamp(14px, 2vw, 20px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 540px) {
+  .briefing-player-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .briefing-player-wrap > div:last-child {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.squad-member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+
+.squad-member-card {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: var(--transition-fast);
+}
+
+.squad-member-card:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ==========================================================================
+   9. Cross-Device Form & Touch Accessibility (WCAG 2.2 Compliant)
+   ========================================================================== */
+.touch-btn {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: var(--transition-fast);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (hover: none) {
+  .touch-btn:active {
+    transform: scale(0.975);
+    filter: brightness(1.1);
+  }
+}
+
+/* Form Inputs Prevent iOS Auto-Zoom */
+.touch-input,
+.form-control,
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="time"],
+select,
+textarea {
+  font-size: max(16px, 1rem) !important;
+}
+
+/* ==========================================================================
+   10. Native-Style Mobile Bottom Sheets for Modals (Mobile Screens <= 640px)
+   ========================================================================== */
+@media (max-width: 640px) {
+  .modal-dialog,
+  .modal-content,
+  .modal-bottom-sheet {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 90dvh !important;
+    border-radius: 24px 24px 0 0 !important;
+    margin: 0 !important;
+    border-bottom: none !important;
+    transform: translateY(0) !important;
+    animation: slideUpSheet 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    padding-bottom: max(20px, env(safe-area-inset-bottom, 20px)) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .modal-drag-handle {
+    display: block !important;
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 9999px;
+    margin: 0 auto 16px auto;
+  }
+
+  @keyframes slideUpSheet {
+    from {
+      transform: translateY(100%) !important;
+    }
+    to {
+      transform: translateY(0) !important;
+    }
+  }
+}
+
+.modal-drag-handle {
+  display: none;
+}
+
+/* ==========================================================================
+   11. Heatmap Horizontal Touch-Scroll Optimizations
+   ========================================================================== */
+.heatmap-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  padding-bottom: 8px;
+}
+
+.heatmap-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.heatmap-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.35);
+  border-radius: 9999px;
+}
+
+/* ==========================================================================
+   12. Cross-Platform Viewport Units & Safe Area Padding
+   ========================================================================== */
+.safe-padding-top {
+  padding-top: max(16px, env(safe-area-inset-top));
+}
+
+.safe-padding-bottom {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.dvh-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ==========================================================================
+   13. Responsive Utility Classes
+   ========================================================================== */
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .show-on-mobile-flex {
+    display: flex !important;
+  }
+  .show-on-mobile-block {
+    display: block !important;
+  }
+  .flex-stack-mobile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+  .show-on-desktop-flex {
+    display: flex !important;
+  }
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
