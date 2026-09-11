@@ -133,13 +133,28 @@
       }
     </script>
 
-    <!-- Google Fonts & Font Awesome CDN -->
+    <!-- Google Fonts & CDN Connectivity -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+    <!-- Critical Above-the-fold Assets Preload -->
+    <link
+      rel="preload"
+      href="/assets/logo.svg"
+      as="image"
+      type="image/svg+xml"
+      fetchpriority="high"
+    />
+
+    <!-- Speculative Navigation Prefetch -->
+    <link rel="prefetch" href="/" />
+    <link rel="prefetch" href="/user-dashboard" />
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
@@ -1142,7 +1157,15 @@
       <div class="container nav-wrap">
         <a href="/" class="brand-logo" aria-label="Morning Routine Sender Home">
           <div class="brand-icon" aria-hidden="true">
-            <img src="/assets/logo.svg" alt="Logo" width="34" height="34" />
+            <img
+              src="/assets/logo.svg"
+              alt="Logo"
+              width="34"
+              height="34"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+            />
           </div>
           <span class="brand-name">Morning Routine</span>
         </a>

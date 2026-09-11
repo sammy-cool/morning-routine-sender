@@ -350,8 +350,15 @@ async function streakShare(req, res) {
   <!-- Fonts & Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preload" href="/assets/logo.svg" as="image" type="image/svg+xml" fetchpriority="high">
+  <link rel="prefetch" href="/">
+  <link rel="prefetch" href="/about">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -614,7 +621,7 @@ async function streakShare(req, res) {
   <div class="share-container">
     <header class="brand-header">
       <a href="/" class="brand-logo">
-        <img src="/assets/logo.svg" alt="Morning Routine" width="34" height="34" style="border-radius: 10px;" />
+        <img src="/assets/logo.svg" alt="Morning Routine" width="34" height="34" style="border-radius: 10px;" loading="eager" decoding="async" fetchpriority="high" />
         <span class="brand-title">Morning Routine Sender</span>
       </a>
       <span class="badge-pill"><i class="fas fa-certificate"></i> Verified Habit Streak</span>
@@ -627,6 +634,8 @@ async function streakShare(req, res) {
           alt="${escapeHtml(pageTitle)}"
           class="streak-card-img"
           loading="eager"
+          decoding="async"
+          fetchpriority="high"
         />
       </div>
 

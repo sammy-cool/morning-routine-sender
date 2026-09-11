@@ -22,9 +22,24 @@
     <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png" />
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Google Fonts & FontAwesome & Preserved Links -->
+    <!-- Resource Hints & DNS Prefetching -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+
+    <!-- Critical Assets Preload -->
+    <link
+      rel="preload"
+      href="/assets/logo.svg"
+      as="image"
+      type="image/svg+xml"
+      fetchpriority="high"
+    />
+
+    <!-- Google Fonts & FontAwesome & Preserved Links -->
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap"
       rel="stylesheet"
@@ -434,6 +449,9 @@
         alt="Morning Routine Sender Logo"
         class="brand-logo"
         onerror="this.style.display = 'none'"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
       />
 
       <div class="status-radar" aria-hidden="true">

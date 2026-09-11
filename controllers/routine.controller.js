@@ -166,8 +166,12 @@ function renderCheckinPage(res, data) {
   <title>${escapeHtml(data.title)} • Morning Routine</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="prefetch" href="/routine">
+  <link rel="prefetch" href="/user-dashboard">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -441,7 +445,15 @@ async function liveRoutine(req, res) {
   <meta name="twitter:image" content="${domain}/assets/screenshot-desktop.png">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="/assets/logo.svg" as="image" type="image/svg+xml" fetchpriority="high">
+  <link rel="prefetch" href="/user-dashboard">
+  <link rel="prefetch" href="/about">
   <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer crossorigin="anonymous"></script>
   <script src="/js/offline-sync.js?v=4.3.0" defer></script>
@@ -942,7 +954,7 @@ async function liveRoutine(req, res) {
   <div class="container">
     <div class="header">
       <a href="/" class="brand" aria-label="Morning Routine Home">
-        <img src="/assets/logo.svg" alt="Logo" width="28" height="28" style="border-radius: 8px;"> Morning Routine
+        <img src="/assets/logo.svg" alt="Logo" width="28" height="28" style="border-radius: 8px;" loading="eager" decoding="async" fetchpriority="high"> Morning Routine
       </a>
       <div class="header-actions">
         <div class="streak-pill">

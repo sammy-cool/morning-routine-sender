@@ -20,9 +20,24 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png" />
 
-    <!-- Google Fonts & FontAwesome -->
+    <!-- Resource Hints & DNS Prefetching -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+    <!-- Critical Above-the-fold Assets Preload -->
+    <link
+      rel="preload"
+      href="/assets/logo.svg"
+      as="image"
+      type="image/svg+xml"
+      fetchpriority="high"
+    />
+
+    <!-- Google Fonts & FontAwesome -->
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
@@ -1320,7 +1335,15 @@
       <div>
         <div class="brand">
           <div class="brand-icon">
-            <img src="/assets/logo.svg" alt="Admin Logo" width="34" height="34" />
+            <img
+              src="/assets/logo.svg"
+              alt="Admin Logo"
+              width="34"
+              height="34"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+            />
           </div>
           <div>
             <div class="brand-title">Morning Routine</div>
