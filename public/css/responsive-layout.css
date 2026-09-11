@@ -101,6 +101,7 @@ html {
   text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
   height: 100%;
 }
 
@@ -122,6 +123,8 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   padding-top: env(safe-area-inset-top, 0);
   padding-left: env(safe-area-inset-left, 0);
   padding-right: env(safe-area-inset-right, 0);
@@ -873,4 +876,48 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   14. Universal Smooth Scrolling & Momentum Physics Across Scenarios
+   ========================================================================== */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 768px) {
+  html {
+    scroll-padding-top: 4.5rem;
+    scroll-padding-bottom: 6rem; /* Clearance so bottom action dock never covers scrolled anchor elements */
+  }
+}
+
+/* Momentum scrolling and smooth behavior for all scroll containers */
+.table-responsive,
+.heatmap-scroll-container,
+.modal-bottom-sheet,
+.modal-content,
+[data-scrollable="true"],
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Contain overscroll bounce on modal sheets and scrollable cards */
+.modal-bottom-sheet,
+.heatmap-scroll-container,
+.table-responsive {
+  overscroll-behavior: contain;
+}
+
+/* Motion-sensitive reduction for accessibility compliance */
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  .table-responsive,
+  .heatmap-scroll-container,
+  .modal-bottom-sheet,
+  .modal-content {
+    scroll-behavior: auto !important;
+  }
 }

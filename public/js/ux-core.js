@@ -2075,6 +2075,88 @@
     toast,
 
     /**
+     * Smooth scrolling engine across any browser, OS, and touch container.
+     */
+    scroll: {
+      init() {
+        if (typeof document === "undefined" || typeof document.addEventListener !== "function") {
+          return;
+        }
+        document.addEventListener("click", (e) => {
+          if (e.defaultPrevented) return;
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          const anchor =
+            e.target && typeof e.target.closest === "function"
+              ? e.target.closest('a[href^="#"]')
+              : null;
+          if (!anchor) return;
+          const href = anchor.getAttribute("href");
+          if (!href || href === "#") return;
+          try {
+            const targetId = href.slice(1);
+            const targetEl =
+              (typeof document.getElementById === "function" &&
+                document.getElementById(targetId)) ||
+              (typeof document.querySelector === "function" && document.querySelector(href));
+            if (!targetEl) return;
+            e.preventDefault();
+            const prefersReduced =
+              typeof window !== "undefined" &&
+              window.matchMedia &&
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (typeof targetEl.scrollIntoView === "function") {
+              targetEl.scrollIntoView({
+                behavior: prefersReduced ? "auto" : "smooth",
+                block: "start",
+                inline: "nearest",
+              });
+            }
+            if (
+              typeof window !== "undefined" &&
+              window.history &&
+              typeof window.history.pushState === "function"
+            ) {
+              window.history.pushState(null, "", href);
+            }
+          } catch (_err) {
+            /* Fallback to native browser anchor navigation */
+          }
+        });
+      },
+
+      to(target, options = {}) {
+        if (typeof window === "undefined") return;
+        const prefersReduced =
+          window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const behavior = prefersReduced ? "auto" : options.behavior || "smooth";
+
+        if (typeof target === "number") {
+          if (typeof window.scrollTo === "function") {
+            window.scrollTo({ top: target, behavior });
+          }
+          return;
+        }
+        const el =
+          typeof target === "string" &&
+          typeof document !== "undefined" &&
+          typeof document.querySelector === "function"
+            ? document.querySelector(target)
+            : target;
+        if (el && typeof el.scrollIntoView === "function") {
+          el.scrollIntoView({
+            behavior,
+            block: options.block || "start",
+            inline: options.inline || "nearest",
+          });
+        }
+      },
+
+      top(options = {}) {
+        this.to(0, options);
+      },
+    },
+
+    /**
      * Optional all-in-one initializer.
      * @param {Object} [options]
      * @param {Record<string, Function>} [options.shortcuts] - Keyboard handlers
@@ -2084,6 +2166,7 @@
     init(options = {}) {
       this.theme.init();
       this.toast.initDefaults();
+      this.scroll.init();
       if (options.shortcuts) {
         this.shortcuts.init(options.shortcuts);
       }
@@ -2106,15 +2189,17 @@
     },
   };
 
-  // Automatically start network monitor & theme on DOMContentLoaded in browser environments
+  // Automatically start network monitor, theme & smooth scroll on DOMContentLoaded in browser environments
   if (typeof window !== "undefined") {
     if (document.readyState === "complete" || document.readyState === "interactive") {
       network.init();
       theme.init();
-    } else {
+      UXCore.scroll.init();
+    } else if (typeof window.addEventListener === "function") {
       window.addEventListener("DOMContentLoaded", () => {
         network.init();
         theme.init();
+        UXCore.scroll.init();
       });
     }
   }

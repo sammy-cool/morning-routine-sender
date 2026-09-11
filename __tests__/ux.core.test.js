@@ -410,4 +410,37 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
       }).not.toThrow();
     });
   });
+
+  describe("Smooth Scrolling Engine (UXCore.scroll)", () => {
+    test("initializes scroll module safely without throwing", () => {
+      expect(() => {
+        UXCore.scroll.init();
+      }).not.toThrow();
+    });
+
+    test("scrolls to numeric offset and top safely", () => {
+      global.window.scrollTo = jest.fn();
+      UXCore.scroll.top();
+      expect(global.window.scrollTo).toHaveBeenCalledWith(
+        expect.objectContaining({ top: 0, behavior: "smooth" }),
+      );
+
+      UXCore.scroll.to(250);
+      expect(global.window.scrollTo).toHaveBeenCalledWith(
+        expect.objectContaining({ top: 250, behavior: "smooth" }),
+      );
+    });
+
+    test("scrolls to DOM element via scrollIntoView safely", () => {
+      const mockElement = {
+        scrollIntoView: jest.fn(),
+      };
+      global.document.querySelector = jest.fn(() => mockElement);
+
+      UXCore.scroll.to("#targetSection");
+      expect(mockElement.scrollIntoView).toHaveBeenCalledWith(
+        expect.objectContaining({ behavior: "smooth", block: "start" }),
+      );
+    });
+  });
 });

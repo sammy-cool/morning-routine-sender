@@ -17,6 +17,7 @@ const {
   Canvas2D,
   encodePNG,
   generateBrandIcon,
+  generateLogoSvg,
   generateDesktopScreenshot,
   generateMobileScreenshot,
 } = require("../scripts/generate-pwa-assets");
@@ -177,6 +178,15 @@ describe("PWA Asset Generator (scripts/generate-pwa-assets.js)", () => {
       expect(writeFileSyncSpy).toHaveBeenCalledWith(
         expect.stringContaining("mrn-brand-ico.png"),
         expect.any(Buffer),
+      );
+    });
+
+    test("generateLogoSvg renders vector logo.svg without errors", () => {
+      generateLogoSvg();
+      expect(writeFileSyncSpy).toHaveBeenCalledWith(
+        expect.stringContaining("logo.svg"),
+        expect.any(String),
+        "utf8",
       );
     });
 

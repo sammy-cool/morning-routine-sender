@@ -867,40 +867,235 @@ class Canvas2D {
   }
 }
 
-// 1. Brand Icon (512x512)
+// --- Favicon Bitmap & Vector Helpers ---
+function cubicKernel(x) {
+  x = Math.abs(x);
+  if (x < 1) return (1.5 * x - 2.5) * x * x + 1;
+  if (x < 2) return ((-0.5 * x + 2.5) * x - 4) * x + 2;
+  return 0;
+}
+
+function sampleBicubicChannel(src, W, H, x, y) {
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const fx = x - x0;
+  const fy = y - y0;
+  let sum = 0;
+  let weightSum = 0;
+  for (let j = -1; j <= 2; j++) {
+    const py = Math.min(H - 1, Math.max(0, y0 + j));
+    const wy = cubicKernel(j - fy);
+    for (let i = -1; i <= 2; i++) {
+      const px = Math.min(W - 1, Math.max(0, x0 + i));
+      const wx = cubicKernel(i - fx);
+      const w = wx * wy;
+      sum += src[py * W + px] * w;
+      weightSum += w;
+    }
+  }
+  return weightSum > 0 ? Math.min(255, Math.max(0, sum / weightSum)) : 0;
+}
+
+function readFaviconBitmap() {
+  const icoPath = path.join(__dirname, "..", "public", "favicon.ico");
+  if (!fs.existsSync(icoPath)) return null;
+  try {
+    const buf = fs.readFileSync(icoPath);
+    if (buf.length < 6) return null;
+    const itype = buf.readUInt16LE(2);
+    const count = buf.readUInt16LE(4);
+    if (itype !== 1 || count === 0) return null;
+
+    let bestIdx = 0;
+    let bestW = 0;
+    for (let i = 0; i < count; i++) {
+      const o = 6 + i * 16;
+      const w = buf.readUInt8(o) || 256;
+      if (w > bestW) {
+        bestW = w;
+        bestIdx = i;
+      }
+    }
+
+    const dirOffset = 6 + bestIdx * 16;
+    const W = buf.readUInt8(dirOffset) || 256;
+    const H = buf.readUInt8(dirOffset + 1) || 256;
+    const dataOffset = buf.readUInt32LE(dirOffset + 12);
+    const pixelData = buf.subarray(dataOffset + 40, dataOffset + 40 + W * H * 4);
+
+    return { width: W, height: H, pixelData };
+  } catch (_err) {
+    return null;
+  }
+}
+
+// 1. Brand Icon (512x512) - Pixel-perfect reproduction of favicon.ico
 function generateBrandIcon() {
   const size = 512;
   const canvas = new Canvas2D(size, size);
+  const fav = readFaviconBitmap();
 
-  canvas.fillGradientRect(0, 0, size, size, [7, 9, 14, 255], [15, 23, 42, 255]);
-  canvas.fillRadialGlow(size / 2, size / 2, 240, [99, 102, 241, 140]);
-  canvas.fillRadialGlow(size / 2, size / 2 + 60, 180, [245, 158, 11, 120]);
-  canvas.fillRadialGlow(size / 2, size / 2 - 40, 160, [6, 182, 212, 100]);
+  if (fav && fav.width > 0 && fav.height > 0) {
+    const { width: srcW, height: srcH, pixelData } = fav;
+    const chR = new Float32Array(srcW * srcH);
+    const chG = new Float32Array(srcW * srcH);
+    const chB = new Float32Array(srcW * srcH);
 
-  const pad = 48;
-  const cardSize = size - pad * 2;
-  canvas.fillRoundedRect(
-    pad,
-    pad,
-    cardSize,
-    cardSize,
-    96,
-    [17, 24, 39, 230],
-    [99, 102, 241, 200],
-    3,
-  );
+    for (let y = 0; y < srcH; y++) {
+      const dibY = srcH - 1 - y;
+      for (let x = 0; x < srcW; x++) {
+        const idx = (dibY * srcW + x) * 4;
+        const i = y * srcW + x;
+        chB[i] = pixelData[idx];
+        chG[i] = pixelData[idx + 1];
+        chR[i] = pixelData[idx + 2];
+      }
+    }
 
-  canvas.drawSun(size / 2, size / 2 + 10, 68, 16, [251, 191, 36, 255], [245, 158, 11, 220]);
-  canvas.drawFlame(size / 2, size / 2 + 15, 2.4, [244, 63, 94, 240], [251, 191, 36, 255]);
-  canvas.drawLightning(size / 2, size / 2, 3.2, [255, 255, 255, 255], [56, 189, 248, 255]);
+    // Outer backdrop with subtle obsidian/purple ambient aura
+    canvas.fill(6, 8, 14, 255);
+    canvas.fillRadialGlow(size / 2, size / 2, 250, [44, 0, 133, 140]);
+    canvas.fillRadialGlow(size / 2, size / 2, 200, [56, 189, 248, 45]);
 
-  canvas.fillCircle(size / 2 - 120, size / 2 - 100, 3, [255, 255, 255, 220]);
-  canvas.fillCircle(size / 2 + 130, size / 2 - 80, 4, [56, 189, 248, 240]);
-  canvas.fillCircle(size / 2 + 110, size / 2 + 110, 3, [251, 191, 36, 220]);
+    // Resample 48x48 icon directly into 512x512 squircle card
+    const pad = 36;
+    const innerSize = size - pad * 2;
+    const cornerRadius = 88;
+
+    for (let y = 0; y < innerSize; y++) {
+      const srcY = (y + 0.5) * (srcH / innerSize) - 0.5;
+      const py = pad + y;
+      for (let x = 0; x < innerSize; x++) {
+        const px = pad + x;
+
+        // Check rounded rect boundary
+        const dx = Math.min(x, innerSize - 1 - x);
+        const dy = Math.min(y, innerSize - 1 - y);
+        let inBounds = true;
+        if (dx < cornerRadius && dy < cornerRadius) {
+          const cornerDist = Math.hypot(cornerRadius - dx, cornerRadius - dy);
+          if (cornerDist > cornerRadius) {
+            inBounds = false;
+          }
+        }
+
+        if (inBounds) {
+          const srcX = (x + 0.5) * (srcW / innerSize) - 0.5;
+          const r = Math.round(sampleBicubicChannel(chR, srcW, srcH, srcX, srcY));
+          const g = Math.round(sampleBicubicChannel(chG, srcW, srcH, srcX, srcY));
+          const b = Math.round(sampleBicubicChannel(chB, srcW, srcH, srcX, srcY));
+          canvas.setPixel(px, py, r, g, b, 255);
+        }
+      }
+    }
+
+    // Subtle micro-border
+    canvas.fillRoundedRect(
+      pad,
+      pad,
+      innerSize,
+      innerSize,
+      cornerRadius,
+      null,
+      [255, 255, 255, 25],
+      2,
+    );
+  } else {
+    canvas.fillGradientRect(0, 0, size, size, [7, 9, 14, 255], [15, 23, 42, 255]);
+    canvas.fillRadialGlow(size / 2, size / 2, 240, [99, 102, 241, 140]);
+  }
 
   const destPng = path.join(ASSETS_DIR, "mrn-brand-ico.png");
   canvas.saveToPNG(destPng);
   console.log(`✓ Generated ${destPng} (512x512)`);
+
+  const logoPng = path.join(ASSETS_DIR, "logo.png");
+  try {
+    canvas.saveToPNG(logoPng);
+  } catch (_e) {
+    /* Optional fallback */
+  }
+}
+
+// 1b. Vector Logo SVG from favicon.ico
+function generateLogoSvg() {
+  const fav = readFaviconBitmap();
+  if (!fav) return;
+  const { width: W, height: H, pixelData } = fav;
+
+  const foregroundRuns = [];
+  for (let y = 0; y < H; y++) {
+    const dibY = H - 1 - y;
+    let startX = -1;
+    let currHex = null;
+    let runLen = 0;
+
+    for (let x = 0; x < W; x++) {
+      const idx = (dibY * W + x) * 4;
+      const b = pixelData[idx];
+      const g = pixelData[idx + 1];
+      const r = pixelData[idx + 2];
+      const isBg = r <= 35 && g <= 10 && b <= 105;
+
+      if (isBg) {
+        if (currHex) {
+          foregroundRuns.push({ x: startX, y, width: runLen, fill: currHex });
+          currHex = null;
+        }
+      } else {
+        const hex = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+        if (hex === currHex) {
+          runLen++;
+        } else {
+          if (currHex) {
+            foregroundRuns.push({ x: startX, y, width: runLen, fill: currHex });
+          }
+          currHex = hex;
+          startX = x;
+          runLen = 1;
+        }
+      }
+    }
+    if (currHex) {
+      foregroundRuns.push({ x: startX, y, width: runLen, fill: currHex });
+    }
+  }
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#2c0085"/>
+      <stop offset="100%" stop-color="#190050"/>
+    </radialGradient>
+    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <rect width="48" height="48" rx="10" fill="url(#bgGlow)"/>
+  <rect width="48" height="48" rx="10" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.75"/>
+  <g filter="url(#subtleGlow)">
+`;
+  for (const r of foregroundRuns) {
+    svg += `    <rect x="${r.x}" y="${r.y}" width="${r.width}" height="1" fill="${r.fill}"/>\n`;
+  }
+  svg += `  </g>\n</svg>\n`;
+
+  let finalSvg = svg;
+  try {
+    const { optimize } = require("svgo");
+    const opt = optimize(svg, {
+      multipass: true,
+      plugins: ["preset-default", "removeDimensions"],
+    });
+    finalSvg = opt.data;
+  } catch (_e) {
+    /* Fall back to raw SVG */
+  }
+
+  const svgPath = path.join(ASSETS_DIR, "logo.svg");
+  fs.writeFileSync(svgPath, finalSvg, "utf8");
+  console.log(`✓ Generated ${svgPath} from favicon.ico`);
 }
 
 // 2. Desktop Screenshot (1280x720)
@@ -1232,6 +1427,7 @@ function generateMobileScreenshot() {
 
 if (require.main === module) {
   console.log("Generating PWA Visual Assets...");
+  generateLogoSvg();
   generateBrandIcon();
   generateDesktopScreenshot();
   generateMobileScreenshot();
@@ -1243,6 +1439,7 @@ module.exports = {
   Canvas2D,
   crc32,
   generateBrandIcon,
+  generateLogoSvg,
   generateDesktopScreenshot,
   generateMobileScreenshot,
 };
