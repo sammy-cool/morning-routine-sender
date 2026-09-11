@@ -149,11 +149,22 @@ Unsubscribe: ${data.unsubscribeUrl}`;
     try {
       const messageRef = crypto.randomBytes(8).toString("hex");
 
+      const streak = Number(data.streakCount) || 1;
+      let morningSubject;
+      if ([3, 7, 14, 21, 30, 60, 100, 365].includes(streak) || streak % 7 === 0) {
+        morningSubject = `🔥 Milestone: Day ${streak} Streak Active • Morning Focus Routine ⚡`;
+      } else if (data.spark && data.spark.focusMantra) {
+        const mantraPreview = data.spark.focusMantra.replace(/["']/g, "").slice(0, 45);
+        morningSubject = `🌅 Day ${data.dayNumber}: "${mantraPreview}" • Morning Routine`;
+      } else {
+        morningSubject = `Day ${data.dayNumber} Morning Routine Update 🌞`;
+      }
+
       const info = await transporter.sendMail({
         from: `"Morning Routine" <${process.env.FROM_USER}>`,
         replyTo: `${process.env.FROM_USER}`,
         to: userData.email,
-        subject: `Day ${data.dayNumber} Morning Routine Update 🌞`,
+        subject: morningSubject,
         html,
         text,
         headers: {
@@ -256,14 +267,19 @@ async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
     const mjmlResult = await mjml2html(renderedMjml, { validationLevel: "strict" });
     const html = mjmlResult?.html || "";
 
-    const text = `Sunday Weekly Streak Digest for ${data.userName}\n\nStreak: ${data.streakBadge}\nPersona: ${digestInfo.name}\n\nWeekly Reflection: ${digestInfo.weeklyReflectionGuidance}\n\nUpcoming Week Prep:\n${digestInfo.weeklyPrepItems.map((p) => `- ${p.title}: ${p.description}`).join("\n")}\n\nOpen Routine: ${data.ctaUrl}\nCheck-in: ${data.checkinUrl}`;
+    const dayCap = userData.weeklyDigestDay
+      ? userData.weeklyDigestDay.charAt(0).toUpperCase() +
+        userData.weeklyDigestDay.slice(1).toLowerCase()
+      : "Sunday";
+
+    const text = `${dayCap} Weekly Streak Digest for ${data.userName}\n\nStreak: ${data.streakBadge}\nPersona: ${digestInfo.name}\n\nWeekly Reflection: ${digestInfo.weeklyReflectionGuidance}\n\nUpcoming Week Prep:\n${digestInfo.weeklyPrepItems.map((p) => `- ${p.title}: ${p.description}`).join("\n")}\n\nOpen Routine: ${data.ctaUrl}\nCheck-in: ${data.checkinUrl}`;
 
     const messageRef = crypto.randomBytes(8).toString("hex");
     const info = await transporter.sendMail({
       from: `"Morning Routine Digest" <${process.env.FROM_USER}>`,
       replyTo: `${process.env.FROM_USER}`,
       to: userData.email,
-      subject: `🔥 Sunday Weekly Streak Digest • ${streakBadge} 📊`,
+      subject: `🔥 ${dayCap} Weekly Streak Digest • ${streakBadge} 📊`,
       html,
       text,
       headers: {
@@ -277,7 +293,7 @@ async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
       },
     });
 
-    logger.info(`✅ Sunday Weekly Digest sent to ${userData.email} - ${messageRef}`);
+    logger.info(`✅ ${dayCap} Weekly Digest sent to ${userData.email} - ${messageRef}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     logger.error("Weekly digest send error:", { error: error.message, email: userData.email });

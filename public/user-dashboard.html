@@ -1985,6 +1985,25 @@
     </header>
 
     <main class="container main-content" id="dashboardMain">
+      <!-- Dynamic System Broadcast Banner -->
+      <div
+        id="systemAnnouncementBanner"
+        style="
+          display: none;
+          margin-bottom: 18px;
+          padding: 12px 18px;
+          border-radius: 12px;
+          background: rgba(124, 58, 237, 0.12);
+          border: 1px solid rgba(124, 58, 237, 0.35);
+          color: #e2e8f0;
+          font-size: 13.5px;
+          align-items: center;
+          justify-content: space-between;
+          backdrop-filter: blur(8px);
+        "
+        role="alert"
+      ></div>
+
       <div class="card" id="loadingCard">
         <p class="meta" style="margin: 0; color: var(--text-muted)">
           <i class="fas fa-spinner fa-spin" style="margin-right: 8px" aria-hidden="true"></i>
@@ -2467,6 +2486,40 @@
               <option value="18">Beta (18 Hz - Alert)</option>
               <option value="40">Gamma (40 Hz - Peak)</option>
             </select>
+
+            <!-- Ambient Sound Volume Slider -->
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 2px 6px;
+                background: rgba(15, 23, 42, 0.6);
+                border: 1px solid var(--border-subtle);
+                border-radius: 8px;
+              "
+              title="Adjust Ambient Soundscape Volume"
+            >
+              <i
+                class="fas fa-volume-down"
+                style="font-size: 11px; color: var(--text-muted)"
+                aria-hidden="true"
+              ></i>
+              <input
+                type="range"
+                id="ambientVolumeRange"
+                min="0"
+                max="100"
+                value="50"
+                style="width: 65px; height: 4px; accent-color: var(--primary); cursor: pointer"
+                aria-label="Ambient volume"
+              />
+              <i
+                class="fas fa-volume-up"
+                style="font-size: 11px; color: var(--text-muted)"
+                aria-hidden="true"
+              ></i>
+            </div>
 
             <span class="status-badge active" id="activePersonaBadge">🏛️ Stoic Sage</span>
           </div>

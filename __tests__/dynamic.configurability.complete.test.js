@@ -7,14 +7,20 @@
  * 3. Categorized morning news & distraction-free 'off' mode
  * 4. Custom AI Coach persona with customizable prompt injection
  * 5. Weekly consistency digest opt-in / opt-out controls
- * 6. UXCore ambient binaural beat frequency tuning
+ * 6. UXCore ambient binaural beat frequency tuning & volume calibration
+ * 7. Multi-channel track colors parity (career, reflection) & custom quote inheritance
+ * 8. Dynamic email subject line generation & weekly digest day parity
  */
+
+jest.mock("mjml", () => jest.fn((content) => ({ html: `<html><body>${content}</body></html>` })));
 
 const sharedData = require("../helper/shared-data");
 const { dailyDevNews } = require("../helper/util");
 const { COACH_PERSONAS_METADATA, getCuratedSpark } = require("../helper/curatedSparks");
 const { buildPrompt } = require("../helper/aiSparkGenerator");
 const { sendWeeklyDigestToSubscriber } = require("../helper/weeklyDigestService");
+const { TRACK_COLORS } = require("../helper/channelDispatcher");
+const emailService = require("../email-core/emailService");
 
 describe("1. Dynamic Track Content & Custom Mantras", () => {
   const tracks = [
@@ -177,8 +183,8 @@ describe("4. Dynamic Weekly Consistency Digest Controls", () => {
   });
 });
 
-describe("5. UXCore Tunable Binaural Beat Soundscape Frequency", () => {
-  test("UXCore sets and retrieves custom binaural frequencies", () => {
+describe("5. UXCore Tunable Binaural Beat Soundscape Frequency & Volume", () => {
+  test("UXCore sets and retrieves custom binaural frequencies and volume", () => {
     const originalWindow = global.window;
     const originalDoc = global.document;
 
@@ -215,6 +221,8 @@ describe("5. UXCore Tunable Binaural Beat Soundscape Frequency", () => {
       expect(UXCore.ambient).toBeDefined();
       expect(typeof UXCore.ambient.setBinauralBeat).toBe("function");
       expect(typeof UXCore.ambient.getBinauralBeat).toBe("function");
+      expect(typeof UXCore.ambient.setVolume).toBe("function");
+      expect(typeof UXCore.ambient.getVolume).toBe("function");
 
       // Default is 10Hz Alpha
       expect(UXCore.ambient.getBinauralBeat()).toBe(10);
@@ -240,9 +248,56 @@ describe("5. UXCore Tunable Binaural Beat Soundscape Frequency", () => {
 
       UXCore.ambient.setBinauralBeat("invalid");
       expect(UXCore.ambient.getBinauralBeat()).toBe(10);
+
+      // Volume calibration and clamping between 0.0 and 1.0
+      UXCore.ambient.setVolume(0.75);
+      expect(UXCore.ambient.getVolume()).toBe(0.75);
+
+      UXCore.ambient.setVolume(2.5);
+      expect(UXCore.ambient.getVolume()).toBe(1);
+
+      UXCore.ambient.setVolume(-0.5);
+      expect(UXCore.ambient.getVolume()).toBe(0);
     });
 
     global.window = originalWindow;
     global.document = originalDoc;
+  });
+});
+
+describe("6. Multi-Channel Dispatcher Parity", () => {
+  test("TRACK_COLORS includes all 7 tracks with distinct color codes", () => {
+    expect(TRACK_COLORS["career"]).toBeDefined();
+    expect(TRACK_COLORS["career"]).toBe(0x3b82f6);
+    expect(TRACK_COLORS["reflection"]).toBeDefined();
+    expect(TRACK_COLORS["reflection"]).toBe(0x8b5cf6);
+    expect(TRACK_COLORS["deep-work"]).toBe(0x7c3aed);
+    expect(TRACK_COLORS["mindfulness"]).toBe(0x10b981);
+    expect(TRACK_COLORS["executive"]).toBe(0xf59e0b);
+    expect(TRACK_COLORS["learning"]).toBe(0x22d3ee);
+    expect(TRACK_COLORS["classic"]).toBe(0xec4899);
+  });
+});
+
+describe("7. Dynamic Email Subject Lines & Day Parity", () => {
+  test("sendWeeklyDigestEmail uses dynamic day in subject based on weeklyDigestDay", async () => {
+    const mockTransporter = {
+      sendMail: jest.fn().mockResolvedValue({ messageId: "test-digest-msg" }),
+    };
+
+    const userFriday = {
+      email: "friday@example.com",
+      name: "Friday Reviewer",
+      routineTrack: "deep-work",
+      streakCount: 12,
+      weeklyDigestDay: "friday",
+    };
+
+    await emailService.sendWeeklyDigestEmail(mockTransporter, "http://localhost:3000", userFriday);
+
+    expect(mockTransporter.sendMail).toHaveBeenCalled();
+    const callArgs = mockTransporter.sendMail.mock.calls[0][0];
+    expect(callArgs.subject).toContain("Friday Weekly Streak Digest");
+    expect(callArgs.text).toContain("Friday Weekly Streak Digest");
   });
 });

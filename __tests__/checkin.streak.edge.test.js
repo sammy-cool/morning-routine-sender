@@ -129,5 +129,34 @@ describe("Habit Streak & Check-in Edge Cases", () => {
       expect(res.text).toMatch(/5-Day Streak Maintained/i);
       expect(res.text).toMatch(/Already Checked In/i);
     });
+
+    test("celebrates milestone check-in with freeze shield reward badge", async () => {
+      const email = "milestone@example.com";
+      const token = generateActionToken(email, "checkin");
+
+      sharedData.getUserByEmail.mockResolvedValue({
+        email,
+        streakCount: 6,
+        routineTrack: "deep-work",
+        timezone: "UTC",
+      });
+
+      sharedData.recordCheckin.mockResolvedValue({
+        success: true,
+        email,
+        streak: 7,
+        freezeEarned: true,
+        streakFreezes: 3,
+        alreadyCheckedInToday: false,
+      });
+
+      const res = await request(app).get(
+        `/checkin?email=${encodeURIComponent(email)}&token=${token}&format=json`,
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.streakCount).toBe(7);
+      expect(res.body.freezeEarned).toBe(true);
+      expect(res.body.badge).toContain("+1 Freeze Shield Earned");
+    });
   });
 });

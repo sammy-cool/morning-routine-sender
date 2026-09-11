@@ -11,7 +11,18 @@ async function getMe(req, res) {
     if (!subscriber) {
       return res.status(404).json({ error: "Subscriber not found" });
     }
-    res.json(subscriber);
+    let systemAnnouncement = process.env.SYSTEM_ANNOUNCEMENT || null;
+    try {
+      const redis = require("../config/redisClient");
+      const rAnnounce = await redis.get("system:broadcast:message");
+      if (rAnnounce) systemAnnouncement = rAnnounce;
+    } catch (_e) {
+      /* Non-fatal redis broadcast lookup */
+    }
+    res.json({
+      ...subscriber,
+      systemAnnouncement,
+    });
   } catch (error) {
     logger.error("Failed to load own subscriber record", { error: error.message });
     res.status(500).json({ error: "Failed to load your subscription" });
@@ -708,6 +719,22 @@ async function useStreakFreeze(req, res) {
       date: todayStr,
       remaining: newFreezes,
     });
+
+    // Non-blocking trigger of streak.freeze_activated outbound webhook
+    const outboundWebhookDispatcher = require("../helper/outboundWebhookDispatcher");
+    outboundWebhookDispatcher
+      .dispatchWebhookForSubscriber(req.subscriberEmail, "streak.freeze_activated", {
+        streakFreezesRemaining: newFreezes,
+        date: todayStr,
+        reason: "manual",
+        activatedAt: new Date().toISOString(),
+      })
+      .catch((err) => {
+        logger.error("Outbound webhook trigger failed on streak freeze", {
+          error: err.message,
+          email: req.subscriberEmail,
+        });
+      });
 
     res.json({
       success: true,

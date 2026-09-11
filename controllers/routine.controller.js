@@ -132,13 +132,33 @@ async function checkin(req, res) {
         });
       });
 
+    // Trigger streak.milestone_reached on consistency milestones
+    if ([3, 7, 14, 21, 30, 60, 100, 365].includes(finalStreak) || finalStreak % 7 === 0) {
+      outboundWebhookDispatcher
+        .dispatchWebhookForSubscriber(subscriber, "streak.milestone_reached", {
+          milestone: finalStreak,
+          streak: finalStreak,
+          freezeEarned: Boolean(checkinResult.freezeEarned),
+          reachedAt: new Date().toISOString(),
+        })
+        .catch(() => {});
+    }
+
+    const badgeText = checkinResult.freezeEarned
+      ? `${finalStreak}-Day Active Streak • 🛡️ +1 Freeze Shield Earned!`
+      : `${finalStreak}-Day Active Streak`;
+
     return sendResponse({
       success: true,
       streakCount: finalStreak,
       title: `Day ${finalStreak} Complete! 🔥`,
-      message: `Great job completing your morning routine. You have maintained a ${finalStreak}-day streak!`,
+      message: checkinResult.freezeEarned
+        ? `Great job completing your morning routine. Consistency reward unlocked: +1 Streak Freeze Shield awarded!`
+        : `Great job completing your morning routine. You have maintained a ${finalStreak}-day streak!`,
       quote: trackInfo.quote,
-      badge: `${finalStreak}-Day Active Streak`,
+      badge: badgeText,
+      freezeEarned: Boolean(checkinResult.freezeEarned),
+      streakFreezes: checkinResult.streakFreezes,
       routineUrl: `/routine?email=${encodeURIComponent(email)}&token=${token}`,
     });
   } catch (err) {

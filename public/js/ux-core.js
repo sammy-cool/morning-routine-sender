@@ -410,6 +410,16 @@
   let ambientActiveNodes = [];
   let ambientIntervalTimers = [];
   let ambientVolume = 0.5;
+  try {
+    if (typeof localStorage !== "undefined") {
+      const savedVol = parseFloat(localStorage.getItem("mrn_ambient_vol"));
+      if (!isNaN(savedVol) && savedVol >= 0 && savedVol <= 1) {
+        ambientVolume = savedVol;
+      }
+    }
+  } catch (_e) {
+    /* Safe localStorage fallback */
+  }
   let ambientBinauralBeatHz = 10; // Default: 10 Hz (Alpha waves)
 
   function createPinkNoiseBuffer(ctx, duration = 4.0) {
@@ -741,6 +751,13 @@
 
     setVolume(vol, rampTime = 0.1) {
       ambientVolume = Math.max(0, Math.min(1, Number(vol) || 0));
+      try {
+        if (typeof localStorage !== "undefined") {
+          localStorage.setItem("mrn_ambient_vol", String(ambientVolume));
+        }
+      } catch (_e) {
+        /* Ignore storage errors */
+      }
       if (ambientMasterGain && sharedAudioCtx) {
         try {
           const now = sharedAudioCtx.currentTime;
@@ -754,6 +771,11 @@
           /* Non-fatal volume adjust */
         }
       }
+      return ambientVolume;
+    },
+
+    getVolume() {
+      return ambientVolume;
     },
 
     getCurrentMode() {

@@ -389,6 +389,24 @@ async function recordCheckin(email, timezone = "UTC") {
     }
   }
 
+  // Milestone Refill: Every 7 days of consistency, award +1 freeze shield (max 3)
+  let freezeEarned = false;
+  if (newStreak > 0 && newStreak % 7 === 0 && streakFreezes < 3) {
+    streakFreezes += 1;
+    freezeEarned = true;
+    freezeHistory.push({
+      date: todayStr,
+      earnedAt: new Date().toISOString(),
+      reason: "milestone-reward-7d",
+      streakCount: newStreak,
+    });
+    logger.info("🛡️ Milestone reward: +1 Streak Freeze shield awarded!", {
+      email,
+      newStreak,
+      streakFreezes,
+    });
+  }
+
   try {
     await db("subscribers")
       .where("email", email)
@@ -405,6 +423,7 @@ async function recordCheckin(email, timezone = "UTC") {
       newStreak,
       todayStr,
       freezeUsed,
+      freezeEarned,
       streakFreezes,
     });
     return {
@@ -416,9 +435,14 @@ async function recordCheckin(email, timezone = "UTC") {
       isNewStreak: newStreak > 1,
       today: todayStr,
       freezeUsed,
+      freezeEarned,
       streakFreezes,
       freezeHistory,
-      shieldBadge: freezeUsed ? "🛡️ Streak Shield Saved Your Streak!" : undefined,
+      shieldBadge: freezeUsed
+        ? "🛡️ Streak Shield Saved Your Streak!"
+        : freezeEarned
+          ? "🛡️ +1 Streak Freeze Shield Earned!"
+          : undefined,
     };
   } catch (err) {
     logger.error("Error recording checkin", { error: err.message, email });
@@ -430,6 +454,7 @@ async function recordCheckin(email, timezone = "UTC") {
       alreadyCheckedInToday: false,
       today: todayStr,
       freezeUsed,
+      freezeEarned,
       streakFreezes,
     };
   }

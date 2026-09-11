@@ -217,6 +217,17 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       if (prefWeeklyDigestDay) {
         prefWeeklyDigestDay.value = sub.weeklyDigestDay || "sunday";
       }
+
+      // Dynamic System Broadcast Announcement
+      const announcementEl = document.getElementById("systemAnnouncementBanner");
+      if (announcementEl) {
+        if (sub.systemAnnouncement) {
+          announcementEl.innerHTML = `<div style="display: flex; align-items: center; gap: 10px"><span aria-hidden="true">📢</span><span><strong>Announcement:</strong> ${escapeHtml(sub.systemAnnouncement)}</span></div><button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1" aria-label="Dismiss announcement">&times;</button>`;
+          announcementEl.style.display = "flex";
+        } else {
+          announcementEl.style.display = "none";
+        }
+      }
     }
 
     function setFocusDurationUI(mins) {
@@ -2141,6 +2152,19 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    const ambientVolumeRange = document.getElementById("ambientVolumeRange");
+    if (ambientVolumeRange) {
+      if (globalThis.UXCore?.ambient?.getVolume) {
+        ambientVolumeRange.value = Math.round(globalThis.UXCore.ambient.getVolume() * 100);
+      }
+      ambientVolumeRange.addEventListener("input", function () {
+        const vol = Number(this.value) / 100;
+        if (globalThis.UXCore?.ambient?.setVolume) {
+          globalThis.UXCore.ambient.setVolume(vol);
+        }
+      });
+    }
+
     if (ambientSoundBtn) {
       ambientSoundBtn.addEventListener("click", () => {
         if (!globalThis.UXCore?.ambient) return;
@@ -2153,7 +2177,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           ambientSoundBtn.classList.remove("btn-primary");
           ambientSoundBtn.classList.add("btn-secondary");
         } else {
-          globalThis.UXCore.ambient.play(targetMode, 0.45);
+          const currentVol = globalThis.UXCore.ambient.getVolume
+            ? globalThis.UXCore.ambient.getVolume()
+            : 0.45;
+          globalThis.UXCore.ambient.play(targetMode, currentVol);
           if (ambientSoundLabel) ambientSoundLabel.textContent = ambientLabels[targetMode];
           ambientSoundBtn.classList.remove("btn-secondary");
           ambientSoundBtn.classList.add("btn-primary");

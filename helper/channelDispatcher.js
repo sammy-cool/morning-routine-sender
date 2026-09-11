@@ -9,6 +9,8 @@ const TRACK_COLORS = {
   executive: 0xf59e0b, // Amber
   learning: 0x22d3ee, // Cyan
   classic: 0xec4899, // Pink
+  career: 0x3b82f6, // Royal Blue
+  reflection: 0x8b5cf6, // Violet
 };
 
 /**
@@ -274,8 +276,15 @@ async function dispatchChannelsForSubscriber(subscriber, options = {}) {
     subscriber.channelsEnabled || subscriber.channels_enabled,
   );
   const trackKey = subscriber.routineTrack || subscriber.templateType || "deep-work";
-  const trackContent = options.trackContent || sharedData.getTrackContent(trackKey);
-  const quote = options.quote || (await sharedData.getNewRandomQuote());
+  const trackContent =
+    options.trackContent ||
+    sharedData.getTrackContent(trackKey, {
+      customQuote: subscriber.customQuote,
+      customRitual: subscriber.customRitual,
+      email: subscriber.email,
+      dateStr: options.dateStr,
+    });
+  const quote = options.quote || trackContent?.quote || (await sharedData.getNewRandomQuote());
   const baseUrl =
     options.baseUrl || process.env.RENDER_URL || "https://morning-routine-sender.onrender.com";
 
@@ -369,6 +378,7 @@ async function testChannelDispatch({ channel, webhookUrl, chatId, subscriberEmai
 }
 
 module.exports = {
+  TRACK_COLORS,
   parseEnabledChannels,
   sendDiscordNotification,
   sendTelegramNotification,
