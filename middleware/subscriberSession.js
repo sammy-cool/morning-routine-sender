@@ -65,6 +65,9 @@ async function destroySession(req, res) {
 // Express middleware for API routes under /me/*: rejects with 401 if
 // there's no valid session, attaches req.subscriberEmail if there is.
 async function requireSubscriberSession(req, res, next) {
+  if (req.subscriberEmail) {
+    return next();
+  }
   const email = await getSessionEmail(req);
   if (!email) {
     return res.status(401).json({ error: "Not logged in" });
@@ -77,6 +80,8 @@ async function requireSubscriberSession(req, res, next) {
  * Resolves subscriber email from session cookie OR magic action token
  */
 async function getSubscriberAuthEmail(req) {
+  if (req.subscriberEmail) return req.subscriberEmail;
+
   // 1. Check active session cookie
   const sessionEmail = await getSessionEmail(req);
   if (sessionEmail) return sessionEmail;

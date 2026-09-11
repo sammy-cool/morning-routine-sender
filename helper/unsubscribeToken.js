@@ -69,9 +69,37 @@ function verifyUnsubscribeToken(email, token) {
   return false;
 }
 
+/**
+ * Deterministic self-contained webcal token combining base64url(email:hmac)
+ */
+function generateCalendarToken(email) {
+  const normEmail = (email || "").toLowerCase().trim();
+  const hmac = generateActionToken(normEmail, "calendar");
+  return Buffer.from(`${normEmail}:${hmac}`).toString("base64url");
+}
+
+function verifyCalendarToken(tokenStr) {
+  if (!tokenStr || typeof tokenStr !== "string") return null;
+  try {
+    const decoded = Buffer.from(tokenStr, "base64url").toString("utf8");
+    const colonIdx = decoded.indexOf(":");
+    if (colonIdx === -1) return null;
+    const email = decoded.slice(0, colonIdx);
+    const hmac = decoded.slice(colonIdx + 1);
+    if (email && hmac && verifyActionToken(email, hmac, "calendar")) {
+      return email;
+    }
+  } catch (_e) {
+    return null;
+  }
+  return null;
+}
+
 module.exports = {
   generateUnsubscribeToken,
   verifyUnsubscribeToken,
   generateActionToken,
   verifyActionToken,
+  generateCalendarToken,
+  verifyCalendarToken,
 };

@@ -89,6 +89,129 @@ async function exportJournal(req, res) {
   }
 }
 
+function formatIcsDateTime(date) {
+  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+function generateCalendarIcs(subscriber, domain = "https://morningroutinesender.com") {
+  const trackKey = subscriber.routineTrack || "deep-work";
+  const track = sharedData.getTrackContent(trackKey);
+  const trackName = track?.name || "Deep Work & Builder";
+  const ritual = track?.ritual || "Focus Sprint & Daily Planning";
+  const checklist = (track?.checklist || ["Hydrate (500ml)", "Focus Sprint"]).join("\\n- ");
+  const timezone = subscriber.timezone || "UTC";
+  const email = subscriber.email;
+  const { generateActionToken } = require("../helper/unsubscribeToken");
+  const token = generateActionToken(email, "routine");
+  const routineUrl = `${domain}/routine?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`;
+
+  const [prefHour, prefMinute] = (subscriber.preferredTime || "07:00").split(":").map(Number);
+  const hour = isNaN(prefHour) ? 7 : prefHour;
+  const minute = isNaN(prefMinute) ? 0 : prefMinute;
+  const durationMinutes = Number(subscriber.focusDurationMinutes) || 25;
+
+  const now = new Date();
+  const dtStamp = formatIcsDateTime(now);
+
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const hh = String(hour).padStart(2, "0");
+  const mm = String(minute).padStart(2, "0");
+
+  const endTotalMinutes = hour * 60 + minute + durationMinutes;
+  const endHour = String(Math.floor(endTotalMinutes / 60) % 24).padStart(2, "0");
+  const endMinute = String(endTotalMinutes % 60).padStart(2, "0");
+
+  const dtStart = `${y}${m}${d}T${hh}${mm}00`;
+  const dtEnd = `${y}${m}${d}T${endHour}${endMinute}00`;
+  const uid = `mrn-routine-${Buffer.from(email).toString("hex").slice(0, 16)}@morningroutinesender.com`;
+
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Morning Routine Sender//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    `X-WR-CALNAME:Morning Routine • ${trackName}`,
+    `X-WR-TIMEZONE:${timezone}`,
+    "X-WR-CALDESC:Daily morning routine focus rituals and habit streaks",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${dtStamp}`,
+    `DTSTART;TZID=${timezone}:${dtStart}`,
+    `DTEND;TZID=${timezone}:${dtEnd}`,
+    "RRULE:FREQ=DAILY",
+    `SUMMARY:⚡ Morning Routine: ${trackName}`,
+    `DESCRIPTION:Today's Ritual: ${ritual}\\n\\nChecklist:\\n- ${checklist}\\n\\nOpen Live Companion & Timer:\\n${routineUrl}`,
+    `URL:${routineUrl}`,
+    "STATUS:CONFIRMED",
+    "TRANSP:OPAQUE",
+    "BEGIN:VALARM",
+    "TRIGGER:-PT10M",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:Morning Routine starting in 10 minutes",
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
+// GET /me/calendar.ics
+async function exportCalendar(req, res) {
+  try {
+    const subscriber = await sharedData.getUserByEmail(req.subscriberEmail);
+    if (!subscriber) {
+      return res.status(404).json({ error: "Subscriber not found" });
+    }
+    const domain = res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+    const icsContent = generateCalendarIcs(subscriber, domain);
+
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="morning-routine.ics"');
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    return res.send(icsContent);
+  } catch (err) {
+    logger.error("Failed to export calendar", { error: err.message });
+    return res.status(500).json({ error: "Failed to generate calendar feed" });
+  }
+}
+
+// GET /calendar/feed/:token.ics & GET /calendar/feed/:token
+async function getCalendarFeedByToken(req, res) {
+  try {
+    const tokenParam = (req.params.token || "").replace(/\.ics$/, "");
+    const { verifyCalendarToken } = require("../helper/unsubscribeToken");
+    const verifiedEmail = verifyCalendarToken(tokenParam);
+
+    let subscriber = null;
+    if (verifiedEmail) {
+      subscriber = await sharedData.getUserByEmail(verifiedEmail);
+    } else {
+      const redis = require("../config/redisClient");
+      const sessionEmail = await redis.get(`subscriber_session:${tokenParam}`).catch(() => null);
+      if (sessionEmail) {
+        subscriber = await sharedData.getUserByEmail(sessionEmail);
+      }
+    }
+
+    if (!subscriber) {
+      return res.status(401).send("Invalid or expired calendar feed token");
+    }
+
+    const domain = res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+    const icsContent = generateCalendarIcs(subscriber, domain);
+
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", 'inline; filename="morning-routine.ics"');
+    res.setHeader("Cache-Control", "public, max-age=1800");
+    return res.send(icsContent);
+  } catch (err) {
+    logger.error("Failed to serve calendar feed", { error: err.message });
+    return res.status(500).send("Failed to serve calendar feed");
+  }
+}
+
 // GET /api/streak-card.svg & GET /api/streak-card/:email/card.svg
 async function getStreakCard(req, res) {
   try {
@@ -764,4 +887,6 @@ module.exports = {
   testOutboundWebhook,
   getStreakFreezeStatus,
   useStreakFreeze,
+  exportCalendar,
+  getCalendarFeedByToken,
 };
