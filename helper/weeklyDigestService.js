@@ -236,6 +236,8 @@ async function buildWeeklyDigestPayload(subscriber, appLocals = process.env.REND
     aiFocusMantra: aiSpark.focusMantra,
     ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(email)}&token=${routineToken}&source=weekly_digest`,
     checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(email)}&token=${checkinToken}&source=weekly_digest`,
+    weeklyReportCardUrl: `${baseUrl}/api/weekly-report/${encodeURIComponent(email)}/card.svg`,
+    weeklyReportCardDownloadUrl: `${baseUrl}/api/weekly-report/${encodeURIComponent(email)}/card.svg?download=1`,
     preferencesUrl: `${baseUrl}/user-dashboard`,
     unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubscribeToken}`,
   };

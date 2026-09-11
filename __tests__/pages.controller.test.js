@@ -1,8 +1,14 @@
 process.env.USE_MOCK_REDIS = "true";
 
-jest.mock("../db/knex", () => ({
-  raw: jest.fn().mockResolvedValue([1]),
-}));
+jest.mock("../db/knex", () => {
+  const fn = jest.fn(() => ({
+    where: jest.fn().mockReturnThis(),
+    orWhere: jest.fn().mockReturnThis(),
+    first: jest.fn().mockResolvedValue(null),
+  }));
+  fn.raw = jest.fn().mockResolvedValue([1]);
+  return fn;
+});
 
 jest.mock("../config/redisClient", () => ({
   ping: jest.fn().mockResolvedValue("PONG"),
@@ -16,6 +22,7 @@ const {
   llmsTxt,
   llmsFullTxt,
   about,
+  streakShare,
 } = require("../controllers/pages.controller");
 
 describe("pages.controller endpoints", () => {
@@ -194,5 +201,50 @@ describe("pages.controller endpoints", () => {
     expect(res.status).toBe(200);
     expect(res.text).not.toContain("__DOMAIN__");
     expect(res.text).toContain("Morning Routine Sender");
+  });
+
+  test("streakShare responds with public streak landing page and card switchers", async () => {
+    const req = {
+      params: { handleOrEmail: "champion" },
+      query: {},
+      protocol: "https",
+      get: () => "routine.example.com",
+    };
+    const res = {
+      set: jest.fn(),
+      send: jest.fn(),
+      redirect: jest.fn(),
+    };
+
+    await streakShare(req, res);
+
+    expect(res.send).toHaveBeenCalledTimes(1);
+    const html = res.send.mock.calls[0][0];
+    expect(html).toContain("Morning Routine Streak");
+    expect(html).toContain("btnToggleStreak");
+    expect(html).toContain("btnToggleWeekly");
+    expect(html).toContain("switchCard('streak')");
+    expect(html).toContain("switchCard('weekly')");
+  });
+
+  test("streakShare with view=weekly renders weekly scorecard metadata and active weekly button", async () => {
+    const req = {
+      params: { handleOrEmail: "champion" },
+      query: { view: "weekly" },
+      protocol: "https",
+      get: () => "routine.example.com",
+    };
+    const res = {
+      set: jest.fn(),
+      send: jest.fn(),
+      redirect: jest.fn(),
+    };
+
+    await streakShare(req, res);
+
+    expect(res.send).toHaveBeenCalledTimes(1);
+    const html = res.send.mock.calls[0][0];
+    expect(html).toContain("Weekly Habit Scorecard");
+    expect(html).toContain("/api/weekly-report/");
   });
 });

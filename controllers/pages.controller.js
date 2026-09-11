@@ -16,7 +16,10 @@ function escapeHtml(unsafe) {
 }
 
 function getDomain(req, res) {
-  return res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+  return (
+    res?.locals?.apiBase ||
+    `${req?.protocol || "https"}://${typeof req?.get === "function" ? req.get("host") : req?.headers?.host || "localhost"}`
+  );
 }
 
 function setNoCacheHeaders(res) {
@@ -271,16 +274,18 @@ async function streakShare(req, res) {
       subscriber = await sharedData.getUserByEmail(cleanInput);
     } else {
       try {
-        const row = await db("subscribers")
-          .where("email", cleanInput)
-          .orWhere("email", "like", `${cleanInput}@%`)
-          .first();
-        if (row) {
-          subscriber = {
-            ...row,
-            streakCount: Number(row.streak_count) || 0,
-            routineTrack: row.routine_track || row.template_type || "deep-work",
-          };
+        if (typeof db === "function") {
+          const row = await db("subscribers")
+            .where("email", cleanInput)
+            .orWhere("email", "like", `${cleanInput}@%`)
+            .first();
+          if (row) {
+            subscriber = {
+              ...row,
+              streakCount: Number(row.streak_count) || 0,
+              routineTrack: row.routine_track || row.template_type || "deep-work",
+            };
+          }
         }
       } catch (dbErr) {
         logger.warn("Failed to query subscriber by handle prefix", { error: dbErr.message });
@@ -302,12 +307,20 @@ async function streakShare(req, res) {
       ? rawName.charAt(0).toUpperCase() + rawName.slice(1)
       : "Morning Builder";
 
-    const pageTitle = `${displayName}'s ${streak}-Day Morning Routine Streak`;
+    const isWeeklyView = req.query.view === "weekly";
+    const streakImageUrl = `${officialDomain}/api/streak-card/${encodeURIComponent(resolvedEmail)}/card.svg`;
+    const weeklyReportImageUrl = `${officialDomain}/api/weekly-report/${encodeURIComponent(resolvedEmail)}/card.svg`;
+    const currentImageUrl = isWeeklyView ? weeklyReportImageUrl : streakImageUrl;
+    const canonicalUrl = `${officialDomain}/streak/${encodeURIComponent(rawInput)}${isWeeklyView ? "?view=weekly" : ""}`;
+
+    const pageTitle = isWeeklyView
+      ? `${displayName}'s Weekly Habit Scorecard`
+      : `${displayName}'s ${streak}-Day Morning Routine Streak`;
     const pageDescription =
       "Building unshakable discipline and morning focus with Morning Routine Sender.";
-    const streakImageUrl = `${officialDomain}/api/streak-card/${encodeURIComponent(resolvedEmail)}/card.svg`;
-    const canonicalUrl = `${officialDomain}/streak/${encodeURIComponent(rawInput)}`;
-    const shareTweetText = `🔥 I've maintained a ${streak}-day morning discipline streak on the ${trackConfig.name} track with @RoutineSender!\n\nCheck out my streak and level up your mornings:`;
+    const shareTweetText = isWeeklyView
+      ? `📊 Verified my Weekly Habit Consistency Scorecard on the ${trackConfig.name} track with @RoutineSender!\n\nCheck out my scorecard:`
+      : `🔥 I've maintained a ${streak}-day morning discipline streak on the ${trackConfig.name} track with @RoutineSender!\n\nCheck out my streak and level up your mornings:`;
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTweetText)}&url=${encodeURIComponent(canonicalUrl)}`;
     const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonicalUrl)}`;
 
@@ -332,7 +345,7 @@ async function streakShare(req, res) {
   <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
   <meta property="og:title" content="${escapeHtml(pageTitle)}">
   <meta property="og:description" content="${escapeHtml(pageDescription)}">
-  <meta property="og:image" content="${escapeHtml(streakImageUrl)}">
+  <meta property="og:image" content="${escapeHtml(currentImageUrl)}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="${escapeHtml(pageTitle)}">
@@ -344,7 +357,7 @@ async function streakShare(req, res) {
   <meta name="twitter:creator" content="@MorningRoutine">
   <meta name="twitter:title" content="${escapeHtml(pageTitle)}">
   <meta name="twitter:description" content="${escapeHtml(pageDescription)}">
-  <meta name="twitter:image" content="${escapeHtml(streakImageUrl)}">
+  <meta name="twitter:image" content="${escapeHtml(currentImageUrl)}">
   <meta name="twitter:image:alt" content="${escapeHtml(pageTitle)}">
 
   <!-- Fonts & Favicon -->
@@ -629,9 +642,29 @@ async function streakShare(req, res) {
     </header>
 
     <main class="card">
+      <!-- Card Switcher Tabs -->
+      <div style="display: flex; gap: 10px; margin-bottom: 16px; justify-content: center;">
+        <button
+          type="button"
+          id="btnToggleStreak"
+          onclick="switchCard('streak')"
+          style="padding: 8px 18px; border-radius: 9999px; font-weight: 700; font-size: 13px; border: 1px solid ${!isWeeklyView ? "var(--accent-purple)" : "rgba(255,255,255,0.1)"}; background: ${!isWeeklyView ? "rgba(124,58,237,0.25)" : "transparent"}; color: ${!isWeeklyView ? "#fff" : "var(--text-muted)"}; cursor: pointer; transition: all 0.2s ease;"
+        >
+          🔥 Streak Card
+        </button>
+        <button
+          type="button"
+          id="btnToggleWeekly"
+          onclick="switchCard('weekly')"
+          style="padding: 8px 18px; border-radius: 9999px; font-weight: 700; font-size: 13px; border: 1px solid ${isWeeklyView ? "#10b981" : "rgba(255,255,255,0.1)"}; background: ${isWeeklyView ? "rgba(16,185,129,0.25)" : "transparent"}; color: ${isWeeklyView ? "#fff" : "var(--text-muted)"}; cursor: pointer; transition: all 0.2s ease;"
+        >
+          📊 Weekly Scorecard
+        </button>
+      </div>
+
       <div class="streak-preview-wrap">
         <img
-          src="${escapeHtml(streakImageUrl)}"
+          src="${escapeHtml(currentImageUrl)}"
           alt="${escapeHtml(pageTitle)}"
           class="streak-card-img"
           loading="eager"
@@ -709,8 +742,6 @@ async function streakShare(req, res) {
       } else {
         const input = document.createElement('textarea');
         input.value = window.location.href;
-        document.body.appendChild(input);
-        input.select();
         document.execCommand('copy');
         document.body.removeChild(input);
         showToast();
@@ -721,6 +752,39 @@ async function streakShare(req, res) {
       if (!toast) return;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+    function switchCard(mode) {
+      const img = document.querySelector('.streak-card-img');
+      const btnStreak = document.getElementById('btnToggleStreak');
+      const btnWeekly = document.getElementById('btnToggleWeekly');
+      const streakUrl = '${streakImageUrl}';
+      const weeklyUrl = '${weeklyReportImageUrl}';
+      if (!img) return;
+      if (mode === 'weekly') {
+        img.src = weeklyUrl;
+        if (btnWeekly) {
+          btnWeekly.style.background = 'rgba(16,185,129,0.25)';
+          btnWeekly.style.borderColor = '#10b981';
+          btnWeekly.style.color = '#fff';
+        }
+        if (btnStreak) {
+          btnStreak.style.background = 'transparent';
+          btnStreak.style.borderColor = 'rgba(255,255,255,0.1)';
+          btnStreak.style.color = 'var(--text-muted)';
+        }
+      } else {
+        img.src = streakUrl;
+        if (btnStreak) {
+          btnStreak.style.background = 'rgba(124,58,237,0.25)';
+          btnStreak.style.borderColor = 'var(--accent-purple)';
+          btnStreak.style.color = '#fff';
+        }
+        if (btnWeekly) {
+          btnWeekly.style.background = 'transparent';
+          btnWeekly.style.borderColor = 'rgba(255,255,255,0.1)';
+          btnWeekly.style.color = 'var(--text-muted)';
+        }
+      }
     }
   </script>
 </body>

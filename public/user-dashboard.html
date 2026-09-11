@@ -3779,6 +3779,16 @@
             <i class="fas fa-award" style="color: #10b981" aria-hidden="true"></i>
             Weekly Report Card (.svg)
           </a>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="subscribeWebcalBtn"
+            style="display: inline-flex; align-items: center; gap: 8px"
+            title="Subscribe via Webcal for live recurring calendar updates in Apple Calendar, Google Calendar or Outlook"
+          >
+            <i class="fas fa-rss" style="color: #f59e0b" aria-hidden="true"></i>
+            Subscribe Feed (Webcal)
+          </button>
         </div>
       </div>
 
@@ -3875,9 +3885,39 @@
           </button>
         </div>
 
+        <!-- Card Type Switcher Tabs -->
+        <div
+          class="share-card-switcher"
+          style="
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px;
+            border-radius: 10px;
+          "
+        >
+          <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            id="shareTabStreak"
+            style="flex: 1; font-size: 13px; padding: 6px 12px; transition: all 0.2s ease"
+          >
+            🔥 Daily Streak Card
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-secondary"
+            id="shareTabWeekly"
+            style="flex: 1; font-size: 13px; padding: 6px 12px; transition: all 0.2s ease"
+          >
+            📊 Weekly Scorecard
+          </button>
+        </div>
+
         <div class="streak-preview-container">
           <img
-            id="modalStreakPreviewImg"
+            id="shareCardPreviewImg"
             class="streak-preview-img"
             src=""
             alt="Streak Momentum Card"

@@ -1638,39 +1638,83 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const streakShareModal = document.getElementById("streakShareModal");
     const openShareModalBtn = document.getElementById("openShareModalBtn");
     const closeShareModalBtn = document.getElementById("closeShareModalBtn");
-    const shareCardPreviewImg = document.getElementById("shareCardPreviewImg");
+    const shareCardPreviewImg =
+      document.getElementById("shareCardPreviewImg") ||
+      document.getElementById("modalStreakPreviewImg");
     const shareTwitterBtn = document.getElementById("shareTwitterBtn");
     const shareLinkedinBtn = document.getElementById("shareLinkedinBtn");
     const copyShareLinkBtn = document.getElementById("copyShareLinkBtn");
     const copyMarkdownBadgeBtn = document.getElementById("copyMarkdownBadgeBtn");
+    const shareTabStreak = document.getElementById("shareTabStreak");
+    const shareTabWeekly = document.getElementById("shareTabWeekly");
+    const subscribeWebcalBtn = document.getElementById("subscribeWebcalBtn");
 
-    function openStreakShareModal() {
-      if (!streakShareModal) return;
+    let currentShareCardMode = "streak";
+
+    function renderShareCardMode(mode) {
+      currentShareCardMode = mode;
       const streak = currentSubscriber?.streakCount || 1;
       const email = currentSubscriber?.email || "subscriber";
       const track = currentSubscriber?.routineTrack || "deep-work";
       const officialDomain = window.location.origin;
 
-      const svgCardUrl = `${officialDomain}/api/streak-card.svg?email=${encodeURIComponent(email)}&streak=${streak}&track=${encodeURIComponent(track)}`;
-      const streakShareUrl = `${officialDomain}/streak/${encodeURIComponent(email)}`;
-
-      if (shareCardPreviewImg) {
-        shareCardPreviewImg.src = svgCardUrl;
+      if (shareTabStreak && shareTabWeekly) {
+        if (mode === "streak") {
+          shareTabStreak.className = "btn btn-sm btn-primary";
+          shareTabWeekly.className = "btn btn-sm btn-secondary";
+        } else {
+          shareTabStreak.className = "btn btn-sm btn-secondary";
+          shareTabWeekly.className = "btn btn-sm btn-primary";
+        }
       }
 
-      const tweetText = encodeURIComponent(
-        `🔥 Locked in a ${streak}-day unbroken morning routine streak on Morning Routine Sender! ⚡ Leveling up deep work & mental clarity every single morning. Check out my streak:`,
-      );
-      const encodedShareUrl = encodeURIComponent(streakShareUrl);
-
-      if (shareTwitterBtn) {
-        shareTwitterBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodedShareUrl}&hashtags=MorningRoutine,DeepWork,Habits,Discipline`;
+      if (mode === "streak") {
+        const svgCardUrl = `${officialDomain}/api/streak-card.svg?email=${encodeURIComponent(email)}&streak=${streak}&track=${encodeURIComponent(track)}`;
+        const streakShareUrl = `${officialDomain}/streak/${encodeURIComponent(email)}`;
+        if (shareCardPreviewImg) {
+          shareCardPreviewImg.src = svgCardUrl;
+          shareCardPreviewImg.alt = "Streak Momentum Card";
+        }
+        const tweetText = encodeURIComponent(
+          `🔥 Locked in a ${streak}-day unbroken morning routine streak on Morning Routine Sender! ⚡ Leveling up deep work & mental clarity every single morning. Check out my streak:`,
+        );
+        const encodedShareUrl = encodeURIComponent(streakShareUrl);
+        if (shareTwitterBtn) {
+          shareTwitterBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodedShareUrl}&hashtags=MorningRoutine,DeepWork,Habits,Discipline`;
+        }
+        if (shareLinkedinBtn) {
+          shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`;
+        }
+      } else {
+        const weeklyReportUrl = `${officialDomain}/api/weekly-report/${encodeURIComponent(email)}/card.svg`;
+        const streakShareUrl = `${officialDomain}/streak/${encodeURIComponent(email)}?view=weekly`;
+        if (shareCardPreviewImg) {
+          shareCardPreviewImg.src = weeklyReportUrl;
+          shareCardPreviewImg.alt = "Weekly Habit Scorecard";
+        }
+        const tweetText = encodeURIComponent(
+          `📊 Verified my Weekly Habit Consistency Scorecard on Morning Routine Sender! ⚡ Unbroken discipline, high consistency & peak morning momentum:`,
+        );
+        const encodedShareUrl = encodeURIComponent(streakShareUrl);
+        if (shareTwitterBtn) {
+          shareTwitterBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodedShareUrl}&hashtags=MorningRoutine,Consistency,Habits,Growth`;
+        }
+        if (shareLinkedinBtn) {
+          shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`;
+        }
       }
+    }
 
-      if (shareLinkedinBtn) {
-        shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`;
-      }
+    if (shareTabStreak) {
+      shareTabStreak.addEventListener("click", () => renderShareCardMode("streak"));
+    }
+    if (shareTabWeekly) {
+      shareTabWeekly.addEventListener("click", () => renderShareCardMode("weekly"));
+    }
 
+    function openStreakShareModal() {
+      if (!streakShareModal) return;
+      renderShareCardMode(currentShareCardMode || "streak");
       streakShareModal.inert = false;
       streakShareModal.style.display = "flex";
       streakShareModal.removeAttribute("aria-hidden");
@@ -1701,12 +1745,20 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     if (copyShareLinkBtn) {
       copyShareLinkBtn.addEventListener("click", function () {
         const email = currentSubscriber?.email || "subscriber";
-        const streakShareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}`;
+        const shareUrl =
+          currentShareCardMode === "weekly"
+            ? `${window.location.origin}/streak/${encodeURIComponent(email)}?view=weekly`
+            : `${window.location.origin}/streak/${encodeURIComponent(email)}`;
 
         navigator.clipboard
-          .writeText(streakShareUrl)
+          .writeText(shareUrl)
           .then(() => {
-            showToast("📋 Public Streak Share link copied to clipboard!", "success");
+            showToast(
+              currentShareCardMode === "weekly"
+                ? "📋 Weekly Scorecard link copied to clipboard!"
+                : "📋 Public Streak Share link copied to clipboard!",
+              "success",
+            );
           })
           .catch(() => {
             showToast("Failed to copy link.", "warn");
@@ -1717,9 +1769,16 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     if (copyMarkdownBadgeBtn) {
       copyMarkdownBadgeBtn.addEventListener("click", function () {
         const email = currentSubscriber?.email || "subscriber";
-        const svgUrl = `${window.location.origin}/api/streak-card/${encodeURIComponent(email)}/card.svg`;
-        const streakShareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}`;
-        const markdownBadge = `[![Morning Routine Streak](${svgUrl})](${streakShareUrl})`;
+        let markdownBadge;
+        if (currentShareCardMode === "weekly") {
+          const svgUrl = `${window.location.origin}/api/weekly-report/${encodeURIComponent(email)}/card.svg`;
+          const shareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}?view=weekly`;
+          markdownBadge = `[![Weekly Habit Scorecard](${svgUrl})](${shareUrl})`;
+        } else {
+          const svgUrl = `${window.location.origin}/api/streak-card/${encodeURIComponent(email)}/card.svg`;
+          const streakShareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}`;
+          markdownBadge = `[![Morning Routine Streak](${svgUrl})](${streakShareUrl})`;
+        }
 
         navigator.clipboard
           .writeText(markdownBadge)
@@ -1729,6 +1788,36 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           .catch(() => {
             showToast("Failed to copy badge.", "warn");
           });
+      });
+    }
+
+    if (subscribeWebcalBtn) {
+      subscribeWebcalBtn.addEventListener("click", function () {
+        const domain = window.location.origin;
+        const webcalUrl =
+          currentSubscriber?.webcalUrl ||
+          (currentSubscriber?.calendarFeedUrl
+            ? currentSubscriber.calendarFeedUrl.replace(/^https?:\/\//i, "webcal://")
+            : `${domain.replace(/^https?:\/\//i, "webcal://")}/me/calendar.ics`);
+
+        navigator.clipboard
+          .writeText(webcalUrl)
+          .then(() => {
+            showToast(
+              "📅 <b>Webcal Feed Copied!</b> Paste into Apple Calendar, Google Calendar, or Outlook for live automatic syncing.",
+              "success",
+              { duration: 6000, allowHtml: true },
+            );
+          })
+          .catch(() => {
+            showToast(`Webcal Feed: ${webcalUrl}`, "info");
+          });
+
+        try {
+          window.location.href = webcalUrl;
+        } catch (_e) {
+          /* Browser might not handle webcal: URI scheme directly */
+        }
       });
     }
 

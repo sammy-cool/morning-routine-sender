@@ -79,6 +79,23 @@ describe("Live iCalendar (.ics) Feed & Webcal Integration", () => {
     expect(res.body.error).toBe("Subscriber not found");
   });
 
+  test("GET /me includes calendarToken, calendarFeedUrl, and webcalUrl", async () => {
+    const email = "calendar-pro@example.com";
+    sharedData.getUserByEmail.mockResolvedValue({
+      email,
+      routineTrack: "deep-work",
+      timezone: "UTC",
+    });
+
+    const app = buildApp(email);
+    const res = await request(app).get("/me");
+
+    expect(res.status).toBe(200);
+    expect(res.body.calendarToken).toBeTruthy();
+    expect(res.body.calendarFeedUrl).toContain("/calendar/feed/");
+    expect(res.body.webcalUrl).toContain("webcal://");
+  });
+
   test("GET /calendar/feed/:token returns valid calendar when valid token provided", async () => {
     const email = "subscriber-webcal@example.com";
     const validToken = generateCalendarToken(email);

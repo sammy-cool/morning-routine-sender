@@ -161,6 +161,13 @@
                 </div>
                 {{/each}}
               </div>
+
+              <!-- Verified Habit Report Card Link -->
+              <div style="margin-top: 14px; text-align: center;">
+                <a href="{{weeklyReportCardUrl}}" target="_blank" style="display: inline-block; background: #0f172a; color: #22d3ee; font-size: 12px; font-weight: 700; text-decoration: none; padding: 8px 16px; border-radius: 9999px; border: 1px solid rgba(34, 211, 238, 0.3);">
+                  🏆 View Verified Habit Scorecard (.SVG)
+                </a>
+              </div>
             </div>
           </mj-text>
         </mj-column>

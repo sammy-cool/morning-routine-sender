@@ -92,6 +92,8 @@ describe("Weekly Sunday Performance & Habit Digest Engine", () => {
       expect(payload.ctaUrl).toContain("/routine?email=alex.builder%40example.com");
       expect(payload.checkinUrl).toContain("/checkin?email=alex.builder%40example.com");
       expect(payload.unsubscribeUrl).toContain("/unsubscribe?email=alex.builder%40example.com");
+      expect(payload.weeklyReportCardUrl).toContain("/api/weekly-report/");
+      expect(payload.weeklyReportCardDownloadUrl).toContain("download=1");
       expect(payload.aiFocusMantra).toBeDefined();
     });
 

@@ -19,9 +19,19 @@ async function getMe(req, res) {
     } catch (_e) {
       /* Non-fatal redis broadcast lookup */
     }
+
+    const { generateCalendarToken } = require("../helper/unsubscribeToken");
+    const calendarToken = generateCalendarToken(subscriber.email);
+    const domain = res.locals.apiBase || `${req.protocol}://${req.get("host")}`;
+    const calendarFeedUrl = `${domain}/calendar/feed/${calendarToken}.ics`;
+    const webcalUrl = calendarFeedUrl.replace(/^https?:\/\//i, "webcal://");
+
     res.json({
       ...subscriber,
       systemAnnouncement,
+      calendarToken,
+      calendarFeedUrl,
+      webcalUrl,
     });
   } catch (error) {
     logger.error("Failed to load own subscriber record", { error: error.message });
