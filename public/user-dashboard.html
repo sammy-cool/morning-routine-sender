@@ -2403,6 +2403,492 @@
         </form>
       </div>
 
+      <!-- AI Morning Audio Briefing Card -->
+      <div class="card" id="briefingCard" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+          "
+        >
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <h2 style="font-size: 18px; font-weight: 700; margin: 0; color: #fff">
+                <i class="fas fa-podcast" style="color: var(--primary); margin-right: 6px"></i>
+                AI Morning Audio Briefing
+              </h2>
+              <span id="briefingPersonaBadge" class="status-badge active" style="font-size: 11px"
+                >🏛️ Stoic Sage</span
+              >
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px">
+              Listen to your personalized 90-second morning briefing recited by your AI Coach.
+            </p>
+          </div>
+          <button
+            type="button"
+            id="toggleBriefingScriptBtn"
+            class="btn btn-ghost"
+            style="padding: 6px 12px; font-size: 12px"
+          >
+            <i class="fas fa-file-alt" aria-hidden="true"></i> View Transcript
+          </button>
+        </div>
+
+        <div
+          style="
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 14px">
+            <button
+              type="button"
+              id="playBriefingBtn"
+              class="btn btn-primary"
+              style="
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+              "
+              aria-label="Play or pause morning audio briefing"
+            >
+              <i id="playBriefingIcon" class="fas fa-play" style="margin-left: 2px"></i>
+            </button>
+            <div>
+              <div id="briefingTitle" style="font-size: 14px; font-weight: 700; color: #fff">
+                Daily Morning Focus Briefing
+              </div>
+              <div id="briefingSubtitle" style="font-size: 12px; color: var(--text-muted)">
+                Approx. 75 seconds • Ready to play
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span
+              style="
+                font-size: 12px;
+                color: var(--text-muted);
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+              "
+              id="briefingTimeDisplay"
+              >0:00 / 1:15</span
+            >
+          </div>
+        </div>
+
+        <div
+          id="briefingScriptBox"
+          style="
+            display: none;
+            margin-top: 14px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            max-height: 200px;
+            overflow-y: auto;
+          "
+        >
+          <p id="briefingScriptText"></p>
+        </div>
+      </div>
+
+      <!-- Habit Performance & Time-of-Day Insights Card -->
+      <div class="card" id="analyticsCard" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+          "
+        >
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; margin: 0; color: #fff">
+              <i class="fas fa-chart-pie" style="color: var(--primary); margin-right: 6px"></i>
+              Habit Performance &amp; Time-of-Day Insights
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px">
+              Deep-dive metrics into your completion consistency and optimal morning energy
+              patterns.
+            </p>
+          </div>
+          <span
+            id="peakEnergyBadge"
+            class="status-badge"
+            style="
+              background: rgba(245, 158, 11, 0.15);
+              color: #fbbf24;
+              border: 1px solid rgba(245, 158, 11, 0.3);
+            "
+          >
+            🌅 Peak: 07:00 AM - 09:00 AM
+          </span>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+          "
+        >
+          <div
+            style="
+              background: rgba(0, 0, 0, 0.25);
+              border: 1px solid var(--border-subtle);
+              border-radius: 12px;
+              padding: 12px;
+              text-align: center;
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                color: var(--text-muted);
+                font-weight: 600;
+                text-transform: uppercase;
+              "
+            >
+              7-Day Consistency
+            </div>
+            <div
+              id="analytics7dRate"
+              style="font-size: 22px; font-weight: 800; color: #10b981; margin-top: 4px"
+            >
+              --%
+            </div>
+          </div>
+          <div
+            style="
+              background: rgba(0, 0, 0, 0.25);
+              border: 1px solid var(--border-subtle);
+              border-radius: 12px;
+              padding: 12px;
+              text-align: center;
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                color: var(--text-muted);
+                font-weight: 600;
+                text-transform: uppercase;
+              "
+            >
+              30-Day Rate
+            </div>
+            <div
+              id="analytics30dRate"
+              style="font-size: 22px; font-weight: 800; color: #3b82f6; margin-top: 4px"
+            >
+              --%
+            </div>
+          </div>
+          <div
+            style="
+              background: rgba(0, 0, 0, 0.25);
+              border: 1px solid var(--border-subtle);
+              border-radius: 12px;
+              padding: 12px;
+              text-align: center;
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                color: var(--text-muted);
+                font-weight: 600;
+                text-transform: uppercase;
+              "
+            >
+              Avg Morning Mood
+            </div>
+            <div
+              id="analyticsAvgMood"
+              style="font-size: 22px; font-weight: 800; color: #fbbf24; margin-top: 4px"
+            >
+              -- / 5
+            </div>
+          </div>
+          <div
+            style="
+              background: rgba(0, 0, 0, 0.25);
+              border: 1px solid var(--border-subtle);
+              border-radius: 12px;
+              padding: 12px;
+              text-align: center;
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                color: var(--text-muted);
+                font-weight: 600;
+                text-transform: uppercase;
+              "
+            >
+              Reflections Logged
+            </div>
+            <div
+              id="analyticsTotalLogged"
+              style="font-size: 22px; font-weight: 800; color: var(--primary); margin-top: 4px"
+            >
+              0
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px"
+          class="analytics-charts-grid"
+        >
+          <div
+            style="
+              background: rgba(0, 0, 0, 0.2);
+              border: 1px solid var(--border-subtle);
+              border-radius: 14px;
+              padding: 14px;
+            "
+          >
+            <div style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 10px">
+              Day-of-Week Consistency
+            </div>
+            <div
+              id="weekdayBarsContainer"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+                height: 100px;
+                padding-top: 10px;
+              "
+            ></div>
+          </div>
+          <div
+            style="
+              background: rgba(0, 0, 0, 0.2);
+              border: 1px solid var(--border-subtle);
+              border-radius: 14px;
+              padding: 14px;
+            "
+          >
+            <div style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 10px">
+              Time-of-Day Habit Breakdown
+            </div>
+            <div
+              id="timeOfDayContainer"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                justify-content: center;
+                height: 100px;
+              "
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accountability Squads Card -->
+      <div class="card" id="squadCard" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+          "
+        >
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <h2 style="font-size: 18px; font-weight: 700; margin: 0; color: #fff">
+                <i class="fas fa-users" style="color: var(--primary); margin-right: 6px"></i>
+                Habit Accountability Squad
+              </h2>
+              <span id="squadStreakBadge" class="status-badge active" style="font-size: 11px"
+                >🔥 0d Joint Streak</span
+              >
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px">
+              Pair with up to 5 accountability partners to build unstoppable consistency together.
+            </p>
+          </div>
+        </div>
+
+        <!-- In Squad View -->
+        <div id="inSquadView" style="display: none">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 12px;
+              margin-bottom: 16px;
+              padding-bottom: 12px;
+              border-bottom: 1px solid var(--border-subtle);
+            "
+          >
+            <div>
+              <span style="font-size: 16px; font-weight: 800; color: #fff" id="squadName"
+                >Squad</span
+              >
+              <span
+                style="font-size: 12px; color: var(--text-muted); margin-left: 8px"
+                id="squadMembersCount"
+                >(0/5 members)</span
+              >
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <button
+                type="button"
+                id="copySquadCodeBtn"
+                class="btn btn-ghost"
+                style="padding: 6px 12px; font-size: 12px"
+              >
+                <i class="fas fa-copy"></i> <span id="squadCodeLabel">Invite Code</span>
+              </button>
+              <button
+                type="button"
+                id="leaveSquadBtn"
+                class="btn btn-ghost"
+                style="padding: 6px 12px; font-size: 12px; color: #f87171"
+              >
+                <i class="fas fa-sign-out-alt"></i> Leave
+              </button>
+            </div>
+          </div>
+          <div
+            id="squadMembersList"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+              gap: 12px;
+            "
+          ></div>
+        </div>
+
+        <!-- Not In Squad View -->
+        <div id="noSquadView" style="display: block">
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+              gap: 16px;
+            "
+            class="squad-actions-grid"
+          >
+            <div
+              style="
+                background: rgba(0, 0, 0, 0.2);
+                border: 1px solid var(--border-subtle);
+                border-radius: 14px;
+                padding: 16px;
+              "
+            >
+              <h3 style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px">
+                Create a Squad
+              </h3>
+              <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px">
+                Start a new private accountability squad and invite friends or colleagues.
+              </p>
+              <div style="display: flex; gap: 8px">
+                <input
+                  type="text"
+                  id="newSquadNameInput"
+                  placeholder="e.g. Deep Work Guild"
+                  class="form-input"
+                  style="
+                    flex: 1;
+                    font-size: 13px;
+                    padding: 8px 12px;
+                    background: rgba(0, 0, 0, 0.3);
+                    border: 1px solid var(--border-subtle);
+                    color: #fff;
+                    border-radius: 8px;
+                  "
+                />
+                <button
+                  type="button"
+                  id="createSquadBtn"
+                  class="btn btn-primary"
+                  style="padding: 8px 14px; font-size: 12px"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+            <div
+              style="
+                background: rgba(0, 0, 0, 0.2);
+                border: 1px solid var(--border-subtle);
+                border-radius: 14px;
+                padding: 16px;
+              "
+            >
+              <h3 style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px">
+                Join with Code
+              </h3>
+              <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px">
+                Have an invite code from a squad leader? Enter it below to join.
+              </p>
+              <div style="display: flex; gap: 8px">
+                <input
+                  type="text"
+                  id="joinSquadCodeInput"
+                  placeholder="SQUAD-XXXX"
+                  class="form-input"
+                  style="
+                    flex: 1;
+                    font-size: 13px;
+                    padding: 8px 12px;
+                    text-transform: uppercase;
+                    background: rgba(0, 0, 0, 0.3);
+                    border: 1px solid var(--border-subtle);
+                    color: #fff;
+                    border-radius: 8px;
+                  "
+                />
+                <button
+                  type="button"
+                  id="joinSquadBtn"
+                  class="btn btn-ghost"
+                  style="padding: 8px 14px; font-size: 12px"
+                >
+                  Join
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- AI Morning Coach Persona Selector Card -->
       <div class="card" id="coachPersonaCard" style="display: none">
         <div

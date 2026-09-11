@@ -110,12 +110,35 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     const mjmlResult = await mjml2html(renderedMjml, {
       validationLevel: "strict",
     });
-    const html = mjmlResult?.html || "";
+    let html = mjmlResult?.html || "";
     const errors = mjmlResult?.errors || [];
 
     if (errors && errors.length) {
       logger.error("MJML Errors:", errors);
       throw new Error("Email template rendering error");
+    }
+
+    // Google Schema.org 1-Click Action Markup for Gmail
+    const schemaOrgJsonLd = JSON.stringify({
+      "@context": "http://schema.org",
+      "@type": "EmailMessage",
+      description: "Log your morning routine and maintain your active streak",
+      potentialAction: {
+        "@type": "ViewAction",
+        target: data.checkinUrl,
+        name: "🔥 1-Click Check-in",
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "Morning Routine Sender",
+        url: baseUrl,
+      },
+    });
+    const schemaScript = `\n  <script type="application/ld+json">\n  ${schemaOrgJsonLd}\n  </script>\n`;
+    if (html.includes("</head>")) {
+      html = html.replace("</head>", `${schemaScript}</head>`);
+    } else {
+      html = `${schemaScript}${html}`;
     }
 
     const textChecklist = (trackInfo.checklist || []).map((item) => `[ ] ${item}`).join("\n");

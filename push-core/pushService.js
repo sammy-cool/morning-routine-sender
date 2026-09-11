@@ -3,6 +3,7 @@ const webpush = require("web-push");
 const logger = require("../logger");
 const db = require("../db/knex");
 const sharedData = require("../helper/shared-data");
+const { generateActionToken } = require("../helper/unsubscribeToken");
 
 // Initialize web-push VAPID details
 function initVapid() {
@@ -108,6 +109,16 @@ function buildRoutinePushPayload(subscriber) {
   const track = subscriber.routineTrack || subscriber.templateType || "deep-work";
   const streak = Number(subscriber.streakCount) || 0;
   const trackInfo = sharedData.getTrackContent(track);
+  const email = subscriber.email || "";
+
+  let checkinUrl = "/checkin";
+  let routineUrl = "/routine";
+  if (email) {
+    const checkinToken = generateActionToken(email, "checkin");
+    const routineToken = generateActionToken(email, "routine");
+    checkinUrl = `/checkin?email=${encodeURIComponent(email)}&token=${checkinToken}`;
+    routineUrl = `/routine?email=${encodeURIComponent(email)}&token=${routineToken}`;
+  }
 
   const streakBadge = streak > 0 ? ` 🔥 ${streak}d streak` : "";
   const title = `🌅 ${trackInfo.name}${streakBadge}`;
@@ -122,16 +133,18 @@ function buildRoutinePushPayload(subscriber) {
     renotify: true,
     requireInteraction: true,
     data: {
-      url: "/routine",
+      url: routineUrl,
+      checkinUrl,
+      email,
       track,
       streak,
       dashboardUrl: "/user-dashboard",
       timestamp: Date.now(),
     },
     actions: [
+      { action: "checkin", title: "🔥 Check-in Now" },
       { action: "open_routine", title: "⚡ Start Ritual" },
-      { action: "checkin", title: "🔥 Check-in" },
-      { action: "open_dashboard", title: "👤 Dashboard" },
+      { action: "snooze", title: "⏰ Snooze 15m" },
     ],
   };
 }

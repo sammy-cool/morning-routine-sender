@@ -387,6 +387,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         renderOutboundWebhook(sub);
         loadActivityHeatmap();
         loadStreakFreezeStatus();
+        loadDailyBriefing();
+        loadHabitAnalytics();
+        loadAccountabilitySquad();
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);
@@ -2377,6 +2380,395 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         }
       });
     });
+
+    // =========================================================================
+    // 7. AI Morning Audio Briefing Player
+    // =========================================================================
+    let currentBriefing = null;
+    let isBriefingPlaying = false;
+    let briefingUtterance = null;
+
+    async function loadDailyBriefing() {
+      const card = document.getElementById("briefingCard");
+      if (!card) return;
+
+      try {
+        const res = await fetch("/api/me/briefing", { headers: { Accept: "application/json" } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success || !data.briefing) return;
+
+        currentBriefing = data.briefing;
+        card.style.display = "block";
+
+        const badge = document.getElementById("briefingPersonaBadge");
+        if (badge) badge.textContent = currentBriefing.coachTitle || "🏛️ Stoic Sage";
+
+        const title = document.getElementById("briefingTitle");
+        if (title) title.textContent = currentBriefing.title || "Daily Morning Focus Briefing";
+
+        const sub = document.getElementById("briefingSubtitle");
+        if (sub) {
+          sub.textContent = `Approx. ${currentBriefing.estimatedDurationSec}s • Recited by ${currentBriefing.coachTitle}`;
+        }
+
+        const timeDisplay = document.getElementById("briefingTimeDisplay");
+        if (timeDisplay) {
+          const m = Math.floor(currentBriefing.estimatedDurationSec / 60);
+          const s = (currentBriefing.estimatedDurationSec % 60).toString().padStart(2, "0");
+          timeDisplay.textContent = `0:00 / ${m}:${s}`;
+        }
+
+        const scriptText = document.getElementById("briefingScriptText");
+        if (scriptText) scriptText.textContent = currentBriefing.fullScript || "";
+      } catch (_e) {
+        // Silently catch if offline
+      }
+    }
+
+    const playBriefingBtn = document.getElementById("playBriefingBtn");
+    const playBriefingIcon = document.getElementById("playBriefingIcon");
+    const toggleBriefingScriptBtn = document.getElementById("toggleBriefingScriptBtn");
+    const briefingScriptBox = document.getElementById("briefingScriptBox");
+
+    if (toggleBriefingScriptBtn && briefingScriptBox) {
+      toggleBriefingScriptBtn.addEventListener("click", () => {
+        const isHidden = briefingScriptBox.style.display === "none";
+        briefingScriptBox.style.display = isHidden ? "block" : "none";
+        toggleBriefingScriptBtn.innerHTML = isHidden
+          ? '<i class="fas fa-times"></i> Hide Transcript'
+          : '<i class="fas fa-file-alt"></i> View Transcript';
+      });
+    }
+
+    if (playBriefingBtn) {
+      playBriefingBtn.addEventListener("click", () => {
+        if (!currentBriefing || !currentBriefing.fullScript) return;
+
+        if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+          showToast("Voice speech synthesis is not supported on this browser.", "info");
+          return;
+        }
+
+        if (isBriefingPlaying) {
+          window.speechSynthesis.cancel();
+          isBriefingPlaying = false;
+          if (playBriefingIcon) playBriefingIcon.className = "fas fa-play";
+          showToast("Briefing paused", "info");
+        } else {
+          window.speechSynthesis.cancel();
+          briefingUtterance = new SpeechSynthesisUtterance(currentBriefing.fullScript);
+          briefingUtterance.rate = currentBriefing.rate || 1.0;
+          briefingUtterance.pitch = currentBriefing.pitch || 1.0;
+
+          briefingUtterance.onend = () => {
+            isBriefingPlaying = false;
+            if (playBriefingIcon) playBriefingIcon.className = "fas fa-play";
+            showToast("✨ Morning briefing complete. Have an exceptional day!", "success");
+          };
+
+          briefingUtterance.onerror = () => {
+            isBriefingPlaying = false;
+            if (playBriefingIcon) playBriefingIcon.className = "fas fa-play";
+          };
+
+          window.speechSynthesis.speak(briefingUtterance);
+          isBriefingPlaying = true;
+          if (playBriefingIcon) playBriefingIcon.className = "fas fa-pause";
+          showToast(`🎙️ Playing: ${currentBriefing.coachTitle}`, "info", {
+            progressColor: "#7c3aed",
+          });
+        }
+      });
+    }
+
+    // =========================================================================
+    // Habit Performance & Time-of-Day Insights
+    // =========================================================================
+    async function loadHabitAnalytics() {
+      const card = document.getElementById("analyticsCard");
+      if (!card) return;
+
+      try {
+        const res = await fetch("/api/me/analytics", { headers: { Accept: "application/json" } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success || !data.analytics) return;
+
+        const a = data.analytics;
+        card.style.display = "block";
+
+        const r7 = document.getElementById("analytics7dRate");
+        if (r7) r7.textContent = `${a.completionRate7d}%`;
+
+        const r30 = document.getElementById("analytics30dRate");
+        if (r30) r30.textContent = `${a.completionRate30d}%`;
+
+        const mood = document.getElementById("analyticsAvgMood");
+        if (mood) mood.textContent = `${a.avgMoodScore} / 5`;
+
+        const logged = document.getElementById("analyticsTotalLogged");
+        if (logged) logged.textContent = a.totalEntriesLogged;
+
+        const peak = document.getElementById("peakEnergyBadge");
+        if (peak && a.peakFocusWindow) {
+          peak.textContent = `🌅 Peak: ${a.peakFocusWindow}`;
+        }
+
+        // Render weekday bars
+        const weekdayContainer = document.getElementById("weekdayBarsContainer");
+        if (weekdayContainer && Array.isArray(a.weekdayBreakdown)) {
+          weekdayContainer.innerHTML = a.weekdayBreakdown
+            .map((item) => {
+              const pct = Math.max(8, item.percentage);
+              const isHigh = item.percentage >= 75;
+              const barColor = isHigh ? "#10b981" : item.percentage >= 40 ? "#3b82f6" : "#64748b";
+              return `
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;">
+                <span style="font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${item.percentage}%</span>
+                <div style="width: 18px; height: 60px; background: rgba(255,255,255,0.06); border-radius: 4px; display: flex; align-items: flex-end; overflow: hidden;">
+                  <div style="width: 100%; height: ${pct}%; background: ${barColor}; border-radius: 4px; transition: height 0.4s ease;"></div>
+                </div>
+                <span style="font-size: 11px; font-weight: 600; color: #cbd5e1;">${item.day}</span>
+              </div>
+            `;
+            })
+            .join("");
+        }
+
+        // Render time-of-day habit breakdown
+        const todContainer = document.getElementById("timeOfDayContainer");
+        if (todContainer && a.timeOfDayDistribution) {
+          const tod = a.timeOfDayDistribution;
+          const totalTod =
+            tod.earlyBird + tod.primeFocus + tod.midMorning + tod.afternoonEvening || 1;
+          const getBarPct = (cnt) => Math.max(5, Math.round((cnt / totalTod) * 100));
+
+          todContainer.innerHTML = `
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                <span style="color: #cbd5e1;">🌅 Early Bird (5am-7am)</span>
+                <span style="color: var(--text-muted);">${tod.earlyBird} logs</span>
+              </div>
+              <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                <div style="height: 100%; width: ${getBarPct(tod.earlyBird)}%; background: #f59e0b;"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                <span style="color: #cbd5e1;">⚡ Prime Focus (7am-9am)</span>
+                <span style="color: var(--text-muted);">${tod.primeFocus} logs</span>
+              </div>
+              <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                <div style="height: 100%; width: ${getBarPct(tod.primeFocus)}%; background: #10b981;"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                <span style="color: #cbd5e1;">☕ Mid-Morning (9am-12pm)</span>
+                <span style="color: var(--text-muted);">${tod.midMorning} logs</span>
+              </div>
+              <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                <div style="height: 100%; width: ${getBarPct(tod.midMorning)}%; background: #7c3aed;"></div>
+              </div>
+            </div>
+          `;
+        }
+      } catch (_e) {
+        // Silently catch if analytics unavailable
+      }
+    }
+
+    // =========================================================================
+    // Accountability Squads & Peer Streaks
+    // =========================================================================
+    let currentSquadData = null;
+
+    async function loadAccountabilitySquad() {
+      const card = document.getElementById("squadCard");
+      if (!card) return;
+
+      try {
+        const res = await fetch("/api/me/squad", { headers: { Accept: "application/json" } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success) return;
+
+        card.style.display = "block";
+        currentSquadData = data;
+
+        const inSquadView = document.getElementById("inSquadView");
+        const noSquadView = document.getElementById("noSquadView");
+
+        if (data.inSquad && data.squad) {
+          if (inSquadView) inSquadView.style.display = "block";
+          if (noSquadView) noSquadView.style.display = "none";
+
+          const nameEl = document.getElementById("squadName");
+          if (nameEl) nameEl.textContent = data.squad.name;
+
+          const countEl = document.getElementById("squadMembersCount");
+          if (countEl) {
+            countEl.textContent = `(${data.stats.totalMembers}/${data.squad.maxMembers} members)`;
+          }
+
+          const streakBadge = document.getElementById("squadStreakBadge");
+          if (streakBadge) {
+            streakBadge.textContent = `🔥 ${data.squad.squadStreak}d Squad Streak`;
+          }
+
+          const codeLabel = document.getElementById("squadCodeLabel");
+          if (codeLabel) codeLabel.textContent = data.squad.inviteCode;
+
+          const listEl = document.getElementById("squadMembersList");
+          if (listEl && Array.isArray(data.members)) {
+            listEl.innerHTML = data.members
+              .map(
+                (m) => `
+              <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff;">
+                    ${m.displayName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 700; color: #fff;">
+                      ${escapeHtml(m.displayName)} ${m.isCurrentUser ? '<span style="font-size: 10px; color: var(--text-muted);">(You)</span>' : ""}
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted);">
+                      ${m.role === "leader" ? "👑 Leader" : "Member"} • 🔥 ${m.streak}d streak
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <span class="status-badge ${m.checkedInToday ? "active" : ""}" style="font-size: 10px; padding: 3px 8px;">
+                    ${m.checkedInToday ? "Done ✓" : "Pending ⏳"}
+                  </span>
+                </div>
+              </div>
+            `,
+              )
+              .join("");
+          }
+        } else {
+          if (inSquadView) inSquadView.style.display = "none";
+          if (noSquadView) noSquadView.style.display = "block";
+        }
+      } catch (_e) {
+        // Silently catch
+      }
+    }
+
+    // Squad Action Listeners
+    const copySquadCodeBtn = document.getElementById("copySquadCodeBtn");
+    if (copySquadCodeBtn) {
+      copySquadCodeBtn.addEventListener("click", () => {
+        if (!currentSquadData?.squad?.inviteCode) return;
+        navigator.clipboard
+          .writeText(currentSquadData.squad.inviteCode)
+          .then(() => {
+            showToast("📋 Squad invite code copied to clipboard!", "success");
+          })
+          .catch(() => {
+            showToast(`Code: ${currentSquadData.squad.inviteCode}`, "info");
+          });
+      });
+    }
+
+    const createSquadBtn = document.getElementById("createSquadBtn");
+    const newSquadNameInput = document.getElementById("newSquadNameInput");
+    if (createSquadBtn && newSquadNameInput) {
+      createSquadBtn.addEventListener("click", async () => {
+        const name = newSquadNameInput.value.trim();
+        if (!name) {
+          showToast("Please enter a squad name", "warn");
+          return;
+        }
+        createSquadBtn.disabled = true;
+        createSquadBtn.textContent = "Creating...";
+
+        try {
+          const res = await fetch("/api/me/squad/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ name }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`🎉 Squad "${name}" created!`, "success");
+            newSquadNameInput.value = "";
+            await loadAccountabilitySquad();
+          } else {
+            showToast(data.error || "Failed to create squad", "error");
+          }
+        } catch (_e) {
+          showToast("Network error creating squad", "error");
+        } finally {
+          createSquadBtn.disabled = false;
+          createSquadBtn.textContent = "Create";
+        }
+      });
+    }
+
+    const joinSquadBtn = document.getElementById("joinSquadBtn");
+    const joinSquadCodeInput = document.getElementById("joinSquadCodeInput");
+    if (joinSquadBtn && joinSquadCodeInput) {
+      joinSquadBtn.addEventListener("click", async () => {
+        const code = joinSquadCodeInput.value.trim().toUpperCase();
+        if (!code) {
+          showToast("Please enter a squad invite code", "warn");
+          return;
+        }
+        joinSquadBtn.disabled = true;
+        joinSquadBtn.textContent = "Joining...";
+
+        try {
+          const res = await fetch("/api/me/squad/join", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ invite_code: code }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(data.message || "Successfully joined squad!", "success");
+            joinSquadCodeInput.value = "";
+            await loadAccountabilitySquad();
+          } else {
+            showToast(data.error || "Failed to join squad", "error");
+          }
+        } catch (_e) {
+          showToast("Network error joining squad", "error");
+        } finally {
+          joinSquadBtn.disabled = false;
+          joinSquadBtn.textContent = "Join";
+        }
+      });
+    }
+
+    const leaveSquadBtn = document.getElementById("leaveSquadBtn");
+    if (leaveSquadBtn) {
+      leaveSquadBtn.addEventListener("click", async () => {
+        if (!confirm("Are you sure you want to leave your accountability squad?")) return;
+        leaveSquadBtn.disabled = true;
+
+        try {
+          const res = await fetch("/api/me/squad/leave", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast("You have left the squad.", "info");
+            await loadAccountabilitySquad();
+          } else {
+            showToast(data.error || "Failed to leave squad", "error");
+          }
+        } catch (_e) {
+          showToast("Network error leaving squad", "error");
+        } finally {
+          leaveSquadBtn.disabled = false;
+        }
+      });
+    }
 
     // ==========================================
     // 8. Mobile Action Dock Controller

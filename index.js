@@ -174,6 +174,8 @@ app.use("/api/webhooks", require("./routes/webhook.routes"));
 app.use("/admin/deliverability", require("./routes/deliverability.routes"));
 app.use(require("./routes/push.routes"));
 app.use(require("./routes/email.routes"));
+app.use(require("./routes/squad.routes"));
+app.use(require("./routes/subscriberEnhancements.routes"));
 
 // High performance static asset serving with caching and ETags
 app.use(

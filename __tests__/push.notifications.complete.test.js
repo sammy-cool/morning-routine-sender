@@ -324,9 +324,9 @@ describe("Web Push Notification Core & Routes Comprehensive Test Suite", () => {
       expect(payload.data.dashboardUrl).toBe("/user-dashboard");
       expect(typeof payload.data.timestamp).toBe("number");
       expect(payload.actions).toEqual([
+        { action: "checkin", title: "🔥 Check-in Now" },
         { action: "open_routine", title: "⚡ Start Ritual" },
-        { action: "checkin", title: "🔥 Check-in" },
-        { action: "open_dashboard", title: "👤 Dashboard" },
+        { action: "snooze", title: "⏰ Snooze 15m" },
       ]);
     });
 

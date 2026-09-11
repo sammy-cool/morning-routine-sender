@@ -538,12 +538,76 @@ self.addEventListener("notificationclick", (event) => {
 
   const action = event.action;
   const notifData = event.notification.data || {};
-  let targetUrl = notifData.url || "/routine";
 
+  // Action: 1-Click Background Check-in directly from notification action button
+  if (action === "checkin" && notifData.checkinUrl) {
+    event.waitUntil(
+      fetch(notifData.checkinUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-offline-sync": "true",
+          Accept: "application/json",
+        },
+      })
+        .then((res) =>
+          res.ok ? res.json() : Promise.reject(new Error("Checkin status " + res.status)),
+        )
+        .then((data) => {
+          const streak = data.streakCount || (notifData.streak ? notifData.streak + 1 : 1);
+          return self.registration.showNotification("🔥 Habit Streak Maintained!", {
+            body: `Day ${streak} completed! Your morning focus streak is locked in.`,
+            icon: "/assets/mrn-brand-ico.png",
+            badge: "/assets/mrn-brand-ico.png",
+            tag: "checkin-confirmation",
+            data: { url: notifData.url || "/routine" },
+          });
+        })
+        .catch(() => {
+          return self.registration.showNotification("⚡ Check-in Saved", {
+            body: "Your check-in will automatically sync as soon as you are reconnected.",
+            icon: "/assets/mrn-brand-ico.png",
+            badge: "/assets/mrn-brand-ico.png",
+            tag: "checkin-confirmation",
+            data: { url: notifData.url || "/routine" },
+          });
+        }),
+    );
+    return;
+  }
+
+  // Action: Snooze 15 minutes
+  if (action === "snooze") {
+    event.waitUntil(
+      new Promise((resolve) => {
+        setTimeout(
+          () => {
+            self.registration
+              .showNotification(event.notification.title || "🌅 Morning Focus Reminder", {
+                body: "15 minutes have elapsed. Ready to start your focus sprint?",
+                icon: "/assets/mrn-brand-ico.png",
+                badge: "/assets/mrn-brand-ico.png",
+                tag: "morning-routine-snooze",
+                requireInteraction: true,
+                data: notifData,
+                actions: [
+                  { action: "checkin", title: "🔥 Check-in Now" },
+                  { action: "open_routine", title: "⚡ Start Ritual" },
+                ],
+              })
+              .then(resolve)
+              .catch(resolve);
+          },
+          15 * 60 * 1000,
+        );
+      }),
+    );
+    return;
+  }
+
+  let targetUrl = notifData.url || "/routine";
   if (action === "open_dashboard") {
     targetUrl = notifData.dashboardUrl || "/user-dashboard";
-  } else if (action === "checkin") {
-    targetUrl = "/checkin";
   } else if (action === "open_routine") {
     targetUrl = notifData.url || "/routine";
   }

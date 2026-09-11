@@ -66,6 +66,10 @@ const migrations = [
     name: "20260831000000_add_streak_freezes_to_subscribers",
     module: require("../db/migrations/20260831000000_add_streak_freezes_to_subscribers"),
   },
+  {
+    name: "20260912000000_create_accountability_squads_tables",
+    module: require("../db/migrations/20260912000000_create_accountability_squads_tables"),
+  },
 ];
 
 async function runAllUp(knex) {
@@ -100,7 +104,7 @@ describe("Database Migrations: Symmetric Rollback, Idempotency & Schema Matrix",
       // 1. Initial migrate up (all 11 migrations)
       await runAllUp(knex);
 
-      // Verify all 7 tables exist
+      // Verify all 9 tables exist
       const expectedTables = [
         "email_tracker",
         "job_last_run",
@@ -109,6 +113,8 @@ describe("Database Migrations: Symmetric Rollback, Idempotency & Schema Matrix",
         "email_events",
         "push_subscriptions",
         "journal_entries",
+        "accountability_squads",
+        "squad_members",
       ];
       for (const tbl of expectedTables) {
         const hasTable = await knex.schema.hasTable(tbl);
@@ -138,6 +144,12 @@ describe("Database Migrations: Symmetric Rollback, Idempotency & Schema Matrix",
   describe("2. Step-by-Step Granular Symmetric Rollback", () => {
     test("rolls back each migration individually in reverse order verifying intermediate schema states", async () => {
       await runAllUp(knex);
+
+      // Rollback 12: accountability squads & squad members
+      await migrations[11].module.down(knex);
+      expect(await knex.schema.hasTable("squad_members")).toBe(false);
+      expect(await knex.schema.hasTable("accountability_squads")).toBe(false);
+      expect(await knex.schema.hasColumn("subscribers", "streak_freezes")).toBe(true);
 
       // Rollback 11: streak freezes
       await migrations[10].module.down(knex);
@@ -326,6 +338,31 @@ describe("Database Migrations: Symmetric Rollback, Idempotency & Schema Matrix",
       expect(row.track_key).toBe("deep-work");
       expect(Number(row.mood_score)).toBe(5);
     });
+
+    test("accountability_squads defaults max_members to 5 and squad_streak to 0", async () => {
+      const [squadId] = await knex("accountability_squads")
+        .insert({
+          name: "Morning Titans",
+          invite_code: "SQUAD-TEST",
+          creator_email: "creator@example.com",
+        })
+        .returning("id");
+
+      const id = typeof squadId === "object" ? squadId.id : squadId;
+      const squad = await knex("accountability_squads").where("invite_code", "SQUAD-TEST").first();
+      expect(Number(squad.max_members)).toBe(5);
+      expect(Number(squad.squad_streak)).toBe(0);
+
+      await knex("squad_members").insert({
+        squad_id: id,
+        subscriber_email: "creator@example.com",
+      });
+
+      const member = await knex("squad_members")
+        .where({ squad_id: id, subscriber_email: "creator@example.com" })
+        .first();
+      expect(member.role).toBe("member");
+    });
   });
 
   describe("4. Unique Constraints & Data Integrity", () => {
@@ -427,6 +464,44 @@ describe("Database Migrations: Symmetric Rollback, Idempotency & Schema Matrix",
         }),
       ).resolves.toBeDefined();
     });
+
+    test("accountability_squads enforces unique invite_code", async () => {
+      await knex("accountability_squads").insert({
+        name: "Squad A",
+        invite_code: "SQUAD-DUP",
+        creator_email: "user1@example.com",
+      });
+      await expect(
+        knex("accountability_squads").insert({
+          name: "Squad B",
+          invite_code: "SQUAD-DUP",
+          creator_email: "user2@example.com",
+        }),
+      ).rejects.toThrow();
+    });
+
+    test("squad_members enforces composite unique on (squad_id, subscriber_email)", async () => {
+      const [sq] = await knex("accountability_squads")
+        .insert({
+          name: "Squad Unique",
+          invite_code: "SQUAD-UQ",
+          creator_email: "lead@example.com",
+        })
+        .returning("id");
+      const squadId = typeof sq === "object" ? sq.id : sq;
+
+      await knex("squad_members").insert({
+        squad_id: squadId,
+        subscriber_email: "member@example.com",
+      });
+
+      await expect(
+        knex("squad_members").insert({
+          squad_id: squadId,
+          subscriber_email: "member@example.com",
+        }),
+      ).rejects.toThrow();
+    });
   });
 
   describe("5. Foreign Key Cascades & Nullability Constraints", () => {
@@ -464,6 +539,31 @@ describe("Database Migrations: Symmetric Rollback, Idempotency & Schema Matrix",
       await knex("subscribers").where({ id: 100 }).del();
       const sub = await knex("subscribers").where({ id: 100 }).first();
       expect(sub).toBeUndefined();
+    });
+
+    test("squad_members cascades deletion when parent accountability_squads row is deleted", async () => {
+      const [sq] = await knex("accountability_squads")
+        .insert({
+          id: 50,
+          name: "Cascade Squad",
+          invite_code: "SQUAD-CASC",
+          creator_email: "lead@example.com",
+        })
+        .returning("id");
+      const squadId = typeof sq === "object" ? sq.id : sq;
+
+      await knex("squad_members").insert({
+        squad_id: squadId,
+        subscriber_email: "lead@example.com",
+        role: "leader",
+      });
+
+      const member = await knex("squad_members").where({ squad_id: squadId }).first();
+      expect(member).toBeDefined();
+
+      await knex("accountability_squads").where({ id: squadId }).del();
+      const afterDel = await knex("squad_members").where({ squad_id: squadId }).first();
+      expect(afterDel).toBeUndefined();
     });
 
     test("rejects missing mandatory (notNullable) columns", async () => {
