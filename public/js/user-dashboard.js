@@ -1006,7 +1006,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           showToast(data.error || "Failed to save reflection.", "warn");
         }
       } catch (_err) {
-        showToast("Network error. Saved locally.", "warn");
+        if (globalThis.OfflineSync?.queueJournal) {
+          await globalThis.OfflineSync.queueJournal(payload);
+          if (statusEl) statusEl.textContent = "Queued Offline ✓";
+        } else {
+          showToast("Network error. Saved locally.", "warn");
+        }
       } finally {
         if (saveBtn) {
           saveBtn.disabled = false;

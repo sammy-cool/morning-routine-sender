@@ -2374,7 +2374,13 @@ async function liveRoutine(req, res) {
           }
         }
       } catch (err) {
-        if (syncStatus) syncStatus.textContent = 'Offline Saved';
+        if (globalThis.OfflineSync?.queueJournal) {
+          await globalThis.OfflineSync.queueJournal(payload, {
+            email: subscriberEmail,
+            token: subscriberToken,
+          });
+        }
+        if (syncStatus) syncStatus.textContent = 'Offline Saved ✓';
       } finally {
         if (saveBtn) {
           saveBtn.disabled = false;

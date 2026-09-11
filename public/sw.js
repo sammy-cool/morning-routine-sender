@@ -25,8 +25,9 @@ const VENDOR_LIBS = [
 
 // ---------------- INDEXEDDB OFFLINE QUEUE UTILS ----------------
 const DB_NAME = "mrn-offline-sync-db";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = "checkin_queue";
+const JOURNAL_STORE = "journal_queue";
 
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
@@ -38,6 +39,9 @@ function openIndexedDB() {
       const db = event.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(JOURNAL_STORE)) {
+        db.createObjectStore(JOURNAL_STORE, { keyPath: "id" });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -64,6 +68,40 @@ function deleteQueuedCheckin(db, id) {
     try {
       const tx = db.transaction(STORE_NAME, "readwrite");
       const store = tx.objectStore(STORE_NAME);
+      const req = store.delete(id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+function getQueuedJournals(db) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!db.objectStoreNames.contains(JOURNAL_STORE)) {
+        return resolve([]);
+      }
+      const tx = db.transaction(JOURNAL_STORE, "readonly");
+      const store = tx.objectStore(JOURNAL_STORE);
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+function deleteQueuedJournal(db, id) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!db.objectStoreNames.contains(JOURNAL_STORE)) {
+        return resolve();
+      }
+      const tx = db.transaction(JOURNAL_STORE, "readwrite");
+      const store = tx.objectStore(JOURNAL_STORE);
       const req = store.delete(id);
       req.onsuccess = () => resolve();
       req.onerror = () => reject(req.error);
@@ -169,11 +207,109 @@ async function drainOfflineCheckinQueue() {
   }
 }
 
+async function drainOfflineJournalQueue() {
+  console.info("[SW] ✍️ Draining offline reflection journal queue...");
+  let db;
+  try {
+    db = await openIndexedDB();
+  } catch (err) {
+    console.warn("[SW] Could not access IndexedDB for journal sync:", err.message);
+    return;
+  }
+
+  try {
+    const queue = await getQueuedJournals(db);
+    if (!queue || queue.length === 0) {
+      console.info("[SW] No pending journals in offline queue.");
+      return;
+    }
+
+    console.info(`[SW] Found ${queue.length} offline journal(s) to synchronize.`);
+
+    for (const item of queue) {
+      try {
+        let requestUrl = item.url || "/api/journal/save";
+        if (item.email && item.token && !requestUrl.includes("token=")) {
+          const sep = requestUrl.includes("?") ? "&" : "?";
+          requestUrl += `${sep}email=${encodeURIComponent(item.email)}&token=${encodeURIComponent(item.token)}`;
+        }
+
+        const headers = {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-Offline-Sync": "true",
+          Accept: "application/json",
+          ...(item.headers || {}),
+        };
+
+        const response = await fetch(requestUrl, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(item.payload || item.body || {}),
+        });
+
+        if (response.ok || response.status < 400) {
+          console.info("[SW] ✅ Journal synced successfully for ID:", item.id);
+          await deleteQueuedJournal(db, item.id);
+
+          const clientList = await self.clients.matchAll({
+            type: "window",
+            includeUncontrolled: true,
+          });
+
+          for (const client of clientList) {
+            client.postMessage({
+              type: "SYNC_JOURNAL_SUCCESS",
+              id: item.id,
+              timestamp: item.timestamp || Date.now(),
+              message: "Morning reflection synced successfully!",
+            });
+          }
+
+          if (clientList.length === 0 && self.registration?.showNotification) {
+            await self.registration
+              .showNotification("✍️ Morning Reflection Synced!", {
+                body: "Your offline mindset reflection has been saved.",
+                icon: "/assets/mrn-brand-ico.png",
+                badge: "/assets/mrn-brand-ico.png",
+                tag: "journal-sync-success",
+                data: { url: "/user-dashboard" },
+              })
+              .catch(() => {});
+          }
+        } else {
+          console.warn("[SW] Server rejected journal sync with status:", response.status);
+        }
+      } catch (itemError) {
+        console.warn("[SW] Network failed while syncing journal; will retry next sync:", itemError);
+        throw itemError;
+      }
+    }
+  } catch (err) {
+    console.error("[SW] Fatal error in drainOfflineJournalQueue:", err);
+    throw err;
+  }
+}
+
 // ---------------- BACKGROUND SYNC EVENT LISTENER ----------------
 self.addEventListener("sync", (event) => {
   if (event.tag === "sync-morning-checkin") {
     console.info("[SW] 🔄 Background Sync event received: sync-morning-checkin");
     event.waitUntil(drainOfflineCheckinQueue());
+  } else if (event.tag === "sync-morning-journal" || event.tag === "sync-reflection-journal") {
+    console.info("[SW] 🔄 Background Sync event received: sync-morning-journal");
+    event.waitUntil(drainOfflineJournalQueue());
+  }
+});
+
+// ---------------- POSTMESSAGE HANDLER (ONLINE SYNC TRIGGER) ----------------
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "DRAIN_CHECKIN_QUEUE") {
+    event.waitUntil(drainOfflineCheckinQueue());
+  } else if (event.data?.type === "DRAIN_JOURNAL_QUEUE") {
+    event.waitUntil(drainOfflineJournalQueue());
+  } else if (event.data?.type === "DRAIN_ALL_QUEUES") {
+    event.waitUntil(Promise.all([drainOfflineCheckinQueue(), drainOfflineJournalQueue()]));
   }
 });
 

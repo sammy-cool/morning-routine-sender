@@ -6,10 +6,13 @@
  */
 (function () {
   const DB_NAME = "mrn-offline-sync-db";
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   const STORE_NAME = "checkin_queue";
+  const JOURNAL_STORE = "journal_queue";
   const LOCAL_STORAGE_KEY = "mrn_offline_checkins_backup";
+  const LOCAL_STORAGE_JOURNAL_KEY = "mrn_offline_journals_backup";
   const SYNC_TAG = "sync-morning-checkin";
+  const JOURNAL_SYNC_TAG = "sync-morning-journal";
 
   // Toast Helper integrating customizable-toast-notification
   function showToast(message, type = "info", options = {}) {
@@ -56,6 +59,9 @@
         const db = e.target.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(JOURNAL_STORE)) {
+          db.createObjectStore(JOURNAL_STORE, { keyPath: "id" });
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -130,13 +136,87 @@
     }
   }
 
+  async function getStoredJournals() {
+    try {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        if (!db.objectStoreNames.contains(JOURNAL_STORE)) {
+          return resolve([]);
+        }
+        const tx = db.transaction(JOURNAL_STORE, "readonly");
+        const store = tx.objectStore(JOURNAL_STORE);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (_err) {
+      try {
+        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_JOURNAL_KEY) || "[]");
+      } catch (_e) {
+        return [];
+      }
+    }
+  }
+
+  async function storeJournal(item) {
+    try {
+      const db = await openDB();
+      await new Promise((resolve, reject) => {
+        if (!db.objectStoreNames.contains(JOURNAL_STORE)) {
+          return resolve();
+        }
+        const tx = db.transaction(JOURNAL_STORE, "readwrite");
+        const store = tx.objectStore(JOURNAL_STORE);
+        const req = store.put(item);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (_e) {
+      // Non-fatal, fallback to localStorage
+    }
+
+    try {
+      const list = JSON.parse(localStorage.getItem(LOCAL_STORAGE_JOURNAL_KEY) || "[]");
+      list.push(item);
+      localStorage.setItem(LOCAL_STORAGE_JOURNAL_KEY, JSON.stringify(list));
+    } catch (_e) {
+      // Ignore storage errors
+    }
+  }
+
+  async function removeStoredJournal(id) {
+    try {
+      const db = await openDB();
+      await new Promise((resolve, reject) => {
+        if (!db.objectStoreNames.contains(JOURNAL_STORE)) {
+          return resolve();
+        }
+        const tx = db.transaction(JOURNAL_STORE, "readwrite");
+        const store = tx.objectStore(JOURNAL_STORE);
+        const req = store.delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    } catch (_e) {
+      // Ignore db errors
+    }
+
+    try {
+      let list = JSON.parse(localStorage.getItem(LOCAL_STORAGE_JOURNAL_KEY) || "[]");
+      list = list.filter((i) => i.id !== id);
+      localStorage.setItem(LOCAL_STORAGE_JOURNAL_KEY, JSON.stringify(list));
+    } catch (_e) {
+      // Ignore storage errors
+    }
+  }
+
   // ---------------- BACKGROUND SYNC REGISTRATION ----------------
-  async function requestBackgroundSync() {
+  async function requestBackgroundSync(tag = SYNC_TAG) {
     if ("serviceWorker" in navigator && "SyncManager" in window) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register(SYNC_TAG);
-        console.info("[OfflineSync] Background Sync registered successfully for tag:", SYNC_TAG);
+        await registration.sync.register(tag);
+        console.info("[OfflineSync] Background Sync registered successfully for tag:", tag);
         return true;
       } catch (err) {
         console.warn("[OfflineSync] SyncManager registration failed:", err);
@@ -234,6 +314,85 @@
     }
   }
 
+  // ---------------- QUEUE JOURNAL ----------------
+  async function queueJournal(payload, options = {}) {
+    const id = "journal_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+    let url = options.url || "/api/journal/save";
+    if (options.email && options.token && !url.includes("token=")) {
+      const sep = url.includes("?") ? "&" : "?";
+      url += `${sep}email=${encodeURIComponent(options.email)}&token=${encodeURIComponent(options.token)}`;
+    }
+    const item = {
+      id,
+      url,
+      payload,
+      email: options.email || null,
+      token: options.token || null,
+      timestamp: Date.now(),
+      createdAt: new Date().toISOString(),
+      status: "pending",
+    };
+
+    await storeJournal(item);
+    const hasSyncManager = await requestBackgroundSync(JOURNAL_SYNC_TAG);
+
+    showToast(
+      "✍️ <b>Offline Reflection Saved!</b> Your journal will sync automatically when you're back online.",
+      "warn",
+      {
+        duration: 6000,
+        allowHtml: true,
+      },
+    );
+
+    return { id, queued: true, backgroundSync: hasSyncManager };
+  }
+
+  // ---------------- DIRECT DRAIN JOURNAL QUEUE ----------------
+  async function drainJournalQueue() {
+    if (!navigator.onLine) return;
+
+    const items = await getStoredJournals();
+    if (!items || items.length === 0) return;
+
+    console.info(`[OfflineSync] Draining ${items.length} queued journal(s) directly...`);
+    let syncedCount = 0;
+
+    for (const item of items) {
+      try {
+        const url = item.url || "/api/journal/save";
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-Offline-Sync": "true",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(item.payload || {}),
+        });
+
+        if (res.ok || res.status < 400) {
+          await removeStoredJournal(item.id);
+          syncedCount++;
+        }
+      } catch (e) {
+        console.warn("[OfflineSync] Failed to sync journal:", item.id, e);
+      }
+    }
+
+    if (syncedCount > 0) {
+      showToast(
+        "✍️ <b>Morning Reflection Synced!</b> Your reflection journal entry has been saved.",
+        "success",
+        {
+          duration: 5000,
+          allowHtml: true,
+        },
+      );
+    }
+  }
+
   // ---------------- INTERCEPTOR INITIALIZATION ----------------
   function initClickInterceptors() {
     document.addEventListener("click", function (event) {
@@ -287,6 +446,12 @@
             "success",
             { allowHtml: true },
           );
+        } else if (event.data && event.data.type === "SYNC_JOURNAL_SUCCESS") {
+          showToast(
+            "✍️ <b>Morning Reflection Synced!</b> Your reflection journal entry has been saved.",
+            "success",
+            { allowHtml: true },
+          );
         }
       });
     }
@@ -295,8 +460,9 @@
     window.addEventListener("online", () => {
       console.info("[OfflineSync] Network restored. Checking for queued sync items...");
       drainQueue();
+      drainJournalQueue();
       if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ type: "DRAIN_CHECKIN_QUEUE" });
+        navigator.serviceWorker.controller.postMessage({ type: "DRAIN_ALL_QUEUES" });
       }
     });
 
@@ -314,6 +480,9 @@
     queueCheckin,
     drainQueue,
     getStoredCheckins,
+    queueJournal,
+    drainJournalQueue,
+    getStoredJournals,
     requestBackgroundSync,
     showToast,
   };

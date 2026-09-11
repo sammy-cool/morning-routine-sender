@@ -108,4 +108,30 @@ describe("Offline Sync & Habit Check-in Negotiation", () => {
     expect(res.body.streakCount).toBe(7);
     expect(res.body.title).toContain("Already Checked In Today");
   });
+
+  test("Service Worker defines sync-morning-journal tag and drainOfflineJournalQueue", () => {
+    const fs = require("fs");
+    const path = require("path");
+    const swContent = fs.readFileSync(path.join(__dirname, "../public/sw.js"), "utf8");
+
+    expect(swContent).toContain("sync-morning-journal");
+    expect(swContent).toContain("drainOfflineJournalQueue");
+    expect(swContent).toContain("journal_queue");
+    expect(swContent).toContain("SYNC_JOURNAL_SUCCESS");
+  });
+
+  test("Offline sync script supports queueJournal, drainJournalQueue, and Background Sync tag", () => {
+    const fs = require("fs");
+    const path = require("path");
+    const offlineSyncContent = fs.readFileSync(
+      path.join(__dirname, "../public/js/offline-sync.js"),
+      "utf8",
+    );
+
+    expect(offlineSyncContent).toContain("sync-morning-journal");
+    expect(offlineSyncContent).toContain("queueJournal");
+    expect(offlineSyncContent).toContain("drainJournalQueue");
+    expect(offlineSyncContent).toContain("journal_queue");
+    expect(offlineSyncContent).toContain("SYNC_JOURNAL_SUCCESS");
+  });
 });
