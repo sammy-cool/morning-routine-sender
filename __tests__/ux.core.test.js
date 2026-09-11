@@ -353,6 +353,8 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
       expect(mockCreateToast).toHaveBeenCalledWith(
         expect.objectContaining({
           message: "Focus completed!",
+          backgroundColor: expect.any(String),
+          textColor: expect.any(String),
           cta: expect.objectContaining({
             label: "Check-in ⚡",
             href: "/checkin",
@@ -361,6 +363,41 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
         }),
       );
 
+      const onUndo = jest.fn();
+      UXCore.toast.undo("Step checked", onUndo);
+      expect(mockCreateToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Step checked",
+          type: "info",
+          cta: expect.objectContaining({
+            label: "Undo ↺",
+            onClick: onUndo,
+          }),
+        }),
+      );
+
+      UXCore.toast.scorecard("A+");
+      expect(mockCreateToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining("Grade A+"),
+          type: "success",
+          cta: expect.objectContaining({
+            label: "View Report 🏆",
+          }),
+        }),
+      );
+
+      const mockDismiss = jest.fn();
+      const mockNoop = jest.fn();
+      global.customizableToast.dismiss = mockDismiss;
+      global.customizableToast.noop = mockNoop;
+
+      UXCore.toast.dismiss();
+      expect(mockDismiss).toHaveBeenCalled();
+
+      UXCore.toast.clear();
+      expect(mockNoop).toHaveBeenCalled();
+
       delete global.customizableToast;
     });
 
@@ -368,6 +405,8 @@ describe("UX Core Engine (public/js/ux-core.js)", () => {
       delete global.customizableToast;
       expect(() => {
         UXCore.toast.info("Offline fallback test");
+        UXCore.toast.dismiss();
+        UXCore.toast.clear();
       }).not.toThrow();
     });
   });

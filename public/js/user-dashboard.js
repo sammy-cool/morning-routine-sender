@@ -54,17 +54,28 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         (typeof customizableToast !== "undefined" ? customizableToast : null);
 
       if (toastLib && typeof toastLib.createToast === "function") {
+        const defaultProgress =
+          type === "success"
+            ? "#10b981"
+            : type === "error"
+              ? "#f43f5e"
+              : type === "warn" || type === "warning"
+                ? "#f59e0b"
+                : "#7c3aed";
         return toastLib.createToast({
           message,
           type: type === "warn" ? "warning" : type,
           position: "top-center",
           fontFamily: "'Plus Jakarta Sans', sans-serif",
           borderRadius: "16px",
+          backgroundColor: "rgba(12, 17, 29, 0.96)",
+          textColor: "#f8fafc",
           showProgressBar: true,
           progressPosition: "bottom",
-          progressColor: "#7c3aed",
+          progressColor: options.progressColor || defaultProgress,
           pauseOnHover: true,
           duration: 4500,
+          allowHtml: true,
           ...options,
         });
       }
@@ -74,8 +85,16 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       }
     }
 
+    const TRACK_DISPLAY_NAMES = {
+      "deep-work": "Deep Work & Flow",
+      mindfulness: "Mindfulness & Grounding",
+      career: "Career & Ambition",
+      learning: "Continuous Learning",
+      reflection: "Gratitude & Evening Reflection",
+    };
+
     // Multi-track card selector
-    function selectTrack(track) {
+    function selectTrack(track, silent = false) {
       if (!track) return;
       prefTrack.value = track;
       document.querySelectorAll(".track-card").forEach((c) => {
@@ -83,6 +102,16 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         c.classList.toggle("selected", isMatch);
         c.setAttribute("aria-checked", isMatch ? "true" : "false");
       });
+      if (!silent) {
+        showToast(
+          `🎯 Focus Track: <b>${TRACK_DISPLAY_NAMES[track] || track}</b> selected`,
+          "info",
+          {
+            duration: 3000,
+            progressColor: "#7c3aed",
+          },
+        );
+      }
     }
 
     if (trackGrid) {
@@ -170,7 +199,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       if (activeTrack === "basic" || activeTrack === "default") {
         activeTrack = "deep-work";
       }
-      selectTrack(activeTrack);
+      selectTrack(activeTrack, true);
 
       // Cron & Time Select
       const cron = sub.cronPattern || "0 8 * * *";

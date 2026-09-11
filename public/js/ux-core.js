@@ -1877,10 +1877,32 @@
       if (lib && typeof lib.createToast === "function") {
         const currentTheme =
           typeof theme !== "undefined" && theme.get ? theme.get() : "theme-obsidian";
-        let progressColor = "#7c3aed";
-        if (currentTheme === "theme-solar") progressColor = "#f59e0b";
-        else if (currentTheme === "theme-emerald") progressColor = "#10b981";
-        else if (currentTheme === "theme-cyberpunk") progressColor = "#d946ef";
+
+        let themeBg = "rgba(12, 17, 29, 0.96)";
+        let themeText = "#f8fafc";
+        let defaultProgressColor = "#7c3aed";
+
+        if (currentTheme === "theme-solar") {
+          themeBg = "rgba(24, 16, 7, 0.96)";
+          themeText = "#fffbeb";
+          defaultProgressColor = "#f59e0b";
+        } else if (currentTheme === "theme-emerald") {
+          themeBg = "rgba(6, 24, 17, 0.96)";
+          themeText = "#ecfdf5";
+          defaultProgressColor = "#10b981";
+        } else if (currentTheme === "theme-cyberpunk") {
+          themeBg = "rgba(20, 8, 30, 0.96)";
+          themeText = "#fdf4ff";
+          defaultProgressColor = "#d946ef";
+        }
+
+        let progressColor = options.progressColor;
+        if (!progressColor) {
+          if (normalizedType === "success") progressColor = "#10b981";
+          else if (normalizedType === "error") progressColor = "#f43f5e";
+          else if (normalizedType === "warning") progressColor = "#f59e0b";
+          else progressColor = defaultProgressColor;
+        }
 
         return lib.createToast({
           message: String(message || ""),
@@ -1888,11 +1910,14 @@
           position: options.position || "top-center",
           fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif",
           borderRadius: options.borderRadius || "16px",
+          backgroundColor: options.backgroundColor || themeBg,
+          textColor: options.textColor || themeText,
           showProgressBar: options.showProgressBar !== false,
           progressPosition: options.progressPosition || "bottom",
-          progressColor: options.progressColor || progressColor,
+          progressColor: progressColor,
           progressHeight: options.progressHeight || "3px",
           pauseOnHover: options.pauseOnHover !== false,
+          allowHtml: options.allowHtml !== false,
           duration: options.duration || (options.cta ? 6000 : 4500),
           animationDuration: options.animationDuration || "0.35s",
           animationEasing: options.animationEasing || "cubic-bezier(0.16, 1, 0.3, 1)",
@@ -1910,7 +1935,11 @@
             fallback.style.cssText =
               "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(12,17,29,0.95);color:#fff;padding:12px 24px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);z-index:99999;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 10px 30px rgba(0,0,0,0.5);";
           }
-          fallback.textContent = String(message || "");
+          if (options.allowHtml !== false) {
+            fallback.innerHTML = String(message || "");
+          } else {
+            fallback.textContent = String(message || "");
+          }
           if (document.body && typeof document.body.appendChild === "function") {
             document.body.appendChild(fallback);
           }
@@ -1955,6 +1984,19 @@
     },
 
     /**
+     * Reversible / Undo action toast
+     */
+    undo(message, onUndo, options = {}) {
+      return this.cta(message, {
+        label: "Undo ↺",
+        onClick: onUndo,
+        type: "info",
+        duration: 5500,
+        ...options,
+      });
+    },
+
+    /**
      * 1-Click Routine CTA Toast
      */
     routine(message = "⚡ Ready to start your morning routine sprint?", options = {}) {
@@ -1982,6 +2024,38 @@
         duration: 7000,
         ...options,
       });
+    },
+
+    /**
+     * Weekly Habit Scorecard Toast
+     */
+    scorecard(grade = "A+", options = {}) {
+      return this.cta(`📊 Weekly Habit Scorecard: Grade ${grade}`, {
+        label: "View Report 🏆",
+        onClick: () => {
+          const btn =
+            document.getElementById("downloadWeeklyReportBtn") ||
+            document.getElementById("openShareModalBtn");
+          if (btn) btn.click();
+        },
+        type: "success",
+        duration: 7000,
+        ...options,
+      });
+    },
+
+    dismiss() {
+      const lib = this.getLib();
+      if (lib && typeof lib.dismiss === "function") {
+        lib.dismiss();
+      }
+    },
+
+    clear() {
+      const lib = this.getLib();
+      if (lib && typeof lib.noop === "function") {
+        lib.noop();
+      }
     },
   };
 

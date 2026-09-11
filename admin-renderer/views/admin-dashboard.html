@@ -3200,14 +3200,23 @@ Loading records…</pre>
             return null;
           }
 
+          const type = config.type || "info";
+          let defaultProgress = "#7c3aed";
+          if (type === "success") defaultProgress = "#10b981";
+          else if (type === "error") defaultProgress = "#f43f5e";
+          else if (type === "warning" || type === "warn") defaultProgress = "#f59e0b";
+
           const defaults = {
             position: "top-center",
             fontFamily: "'Plus Jakarta Sans', sans-serif",
             borderRadius: "16px",
+            backgroundColor: "rgba(12, 17, 29, 0.96)",
+            textColor: "#f8fafc",
             showProgressBar: true,
             progressPosition: "bottom",
-            progressColor: "#7c3aed",
+            progressColor: defaultProgress,
             pauseOnHover: true,
+            allowHtml: true,
             duration: 4500,
             animationDuration: "0.35s",
             animationEasing: "cubic-bezier(0.16, 1, 0.3, 1)",

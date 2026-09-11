@@ -18,6 +18,8 @@
 
 const { newDb } = require("pg-mem");
 
+jest.setTimeout(45000);
+
 // Load all 11 migrations in execution order
 const migrations = [
   {

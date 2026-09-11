@@ -370,6 +370,7 @@ function renderCheckinPage(res, data) {
       <a href="/user-dashboard" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">👤 Dashboard</a>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <script src="/js/app-badging.js?v=4.3.0" defer></script>
   <script src="/js/ux-core.js?v=4.3.0" defer></script>
   <script>
@@ -381,6 +382,20 @@ function renderCheckinPage(res, data) {
         if (${data.success ? "true" : "false"}) {
           if (window.UXCore.sound) window.UXCore.sound.playSuccess();
           if (window.UXCore.haptics) window.UXCore.haptics.success();
+          if (window.UXCore.toast) {
+            window.UXCore.toast.show("${escapeHtml(data.badge || "Check-in logged!")}", "success", {
+              duration: 5000,
+              cta: {
+                label: "Open Companion ⚡",
+                href: "${data.routineUrl || "/routine"}",
+                variant: "link"
+              }
+            });
+          }
+        } else if (window.UXCore.toast) {
+          window.UXCore.toast.show("${escapeHtml(data.message || "Check-in failed")}", "error", {
+            duration: 6000
+          });
         }
       }
     });
@@ -1361,9 +1376,47 @@ async function liveRoutine(req, res) {
   </div>
 
   <script>
+    function showRoutineToast(message, type = 'info', options = {}) {
+      if (typeof customizableToast !== 'undefined' && typeof customizableToast.createToast === 'function') {
+        const defaultProgress = type === 'success' ? '#10b981' : type === 'error' ? '#f43f5e' : type === 'warning' ? '#f59e0b' : '#7c3aed';
+        return customizableToast.createToast({
+          message: String(message || ''),
+          type: type === 'warn' ? 'warning' : type,
+          position: options.position || 'top-center',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          borderRadius: options.borderRadius || '16px',
+          backgroundColor: options.backgroundColor || 'rgba(12, 17, 29, 0.96)',
+          textColor: options.textColor || '#f8fafc',
+          showProgressBar: options.showProgressBar !== false,
+          progressPosition: options.progressPosition || 'bottom',
+          progressColor: options.progressColor || defaultProgress,
+          pauseOnHover: options.pauseOnHover !== false,
+          duration: options.duration || (options.cta ? 6000 : 3500),
+          allowHtml: options.allowHtml !== false,
+          ...options
+        });
+      }
+    }
+
     function toggleItem(idx) {
       const el = document.getElementById('item-' + idx);
-      el.classList.toggle('done');
+      if (!el) return;
+      const isDone = el.classList.toggle('done');
+      if (isDone) {
+        showRoutineToast("✅ Habit step marked complete!", "success", {
+          duration: 5000,
+          cta: {
+            label: "Undo ↺",
+            variant: "button",
+            onClick: () => {
+              el.classList.remove('done');
+              const cb = el.querySelector('input[type="checkbox"]');
+              if (cb) cb.checked = false;
+              showRoutineToast("↺ Habit step unmarked", "info", { duration: 2500 });
+            }
+          }
+        });
+      }
     }
 
     let timerMode = 'focus';
@@ -2009,9 +2062,11 @@ async function liveRoutine(req, res) {
         stopBinauralLayer();
         binauralActiveNodes = buildBinauralLayer(ctx, masterGainNode, hz);
         isBinauralOverlayActive = true;
+        showRoutineToast("🧠 Binaural Waves Layer Active (" + hz + "Hz)", "info", { duration: 3000, progressColor: "#7c3aed" });
       } else {
         stopBinauralLayer();
         isBinauralOverlayActive = false;
+        showRoutineToast("Binaural Waves Layer Off", "info", { duration: 2200 });
       }
     }
 
@@ -2065,6 +2120,7 @@ async function liveRoutine(req, res) {
         const btn = document.getElementById('preset-' + p);
         if (btn) btn.classList.toggle('active', p === preset);
       });
+      showRoutineToast("🎵 Soundscape: " + preset.charAt(0).toUpperCase() + preset.slice(1), "info", { duration: 2500, progressColor: "#7c3aed" });
       if (isSoundPlaying) {
         startSoundscape(preset);
       }
@@ -2122,6 +2178,7 @@ async function liveRoutine(req, res) {
       if (autoStart && !isSoundPlaying) {
         startSoundscape(currentPreset);
       }
+      showRoutineToast("⏱ Focus Sprint Started (" + durationMinutes + "m)", "info", { duration: 2500, progressColor: "#7c3aed" });
 
       timerInterval = setInterval(() => {
         if (timeLeft > 0) {
@@ -2135,30 +2192,22 @@ async function liveRoutine(req, res) {
             isSoundPlaying = false;
             updateSoundUI();
           }
-          if (typeof customizableToast !== "undefined" && typeof customizableToast.createToast === "function") {
-            const isBreak = timerMode.includes('break');
-            customizableToast.createToast({
-              message: isBreak
-                ? "☕ <b>Break completed!</b> Ready to dive back into deep work?"
-                : "🎉 <b>Focus sprint completed!</b> Great job maintaining morning momentum.",
-              type: "success",
-              allowHtml: true,
-              showProgressBar: true,
-              progressPosition: "bottom",
-              progressColor: "#7c3aed",
-              pauseOnHover: true,
+          const isBreak = timerMode.includes('break');
+          showRoutineToast(
+            isBreak
+              ? "☕ <b>Break completed!</b> Ready to dive back into deep work?"
+              : "🎉 <b>Focus sprint completed!</b> Great job maintaining morning momentum.",
+            "success",
+            {
               duration: 8000,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              borderRadius: "16px",
+              progressColor: "#10b981",
               cta: {
                 label: "🔥 1-Click Check-in",
                 variant: "link",
                 href: "${checkinHref}"
               }
-            });
-          } else {
-            alert('🎉 Focus sprint completed! Time for a short break.');
-          }
+            }
+          );
         }
       }, 1000);
     }
@@ -2168,6 +2217,7 @@ async function liveRoutine(req, res) {
       timerInterval = null;
       document.getElementById('startBtn').style.display = 'inline-block';
       document.getElementById('pauseBtn').style.display = 'none';
+      showRoutineToast("⏸ Focus Sprint Paused (" + formatTime(timeLeft) + " left)", "warning", { duration: 2500 });
     }
 
     function setTimerMode(mode) {
@@ -2198,6 +2248,12 @@ async function liveRoutine(req, res) {
         timeLeft = totalDurationSeconds;
         if (label) label.textContent = '15';
       }
+      const modeNames = {
+        focus: '🎯 Focus Sprint',
+        'short-break': '☕ Short Break (5m)',
+        'long-break': '🧘 Long Break (15m)'
+      };
+      showRoutineToast("Switched to " + (modeNames[mode] || mode), "info", { duration: 2500, progressColor: "#7c3aed" });
       updateTimerDisplay();
     }
 
@@ -2227,6 +2283,7 @@ async function liveRoutine(req, res) {
       pauseTimer();
       timeLeft = totalDurationSeconds;
       updateTimerDisplay();
+      showRoutineToast("↺ Timer reset to " + durationMinutes + "m", "info", { duration: 2200 });
     }
 
     function toggleFullscreen() {
@@ -2235,10 +2292,12 @@ async function liveRoutine(req, res) {
       if (!document.fullscreenElement) {
         if (card.requestFullscreen) {
           card.requestFullscreen().catch(() => {});
+          showRoutineToast("⛶ Fullscreen Focus Mode Activated", "info", { duration: 2200, progressColor: "#7c3aed" });
         }
       } else {
         if (document.exitFullscreen) {
           document.exitFullscreen().catch(() => {});
+          showRoutineToast("Exited Fullscreen Focus", "info", { duration: 2000 });
         }
       }
     }
@@ -2347,31 +2406,16 @@ async function liveRoutine(req, res) {
         if (res.ok && data.success) {
           if (syncStatus) syncStatus.textContent = 'Saved Just Now ✓';
           fireCelebrationConfetti();
-
-          if (typeof customizableToast !== "undefined" && typeof customizableToast.createToast === "function") {
-            customizableToast.createToast({
-              message: "✨ <b>Reflection Saved!</b> Your morning intention and mindset are locked in.",
-              type: "success",
-              allowHtml: true,
-              showProgressBar: true,
-              progressPosition: "bottom",
-              progressColor: "#7c3aed",
-              borderRadius: "16px",
-              duration: 4500
-            });
-          }
+          showRoutineToast("✨ <b>Reflection Saved!</b> Your morning intention is locked in.", "success", {
+            duration: 4500,
+            progressColor: "#10b981"
+          });
         } else {
           if (syncStatus) syncStatus.textContent = 'Save Failed';
-          if (typeof customizableToast !== "undefined" && typeof customizableToast.createToast === "function") {
-            customizableToast.createToast({
-              message: data.error || "Could not save reflection. Please check your connection.",
-              type: "warning",
-              showProgressBar: true,
-              progressPosition: "bottom",
-              borderRadius: "16px",
-              duration: 5000
-            });
-          }
+          showRoutineToast(data.error || "Could not save reflection. Please check your connection.", "warning", {
+            duration: 5000,
+            progressColor: "#f59e0b"
+          });
         }
       } catch (err) {
         if (globalThis.OfflineSync?.queueJournal) {
@@ -2381,6 +2425,10 @@ async function liveRoutine(req, res) {
           });
         }
         if (syncStatus) syncStatus.textContent = 'Offline Saved ✓';
+        showRoutineToast("📶 <b>Offline Mode:</b> Reflection saved locally and queued for auto-sync!", "warning", {
+          duration: 5500,
+          progressColor: "#f59e0b"
+        });
       } finally {
         if (saveBtn) {
           saveBtn.disabled = false;

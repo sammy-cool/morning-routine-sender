@@ -17,17 +17,28 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         (typeof customizableToast !== "undefined" ? customizableToast : null);
 
       if (toastLib && typeof toastLib.createToast === "function") {
+        const defaultProgress =
+          type === "success"
+            ? "#10b981"
+            : type === "error"
+              ? "#f43f5e"
+              : type === "warn" || type === "warning"
+                ? "#f59e0b"
+                : "#7c3aed";
         return toastLib.createToast({
           message,
           type: type === "warn" ? "warning" : type,
           position: "top-center",
           fontFamily: "'Plus Jakarta Sans', sans-serif",
           borderRadius: "16px",
+          backgroundColor: "rgba(12, 17, 29, 0.96)",
+          textColor: "#f8fafc",
           showProgressBar: true,
           progressPosition: "bottom",
-          progressColor: "#7c3aed",
+          progressColor: options.progressColor || defaultProgress,
           pauseOnHover: true,
           duration: 4500,
+          allowHtml: true,
           ...options,
         });
       }

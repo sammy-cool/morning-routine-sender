@@ -375,6 +375,7 @@ async function streakShare(req, res) {
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/responsive-layout.css">
+  <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
 
   <style>
     :root {
@@ -747,9 +748,25 @@ async function streakShare(req, res) {
         showToast();
       }
     }
-    function showToast() {
+    function showToast(customMsg) {
+      if (typeof customizableToast !== 'undefined' && typeof customizableToast.createToast === 'function') {
+        customizableToast.createToast({
+          message: customMsg || '📋 Streak link copied to clipboard!',
+          type: 'success',
+          position: 'top-center',
+          backgroundColor: 'rgba(12, 17, 29, 0.96)',
+          textColor: '#f8fafc',
+          progressColor: '#10b981',
+          borderRadius: '16px',
+          duration: 3500,
+          showProgressBar: true,
+          fontFamily: "'Plus Jakarta Sans', sans-serif"
+        });
+        return;
+      }
       const toast = document.getElementById('copyToast');
       if (!toast) return;
+      if (customMsg) toast.textContent = customMsg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
@@ -772,6 +789,20 @@ async function streakShare(req, res) {
           btnStreak.style.borderColor = 'rgba(255,255,255,0.1)';
           btnStreak.style.color = 'var(--text-muted)';
         }
+        if (typeof customizableToast !== 'undefined' && typeof customizableToast.createToast === 'function') {
+          customizableToast.createToast({
+            message: '📊 Viewing 7-Day Consistency Scorecard',
+            type: 'info',
+            position: 'top-center',
+            backgroundColor: 'rgba(12, 17, 29, 0.96)',
+            textColor: '#f8fafc',
+            progressColor: '#10b981',
+            borderRadius: '16px',
+            duration: 3000,
+            showProgressBar: true,
+            fontFamily: "'Plus Jakarta Sans', sans-serif"
+          });
+        }
       } else {
         img.src = streakUrl;
         if (btnStreak) {
@@ -783,6 +814,20 @@ async function streakShare(req, res) {
           btnWeekly.style.background = 'transparent';
           btnWeekly.style.borderColor = 'rgba(255,255,255,0.1)';
           btnWeekly.style.color = 'var(--text-muted)';
+        }
+        if (typeof customizableToast !== 'undefined' && typeof customizableToast.createToast === 'function') {
+          customizableToast.createToast({
+            message: '🔥 Viewing Unbroken Discipline Streak',
+            type: 'info',
+            position: 'top-center',
+            backgroundColor: 'rgba(12, 17, 29, 0.96)',
+            textColor: '#f8fafc',
+            progressColor: '#7c3aed',
+            borderRadius: '16px',
+            duration: 3000,
+            showProgressBar: true,
+            fontFamily: "'Plus Jakarta Sans', sans-serif"
+          });
         }
       }
     }

@@ -1632,16 +1632,20 @@
               (typeof customizableToast !== "undefined" ? customizableToast : null);
             if (toast && typeof toast.createToast === "function") {
               toast.createToast({
-                message: "Email copied to clipboard: " + email,
+                message: "📋 Email copied to clipboard: " + email,
                 type: "success",
                 position: "top-center",
+                backgroundColor: "rgba(12, 17, 29, 0.96)",
+                textColor: "#f8fafc",
+                progressColor: "#10b981",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                borderRadius: "16px",
                 duration: 3500,
                 showProgressBar: true,
                 progressPosition: "bottom",
                 pauseOnHover: true,
-                borderRadius: "14px",
                 cta: {
-                  label: "Send Email",
+                  label: "Send Email ✉️",
                   href: "mailto:" + email,
                   variant: "link",
                   autoClose: true,
