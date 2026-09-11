@@ -16,3 +16,11 @@ Subscribers can select or switch between 5 distinct tracks:
 - **Scheduling**: Node-Cron + Knex with PostgreSQL and Redis session/cache layer.
 - **Delivery**: Nodemailer SMTP with TLS verification, dynamic MJML templates, and RFC 8058 1-click unsubscribe.
 - **Client Frontend**: Accessible semantic HTML5, Vanilla JavaScript, CSS custom properties, Web Audio API procedural synthesis, PWA Service Worker offline caching.
+
+## Advanced Capabilities
+- **Accountability Squads & Peer Streaks**: Peer micro-communities (up to 5 members) sharing unique invite codes (`SQUAD-XXXX`), aggregate streak computations, and real-time daily team accountability.
+- **Deep Habit Analytics**: 7-day and 30-day consistency rate tracking, 4-week weekday breakdowns, and peak focus energy window indicators (Early Morning, Core Morning, Afternoon, Evening).
+- **AI Morning Audio Briefing Service**: Dynamic speech scripts generated for 5 distinct coach personas (Stoic Sage, High-Performance Coach, Monk, Ruthless Leader, Visionary Strategist) with in-browser SpeechSynthesis playback.
+- **Rich Push Action Buttons & Lock-Screen Check-in**: Service Worker background notification actions for 1-click check-in, routine launching, and 15-minute snoozes.
+- **Schema.org Email Interactive Actions**: Google Schema.org JSON-LD `EmailMessage` with `ViewAction` markup for frictionless 1-click check-ins straight from Gmail.
+
