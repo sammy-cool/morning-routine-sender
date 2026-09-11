@@ -34,6 +34,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const resetHabitsBtn = document.getElementById("resetHabitsBtn");
     let currentCustomHabits = [];
 
+    const prefCustomQuote = document.getElementById("prefCustomQuote");
+    const prefCustomRitual = document.getElementById("prefCustomRitual");
+    const prefNewsCategory = document.getElementById("prefNewsCategory");
+    const prefWeeklyDigestEnabled = document.getElementById("prefWeeklyDigestEnabled");
+    const prefWeeklyDigestDay = document.getElementById("prefWeeklyDigestDay");
+    const ambientFreqSelect = document.getElementById("ambientFreqSelect");
+
     let currentSubscriber = null;
 
     // Toast helper with full customizable-toast-notification capabilities
@@ -195,6 +202,21 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       // Custom Habits
       currentCustomHabits = Array.isArray(sub.customHabits) ? [...sub.customHabits] : [];
       renderCustomHabitsList();
+
+      // Dynamic Daily Quote & Focus Ritual
+      if (prefCustomQuote) prefCustomQuote.value = sub.customQuote || "";
+      if (prefCustomRitual) prefCustomRitual.value = sub.customRitual || "";
+
+      // Dynamic Morning News Category
+      if (prefNewsCategory) prefNewsCategory.value = sub.newsCategory || "all";
+
+      // Dynamic Weekly Consistency Digest
+      if (prefWeeklyDigestEnabled) {
+        prefWeeklyDigestEnabled.checked = sub.weeklyDigestEnabled !== false;
+      }
+      if (prefWeeklyDigestDay) {
+        prefWeeklyDigestDay.value = sub.weeklyDigestDay || "sunday";
+      }
     }
 
     function setFocusDurationUI(mins) {
@@ -344,6 +366,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           visualTimeSelect.value === "custom" ? prefCron.value.trim() : visualTimeSelect.value;
 
         const durationVal = prefFocusDuration ? Number(prefFocusDuration.value) || 25 : 25;
+        const customQuoteVal = prefCustomQuote ? prefCustomQuote.value.trim() : null;
+        const customRitualVal = prefCustomRitual ? prefCustomRitual.value.trim() : null;
+        const newsCategoryVal = prefNewsCategory ? prefNewsCategory.value : "all";
+        const weeklyDigestEnabledVal = prefWeeklyDigestEnabled
+          ? prefWeeklyDigestEnabled.checked
+          : true;
+        const weeklyDigestDayVal = prefWeeklyDigestDay ? prefWeeklyDigestDay.value : "sunday";
 
         const body = {
           cronPattern: cronValue || "0 8 * * *",
@@ -352,6 +381,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           templateType: prefTrack.value || "deep-work",
           focusDurationMinutes: durationVal,
           customHabits: currentCustomHabits,
+          customQuote: customQuoteVal,
+          customRitual: customRitualVal,
+          newsCategory: newsCategoryVal,
+          weeklyDigestEnabled: weeklyDigestEnabledVal,
+          weeklyDigestDay: weeklyDigestDayVal,
         };
 
         const resp = await fetch("/me", {
@@ -1386,6 +1420,8 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const activePersonaBadge = document.getElementById("activePersonaBadge");
     const saveCoachPersonaBtn = document.getElementById("saveCoachPersonaBtn");
     const coachPersonaSaveStatus = document.getElementById("coachPersonaSaveStatus");
+    const customCoachPromptSection = document.getElementById("customCoachPromptSection");
+    const customCoachPromptInput = document.getElementById("customCoachPromptInput");
 
     const PERSONA_BADGE_MAP = {
       stoic: "🏛️ Stoic Sage",
@@ -1393,6 +1429,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       zen: "🧘 Zen Master",
       "tech-lead": "💻 Principal Architect",
       optimist: "☀️ Momentum Catalyst",
+      custom: "✨ Personalized Mentor",
     };
 
     function selectCoachPersona(personaKey) {
@@ -1401,6 +1438,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       if (prefCoachPersona) prefCoachPersona.value = norm;
       if (activePersonaBadge) {
         activePersonaBadge.textContent = PERSONA_BADGE_MAP[norm] || "🏛️ Stoic Sage";
+      }
+
+      if (customCoachPromptSection) {
+        customCoachPromptSection.style.display = norm === "custom" ? "block" : "none";
       }
 
       document.querySelectorAll(".persona-card").forEach((card) => {
@@ -1417,6 +1458,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       coachPersonaCard.style.display = "block";
       const currentPersona = sub.coachPersona || sub.coach_persona || "stoic";
       selectCoachPersona(currentPersona);
+      if (customCoachPromptInput) {
+        customCoachPromptInput.value = sub.customCoachPrompt || "";
+      }
     }
 
     if (personaGrid) {
@@ -1443,10 +1487,15 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           coachPersonaSaveStatus.textContent = "Updating coach persona...";
 
         try {
+          const payload = { coachPersona: persona };
+          if (customCoachPromptInput) {
+            payload.customCoachPrompt = customCoachPromptInput.value.trim();
+          }
+
           const resp = await fetch("/me/coach-persona", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ coachPersona: persona }),
+            body: JSON.stringify(payload),
           });
           const data = await resp.json();
 
@@ -2072,6 +2121,25 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       "zen-waves": "Zen Ocean 🌊",
     };
     let currentAmbientIdx = 0;
+
+    if (ambientFreqSelect) {
+      ambientFreqSelect.addEventListener("change", function () {
+        const hz = Number(this.value);
+        if (globalThis.UXCore?.ambient?.setBinauralBeat) {
+          globalThis.UXCore.ambient.setBinauralBeat(hz);
+          const nameMap = {
+            6: "Theta (6Hz)",
+            10: "Alpha (10Hz)",
+            18: "Beta (18Hz)",
+            40: "Gamma (40Hz)",
+          };
+          ambientLabels.binaural = `${nameMap[hz] || hz + "Hz"} 🎧`;
+          if (ambientModes[currentAmbientIdx] === "binaural" && ambientSoundLabel) {
+            ambientSoundLabel.textContent = ambientLabels.binaural;
+          }
+        }
+      });
+    }
 
     if (ambientSoundBtn) {
       ambientSoundBtn.addEventListener("click", () => {

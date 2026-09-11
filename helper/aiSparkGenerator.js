@@ -25,6 +25,7 @@ const AI_CONFIG = {
  */
 function buildPrompt({
   coachPersona = "stoic",
+  customCoachPrompt = null,
   track = "deep-work",
   streakCount = 0,
   userName = "Builder",
@@ -40,7 +41,7 @@ Subscriber Name: ${userName || "Builder"}
 AI Coach Persona: ${persona.name} (${persona.title})
 Coach Archetype: ${persona.archetype}
 Coach Tone & Voice: ${persona.tone}
-Core Coaching Philosophy: ${persona.philosophy}
+Core Coaching Philosophy: ${persona.philosophy}${customCoachPrompt ? `\nCustom Subscriber Coaching Directives: ${customCoachPrompt}` : ""}
 Active Routine Track: ${track || "deep-work"}
 Current Morning Habit Streak: ${streak} consecutive days
 Milestone Tier: ${tier.title} (${tier.stageDescription})
@@ -54,9 +55,9 @@ Strict Persona & Style Guidelines:
 1. Speak purely in the voice and archetype of the ${persona.name}.
 2. Tone must strictly reflect: ${persona.tone}.
 3. Anchor your guidance in this core philosophy: "${persona.philosophy}".
-4. Seamlessly incorporate psychological reinforcement of their ${streak}-day morning habit streak (${tier.title}).
-5. Output MUST be valid JSON only. No markdown fences, no explanatory preambles.
-6. JSON Schema:
+4. Seamlessly incorporate psychological reinforcement of their ${streak}-day morning habit streak (${tier.title}).${customCoachPrompt ? `\n5. Adhere strictly to the subscriber's custom coaching directives: "${customCoachPrompt}".` : ""}
+6. Output MUST be valid JSON only. No markdown fences, no explanatory preambles.
+7. JSON Schema:
 {
   "sparkReflection": "1-2 sentences of punchy, memorable kickoff reflection tailored strictly to your coach persona voice and streak tier.",
   "microAction": "1 clear, immediately actionable morning micro-task (completable in under 2 minutes or sprint start).",
@@ -205,6 +206,7 @@ async function callOllama(promptData, timeoutMs) {
 async function getDailyMorningSpark({
   email = "",
   coachPersona = "stoic",
+  customCoachPrompt = null,
   routineTrack = "deep-work",
   streakCount = 0,
   timezone = "UTC",
@@ -232,6 +234,7 @@ async function getDailyMorningSpark({
 
   const promptData = buildPrompt({
     coachPersona: normPersona,
+    customCoachPrompt,
     track: normTrack,
     streakCount: streak,
     userName: name,

@@ -97,6 +97,22 @@ const COACH_PERSONAS_METADATA = {
     sampleSpark:
       "Today is an extraordinary canvas of opportunity. Bring vibrant energy to your craft, celebrate your consistency, and ignite compounding momentum!",
   },
+  custom: {
+    id: "custom",
+    name: "Personalized Mentor",
+    title: "The Personalized Mentor",
+    badge: "✨ Personalized Mentor",
+    archetype: "Custom AI Coach & Autonomous Advisor",
+    tagline: "Customized guidance, personalized principles & tailored execution.",
+    icon: "fa-user-astronaut",
+    color: "#ec4899",
+    tone: "Adaptive, personalized, inspiring, disciplined",
+    focusDomains: "Custom directives, personalized milestones, tailored encouragement",
+    philosophy: "Align your morning ritual with your unique personal manifesto and vision.",
+    sampleQuote: "The mind is everything. What you think you become. — Buddha",
+    sampleSpark:
+      "Today is crafted around your personal vision. Execute with clear intention and steady discipline.",
+  },
 };
 
 /**

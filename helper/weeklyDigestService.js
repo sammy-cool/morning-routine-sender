@@ -292,7 +292,13 @@ async function sendWeeklyDigestToSubscriber(subscriber, appLocals, options = {})
       return { status: "skipped", reason: eligibility.reason };
     }
 
-    // 2. Idempotency check
+    // 2. Check if subscriber opted out of weekly digests
+    if (subscriber.weeklyDigestEnabled === false && !force) {
+      logger.info("Subscriber opted out of weekly digest, skipping.", { email: maskEmail(email) });
+      return { status: "skipped", reason: "opted_out" };
+    }
+
+    // 3. Idempotency check
     const alreadySent = await emailTracker.wasEmailSentToday(
       email,
       "weekly-digest",

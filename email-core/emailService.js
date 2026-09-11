@@ -23,7 +23,8 @@ const template = handlebars.compile(mjmlSource);
  */
 async function sendRoutineEmail(transporter, appLocals, userData) {
   try {
-    const trendingNews = await dailyDevNews();
+    const newsCategory = userData.newsCategory || "all";
+    const trendingNews = await dailyDevNews(newsCategory);
     const baseUrl =
       typeof appLocals === "string"
         ? appLocals
@@ -40,20 +41,28 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     }).format(now);
 
     const trackKey = userData.routineTrack || userData.templateType || "deep-work";
-    const trackInfo = sharedData.getTrackContent(trackKey);
-
     const userStreak = Number(userData.streakCount) || 0;
+
+    const trackInfo = sharedData.getTrackContent(trackKey, {
+      dateStr: dayNumber,
+      seed: `${userStreak}_${userData.email}`,
+      email: userData.email,
+      customQuote: userData.customQuote,
+      customRitual: userData.customRitual,
+    });
+
     const streakBadge = userStreak > 0 ? `${userStreak}-Day Streak` : "Day 1 Streak";
     const trackBadge = trackInfo.badge;
 
-    const dailyQuote = userData.dailyQuote || trackInfo.quote;
-    const dailyTip = userData.dailyTip || trackInfo.ritual;
+    const dailyQuote = userData.customQuote || userData.dailyQuote || trackInfo.quote;
+    const dailyTip = userData.customRitual || userData.dailyTip || trackInfo.ritual;
 
     // Generate dynamic AI Morning Spark (with instant curated fallback)
     const morningSpark = await getDailyMorningSpark({
       email: userData.email,
       routineTrack: trackKey,
       coachPersona: userData.coachPersona || "stoic",
+      customCoachPrompt: userData.customCoachPrompt || null,
       streakCount: userStreak,
       timezone: userTimezone,
       name: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),

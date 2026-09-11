@@ -111,6 +111,11 @@ async function runWeeklyDigestJob(options = {}) {
       continue;
     }
 
+    if (subscriber.weeklyDigestEnabled === false && !force) {
+      results.skipped.push({ email, reason: "opted_out" });
+      continue;
+    }
+
     if (!force) {
       const alreadySent = await emailTracker.wasEmailSentThisWeek(email, "weekly_digest");
       if (alreadySent) {

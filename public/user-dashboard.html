@@ -2448,6 +2448,26 @@
               <span id="ambientSoundLabel">Ambient: Off</span>
             </button>
 
+            <!-- Brainwave Frequency Selector -->
+            <select
+              id="ambientFreqSelect"
+              style="
+                padding: 6px 10px;
+                font-size: 12px;
+                background: rgba(15, 23, 42, 0.6);
+                border: 1px solid var(--border-subtle);
+                border-radius: 8px;
+                color: #fff;
+                width: auto;
+              "
+              title="Select Binaural Brainwave Focus Frequency"
+            >
+              <option value="6">Theta (6 Hz - Calm)</option>
+              <option value="10" selected>Alpha (10 Hz - Flow)</option>
+              <option value="18">Beta (18 Hz - Alert)</option>
+              <option value="40">Gamma (40 Hz - Peak)</option>
+            </select>
+
             <span class="status-badge active" id="activePersonaBadge">🏛️ Stoic Sage</span>
           </div>
         </div>
@@ -2675,6 +2695,82 @@
             >
               "Rise with joy! Today is full of extraordinary possibilities."
             </div>
+          </div>
+
+          <!-- custom -->
+          <div
+            class="persona-card"
+            data-persona="custom"
+            role="radio"
+            aria-checked="false"
+            tabindex="0"
+            style="
+              background: rgba(15, 23, 42, 0.4);
+              border: 1px solid var(--border-subtle);
+              border-radius: var(--radius-md);
+              padding: 16px;
+              cursor: pointer;
+              transition: var(--transition);
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            "
+          >
+            <div style="display: flex; align-items: center; justify-content: space-between">
+              <div style="font-size: 15px; font-weight: 800; color: #fff">✨ Custom Mentor</div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4">
+              Your personalized AI coach instructions, custom philosophy, and specialized morning
+              focus voice.
+            </div>
+            <div
+              style="
+                font-size: 11.5px;
+                font-style: italic;
+                color: #cbd5e1;
+                border-left: 2px solid #ec4899;
+                padding-left: 8px;
+                margin-top: 4px;
+              "
+            >
+              "Execute according to your personalized principles and vision."
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Coach Instructions Section -->
+        <div id="customCoachPromptSection" style="margin-top: 14px; display: none">
+          <label
+            for="customCoachPromptInput"
+            style="
+              display: block;
+              font-size: 13px;
+              font-weight: 600;
+              color: #cbd5e1;
+              margin-bottom: 6px;
+            "
+          >
+            ✨ Custom AI Coach Instructions &amp; Directives
+          </label>
+          <textarea
+            id="customCoachPromptInput"
+            rows="3"
+            maxlength="500"
+            placeholder="e.g. Coach me like Naval Ravikant with calm, first-principles questions, or like a high-intensity operator focusing on grit and non-negotiables..."
+            style="
+              width: 100%;
+              padding: 10px 12px;
+              background: rgba(0, 0, 0, 0.3);
+              border: 1px solid var(--border-subtle);
+              border-radius: 8px;
+              color: #fff;
+              font-size: 13px;
+              resize: vertical;
+            "
+          ></textarea>
+          <div class="small" style="margin-top: 4px; color: var(--text-muted); font-size: 12px">
+            Injected directly into daily AI Morning Spark reflections, micro-actions, and focus
+            mantras.
           </div>
         </div>
 
@@ -2972,6 +3068,117 @@
               >
                 <i class="fas fa-plus" aria-hidden="true"></i> Add Habit
               </button>
+            </div>
+          </div>
+
+          <!-- Personal Daily Mantra & Focus Ritual -->
+          <div style="margin-top: 18px">
+            <label style="display: block; margin-bottom: 6px"
+              >Personal Daily Mantra &amp; Focus Ritual</label
+            >
+            <div
+              class="small"
+              style="margin-bottom: 8px; color: var(--text-muted); font-size: 12px"
+            >
+              Override track defaults with your own enduring life mantra or morning focus ritual.
+              Leave empty to use track rotation.
+            </div>
+            <div class="field-row">
+              <div>
+                <label for="prefCustomQuote" style="font-size: 12px; color: #cbd5e1"
+                  >Custom Daily Mantra / Quote</label
+                >
+                <input
+                  type="text"
+                  id="prefCustomQuote"
+                  maxlength="300"
+                  placeholder="e.g. He who has a why to live can bear almost any how. — Nietzsche"
+                />
+              </div>
+              <div>
+                <label for="prefCustomRitual" style="font-size: 12px; color: #cbd5e1"
+                  >Custom Morning Focus Ritual</label
+                >
+                <input
+                  type="text"
+                  id="prefCustomRitual"
+                  maxlength="300"
+                  placeholder="e.g. 15 minutes breathwork &amp; cold plunge before coffee"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Morning News & Knowledge Digest Category -->
+          <div style="margin-top: 18px">
+            <label for="prefNewsCategory">Morning News &amp; Knowledge Digest Topic</label>
+            <select id="prefNewsCategory">
+              <option value="all" selected>🌐 All Topics (Technology, Science, Dev, Space)</option>
+              <option value="tech">💻 Software Engineering &amp; Dev</option>
+              <option value="ai">🤖 AI, Machine Learning &amp; LLMs</option>
+              <option value="science">🚀 Science, Space &amp; Neuroscience</option>
+              <option value="finance">📈 Business, Markets &amp; Venture</option>
+              <option value="wellness">🌿 Health, Longevity &amp; Habits</option>
+              <option value="off">🚫 Off (Clean Routine, No News)</option>
+            </select>
+            <div class="small" style="margin-top: 4px; color: var(--text-muted); font-size: 12px">
+              Choose the morning news topic included in your daily email, or turn it off for zero
+              distraction.
+            </div>
+          </div>
+
+          <!-- Weekly Consistency Digest Preferences -->
+          <div
+            style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-subtle)"
+          >
+            <label style="display: block; margin-bottom: 6px"
+              >Weekly Performance &amp; Streak Digest</label
+            >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 12px;
+              "
+            >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  cursor: pointer;
+                  margin-bottom: 0;
+                  font-size: 13.5px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="prefWeeklyDigestEnabled"
+                  checked
+                  style="width: 16px; height: 16px; accent-color: var(--primary)"
+                />
+                <span
+                  >Receive weekly habit scorecard, consistency grade &amp; reflection
+                  highlights</span
+                >
+              </label>
+              <div style="display: flex; align-items: center; gap: 6px">
+                <label
+                  for="prefWeeklyDigestDay"
+                  style="font-size: 12px; margin-bottom: 0; color: var(--text-muted)"
+                  >Delivery Day:</label
+                >
+                <select
+                  id="prefWeeklyDigestDay"
+                  style="width: auto; padding: 6px 12px; font-size: 12.5px"
+                >
+                  <option value="sunday" selected>Sunday (Week Ahead)</option>
+                  <option value="monday">Monday (Kickoff)</option>
+                  <option value="friday">Friday (Wrap-up)</option>
+                </select>
+              </div>
             </div>
           </div>
 

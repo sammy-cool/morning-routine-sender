@@ -410,6 +410,7 @@
   let ambientActiveNodes = [];
   let ambientIntervalTimers = [];
   let ambientVolume = 0.5;
+  let ambientBinauralBeatHz = 10; // Default: 10 Hz (Alpha waves)
 
   function createPinkNoiseBuffer(ctx, duration = 4.0) {
     const bufferSize = Math.floor(ctx.sampleRate * duration);
@@ -454,7 +455,19 @@
       );
     },
 
-    play(mode, volume) {
+    setBinauralBeat(hz) {
+      ambientBinauralBeatHz = Math.max(1, Math.min(Number(hz) || 10, 60));
+      if (ambientCurrentMode === "binaural") {
+        this.play("binaural", ambientVolume);
+      }
+      return ambientBinauralBeatHz;
+    },
+
+    getBinauralBeat() {
+      return ambientBinauralBeatHz;
+    },
+
+    play(mode, volume, options = {}) {
       if (!this.isSupported()) return false;
       if (!this.SUPPORTED_MODES.includes(mode)) return false;
 
@@ -463,6 +476,9 @@
 
       if (typeof volume === "number") {
         ambientVolume = Math.max(0, Math.min(1, volume));
+      }
+      if (options && typeof options.binauralBeatHz === "number") {
+        ambientBinauralBeatHz = Math.max(1, Math.min(options.binauralBeatHz, 60));
       }
 
       this.stop(0.3);
@@ -500,16 +516,19 @@
       filter.connect(destinationGain);
       ambientActiveNodes.push(filter);
 
+      const baseFreq = 200;
+      const beatFreq = Math.max(1, Math.min(ambientBinauralBeatHz || 10, 60));
+
       const oscLeft = ctx.createOscillator();
       const gainLeft = ctx.createGain();
       oscLeft.type = "sine";
-      oscLeft.frequency.setValueAtTime(200, now);
+      oscLeft.frequency.setValueAtTime(baseFreq, now);
       gainLeft.gain.setValueAtTime(0.18, now);
 
       const oscRight = ctx.createOscillator();
       const gainRight = ctx.createGain();
       oscRight.type = "sine";
-      oscRight.frequency.setValueAtTime(210, now);
+      oscRight.frequency.setValueAtTime(baseFreq + beatFreq, now);
       gainRight.gain.setValueAtTime(0.18, now);
 
       const oscSub = ctx.createOscillator();

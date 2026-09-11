@@ -194,20 +194,20 @@ async function getCoachPersonas(_req, res) {
   }
 }
 
-// POST /me/coach-persona { coachPersona }
+// POST /me/coach-persona { coachPersona, customCoachPrompt }
 async function updateCoachPersona(req, res) {
-  const { coachPersona, persona } = req.body || {};
+  const { coachPersona, persona, customCoachPrompt } = req.body || {};
   const targetPersona = coachPersona || persona;
 
   if (!targetPersona || typeof targetPersona !== "string") {
     return res.status(400).json({
       error:
-        "coachPersona field is required (e.g. 'stoic', 'relentless', 'zen', 'tech-lead', 'optimist')",
+        "coachPersona field is required (e.g. 'stoic', 'relentless', 'zen', 'tech-lead', 'optimist', 'custom')",
     });
   }
 
   const normalized = targetPersona.toLowerCase().trim();
-  const validPersonas = ["stoic", "relentless", "zen", "tech-lead", "optimist"];
+  const validPersonas = ["stoic", "relentless", "zen", "tech-lead", "optimist", "custom"];
 
   if (!validPersonas.includes(normalized)) {
     return res.status(400).json({
@@ -215,9 +215,21 @@ async function updateCoachPersona(req, res) {
     });
   }
 
+  if (customCoachPrompt !== undefined && customCoachPrompt !== null && customCoachPrompt !== "") {
+    if (typeof customCoachPrompt !== "string" || customCoachPrompt.length > 500) {
+      return res.status(400).json({
+        error: "customCoachPrompt must be a string under 500 characters",
+      });
+    }
+  }
+
   try {
     const { COACH_PERSONAS_METADATA } = require("../helper/curatedSparks");
-    await sharedData.updateUser(req.subscriberEmail, { coachPersona: normalized });
+    const patch = { coachPersona: normalized };
+    if (customCoachPrompt !== undefined) {
+      patch.customCoachPrompt = customCoachPrompt ? String(customCoachPrompt).trim() : null;
+    }
+    await sharedData.updateUser(req.subscriberEmail, patch);
     const updated = await sharedData.getUserByEmail(req.subscriberEmail);
 
     logger.info("Subscriber updated AI Coach Persona", {
@@ -229,6 +241,7 @@ async function updateCoachPersona(req, res) {
       success: true,
       message: `AI Coach Persona set to '${COACH_PERSONAS_METADATA[normalized]?.title || normalized}'`,
       coachPersona: normalized,
+      customCoachPrompt: updated?.customCoachPrompt,
       subscriber: updated,
     });
   } catch (error) {
@@ -240,7 +253,7 @@ async function updateCoachPersona(req, res) {
   }
 }
 
-// PATCH /me  { templateType?, routineTrack?, cronPattern?, timezone?, isActive?, focusDurationMinutes?, customHabits? }
+// PATCH /me  { templateType?, routineTrack?, cronPattern?, timezone?, isActive?, focusDurationMinutes?, customHabits?, customQuote?, customRitual?, newsCategory?, customCoachPrompt?, weeklyDigestEnabled?, weeklyDigestDay? }
 async function updateMe(req, res) {
   const {
     templateType,
@@ -250,6 +263,12 @@ async function updateMe(req, res) {
     isActive,
     focusDurationMinutes,
     customHabits,
+    customQuote,
+    customRitual,
+    newsCategory,
+    customCoachPrompt,
+    weeklyDigestEnabled,
+    weeklyDigestDay,
   } = req.body || {};
 
   if (
@@ -259,7 +278,13 @@ async function updateMe(req, res) {
     timezone === undefined &&
     isActive === undefined &&
     focusDurationMinutes === undefined &&
-    customHabits === undefined
+    customHabits === undefined &&
+    customQuote === undefined &&
+    customRitual === undefined &&
+    newsCategory === undefined &&
+    customCoachPrompt === undefined &&
+    weeklyDigestEnabled === undefined &&
+    weeklyDigestDay === undefined
   ) {
     return res.status(400).json({ error: "No fields provided to update" });
   }
@@ -291,6 +316,48 @@ async function updateMe(req, res) {
     }
   }
 
+  if (customQuote !== undefined && customQuote !== null && customQuote !== "") {
+    if (typeof customQuote !== "string" || customQuote.length > 300) {
+      errors.push("customQuote must be a string under 300 characters");
+    }
+  }
+
+  if (customRitual !== undefined && customRitual !== null && customRitual !== "") {
+    if (typeof customRitual !== "string" || customRitual.length > 300) {
+      errors.push("customRitual must be a string under 300 characters");
+    }
+  }
+
+  if (newsCategory !== undefined) {
+    const validNews = ["all", "tech", "ai", "finance", "science", "wellness", "off"];
+    if (
+      typeof newsCategory !== "string" ||
+      !validNews.includes(newsCategory.toLowerCase().trim())
+    ) {
+      errors.push(`newsCategory must be one of: ${validNews.join(", ")}`);
+    }
+  }
+
+  if (customCoachPrompt !== undefined && customCoachPrompt !== null && customCoachPrompt !== "") {
+    if (typeof customCoachPrompt !== "string" || customCoachPrompt.length > 500) {
+      errors.push("customCoachPrompt must be a string under 500 characters");
+    }
+  }
+
+  if (weeklyDigestEnabled !== undefined && typeof weeklyDigestEnabled !== "boolean") {
+    errors.push("weeklyDigestEnabled must be a boolean");
+  }
+
+  if (weeklyDigestDay !== undefined) {
+    const validDays = ["sunday", "monday", "friday"];
+    if (
+      typeof weeklyDigestDay !== "string" ||
+      !validDays.includes(weeklyDigestDay.toLowerCase().trim())
+    ) {
+      errors.push(`weeklyDigestDay must be one of: ${validDays.join(", ")}`);
+    }
+  }
+
   if (errors.length > 0) {
     return res.status(400).json({ errors });
   }
@@ -306,6 +373,24 @@ async function updateMe(req, res) {
     }
     if (customHabits !== undefined) {
       updates.customHabits = customHabits.map((h) => String(h).trim()).filter(Boolean);
+    }
+    if (customQuote !== undefined) {
+      updates.customQuote = customQuote ? String(customQuote).trim() : null;
+    }
+    if (customRitual !== undefined) {
+      updates.customRitual = customRitual ? String(customRitual).trim() : null;
+    }
+    if (newsCategory !== undefined) {
+      updates.newsCategory = newsCategory.toLowerCase().trim();
+    }
+    if (customCoachPrompt !== undefined) {
+      updates.customCoachPrompt = customCoachPrompt ? String(customCoachPrompt).trim() : null;
+    }
+    if (weeklyDigestEnabled !== undefined) {
+      updates.weeklyDigestEnabled = Boolean(weeklyDigestEnabled);
+    }
+    if (weeklyDigestDay !== undefined) {
+      updates.weeklyDigestDay = weeklyDigestDay.toLowerCase().trim();
     }
 
     if (Object.keys(updates).length > 0) {

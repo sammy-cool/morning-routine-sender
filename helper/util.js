@@ -37,13 +37,47 @@ function todayUTCYYYYMMDD() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-async function dailyDevNews() {
+async function dailyDevNews(category = "all") {
+  const normCategory = (category || "all").toLowerCase().trim();
+  if (normCategory === "off" || normCategory === "none" || normCategory === "disabled") {
+    return null;
+  }
+
+  const categoryPresets = {
+    all: {
+      categories: "technology,science,developer,space",
+      keywords: "dev,tech,space,science",
+    },
+    tech: {
+      categories: "technology,developer",
+      keywords: "software,programming,developer,tech",
+    },
+    ai: {
+      categories: "technology,science",
+      keywords: "artificial intelligence,machine learning,deep learning,llm",
+    },
+    science: {
+      categories: "science,space",
+      keywords: "astronomy,physics,neuroscience,science",
+    },
+    finance: {
+      categories: "business,finance",
+      keywords: "markets,venture,economy,investing",
+    },
+    wellness: {
+      categories: "health",
+      keywords: "wellness,longevity,fitness,habits,mindset",
+    },
+  };
+
+  const selected = categoryPresets[normCategory] || categoryPresets.all;
+
   const params = {
     api_token: process.env.NEWS_API_KEY,
-    categories: "technology,science,developer,space",
+    categories: selected.categories,
     limit: "1",
     language: "en",
-    keywords: "dev,tech,space,science",
+    keywords: selected.keywords,
   };
 
   const esc = encodeURIComponent;

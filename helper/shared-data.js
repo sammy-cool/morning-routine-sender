@@ -28,6 +28,10 @@ const TRACK_CONFIGS = {
       "Apply the 5-Minute Rule: Dive straight into your hardest engineering problem for 5 minutes without context switching.",
       "Review yesterday's git commits, map today's 3 core technical outcomes, and block out uninterrupted morning momentum.",
       "Clear your desk, close all messaging apps, open documentation, and enter a dedicated 60-minute Flow State session.",
+      "Identify the highest-friction technical debt item blocking velocity and spend 30 uninterrupted minutes refactoring it.",
+      "Draft the interface or invariant contract for today's primary feature before writing any implementation code.",
+      "Perform a 10-minute mental rehearsal of your system architecture before typing the first line of code.",
+      "Disable all notification badges and close social tabs; guard your morning 2-hour window as sacred engineering time.",
     ],
     checklist: [
       "Hydrate (500ml water)",
@@ -36,10 +40,14 @@ const TRACK_CONFIGS = {
       "Complete Flow State Sprint",
     ],
     quotes: [
-      "Deep work is the ability to focus without distraction on a cognitively demanding task. - Cal Newport",
-      "Action is the foundational key to all success. - Pablo Picasso",
-      "Simplicity is prerequisite for reliability. - Edsger W. Dijkstra",
+      "Deep work is the ability to focus without distraction on a cognitively demanding task. — Cal Newport",
+      "Action is the foundational key to all success. — Pablo Picasso",
+      "Simplicity is prerequisite for reliability. — Edsger W. Dijkstra",
       "Focus is a muscle. The more you practice single-tasking, the stronger it becomes.",
+      "The best way to get a project done faster is to start sooner. — Jim Highsmith",
+      "Make it work, make it right, make it fast. — Kent Beck",
+      "There are two ways of constructing a software design: One is to make it so simple that there are obviously no deficiencies. — C.A.R. Hoare",
+      "It's not that I'm so smart, it's just that I stay with problems longer. — Albert Einstein",
     ],
   },
   mindfulness: {
@@ -51,6 +59,10 @@ const TRACK_CONFIGS = {
       "Write down 3 specific moments or people you are genuinely grateful for this morning.",
       "Stoic Reflection: Identify one external factor outside your control today and consciously choose equanimity.",
       "Take a mindful 5-minute silent morning walk with zero digital inputs or earbuds.",
+      "Perform a full-body tension release scan from crown to toes, relaxing shoulders and unclamping your jaw.",
+      "Premeditatio Malorum: Spend 60 seconds visualizing an unexpected delay today and rehearse your calm, composed response.",
+      "Drink a glass of warm water or morning tea in absolute silence, savoring every sip with mindful presence.",
+      "Pause for 2 minutes of open-heart contemplation: wish genuine peace, health, and focus to everyone you will meet today.",
     ],
     checklist: [
       "3-Min Box Breathing",
@@ -59,10 +71,14 @@ const TRACK_CONFIGS = {
       "Mindful Morning Walk",
     ],
     quotes: [
-      "You have power over your mind - not outside events. Realize this, and you will find strength. - Marcus Aurelius",
-      "We suffer more often in imagination than in reality. - Seneca",
-      "Peace comes from within. Do not seek it without. - Buddha",
-      "Almost everything will work again if you unplug it for a few minutes, including you. - Anne Lamott",
+      "You have power over your mind - not outside events. Realize this, and you will find strength. — Marcus Aurelius",
+      "We suffer more often in imagination than in reality. — Seneca",
+      "Peace comes from within. Do not seek it without. — Buddha",
+      "Almost everything will work again if you unplug it for a few minutes, including you. — Anne Lamott",
+      "When you arise in the morning, think of what a precious privilege it is to be alive. — Marcus Aurelius",
+      "No man is free who is not master of himself. — Epictetus",
+      "Feelings come and go like clouds in a windy sky. Conscious breathing is my anchor. — Thich Nhat Hanh",
+      "The present moment is the only moment available to us, and it is the door to all moments. — Thich Nhat Hanh",
     ],
   },
   executive: {
@@ -74,6 +90,10 @@ const TRACK_CONFIGS = {
       "Prime your physical energy: drink 500ml water, complete 2 minutes of mobility stretches, and review your top quarterly goal.",
       "Audit your calendar: Eliminate, delegate, or shorten at least one low-value meeting today.",
       "Perform a 2-minute decision audit: What is the single highest-leverage decision you need to make today?",
+      "Review your strategic dashboard and identify the single lead metric that moves the entire needle this week.",
+      "Clarify key delegation assignments: ensure every direct initiative has a clear single owner and unambiguous deadline.",
+      "Rehearse your key talking points for high-stakes conversations before entering the boardroom.",
+      "Disconnect completely for 10 minutes at the start of the morning to think panoramically about the company's 1-year horizon.",
     ],
     checklist: [
       "Drink 500ml Water & Stretch",
@@ -82,10 +102,14 @@ const TRACK_CONFIGS = {
       "Top Strategic Goal Review",
     ],
     quotes: [
-      "The key is not to prioritize what's on your schedule, but to schedule your priorities. - Stephen Covey",
+      "The key is not to prioritize what's on your schedule, but to schedule your priorities. — Stephen Covey",
       "Focusing on the vital few rather than the trivial many is how extraordinary results are achieved.",
-      "Discipline equals freedom. - Jocko Willink",
-      "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
+      "Discipline equals freedom. — Jocko Willink",
+      "Your time is limited, don't waste it living someone else's life. — Steve Jobs",
+      "Management is doing things right; leadership is doing the right things. — Peter Drucker",
+      "Efficiency is doing better what is already being done. Effectiveness is deciding what to do. — Peter Drucker",
+      "Long-range planning does not deal with future decisions, but with the future of present decisions. — Peter Drucker",
+      "The most serious mistakes are not being made as a result of wrong answers. The true dangerous thing is asking the wrong question. — Peter Drucker",
     ],
   },
   learning: {
@@ -97,6 +121,10 @@ const TRACK_CONFIGS = {
       "Read 10 pages of a non-fiction or engineering book before opening social media.",
       "Identify one mental model (e.g. First Principles, Inversion, Pareto) and apply it to a current challenge.",
       "Note down one intriguing thesis or question to explore deeply during your break.",
+      "Synthesize your top reading insight into a 3-sentence summary in your personal knowledge vault.",
+      "Practice spaced repetition flashcards for 5 minutes to permanently encode core formulas or concepts.",
+      "Explore a paradigm outside your immediate field (biology, physics, economics) for cross-disciplinary insights.",
+      "Engage in a 5-minute deliberate practice exercise targeting a specific weak spot in your technical skillset.",
     ],
     checklist: [
       "60-Sec Feynman Recall",
@@ -105,10 +133,14 @@ const TRACK_CONFIGS = {
       "Capture 1 Curiosity Note",
     ],
     quotes: [
-      "Live as if you were to die tomorrow. Learn as if you were to live forever. - Mahatma Gandhi",
-      "An investment in knowledge pays the best interest. - Benjamin Franklin",
-      "The beautiful thing about learning is that no one can take it away from you. - B.B. King",
-      "In a world of constant change, the learners will inherit the earth.",
+      "Live as if you were to die tomorrow. Learn as if you were to live forever. — Mahatma Gandhi",
+      "An investment in knowledge pays the best interest. — Benjamin Franklin",
+      "The beautiful thing about learning is that no one can take it away from you. — B.B. King",
+      "In a world of constant change, the learners will inherit the earth. — Eric Hoffer",
+      "I would rather have questions that can't be answered than answers that can't be questioned. — Richard Feynman",
+      "Anyone who stops learning is old, whether at twenty or eighty. Anyone who keeps learning stays young. — Henry Ford",
+      "Develop a passion for learning. If you do, you will never cease to grow. — Anthony J. D'Angelo",
+      "Wisdom is not a product of schooling but of the lifelong attempt to acquire it. — Albert Einstein",
     ],
   },
   classic: {
@@ -120,6 +152,10 @@ const TRACK_CONFIGS = {
       "Do 20 jumping jacks or a brisk stretch to wake up your nervous system and increase blood flow.",
       "Write down your single proudest intention for how you want to show up today.",
       "Take 3 deep breaths, smile, and commit to making today 1% better than yesterday.",
+      "Turn on an uplifting energizing song and move your body freely for 2 minutes to spark joyful momentum.",
+      "Splash cold water on your face and recite your core personal affirmation with conviction.",
+      "Compliment or express genuine appreciation to one person in your home or team this morning.",
+      "Stand tall, roll your shoulders back, and welcome today's opportunities with an unstoppable smile.",
     ],
     checklist: [
       "Hydrate & Sunlight (5 min)",
@@ -128,10 +164,14 @@ const TRACK_CONFIGS = {
       "3 Deep Breaths & Smile",
     ],
     quotes: [
-      "The secret of your future is hidden in your daily routine. - Mike Murdock",
-      "Every morning we are born again. What we do today is what matters most. - Buddha",
+      "The secret of your future is hidden in your daily routine. — Mike Murdock",
+      "Every morning we are born again. What we do today is what matters most. — Buddha",
       "Rise and shine with intentionality and joy.",
       "Today is full of unlimited possibilities. Make it count.",
+      "With the new day comes new strength and new thoughts. — Eleanor Roosevelt",
+      "Write it on your heart that every day is the best day in the year. — Ralph Waldo Emerson",
+      "Smile in the mirror. Do that every morning and you'll start to see a big difference in your life. — Yoko Ono",
+      "Today's accomplishments were yesterday's impossibilities. — Robert H. Schuller",
     ],
   },
   career: {
@@ -143,6 +183,10 @@ const TRACK_CONFIGS = {
       "Review your top quarterly career objectives and align today's priorities accordingly.",
       "Prepare key communication points for today's high-stakes discussions.",
       "Dedicate 15 minutes to deliberate skill refinement and industry mastery.",
+      "Identify a strategic peer or mentor and send a high-signal, thoughtful note to strengthen relationships.",
+      "Re-read your personal career vision and eliminate one task that does not compound toward that vision.",
+      "Audit your professional visibility: ensure your team's key milestones and wins are properly documented.",
+      "Practice articulating your current top project's business impact in a concise 30-second elevator pitch.",
     ],
     checklist: [
       "Review Top Career Milestone",
@@ -151,10 +195,14 @@ const TRACK_CONFIGS = {
       "Execute Focused Deep Sprint",
     ],
     quotes: [
-      "The best way to predict the future is to create it. - Peter Drucker",
-      "Opportunities don't happen, you create them. - Chris Grosser",
-      "Continuous learning is the minimum requirement for success in any field. - Brian Tracy",
-      "Focus on being productive instead of busy. - Tim Ferriss",
+      "The best way to predict the future is to create it. — Peter Drucker",
+      "Opportunities don't happen, you create them. — Chris Grosser",
+      "Continuous learning is the minimum requirement for success in any field. — Brian Tracy",
+      "Focus on being productive instead of busy. — Tim Ferriss",
+      "Do what you do so well that they will want to see it again and bring their friends. — Walt Disney",
+      "Great things in business are never done by one person. They're done by a team of people. — Steve Jobs",
+      "Success usually comes to those who are too busy to be looking for it. — Henry David Thoreau",
+      "The only limit to our realization of tomorrow will be our doubts of today. — Franklin D. Roosevelt",
     ],
   },
   reflection: {
@@ -166,6 +214,10 @@ const TRACK_CONFIGS = {
       "Reflect on one lesson learned and how you can apply it tomorrow.",
       "Write down 3 moments of gratitude before disconnecting for the evening.",
       "Organize your workspace and set your top priority for tomorrow morning.",
+      "Evaluate how well you honored your core values throughout the day's conversations.",
+      "Consciously forgive any missteps or frustrations from today and start with a clean slate.",
+      "Set all digital devices across your room to charge, creating a technology-free sleep sanctuary.",
+      "Spend 3 minutes breathing deeply in dim lighting to signal rest and recovery to your nervous system.",
     ],
     checklist: [
       "Log Daily Wins & Progress",
@@ -174,28 +226,64 @@ const TRACK_CONFIGS = {
       "Prepare Tomorrow's #1 Focus",
     ],
     quotes: [
-      "We do not learn from experience... we learn from reflecting on experience. - John Dewey",
-      "Reflect upon your present blessings, of which every man has many. - Charles Dickens",
+      "We do not learn from experience... we learn from reflecting on experience. — John Dewey",
+      "Reflect upon your present blessings, of which every man has many. — Charles Dickens",
       "Self-reflection is the gateway to intentional living and mastery.",
       "Close the day with a grateful heart and a clear mind.",
+      "He who is not everyday conquering some fear has not learned the secret of life. — Ralph Waldo Emerson",
+      "At the end of the day, remind yourself that you did the best you could today, and that is good enough.",
+      "Sleep is the golden chain that ties health and our bodies together. — Thomas Dekker",
+      "Finish each day and be done with it. You have done what you could. — Ralph Waldo Emerson",
     ],
   },
 };
 
-function getTrackContent(trackKey = "deep-work") {
+function getTrackContent(trackKey = "deep-work", options = {}) {
   const normalized = (trackKey || "deep-work").toLowerCase().trim();
   const config = TRACK_CONFIGS[normalized] || TRACK_CONFIGS["deep-work"];
 
-  const ritualIndex = Math.floor(Math.random() * config.rituals.length);
-  const quoteIndex = Math.floor(Math.random() * config.quotes.length);
+  let ritual = options.customRitual;
+  let quote = options.customQuote;
+
+  if (!ritual) {
+    if (options.seed || options.dateStr || options.email) {
+      const seedStr = `${options.dateStr || ""}_${options.email || ""}_${options.seed || ""}`;
+      let hash = 0;
+      for (let i = 0; i < seedStr.length; i++) {
+        hash = (hash << 5) - hash + seedStr.charCodeAt(i);
+        hash |= 0;
+      }
+      const ritualIndex = Math.abs(hash) % config.rituals.length;
+      ritual = config.rituals[ritualIndex];
+    } else {
+      const ritualIndex = Math.floor(Math.random() * config.rituals.length);
+      ritual = config.rituals[ritualIndex];
+    }
+  }
+
+  if (!quote) {
+    if (options.seed || options.dateStr || options.email) {
+      const seedStr = `${options.dateStr || ""}_${options.email || ""}_quote_${options.seed || ""}`;
+      let hash = 0;
+      for (let i = 0; i < seedStr.length; i++) {
+        hash = (hash << 5) - hash + seedStr.charCodeAt(i);
+        hash |= 0;
+      }
+      const quoteIndex = Math.abs(hash) % config.quotes.length;
+      quote = config.quotes[quoteIndex];
+    } else {
+      const quoteIndex = Math.floor(Math.random() * config.quotes.length);
+      quote = config.quotes[quoteIndex];
+    }
+  }
 
   return {
     track: normalized,
     name: config.name,
     badge: config.badge,
     tagline: config.tagline,
-    ritual: config.rituals[ritualIndex],
-    quote: config.quotes[quoteIndex],
+    ritual,
+    quote,
     checklist: config.checklist,
   };
 }
@@ -365,12 +453,26 @@ async function getUsers() {
         "routine_track as routineTrack",
       );
     logger.info(`📋 Found ${rows.length} active subscribers`);
-    return rows.map((r) => ({
-      ...r,
-      isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
-      streakCount: Number(r.streakCount) || 0,
-      routineTrack: r.routineTrack || r.templateType || "deep-work",
-    }));
+    return Promise.all(
+      rows.map(async (r) => {
+        const ext = await getUserExtensions(r.email);
+        return {
+          ...r,
+          ...ext,
+          focusDurationMinutes: Number(ext.focusDurationMinutes) || 25,
+          customHabits: Array.isArray(ext.customHabits) ? ext.customHabits : [],
+          customQuote: ext.customQuote || null,
+          customRitual: ext.customRitual || null,
+          newsCategory: ext.newsCategory || "all",
+          customCoachPrompt: ext.customCoachPrompt || null,
+          weeklyDigestEnabled: ext.weeklyDigestEnabled !== false,
+          weeklyDigestDay: ext.weeklyDigestDay || "sunday",
+          isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
+          streakCount: Number(r.streakCount) || 0,
+          routineTrack: r.routineTrack || r.templateType || "deep-work",
+        };
+      }),
+    );
   } catch (_err) {
     // Fallback if migration hasn't run yet
     const rows = await db("subscribers")
@@ -382,12 +484,26 @@ async function getUsers() {
         "timezone",
         "is_active as isActive",
       );
-    return rows.map((r) => ({
-      ...r,
-      isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
-      streakCount: 0,
-      routineTrack: r.templateType || "deep-work",
-    }));
+    return Promise.all(
+      rows.map(async (r) => {
+        const ext = await getUserExtensions(r.email);
+        return {
+          ...r,
+          ...ext,
+          focusDurationMinutes: Number(ext.focusDurationMinutes) || 25,
+          customHabits: Array.isArray(ext.customHabits) ? ext.customHabits : [],
+          customQuote: ext.customQuote || null,
+          customRitual: ext.customRitual || null,
+          newsCategory: ext.newsCategory || "all",
+          customCoachPrompt: ext.customCoachPrompt || null,
+          weeklyDigestEnabled: ext.weeklyDigestEnabled !== false,
+          weeklyDigestDay: ext.weeklyDigestDay || "sunday",
+          isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
+          streakCount: 0,
+          routineTrack: r.templateType || "deep-work",
+        };
+      }),
+    );
   }
 }
 
@@ -479,6 +595,12 @@ async function getUserByEmail(email) {
       ...ext,
       focusDurationMinutes: Number(ext.focusDurationMinutes) || 25,
       customHabits: Array.isArray(ext.customHabits) ? ext.customHabits : [],
+      customQuote: ext.customQuote || null,
+      customRitual: ext.customRitual || null,
+      newsCategory: ext.newsCategory || "all",
+      customCoachPrompt: ext.customCoachPrompt || null,
+      weeklyDigestEnabled: ext.weeklyDigestEnabled !== false,
+      weeklyDigestDay: ext.weeklyDigestDay || "sunday",
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: Number(row.streakCount) || 0,
       streakFreezes:
@@ -508,6 +630,12 @@ async function getUserByEmail(email) {
       ...ext,
       focusDurationMinutes: Number(ext.focusDurationMinutes) || 25,
       customHabits: Array.isArray(ext.customHabits) ? ext.customHabits : [],
+      customQuote: ext.customQuote || null,
+      customRitual: ext.customRitual || null,
+      newsCategory: ext.newsCategory || "all",
+      customCoachPrompt: ext.customCoachPrompt || null,
+      weeklyDigestEnabled: ext.weeklyDigestEnabled !== false,
+      weeklyDigestDay: ext.weeklyDigestDay || "sunday",
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: 0,
       streakFreezes: 2,
@@ -610,13 +738,23 @@ async function updateUser(email, updates) {
         : JSON.stringify(updates.freezeHistory);
   }
 
-  if (updates.focusDurationMinutes !== undefined || updates.customHabits !== undefined) {
-    await saveUserExtensions(email, {
-      ...(updates.focusDurationMinutes !== undefined
-        ? { focusDurationMinutes: Number(updates.focusDurationMinutes) }
-        : {}),
-      ...(updates.customHabits !== undefined ? { customHabits: updates.customHabits } : {}),
+  const extensionFields = [
+    "focusDurationMinutes",
+    "customHabits",
+    "customQuote",
+    "customRitual",
+    "newsCategory",
+    "customCoachPrompt",
+    "weeklyDigestEnabled",
+    "weeklyDigestDay",
+  ];
+  const hasExtUpdates = extensionFields.some((f) => updates[f] !== undefined);
+  if (hasExtUpdates) {
+    const extPatch = {};
+    extensionFields.forEach((f) => {
+      if (updates[f] !== undefined) extPatch[f] = updates[f];
     });
+    await saveUserExtensions(email, extPatch);
   }
 
   try {
