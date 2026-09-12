@@ -65,6 +65,33 @@
 
     <!-- Main Card -->
     <mj-wrapper background-color="#ffffff" border-radius="20px" padding="30px 24px" css-class="card-box">
+      <!-- Broadcast Announcement Banner (if active) -->
+      {{#if announcement}}
+      <mj-section padding="0 0 15px 0">
+        <mj-column>
+          <mj-text padding="0 10px">
+            <div style="background: #eff6ff; border: 1px solid #93c5fd; border-left: 4px solid #3b82f6; border-radius: 10px; padding: 12px 14px;">
+              <span style="font-size: 11px; font-weight: 800; color: #1d4ed8; text-transform: uppercase;">📢 {{announcement.title}}</span>
+              <div style="font-size: 13px; color: #1e3a8a; margin-top: 4px; line-height: 18px;">{{announcement.message}}</div>
+            </div>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      {{/if}}
+
+      <!-- Localized Weather Spark (if available) -->
+      {{#if weatherSpark}}
+      <mj-section padding="0 0 10px 0">
+        <mj-column>
+          <mj-text align="center" padding="0 10px">
+            <div style="display: inline-block; font-size: 12px; font-weight: 600; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 5px 14px;">
+              {{weatherSpark.formattedSpark}}
+            </div>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      {{/if}}
+
       <!-- Header / Logo / Badges -->
       <mj-section padding="0 0 20px 0">
         <mj-column>

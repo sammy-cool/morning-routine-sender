@@ -108,6 +108,22 @@ async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process
       return { status: "skipped", reason: eligibility.reason };
     }
 
+    // Check if recipient is on Vacation / Paused mode
+    if (userData.vacationUntil && !isAdminSkip) {
+      const vacationEnd = new Date(userData.vacationUntil);
+      if (new Date() < vacationEnd) {
+        logger.info("Recipient on Vacation mode, skipping routine dispatch.", {
+          email: maskEmail(userData.email),
+          vacationUntil: userData.vacationUntil,
+        });
+        return {
+          status: "skipped",
+          reason: "vacation_mode",
+          vacationUntil: userData.vacationUntil,
+        };
+      }
+    }
+
     // Check if already sent today
     const alreadySent = await emailTracker.wasEmailSentToday(
       userData.email,
@@ -387,6 +403,8 @@ function scheduleUserJob(user) {
         email,
         job,
         cronPattern,
+        timezone: userTz,
+        routineTrack: user.routineTrack || user.templateType || "deep-work",
         type: "daily_routine",
       });
     } else {
@@ -400,7 +418,42 @@ function scheduleUserJob(user) {
     });
   }
 
-  // 2. Schedule Sunday Weekly Digest Job
+  // 2. Schedule Weekend Routine Job (if dual-track configured with distinct pattern)
+  if (
+    user.weekendCronPattern &&
+    user.weekendRoutineTrack &&
+    cron.validate(user.weekendCronPattern)
+  ) {
+    try {
+      const weekendJob = cron.schedule(
+        user.weekendCronPattern,
+        async () => {
+          logger.info("⏰ Weekend routine cron triggered", {
+            email,
+            track: user.weekendRoutineTrack,
+            time: new Date().toISOString(),
+          });
+          const currentUser = await sharedData.getUserByEmail(email);
+          if (!currentUser || !currentUser.isActive) return;
+          currentUser.routineTrack = user.weekendRoutineTrack;
+          await sendRoutineEmail(currentUser);
+        },
+        { scheduled: true, timezone: userTz },
+      );
+      scheduledJobs.push({
+        email,
+        job: weekendJob,
+        cronPattern: user.weekendCronPattern,
+        timezone: userTz,
+        routineTrack: user.weekendRoutineTrack,
+        type: "weekend_routine",
+      });
+    } catch (err) {
+      logger.error("Failed to schedule weekend routine job", { email, error: err.message });
+    }
+  }
+
+  // 3. Schedule Sunday Weekly Digest Job
   try {
     const weeklyJob = cron.schedule(
       sundayCron,
@@ -427,6 +480,7 @@ function scheduleUserJob(user) {
       email,
       job: weeklyJob,
       cronPattern: sundayCron,
+      timezone: userTz,
       type: "weekly_digest",
     });
   } catch (error) {
@@ -584,6 +638,57 @@ function scheduleCleanupJobs() {
   return cleanupJob;
 }
 
+/**
+ * Get upcoming scheduled dispatches queue across all subscribers
+ * @param {number} [limit=15]
+ * @returns {Array<Object>}
+ */
+function getUpcomingDispatchQueue(limit = 15) {
+  const now = new Date();
+  const queue = [];
+
+  for (const item of scheduledJobs) {
+    if (!item.email || item.email === "system_cleanup" || item.type === "weekly_digest") {
+      continue;
+    }
+
+    const parts = (item.cronPattern || "0 8 * * *").trim().split(/\s+/);
+    const minute = parseInt(parts[0], 10);
+    const hour = parseInt(parts[1], 10);
+    const safeMin = Number.isFinite(minute) ? minute : 0;
+    const safeHour = Number.isFinite(hour) ? hour : 8;
+
+    const target = new Date();
+    target.setSeconds(0, 0);
+    target.setMinutes(safeMin);
+    target.setHours(safeHour);
+
+    if (target <= now) {
+      target.setDate(target.getDate() + 1);
+    }
+
+    const diffMs = target.getTime() - now.getTime();
+    const diffMins = Math.max(0, Math.round(diffMs / (60 * 1000)));
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    const countdownHuman = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+    queue.push({
+      email: item.email,
+      type: item.type,
+      routineTrack: item.routineTrack || "deep-work",
+      timezone: item.timezone || "UTC",
+      cronPattern: item.cronPattern,
+      nextRunIso: target.toISOString(),
+      countdownMinutes: diffMins,
+      countdownHuman,
+    });
+  }
+
+  queue.sort((a, b) => a.countdownMinutes - b.countdownMinutes);
+  return queue.slice(0, limit);
+}
+
 module.exports = {
   scheduleAllJobs,
   stopAllJobs,
@@ -596,4 +701,5 @@ module.exports = {
   sendBulkEmails,
   getScheduledJobsStatus,
   scheduleCleanupJobs,
+  getUpcomingDispatchQueue,
 };

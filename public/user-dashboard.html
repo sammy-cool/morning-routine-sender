@@ -2119,6 +2119,195 @@
         </div>
       </div>
 
+      <!-- Vacation / Routine Pause Active Banner -->
+      <div
+        id="vacationActiveBanner"
+        style="
+          display: none;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-bottom: 24px;
+          background: rgba(245, 158, 11, 0.12);
+          border: 1px solid rgba(245, 158, 11, 0.35);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-radius: 16px;
+          padding: 16px 20px;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="font-size: 28px" aria-hidden="true">✈️</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <strong style="color: #fbbf24; font-size: 15px">Vacation / Pause Mode Active</strong>
+              <span
+                class="status-badge"
+                style="background: rgba(245, 158, 11, 0.2); color: #fef3c7; font-size: 11px"
+                id="vacationReasonBadge"
+                >Travel</span
+              >
+            </div>
+            <div
+              id="vacationBannerDetails"
+              style="font-size: 13px; color: #cbd5e1; margin-top: 2px"
+            >
+              Routine emails paused until
+              <strong id="vacationUntilDateText" style="color: #fff">--</strong>. Your streak is
+              safely frozen and protected.
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="resumeVacationEarlyBtn"
+          onclick="resumeVacationNow()"
+          style="white-space: nowrap; padding: 8px 18px; font-size: 13px"
+        >
+          <i class="fas fa-play" aria-hidden="true"></i> Resume Routine Now
+        </button>
+      </div>
+
+      <!-- Streak Milestone Trophies Rack Card -->
+      <div class="card" id="milestoneBadgesCard" style="display: none; margin-bottom: 24px">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+          "
+        >
+          <div>
+            <h2 style="display: flex; align-items: center; gap: 8px">
+              <i class="fas fa-trophy" style="color: #fbbf24" aria-hidden="true"></i>
+              Streak Milestone Trophies
+            </h2>
+            <p class="meta" style="font-size: 13px; margin-top: 4px; color: var(--text-muted)">
+              Unlock lifetime consistency achievements as your morning routine streak grows.
+            </p>
+          </div>
+          <div
+            id="nextMilestoneProgressBox"
+            style="
+              background: rgba(255, 255, 255, 0.04);
+              border: 1px solid var(--border-subtle);
+              border-radius: 12px;
+              padding: 10px 16px;
+              min-width: 220px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 12px;
+                margin-bottom: 6px;
+                color: #cbd5e1;
+              "
+            >
+              <span id="nextMilestoneName">Next Milestone</span>
+              <strong id="nextMilestoneRemaining" style="color: #38bdf8">-- days left</strong>
+            </div>
+            <div
+              style="
+                width: 100%;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 99px;
+                overflow: hidden;
+              "
+            >
+              <div
+                id="milestoneProgressBar"
+                style="
+                  width: 0%;
+                  height: 100%;
+                  background: linear-gradient(90deg, #6366f1, #38bdf8);
+                  transition: width 0.4s ease;
+                "
+              ></div>
+            </div>
+          </div>
+        </div>
+        <div
+          id="milestonesGrid"
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+            gap: 10px;
+          "
+        >
+          <!-- Dynamically populated via loadMilestones() -->
+        </div>
+      </div>
+
+      <!-- Live Calendar Feed Sync (.ics) Card -->
+      <div class="card" id="calendarFeedCard" style="display: none; margin-bottom: 24px">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+          "
+        >
+          <div>
+            <h2 style="display: flex; align-items: center; gap: 8px">
+              <i class="fas fa-calendar-alt" style="color: #38bdf8" aria-hidden="true"></i>
+              Apple &amp; Google Calendar Live Sync (.ics)
+            </h2>
+            <p class="meta" style="font-size: 13px; margin-top: 4px; color: var(--text-muted)">
+              Subscribe to your routine as a recurring event on your phone's lock screen without
+              checking your email.
+            </p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
+          <input
+            type="text"
+            id="calendarFeedUrlInput"
+            readonly
+            style="
+              flex: 1;
+              min-width: 240px;
+              font-family: &quot;JetBrains Mono&quot;, monospace;
+              font-size: 12px;
+              padding: 10px 14px;
+              background: rgba(0, 0, 0, 0.35);
+              border: 1px solid var(--border-subtle);
+              border-radius: 8px;
+              color: #f1f5f9;
+            "
+          />
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="copyCalendarFeedBtn"
+            onclick="copyCalendarUrl()"
+            style="font-size: 13px; padding: 10px 16px"
+          >
+            <i class="fas fa-copy" aria-hidden="true"></i> Copy Link
+          </button>
+          <a
+            href="#"
+            id="subscribeWebcalBtn"
+            class="btn btn-primary"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="font-size: 13px; padding: 10px 16px"
+          >
+            <i class="fas fa-plus" aria-hidden="true"></i> Add to Calendar
+          </a>
+        </div>
+      </div>
+
       <!-- 365-Day Activity & Reflection Heatmap Card -->
       <div class="card" id="heatmapCard" style="display: none">
         <div
@@ -3779,6 +3968,147 @@
             </div>
           </div>
 
+          <!-- Email Reading Density & Format -->
+          <div style="margin-top: 18px">
+            <label style="display: block; margin-bottom: 6px">Email Reading Density</label>
+            <div
+              class="small"
+              style="margin-bottom: 10px; color: var(--text-muted); font-size: 12px"
+            >
+              Choose your preferred morning routine depth and reading commitment.
+            </div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+                gap: 8px;
+              "
+              id="emailDensityButtons"
+            >
+              <button
+                type="button"
+                class="btn btn-secondary density-btn"
+                data-density="bite"
+                style="padding: 10px 8px; font-size: 12.5px"
+              >
+                ⚡ <strong>Bite-Sized</strong><br /><span
+                  style="font-size: 11px; color: var(--text-muted)"
+                  >30s Skim</span
+                >
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary density-btn"
+                data-density="standard"
+                style="padding: 10px 8px; font-size: 12.5px"
+              >
+                ⚖️ <strong>Balanced</strong><br /><span style="font-size: 11px; color: #cbd5e1"
+                  >Standard 90s</span
+                >
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary density-btn"
+                data-density="deep"
+                style="padding: 10px 8px; font-size: 12.5px"
+              >
+                🧘 <strong>Deep Focus</strong><br /><span
+                  style="font-size: 11px; color: var(--text-muted)"
+                  >3-Min Reflection</span
+                >
+              </button>
+            </div>
+            <input type="hidden" id="prefEmailDensity" value="standard" />
+          </div>
+
+          <!-- Dual-Track Weekend Routine -->
+          <div style="margin-top: 18px">
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                font-weight: 600;
+              "
+            >
+              <input
+                type="checkbox"
+                id="enableDualTrackToggle"
+                style="width: 16px; height: 16px; accent-color: var(--primary)"
+              />
+              <span>Dual-Track Schedule (Separate Weekend Routine)</span>
+            </label>
+            <div
+              class="small"
+              style="
+                margin-bottom: 10px;
+                margin-left: 24px;
+                color: var(--text-muted);
+                font-size: 12px;
+              "
+            >
+              Automatically switch to a relaxing or reflective track and different wake-up time on
+              Saturdays &amp; Sundays.
+            </div>
+            <div
+              id="dualTrackContainer"
+              style="
+                display: none;
+                margin-left: 24px;
+                padding: 12px 16px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid var(--border-subtle);
+                border-radius: 12px;
+                margin-top: 6px;
+              "
+            >
+              <div class="field-row">
+                <div>
+                  <label for="prefWeekendTrack" style="font-size: 12px; color: #cbd5e1"
+                    >Weekend Routine Track</label
+                  >
+                  <select id="prefWeekendTrack">
+                    <option value="mindfulness">🧘 Mindfulness &amp; Clarity</option>
+                    <option value="reflection">🌅 Gratitude &amp; Reflection</option>
+                    <option value="classic">🏃 Classic Foundation</option>
+                    <option value="learning">📚 Lifelong Learning</option>
+                    <option value="deep-work">⚡ Deep Work &amp; Builder</option>
+                    <option value="executive">🎯 Executive Leadership</option>
+                    <option value="career">🚀 Career Growth</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="prefWeekendPreferredTime" style="font-size: 12px; color: #cbd5e1"
+                    >Weekend Delivery Time</label
+                  >
+                  <input type="time" id="prefWeekendPreferredTime" value="08:30" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Localized Weather Insight City -->
+          <div style="margin-top: 18px">
+            <label for="prefLocationCity" style="display: block; margin-bottom: 6px"
+              >Your City / Location (Morning Weather Insights)</label
+            >
+            <div
+              class="small"
+              style="margin-bottom: 8px; color: var(--text-muted); font-size: 12px"
+            >
+              Includes a 1-line localized weather spark in your daily email to help tailor your
+              morning walk and routine.
+            </div>
+            <input
+              type="text"
+              id="prefLocationCity"
+              maxlength="100"
+              placeholder="e.g. London, San Francisco, Tokyo, Mumbai"
+              style="font-size: 13px"
+            />
+          </div>
+
           <div style="margin-top: 20px">
             <button type="submit" class="btn btn-primary" id="savePrefsBtn">
               <i class="fas fa-save" aria-hidden="true"></i> Save Preferences
@@ -3810,9 +4140,161 @@
               Pause emails temporarily without deleting your streak or account.
             </div>
           </div>
-          <button class="btn btn-warning" id="pauseResumeBtn"></button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="openVacationModalBtn"
+              onclick="openVacationModal()"
+              style="font-size: 13px"
+            >
+              <i class="fas fa-plane" aria-hidden="true"></i> Vacation Mode
+            </button>
+            <button class="btn btn-warning" id="pauseResumeBtn"></button>
+          </div>
         </div>
         <p id="actionStatus" class="small" aria-live="polite" style="color: #60a5fa"></p>
+      </div>
+
+      <!-- Vacation Mode Modal -->
+      <div
+        id="vacationModal"
+        class="modal-backdrop"
+        style="
+          display: none;
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.75);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          z-index: 10000;
+          align-items: center;
+          justify-content: center;
+          padding: 16px;
+        "
+      >
+        <div
+          class="card modal-content"
+          style="
+            max-width: 480px;
+            width: 100%;
+            background: #0c111d;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 28px 24px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 14px;
+            "
+          >
+            <h3 style="display: flex; align-items: center; gap: 10px; margin: 0; font-size: 18px">
+              <span style="font-size: 22px" aria-hidden="true">✈️</span>
+              Pause Routine (Vacation Mode)
+            </h3>
+            <button
+              type="button"
+              onclick="closeVacationModal()"
+              style="
+                background: none;
+                border: none;
+                color: #94a3b8;
+                font-size: 24px;
+                cursor: pointer;
+                line-height: 1;
+              "
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+          <p style="font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 16px">
+            Traveling, taking exams, or taking time off? Pause morning dispatches without losing
+            your streak. Your streak is frozen and protected until you return.
+          </p>
+
+          <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block"
+            >Select Duration</label
+          >
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 8px;
+              margin-bottom: 16px;
+            "
+          >
+            <button
+              type="button"
+              class="btn btn-secondary vacation-preset-btn"
+              data-days="3"
+              onclick="selectVacationDays(3)"
+            >
+              3 Days
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary vacation-preset-btn"
+              data-days="7"
+              onclick="selectVacationDays(7)"
+            >
+              7 Days
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary vacation-preset-btn"
+              data-days="14"
+              onclick="selectVacationDays(14)"
+            >
+              14 Days
+            </button>
+          </div>
+
+          <div style="margin-bottom: 16px">
+            <label for="vacationUntilInput" style="font-size: 12px; color: #cbd5e1"
+              >Or Pick Return Date:</label
+            >
+            <input type="date" id="vacationUntilInput" style="font-size: 13px" />
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <label for="vacationReasonInput" style="font-size: 12px; color: #cbd5e1"
+              >Reason (Optional):</label
+            >
+            <input
+              type="text"
+              id="vacationReasonInput"
+              placeholder="e.g. Summer Holiday, Sick Leave, Exam Week"
+              maxlength="50"
+              style="font-size: 13px"
+            />
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeVacationModal()"
+              style="font-size: 13px"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="confirmPauseRoutineBtn"
+              onclick="confirmVacationPause()"
+              style="font-size: 13px"
+            >
+              <i class="fas fa-check" aria-hidden="true"></i> Confirm Pause
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Multi-Channel Notification Engine Card -->

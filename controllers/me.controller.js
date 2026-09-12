@@ -542,7 +542,71 @@ async function updateMe(req, res) {
     customCoachPrompt,
     weeklyDigestEnabled,
     weeklyDigestDay,
+    weekendRoutineTrack,
+    weekendCronPattern,
+    vacationUntil,
+    vacationReason,
+    emailDensity,
+    locationCity,
   } = req.body || {};
+
+  const errors = [];
+
+  if (
+    weekendRoutineTrack !== undefined &&
+    weekendRoutineTrack !== null &&
+    weekendRoutineTrack !== ""
+  ) {
+    const validTracks = [
+      "deep-work",
+      "mindfulness",
+      "executive",
+      "learning",
+      "classic",
+      "career",
+      "reflection",
+    ];
+    if (
+      typeof weekendRoutineTrack !== "string" ||
+      !validTracks.includes(weekendRoutineTrack.toLowerCase().trim())
+    ) {
+      errors.push(`weekendRoutineTrack must be one of: ${validTracks.join(", ")}`);
+    }
+  }
+
+  if (
+    weekendCronPattern !== undefined &&
+    weekendCronPattern !== null &&
+    weekendCronPattern !== ""
+  ) {
+    const cron = require("node-cron");
+    if (typeof weekendCronPattern !== "string" || !cron.validate(weekendCronPattern.trim())) {
+      errors.push("Invalid weekendCronPattern format");
+    }
+  }
+
+  if (emailDensity !== undefined && emailDensity !== null && emailDensity !== "") {
+    const validDensities = ["bite", "standard", "deep"];
+    if (
+      typeof emailDensity !== "string" ||
+      !validDensities.includes(emailDensity.toLowerCase().trim())
+    ) {
+      errors.push(`emailDensity must be one of: ${validDensities.join(", ")}`);
+    }
+  }
+
+  if (locationCity !== undefined && locationCity !== null) {
+    if (typeof locationCity !== "string" || locationCity.length > 100) {
+      errors.push("locationCity must be a string under 100 characters");
+    }
+  }
+
+  if (vacationUntil !== undefined && vacationUntil !== null && vacationUntil !== "") {
+    const d = new Date(vacationUntil);
+    if (isNaN(d.getTime())) {
+      errors.push("vacationUntil must be a valid date or null");
+    }
+  }
 
   if (
     templateType === undefined &&
@@ -557,15 +621,22 @@ async function updateMe(req, res) {
     newsCategory === undefined &&
     customCoachPrompt === undefined &&
     weeklyDigestEnabled === undefined &&
-    weeklyDigestDay === undefined
+    weeklyDigestDay === undefined &&
+    weekendRoutineTrack === undefined &&
+    weekendCronPattern === undefined &&
+    vacationUntil === undefined &&
+    vacationReason === undefined &&
+    emailDensity === undefined &&
+    locationCity === undefined
   ) {
     return res.status(400).json({ error: "No fields provided to update" });
   }
 
-  const errors = validateSubscriberInput(
+  const inputErrors = validateSubscriberInput(
     { templateType, routineTrack, cronPattern, timezone },
     { requireEmail: false },
   );
+  errors.push(...inputErrors);
 
   if (focusDurationMinutes !== undefined) {
     const parsedMins = Number(focusDurationMinutes);
@@ -665,6 +736,26 @@ async function updateMe(req, res) {
     if (weeklyDigestDay !== undefined) {
       updates.weeklyDigestDay = weeklyDigestDay.toLowerCase().trim();
     }
+    if (weekendRoutineTrack !== undefined) {
+      updates.weekendRoutineTrack = weekendRoutineTrack
+        ? weekendRoutineTrack.toLowerCase().trim()
+        : null;
+    }
+    if (weekendCronPattern !== undefined) {
+      updates.weekendCronPattern = weekendCronPattern ? weekendCronPattern.trim() : null;
+    }
+    if (emailDensity !== undefined) {
+      updates.emailDensity = emailDensity.toLowerCase().trim();
+    }
+    if (locationCity !== undefined) {
+      updates.locationCity = locationCity ? locationCity.trim() : null;
+    }
+    if (vacationUntil !== undefined) {
+      updates.vacationUntil = vacationUntil ? new Date(vacationUntil).toISOString() : null;
+    }
+    if (vacationReason !== undefined) {
+      updates.vacationReason = vacationReason ? String(vacationReason).trim() : null;
+    }
 
     if (Object.keys(updates).length > 0) {
       await sharedData.updateUser(req.subscriberEmail, updates);
@@ -679,7 +770,10 @@ async function updateMe(req, res) {
       timezone !== undefined ||
       isActive !== undefined ||
       templateType !== undefined ||
-      routineTrack !== undefined
+      routineTrack !== undefined ||
+      weekendRoutineTrack !== undefined ||
+      weekendCronPattern !== undefined ||
+      vacationUntil !== undefined
     ) {
       try {
         const emailScheduler = require("../email-core/emailScheduler");
@@ -1032,6 +1126,115 @@ async function useStreakFreeze(req, res) {
   }
 }
 
+// POST /me/vacation/pause
+async function pauseVacation(req, res) {
+  try {
+    const email = req.subscriberEmail;
+    const { days, until, untilDate, reason } = req.body || {};
+    let targetDate = null;
+
+    const rawUntil = until || untilDate;
+    if (rawUntil) {
+      const d = new Date(rawUntil);
+      if (isNaN(d.getTime())) {
+        return res.status(400).json({ error: "Invalid 'until' date provided" });
+      }
+      if (d <= new Date()) {
+        return res.status(400).json({ error: "Vacation return date must be in the future" });
+      }
+      targetDate = d.toISOString();
+    } else if (days && Number(days) > 0) {
+      const ms = Number(days) * 24 * 60 * 60 * 1000;
+      targetDate = new Date(Date.now() + ms).toISOString();
+    } else {
+      targetDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    const vacationReason = reason ? String(reason).trim() : "Vacation / Travel";
+
+    const updated = await sharedData.updateUser(email, {
+      vacationUntil: targetDate,
+      vacationReason,
+    });
+
+    try {
+      const emailScheduler = require("../email-core/emailScheduler");
+      if (typeof emailScheduler.rescheduleUserJob === "function") {
+        await emailScheduler.rescheduleUserJob(email);
+      }
+    } catch (_schedErr) {
+      // non-fatal
+    }
+
+    logger.info("✈️ Vacation mode activated for subscriber", {
+      email,
+      targetDate,
+      vacationReason,
+    });
+
+    return res.json({
+      success: true,
+      subscriber: updated,
+      vacationUntil: targetDate,
+      vacationReason,
+      message: `Routine paused until ${targetDate.split("T")[0]}. Your streak is safely frozen!`,
+    });
+  } catch (error) {
+    logger.error("Failed to activate vacation mode", { error: error.message });
+    return res.status(500).json({ error: "Failed to pause routine" });
+  }
+}
+
+// POST /me/vacation/resume
+async function resumeVacation(req, res) {
+  try {
+    const email = req.subscriberEmail;
+    const updated = await sharedData.updateUser(email, {
+      vacationUntil: null,
+      vacationReason: null,
+    });
+
+    try {
+      const emailScheduler = require("../email-core/emailScheduler");
+      if (typeof emailScheduler.rescheduleUserJob === "function") {
+        await emailScheduler.rescheduleUserJob(email);
+      }
+    } catch (_schedErr) {
+      // non-fatal
+    }
+
+    logger.info("✈️ Vacation mode resumed early for subscriber", { email });
+
+    return res.json({
+      success: true,
+      subscriber: updated || { email, vacationUntil: null, vacationReason: null },
+      message: "Welcome back! Routine resumed and streak active.",
+    });
+  } catch (error) {
+    logger.error("Failed to resume routine from vacation", { error: error.message });
+    return res.status(500).json({ error: "Failed to resume routine" });
+  }
+}
+
+// GET /me/milestones
+async function getMilestones(req, res) {
+  try {
+    const subscriber = await sharedData.getUserByEmail(req.subscriberEmail);
+    if (!subscriber) {
+      return res.status(404).json({ error: "Subscriber not found" });
+    }
+    const { getStreakMilestones } = require("../helper/streakMilestones");
+    const milestones = getStreakMilestones(subscriber.streakCount);
+    return res.json({
+      success: true,
+      ...milestones,
+    });
+  } catch (error) {
+    logger.error("Failed to get subscriber milestones", { error: error.message });
+    return res.status(500).json({ error: "Failed to fetch milestones" });
+  }
+}
+
 module.exports = {
   getMe,
   getMyHistory,
@@ -1047,6 +1250,9 @@ module.exports = {
   testOutboundWebhook,
   getStreakFreezeStatus,
   useStreakFreeze,
+  pauseVacation,
+  resumeVacation,
+  getMilestones,
   exportCalendar,
   getCalendarFeedByToken,
   getWeeklyReportCard,

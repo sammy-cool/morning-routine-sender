@@ -31,4 +31,21 @@ router.post(
 );
 router.post("/admin/api/reschedule-all", requireAdmin, adminController.rescheduleAllCronJobs);
 
+// Scheduler Queue & Dispatch Preview
+router.get("/admin/api/scheduler/queue", requireAdmin, adminController.getSchedulerQueue);
+router.post(
+  "/admin/api/scheduler/dispatch-preview",
+  requireAdmin,
+  adminController.dispatchSinglePreview,
+);
+
+// Suppression / Blacklist Management
+router.get("/admin/api/suppressions", requireAdmin, adminController.getSuppressionsList);
+router.post("/admin/api/suppressions/unsuppress", requireAdmin, adminController.unsuppressEmail);
+
+// Global Routine Announcements
+router.get("/admin/api/announcements", requireAdmin, adminController.getAdminAnnouncements);
+router.post("/admin/api/announcements", requireAdmin, adminController.createAnnouncement);
+router.delete("/admin/api/announcements", requireAdmin, adminController.clearActiveAnnouncement);
+
 module.exports = router;

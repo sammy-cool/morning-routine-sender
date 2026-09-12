@@ -1412,6 +1412,39 @@
             <span>Email Studio</span>
           </a>
           <a
+            href="#section-queue"
+            class="nav-link"
+            onclick="
+              scrollToSection('section-queue');
+              return false;
+            "
+          >
+            <i class="fas fa-clock"></i>
+            <span>Dispatch Queue</span>
+          </a>
+          <a
+            href="#section-announcements"
+            class="nav-link"
+            onclick="
+              scrollToSection('section-announcements');
+              return false;
+            "
+          >
+            <i class="fas fa-bullhorn"></i>
+            <span>Announcements</span>
+          </a>
+          <a
+            href="#section-suppressions"
+            class="nav-link"
+            onclick="
+              scrollToSection('section-suppressions');
+              return false;
+            "
+          >
+            <i class="fas fa-ban"></i>
+            <span>Suppression Registry</span>
+          </a>
+          <a
             href="#section-telemetry"
             class="nav-link"
             onclick="
@@ -1816,6 +1849,186 @@
         </div>
       </section>
 
+      <!-- Upcoming Dispatch Queue Card -->
+      <section class="card" id="section-queue" style="margin-bottom: 24px">
+        <div class="card-header" style="flex-wrap: wrap; gap: 12px">
+          <div class="card-title">
+            <i class="fas fa-clock" style="color: var(--accent-cyan)"></i>
+            <span>Upcoming Dispatch Queue</span>
+            <span class="badge badge-template" id="queueCountBadge">0 Scheduled</span>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center">
+            <button class="btn btn-glass btn-sm" onclick="loadSchedulerQueue()">
+              <i class="fas fa-sync-alt" id="queueRefreshIcon"></i> Refresh Queue
+            </button>
+          </div>
+        </div>
+        <p class="meta" style="font-size: 13px; color: var(--text-muted); margin: 0 0 14px 0">
+          Real-time snapshot of scheduled subscriber routine dispatches over the next 24 hours.
+          Preview or trigger immediate test deliveries.
+        </p>
+
+        <div class="table-responsive">
+          <table class="custom-table" id="queueTable">
+            <thead>
+              <tr>
+                <th>Recipient</th>
+                <th>Timezone &amp; Schedule</th>
+                <th>Track &amp; Density</th>
+                <th>Next Dispatch (Countdown)</th>
+                <th style="text-align: right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="queueTableBody">
+              <tr>
+                <td
+                  colspan="5"
+                  style="text-align: center; color: var(--text-subtle); padding: 24px"
+                >
+                  <i class="fas fa-spinner fa-spin" style="margin-right: 8px"></i> Loading upcoming
+                  dispatches…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Global Broadcast Announcement Studio -->
+      <section class="card" id="section-announcements" style="margin-bottom: 24px">
+        <div class="card-header" style="flex-wrap: wrap; gap: 12px">
+          <div class="card-title">
+            <i class="fas fa-bullhorn" style="color: var(--accent-amber)"></i>
+            <span>Global Routine Announcement Studio</span>
+            <span
+              class="brand-badge"
+              id="announcementStatusBadge"
+              style="background: rgba(245, 158, 11, 0.15); color: #fbbf24"
+              >Standby</span
+            >
+          </div>
+          <button class="btn btn-glass btn-sm" onclick="loadActiveAnnouncement()">
+            <i class="fas fa-sync-alt" id="announcementRefreshIcon"></i> Check Active
+          </button>
+        </div>
+        <p class="meta" style="font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0">
+          Inject broadcast bulletins directly into tomorrow's routine emails. Perfect for system
+          maintenance alerts, community challenges, or inspiration sparks.
+        </p>
+
+        <!-- Active Announcement Box (if running) -->
+        <div
+          id="activeAnnouncementBox"
+          style="
+            display: none;
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+          "
+        >
+          <div>
+            <div
+              style="
+                font-weight: 700;
+                color: #fbbf24;
+                font-size: 14px;
+                margin-bottom: 4px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <span>📢 Active Broadcast:</span>
+              <span id="activeAnnTitle" style="color: #fff"></span>
+              <span
+                class="badge"
+                id="activeAnnTrackBadge"
+                style="background: rgba(255, 255, 255, 0.1); font-size: 11px"
+                >All Tracks</span
+              >
+            </div>
+            <div
+              id="activeAnnMessage"
+              style="font-size: 13px; color: #cbd5e1; line-height: 1.4"
+            ></div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="clearCurrentAnnouncement()">
+            <i class="fas fa-trash-alt"></i> Clear Announcement
+          </button>
+        </div>
+
+        <!-- Announcement Creator Form -->
+        <form
+          id="announcementForm"
+          onsubmit="publishAnnouncement(event)"
+          style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px"
+        >
+          <div class="form-group" style="grid-column: span 2">
+            <label class="form-label" for="annTitleInput">Announcement Headline</label>
+            <input
+              type="text"
+              id="annTitleInput"
+              class="input-text"
+              placeholder="e.g. Daylight Savings Reminder / Weekend Focus Sprint"
+              required
+              maxlength="100"
+            />
+          </div>
+          <div class="form-group" style="grid-column: span 2">
+            <label class="form-label" for="annMessageInput"
+              >Message Content (Appears at top of morning emails)</label
+            >
+            <textarea
+              id="annMessageInput"
+              class="input-text"
+              rows="3"
+              placeholder="Enter message text for subscribers…"
+              required
+              maxlength="300"
+              style="resize: vertical; font-family: inherit"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="annTrackSelect">Target Track</label>
+            <select id="annTrackSelect" class="filter-select" style="width: 100%">
+              <option value="all">All Subscribers (Global)</option>
+              <option value="deep-work">Deep Work</option>
+              <option value="mindfulness">Mindfulness</option>
+              <option value="career">Career</option>
+              <option value="learning">Learning</option>
+              <option value="classic">Classic</option>
+              <option value="reflection">Reflection</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="annPrioritySelect">Priority / Style</label>
+            <select id="annPrioritySelect" class="filter-select" style="width: 100%">
+              <option value="normal">Normal Banner (Golden Accent)</option>
+              <option value="high">High Priority (Vibrant Alert)</option>
+            </select>
+          </div>
+          <div
+            style="
+              grid-column: span 2;
+              display: flex;
+              justify-content: flex-end;
+              gap: 10px;
+              margin-top: 6px;
+            "
+          >
+            <button type="submit" class="btn btn-primary" id="btnPublishAnn">
+              <i class="fas fa-paper-plane"></i> Publish Global Broadcast
+            </button>
+          </div>
+        </form>
+      </section>
+
       <!-- DNS & Deliverability Guard -->
       <section class="card" id="section-deliverability" style="margin-bottom: 24px">
         <div class="card-header">
@@ -2079,6 +2292,63 @@
               Inbound mail server resolution.
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Suppression & Bounce Registry Manager -->
+      <section class="card" id="section-suppressions" style="margin-bottom: 24px">
+        <div class="card-header" style="flex-wrap: wrap; gap: 12px">
+          <div class="card-title">
+            <i class="fas fa-ban" style="color: #f87171"></i>
+            <span>Suppression &amp; Bounce Registry</span>
+            <span
+              class="badge"
+              id="suppressionCountBadge"
+              style="background: rgba(239, 68, 68, 0.15); color: #fca5a5"
+              >0 Blocked</span
+            >
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center">
+            <input
+              type="text"
+              id="suppressionSearchInput"
+              class="input-text"
+              placeholder="Filter blocked emails…"
+              style="width: 220px; font-size: 12px"
+              oninput="filterSuppressionsTable()"
+            />
+            <button class="btn btn-glass btn-sm" onclick="loadSuppressions()">
+              <i class="fas fa-sync-alt" id="suppressionRefreshIcon"></i> Refresh
+            </button>
+          </div>
+        </div>
+        <p class="meta" style="font-size: 13px; color: var(--text-muted); margin: 0 0 14px 0">
+          Automatic blacklist protecting domain reputation. Addresses flagged for hard bounces,
+          invalid mailboxes, or spam complaints. Unsuppress to restore delivery.
+        </p>
+
+        <div class="table-responsive">
+          <table class="custom-table" id="suppressionsTable">
+            <thead>
+              <tr>
+                <th>Blocked Email</th>
+                <th>Reason / Trigger</th>
+                <th>Date Blocked</th>
+                <th style="text-align: right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="suppressionsTableBody">
+              <tr>
+                <td
+                  colspan="4"
+                  style="text-align: center; color: var(--text-subtle); padding: 24px"
+                >
+                  <i class="fas fa-spinner fa-spin" style="margin-right: 8px"></i> Loading
+                  suppression registry…
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -3410,6 +3680,9 @@ Loading records…</pre>
           loadScheduledJobs(),
           loadDeliverabilityTelemetry(),
           loadAllTelemetryData(),
+          loadSchedulerQueue(),
+          loadSuppressions(),
+          loadActiveAnnouncement(),
         ]);
 
         if (icon) icon.classList.remove("fa-spin");
@@ -3715,6 +3988,268 @@ Loading records…</pre>
         const jobs = res.data.jobs || [];
         const jobsEl = document.getElementById("kpiActiveJobs");
         if (jobsEl) jobsEl.textContent = jobs.length;
+      }
+
+      // 6. Upcoming Scheduler Queue
+      async function loadSchedulerQueue() {
+        const icon = document.getElementById("queueRefreshIcon");
+        if (icon) icon.classList.add("fa-spin");
+        const tbody = document.getElementById("queueTableBody");
+        const badge = document.getElementById("queueCountBadge");
+
+        try {
+          const res = await apiCall("/admin/api/scheduler/queue?limit=25");
+          if (res.ok && res.data?.success) {
+            const queue = res.data.queue || [];
+            if (badge) badge.textContent = `${queue.length} Upcoming`;
+            if (!queue.length) {
+              tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-subtle); padding: 24px;">No dispatches scheduled in the next 24 hours.</td></tr>`;
+              return;
+            }
+            tbody.innerHTML = queue
+              .map(
+                (item) => `
+              <tr>
+                <td>
+                  <div style="font-weight: 600; color: #f8fafc;">${escapeHtml(item.email)}</div>
+                  ${item.isWeekendTrack ? '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 10px;">Weekend Track</span>' : ""}
+                </td>
+                <td>
+                  <div style="font-size: 13px; color: #cbd5e1;"><code>${escapeHtml(item.cronPattern)}</code></div>
+                  <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(item.timezone)}</div>
+                </td>
+                <td>
+                  <span class="badge badge-template">${escapeHtml(item.routineTrack || "deep-work")}</span>
+                  <span style="font-size: 11px; color: var(--text-muted); margin-left: 4px;">(${escapeHtml(item.emailDensity || "standard")})</span>
+                </td>
+                <td>
+                  <div style="font-weight: 600; color: #38bdf8;">${escapeHtml(item.relativeFormatted || "Soon")}</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">${item.nextRunIso ? new Date(item.nextRunIso).toLocaleTimeString() : "--"}</div>
+                </td>
+                <td style="text-align: right;">
+                  <button class="btn btn-glass btn-sm" onclick="triggerQueuePreviewTest('${escapeHtml(item.email)}')" title="Send immediate test preview to this subscriber">
+                    <i class="fas fa-paper-plane" style="color: #38bdf8;"></i> Preview
+                  </button>
+                </td>
+              </tr>
+            `,
+              )
+              .join("");
+          } else {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #f87171; padding: 24px;">Failed to load scheduler queue.</td></tr>`;
+          }
+        } catch (err) {
+          console.error("loadSchedulerQueue error:", err);
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #f87171; padding: 24px;">Network error loading queue.</td></tr>`;
+        } finally {
+          if (icon) icon.classList.remove("fa-spin");
+        }
+      }
+
+      async function triggerQueuePreviewTest(email) {
+        const confirmed = await showConfirmDialog({
+          title: "Send Test Routine Email",
+          message: `Dispatch an immediate preview routine email to ${email}?`,
+          confirmText: "Send Test Email",
+          confirmVariant: "btn-primary",
+        });
+        if (!confirmed) return;
+
+        ToastManager.info(`Dispatching preview to ${email}...`);
+        const res = await apiCall("/admin/api/scheduler/dispatch-preview", {
+          method: "POST",
+          body: JSON.stringify({ email }),
+        });
+        if (res.ok && res.data?.success) {
+          ToastManager.success(`Preview email sent to ${email}!`);
+        } else {
+          ToastManager.error(res.data?.error || "Failed to dispatch preview.");
+        }
+      }
+
+      // 7. Suppression Registry
+      let allSuppressions = [];
+
+      async function loadSuppressions() {
+        const icon = document.getElementById("suppressionRefreshIcon");
+        if (icon) icon.classList.add("fa-spin");
+        const tbody = document.getElementById("suppressionsTableBody");
+        const badge = document.getElementById("suppressionCountBadge");
+
+        try {
+          const res = await apiCall("/admin/api/suppressions");
+          if (res.ok && res.data?.success) {
+            allSuppressions = res.data.suppressions || [];
+            if (badge) badge.textContent = `${allSuppressions.length} Blocked`;
+            renderSuppressionsTable(allSuppressions);
+          } else {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #f87171; padding: 24px;">Failed to load suppressions list.</td></tr>`;
+          }
+        } catch (err) {
+          console.error("loadSuppressions error:", err);
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #f87171; padding: 24px;">Network error loading suppressions.</td></tr>`;
+        } finally {
+          if (icon) icon.classList.remove("fa-spin");
+        }
+      }
+
+      function renderSuppressionsTable(list) {
+        const tbody = document.getElementById("suppressionsTableBody");
+        if (!list.length) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-subtle); padding: 24px;">No suppressed or blocked emails found. Clean reputation! 🎉</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = list
+          .map(
+            (s) => `
+          <tr>
+            <td>
+              <strong style="color: #f8fafc;">${escapeHtml(s.email)}</strong>
+            </td>
+            <td>
+              <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5;">
+                ${escapeHtml(s.reason || "hard_bounce")}
+              </span>
+            </td>
+            <td style="font-size: 12px; color: var(--text-muted);">
+              ${s.created_at ? new Date(s.created_at).toLocaleString() : "N/A"}
+            </td>
+            <td style="text-align: right;">
+              <button class="btn btn-sm btn-glass" onclick="unsuppressSubscriber('${escapeHtml(s.email)}')" title="Unsuppress email to allow dispatches again">
+                <i class="fas fa-unlock" style="color: #34d399;"></i> Unsuppress
+              </button>
+            </td>
+          </tr>
+        `,
+          )
+          .join("");
+      }
+
+      function filterSuppressionsTable() {
+        const q = (document.getElementById("suppressionSearchInput")?.value || "")
+          .toLowerCase()
+          .trim();
+        if (!q) {
+          renderSuppressionsTable(allSuppressions);
+          return;
+        }
+        const filtered = allSuppressions.filter(
+          (s) =>
+            (s.email || "").toLowerCase().includes(q) || (s.reason || "").toLowerCase().includes(q),
+        );
+        renderSuppressionsTable(filtered);
+      }
+
+      async function unsuppressSubscriber(email) {
+        const confirmed = await showConfirmDialog({
+          title: "Unsuppress Subscriber",
+          message: `Remove ${email} from the suppression list and restore routine deliveries?`,
+          confirmText: "Unsuppress",
+          confirmVariant: "btn-primary",
+        });
+        if (!confirmed) return;
+
+        ToastManager.info(`Unsuppressing ${email}...`);
+        const res = await apiCall("/admin/api/suppressions/unsuppress", {
+          method: "POST",
+          body: JSON.stringify({ email }),
+        });
+        if (res.ok && res.data?.success) {
+          ToastManager.success(res.data.message || `${email} unsuppressed!`);
+          await loadSuppressions();
+        } else {
+          ToastManager.error(res.data?.error || "Failed to unsuppress email.");
+        }
+      }
+
+      // 8. Routine Announcements
+      async function loadActiveAnnouncement() {
+        const icon = document.getElementById("announcementRefreshIcon");
+        if (icon) icon.classList.add("fa-spin");
+        const box = document.getElementById("activeAnnouncementBox");
+        const badge = document.getElementById("announcementStatusBadge");
+
+        try {
+          const res = await apiCall("/admin/api/announcements");
+          if (res.ok && res.data?.success && res.data.announcement) {
+            const ann = res.data.announcement;
+            document.getElementById("activeAnnTitle").textContent = ann.title || "Announcement";
+            document.getElementById("activeAnnTrackBadge").textContent =
+              ann.targetTrack === "all" ? "All Tracks" : ann.targetTrack;
+            document.getElementById("activeAnnMessage").textContent = ann.message;
+            if (box) box.style.display = "flex";
+            if (badge) {
+              badge.textContent = "Broadcasting Active";
+              badge.style.background = "rgba(16, 185, 129, 0.15)";
+              badge.style.color = "#34d399";
+            }
+          } else {
+            if (box) box.style.display = "none";
+            if (badge) {
+              badge.textContent = "Standby";
+              badge.style.background = "rgba(245, 158, 11, 0.15)";
+              badge.style.color = "#fbbf24";
+            }
+          }
+        } catch (err) {
+          console.error("loadActiveAnnouncement error:", err);
+        } finally {
+          if (icon) icon.classList.remove("fa-spin");
+        }
+      }
+
+      async function publishAnnouncement(e) {
+        if (e) e.preventDefault();
+        const btn = document.getElementById("btnPublishAnn");
+        const title = document.getElementById("annTitleInput")?.value?.trim();
+        const message = document.getElementById("annMessageInput")?.value?.trim();
+        const targetTrack = document.getElementById("annTrackSelect")?.value || "all";
+        const priority = document.getElementById("annPrioritySelect")?.value || "normal";
+
+        if (!message) {
+          ToastManager.warn("Please enter announcement message.");
+          return;
+        }
+
+        if (btn) btn.disabled = true;
+        ToastManager.info("Broadcasting announcement...");
+
+        try {
+          const res = await apiCall("/admin/api/announcements", {
+            method: "POST",
+            body: JSON.stringify({ title, message, targetTrack, priority }),
+          });
+          if (res.ok && res.data?.success) {
+            ToastManager.success("Global routine announcement published! 📢");
+            document.getElementById("announcementForm")?.reset();
+            await loadActiveAnnouncement();
+          } else {
+            ToastManager.error(res.data?.error || "Failed to publish announcement.");
+          }
+        } catch (err) {
+          ToastManager.error("Network error publishing announcement.");
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      }
+
+      async function clearCurrentAnnouncement() {
+        const confirmed = await showConfirmDialog({
+          title: "Clear Active Broadcast",
+          message:
+            "Are you sure you want to take down the active announcement from subscriber emails?",
+          confirmText: "Clear Announcement",
+          confirmVariant: "btn-danger",
+        });
+        if (!confirmed) return;
+
+        const res = await apiCall("/admin/api/announcements", { method: "DELETE" });
+        if (res.ok && res.data?.success) {
+          ToastManager.success("Announcement cleared successfully.");
+          await loadActiveAnnouncement();
+        } else {
+          ToastManager.error(res.data?.error || "Failed to clear announcement.");
+        }
       }
 
       /* ==================== Subscriber CRUD Handlers ==================== */

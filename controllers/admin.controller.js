@@ -123,10 +123,139 @@ async function rescheduleAllCronJobs(req, res) {
   }
 }
 
+// GET /admin/api/scheduler/queue
+async function getSchedulerQueue(req, res) {
+  try {
+    const emailScheduler = require("../email-core/emailScheduler");
+    const limit = Number(req.query.limit) || 15;
+    const queue =
+      typeof emailScheduler.getUpcomingDispatchQueue === "function"
+        ? emailScheduler.getUpcomingDispatchQueue(limit)
+        : [];
+    res.json({ success: true, count: queue.length, queue });
+  } catch (error) {
+    logger.error("Failed to fetch scheduler queue", { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+// POST /admin/api/scheduler/dispatch-preview
+async function dispatchSinglePreview(req, res) {
+  try {
+    const { email, dryRun } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    const sharedData = require("../helper/shared-data");
+    const user = await sharedData.getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ error: "Subscriber not found" });
+    }
+    if (dryRun) {
+      return res.json({
+        success: true,
+        dryRun: true,
+        user: {
+          email: user.email,
+          routineTrack: user.routineTrack || user.templateType,
+          timezone: user.timezone,
+          cronPattern: user.cronPattern,
+          streakCount: user.streakCount,
+        },
+      });
+    }
+    const emailScheduler = require("../email-core/emailScheduler");
+    const result = await emailScheduler.sendRoutineEmail(user, process.env.ADMIN_SKIP_KEY);
+    res.json({ success: true, result });
+  } catch (error) {
+    logger.error("Failed dispatch preview", { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+// GET /admin/api/suppressions
+async function getSuppressionsList(req, res) {
+  try {
+    const db = require("../db/knex");
+    const rows = await db("suppression_list")
+      .orderBy("created_at", "desc")
+      .limit(100)
+      .catch(() => []);
+    res.json({ success: true, count: rows.length, suppressions: rows });
+  } catch (error) {
+    logger.error("Failed to load suppressions", { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+// POST /admin/api/suppressions/unsuppress
+async function unsuppressEmail(req, res) {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    const suppressionService = require("../email-core/suppressionService");
+    await suppressionService.removeSuppression(cleanEmail);
+    res.json({
+      success: true,
+      message: `Successfully unsuppressed ${cleanEmail}. Routine delivery restored.`,
+    });
+  } catch (error) {
+    logger.error("Failed to unsuppress email", { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+// GET /admin/api/announcements
+async function getAdminAnnouncements(req, res) {
+  try {
+    const { getActiveAnnouncement } = require("../helper/announcementService");
+    const ann = await getActiveAnnouncement("all");
+    res.json({ success: true, announcement: ann });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+// POST /admin/api/announcements
+async function createAnnouncement(req, res) {
+  try {
+    const { title, message, targetTrack, priority, expiresAt } = req.body || {};
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+    const { setAnnouncement } = require("../helper/announcementService");
+    const ann = await setAnnouncement({ title, message, targetTrack, priority, expiresAt });
+    res.json({ success: true, announcement: ann });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+// DELETE /admin/api/announcements
+async function clearActiveAnnouncement(req, res) {
+  try {
+    const { clearAnnouncement } = require("../helper/announcementService");
+    await clearAnnouncement();
+    res.json({ success: true, message: "Announcement cleared" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
 module.exports = {
   readDb,
   cleanupDatabase,
   getDatabaseStats,
   cleanupLogs,
   rescheduleAllCronJobs,
+  getSchedulerQueue,
+  dispatchSinglePreview,
+  getSuppressionsList,
+  unsuppressEmail,
+  getAdminAnnouncements,
+  createAnnouncement,
+  clearActiveAnnouncement,
 };

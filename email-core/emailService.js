@@ -3,7 +3,7 @@ const handlebars = require("handlebars");
 let mjml2html;
 try {
   mjml2html = require("mjml");
-} catch (err) {
+} catch (_err) {
   mjml2html = (content) => ({ html: `<html><body>${content}</body></html>`, errors: [] });
 }
 const fs = require("fs");
@@ -45,7 +45,35 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       year: "numeric",
     }).format(now);
 
-    const trackKey = userData.routineTrack || userData.templateType || "deep-work";
+    // Check Vacation / Paused Mode
+    if (userData.vacationUntil && new Date() < new Date(userData.vacationUntil)) {
+      logger.info("Subscriber on vacation mode, skipping routine email dispatch", {
+        email: userData.email,
+        vacationUntil: userData.vacationUntil,
+      });
+      return { status: "skipped", reason: "vacation_mode" };
+    }
+
+    const dayOfWeek = new Intl.DateTimeFormat("en-US", {
+      timeZone: userTimezone,
+      weekday: "short",
+    }).format(now);
+    const isWeekend = dayOfWeek === "Sat" || dayOfWeek === "Sun";
+    const trackKey =
+      isWeekend && userData.weekendRoutineTrack
+        ? userData.weekendRoutineTrack
+        : userData.routineTrack || userData.templateType || "deep-work";
+
+    const { getWeatherSpark } = require("../helper/weatherSpark");
+    const weatherSpark = getWeatherSpark(userData.locationCity, userTimezone, now);
+
+    const { getActiveAnnouncement } = require("../helper/announcementService");
+    const announcement = await getActiveAnnouncement(trackKey);
+
+    const emailDensity = userData.emailDensity || "standard";
+    const isBiteDensity = emailDensity === "bite";
+    const isDeepDensity = emailDensity === "deep";
+
     const userStreak = Number(userData.streakCount) || 0;
 
     const trackInfo = sharedData.getTrackContent(trackKey, {
@@ -106,6 +134,11 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}`,
       preferencesUrl: `${baseUrl}/user-dashboard`,
       trendingNews,
+      weatherSpark,
+      announcement,
+      isBiteDensity,
+      isDeepDensity,
+      isWeekend,
       unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(
         userData.email,
       )}&token=${generateUnsubscribeToken(userData.email)}`,
@@ -187,6 +220,12 @@ Unsubscribe: ${data.unsubscribeUrl}`;
       } else {
         morningSubject = `Day ${data.dayNumber} Morning Routine Update 🌞`;
       }
+
+      let subjectPrefix = "";
+      if (data.isBiteDensity) subjectPrefix += "[Quick Skim ⚡] ";
+      else if (data.isDeepDensity) subjectPrefix += "[Deep Focus 🧘] ";
+      if (data.isWeekend && userData.weekendRoutineTrack) subjectPrefix += "[Weekend Edition 🌿] ";
+      morningSubject = `${subjectPrefix}${morningSubject}`;
 
       const info = await transporter.sendMail({
         from: `"Morning Routine" <${process.env.FROM_USER}>`,

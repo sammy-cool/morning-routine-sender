@@ -303,6 +303,241 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           announcementEl.style.display = "none";
         }
       }
+
+      // Dynamic Vacation Mode Banner
+      const vacBanner = document.getElementById("vacationActiveBanner");
+      if (vacBanner) {
+        if (sub.vacationUntil && new Date(sub.vacationUntil) > new Date()) {
+          const untilDate = new Date(sub.vacationUntil).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          });
+          const untilTextEl = document.getElementById("vacationUntilDateText");
+          if (untilTextEl) untilTextEl.textContent = untilDate;
+          const reasonBadge = document.getElementById("vacationReasonBadge");
+          if (reasonBadge) reasonBadge.textContent = sub.vacationReason || "Vacation";
+          vacBanner.style.display = "flex";
+        } else {
+          vacBanner.style.display = "none";
+        }
+      }
+
+      // Dynamic Dual-Track Schedule
+      const dualTrackToggle = document.getElementById("enableDualTrackToggle");
+      const dualTrackContainer = document.getElementById("dualTrackContainer");
+      const prefWeekendTrack = document.getElementById("prefWeekendTrack");
+      const prefWeekendPreferredTime = document.getElementById("prefWeekendPreferredTime");
+      if (dualTrackToggle) {
+        const hasDual = Boolean(sub.weekendRoutineTrack);
+        dualTrackToggle.checked = hasDual;
+        if (dualTrackContainer) dualTrackContainer.style.display = hasDual ? "block" : "none";
+        if (prefWeekendTrack && sub.weekendRoutineTrack)
+          prefWeekendTrack.value = sub.weekendRoutineTrack;
+        if (prefWeekendPreferredTime && sub.weekendCronPattern) {
+          const parts = sub.weekendCronPattern.split(/\s+/);
+          if (parts.length >= 2) {
+            const mm = String(parts[0]).padStart(2, "0");
+            const hh = String(parts[1]).padStart(2, "0");
+            prefWeekendPreferredTime.value = `${hh}:${mm}`;
+          }
+        }
+      }
+
+      // Dynamic Email Density
+      const emailDensityVal = sub.emailDensity || "standard";
+      setEmailDensityUI(emailDensityVal);
+
+      // Localized Location / City
+      const prefLocationCity = document.getElementById("prefLocationCity");
+      if (prefLocationCity) prefLocationCity.value = sub.locationCity || "";
+
+      // Calendar Sync Link
+      const calendarInput = document.getElementById("calendarFeedUrlInput");
+      const webcalBtn = document.getElementById("subscribeWebcalBtn");
+      const calendarCard = document.getElementById("calendarFeedCard");
+      if (calendarInput && (sub.calendarFeedUrl || sub.calendarToken)) {
+        const calUrl =
+          sub.calendarFeedUrl || `${window.location.origin}/calendar/feed/${sub.calendarToken}.ics`;
+        calendarInput.value = calUrl;
+        if (webcalBtn) {
+          webcalBtn.href = sub.webcalUrl || calUrl.replace(/^https?:\/\//i, "webcal://");
+        }
+        if (calendarCard) calendarCard.style.display = "block";
+      }
+
+      // Streak Milestone Badges
+      loadMilestones();
+    }
+
+    function setEmailDensityUI(density) {
+      const prefEmailDensity = document.getElementById("prefEmailDensity");
+      if (prefEmailDensity) prefEmailDensity.value = density || "standard";
+      document.querySelectorAll(".density-btn").forEach((btn) => {
+        const isAct = (btn.dataset.density || "standard") === (density || "standard");
+        btn.classList.toggle("btn-primary", isAct);
+        btn.classList.toggle("btn-secondary", !isAct);
+      });
+    }
+
+    let selectedVacationDays = 7;
+
+    function selectVacationDays(days) {
+      selectedVacationDays = days;
+      document.querySelectorAll(".vacation-preset-btn").forEach((btn) => {
+        const isAct = Number(btn.dataset.days) === days;
+        btn.classList.toggle("btn-primary", isAct);
+        btn.classList.toggle("btn-secondary", !isAct);
+      });
+      const dateInput = document.getElementById("vacationUntilInput");
+      if (dateInput) {
+        const d = new Date();
+        d.setDate(d.getDate() + days);
+        dateInput.value = d.toISOString().split("T")[0];
+      }
+    }
+
+    function openVacationModal() {
+      const modal = document.getElementById("vacationModal");
+      if (modal) {
+        modal.style.display = "flex";
+        selectVacationDays(selectedVacationDays || 7);
+      }
+    }
+
+    function closeVacationModal() {
+      const modal = document.getElementById("vacationModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    async function confirmVacationPause() {
+      const confirmBtn = document.getElementById("confirmPauseRoutineBtn");
+      const dateInput = document.getElementById("vacationUntilInput");
+      const reasonInput = document.getElementById("vacationReasonInput");
+      if (!dateInput || !dateInput.value) {
+        showToast("Please select a return date.", "warning");
+        return;
+      }
+      if (confirmBtn) confirmBtn.disabled = true;
+      try {
+        const res = await fetch("/me/vacation/pause", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            untilDate: dateInput.value,
+            reason: (reasonInput && reasonInput.value.trim()) || "Vacation",
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast("Routine paused safely! Streak is frozen ✈️", "success");
+          closeVacationModal();
+          await loadDashboard();
+        } else {
+          showToast(data.error || "Failed to pause routine", "error");
+        }
+      } catch (_e) {
+        showToast("Network error pausing routine", "error");
+      } finally {
+        if (confirmBtn) confirmBtn.disabled = false;
+      }
+    }
+
+    async function resumeVacationNow() {
+      const btn = document.getElementById("resumeVacationEarlyBtn");
+      if (btn) btn.disabled = true;
+      try {
+        const res = await fetch("/me/vacation/resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast("Welcome back! Your routine is active again 🔥", "success");
+          await loadDashboard();
+        } else {
+          showToast(data.error || "Failed to resume routine", "error");
+        }
+      } catch (_e) {
+        showToast("Network error resuming routine", "error");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function copyCalendarUrl() {
+      const input = document.getElementById("calendarFeedUrlInput");
+      if (!input || !input.value) return;
+      navigator.clipboard.writeText(input.value).then(
+        () => showToast("Calendar feed URL copied to clipboard! 📅", "success"),
+        () => showToast("Failed to copy link.", "error"),
+      );
+    }
+
+    async function loadMilestones() {
+      const badgesCard = document.getElementById("milestoneBadgesCard");
+      const grid = document.getElementById("milestonesGrid");
+      const nextName = document.getElementById("nextMilestoneName");
+      const nextRem = document.getElementById("nextMilestoneRemaining");
+      const bar = document.getElementById("milestoneProgressBar");
+      if (!badgesCard || !grid) return;
+
+      try {
+        const res = await fetch("/me/milestones", {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.milestones)) return;
+
+        badgesCard.style.display = "block";
+        if (data.nextMilestone) {
+          if (nextName) nextName.textContent = `Next: ${data.nextMilestone.name}`;
+          if (nextRem) nextRem.textContent = `${data.nextMilestone.daysRemaining} days left`;
+          if (bar) bar.style.width = `${Math.min(100, Math.max(0, data.nextMilestone.percent))}%`;
+        } else {
+          if (nextName) nextName.textContent = "All Milestones Achieved! 🏆";
+          if (nextRem) nextRem.textContent = "Legendary Consistency";
+          if (bar) bar.style.width = "100%";
+        }
+
+        grid.innerHTML = data.milestones
+          .map(
+            (m) => `
+          <div style="background: ${m.unlocked ? "rgba(245, 158, 11, 0.1)" : "rgba(255, 255, 255, 0.02)"};
+                      border: 1px solid ${m.unlocked ? "rgba(245, 158, 11, 0.35)" : "var(--border-subtle)"};
+                      border-radius: 12px; padding: 12px 10px; text-align: center;
+                      opacity: ${m.unlocked ? "1" : "0.55"}; transition: transform 0.2s ease;">
+            <div style="font-size: 26px; margin-bottom: 4px; filter: ${m.unlocked ? "drop-shadow(0 2px 8px rgba(245, 158, 11, 0.4))" : "grayscale(100%)"}">
+              ${m.badge}
+            </div>
+            <div style="font-size: 12px; font-weight: 600; color: ${m.unlocked ? "#fef3c7" : "#94a3b8"}; margin-bottom: 2px;">
+              ${escapeHtml(m.name)}
+            </div>
+            <div style="font-size: 10.5px; color: ${m.unlocked ? "#fbbf24" : "#64748b"};">
+              ${m.thresholdDays} Days
+            </div>
+            <div style="margin-top: 4px; font-size: 10px; padding: 2px 6px; border-radius: 99px;
+                        background: ${m.unlocked ? "rgba(16, 185, 129, 0.2)" : "rgba(255, 255, 255, 0.05)"};
+                        color: ${m.unlocked ? "#34d399" : "#64748b"}; display: inline-block;">
+              ${m.unlocked ? "Unlocked" : `${m.daysRemaining}d to go`}
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+      } catch (err) {
+        console.error("Error loading streak milestones:", err);
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      window.openVacationModal = openVacationModal;
+      window.closeVacationModal = closeVacationModal;
+      window.selectVacationDays = selectVacationDays;
+      window.confirmVacationPause = confirmVacationPause;
+      window.resumeVacationNow = resumeVacationNow;
+      window.copyCalendarUrl = copyCalendarUrl;
     }
 
     function setFocusDurationUI(mins) {
@@ -462,6 +697,24 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           : true;
         const weeklyDigestDayVal = prefWeeklyDigestDay ? prefWeeklyDigestDay.value : "sunday";
 
+        const dualTrackToggle = document.getElementById("enableDualTrackToggle");
+        const prefWeekendTrack = document.getElementById("prefWeekendTrack");
+        const prefWeekendPreferredTime = document.getElementById("prefWeekendPreferredTime");
+        const prefEmailDensity = document.getElementById("prefEmailDensity");
+        const prefLocationCity = document.getElementById("prefLocationCity");
+
+        let weekendRoutineTrack = null;
+        let weekendCronPattern = null;
+        if (dualTrackToggle && dualTrackToggle.checked && prefWeekendTrack) {
+          weekendRoutineTrack = prefWeekendTrack.value;
+          if (prefWeekendPreferredTime && prefWeekendPreferredTime.value) {
+            const [wH, wM] = prefWeekendPreferredTime.value.split(":");
+            weekendCronPattern = `${parseInt(wM, 10) || 0} ${parseInt(wH, 10) || 8} * * 0,6`;
+          } else {
+            weekendCronPattern = "0 8 * * 0,6";
+          }
+        }
+
         const body = {
           cronPattern: cronValue || "0 8 * * *",
           timezone: prefTz.value.trim() || "Asia/Kolkata",
@@ -474,6 +727,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           newsCategory: newsCategoryVal,
           weeklyDigestEnabled: weeklyDigestEnabledVal,
           weeklyDigestDay: weeklyDigestDayVal,
+          weekendRoutineTrack,
+          weekendCronPattern,
+          emailDensity: prefEmailDensity ? prefEmailDensity.value : "standard",
+          locationCity: prefLocationCity ? prefLocationCity.value.trim() : null,
         };
 
         const resp = await fetch("/me", {
@@ -522,6 +779,22 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     if (prefFocusDuration) {
       prefFocusDuration.addEventListener("input", function () {
         setFocusDurationUI(this.value);
+      });
+    }
+
+    // Email Density button listeners
+    document.querySelectorAll(".density-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        setEmailDensityUI(this.dataset.density);
+      });
+    });
+
+    // Dual-track schedule toggle listener
+    const dualTrackToggle = document.getElementById("enableDualTrackToggle");
+    const dualTrackContainer = document.getElementById("dualTrackContainer");
+    if (dualTrackToggle && dualTrackContainer) {
+      dualTrackToggle.addEventListener("change", function () {
+        dualTrackContainer.style.display = this.checked ? "block" : "none";
       });
     }
 

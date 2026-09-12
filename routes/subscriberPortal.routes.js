@@ -66,6 +66,13 @@ router.post("/me/coach-persona", requireSubscriberSession, meController.updateCo
 router.post("/me/channels", requireSubscriberSession, meController.updateChannels);
 router.patch("/me/channels", requireSubscriberSession, meController.updateChannels);
 router.post("/api/channels/test", requireSubscriberSession, meController.testChannel);
+router.post("/me/vacation/pause", requireSubscriberSession, meController.pauseVacation);
+router.post("/api/me/vacation/pause", requireSubscriberSession, meController.pauseVacation);
+router.post("/me/vacation/resume", requireSubscriberSession, meController.resumeVacation);
+router.post("/api/me/vacation/resume", requireSubscriberSession, meController.resumeVacation);
+router.get("/me/milestones", requireSubscriberSession, meController.getMilestones);
+router.get("/api/me/milestones", requireSubscriberSession, meController.getMilestones);
+
 router.post("/me/outbound-webhook", requireSubscriberSession, meController.updateOutboundWebhook);
 router.post(
   "/api/outbound-webhook/test",

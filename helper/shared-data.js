@@ -385,7 +385,14 @@ async function recordCheckin(email, timezone = "UTC") {
         preservedStreak: newStreak,
       });
     } else {
-      newStreak = 1;
+      const ext = await getUserExtensions(email);
+      const isVacationActive = ext.vacationUntil && new Date(ext.vacationUntil) > new Date();
+      if (isVacationActive && currentStreak > 0) {
+        newStreak = currentStreak;
+        logger.info("✈️ Vacation mode active: streak preserved", { email, currentStreak });
+      } else {
+        newStreak = 1;
+      }
     }
   }
 
@@ -492,6 +499,13 @@ async function getUsers() {
           customCoachPrompt: ext.customCoachPrompt || null,
           weeklyDigestEnabled: ext.weeklyDigestEnabled !== false,
           weeklyDigestDay: ext.weeklyDigestDay || "sunday",
+          weekendRoutineTrack: ext.weekendRoutineTrack || null,
+          weekendCronPattern: ext.weekendCronPattern || null,
+          vacationUntil: ext.vacationUntil || null,
+          vacationReason: ext.vacationReason || null,
+          emailDensity: ext.emailDensity || "standard",
+          locationCity: ext.locationCity || null,
+          calendarToken: ext.calendarToken || null,
           isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
           streakCount: Number(r.streakCount) || 0,
           routineTrack: r.routineTrack || r.templateType || "deep-work",
@@ -523,6 +537,13 @@ async function getUsers() {
           customCoachPrompt: ext.customCoachPrompt || null,
           weeklyDigestEnabled: ext.weeklyDigestEnabled !== false,
           weeklyDigestDay: ext.weeklyDigestDay || "sunday",
+          weekendRoutineTrack: ext.weekendRoutineTrack || null,
+          weekendCronPattern: ext.weekendCronPattern || null,
+          vacationUntil: ext.vacationUntil || null,
+          vacationReason: ext.vacationReason || null,
+          emailDensity: ext.emailDensity || "standard",
+          locationCity: ext.locationCity || null,
+          calendarToken: ext.calendarToken || null,
           isActive: r.isActive !== false && r.isActive !== 0 && r.isActive !== "false",
           streakCount: 0,
           routineTrack: r.templateType || "deep-work",
@@ -626,6 +647,13 @@ async function getUserByEmail(email) {
       customCoachPrompt: ext.customCoachPrompt || null,
       weeklyDigestEnabled: ext.weeklyDigestEnabled !== false,
       weeklyDigestDay: ext.weeklyDigestDay || "sunday",
+      weekendRoutineTrack: ext.weekendRoutineTrack || null,
+      weekendCronPattern: ext.weekendCronPattern || null,
+      vacationUntil: ext.vacationUntil || null,
+      vacationReason: ext.vacationReason || null,
+      emailDensity: ext.emailDensity || "standard",
+      locationCity: ext.locationCity || null,
+      calendarToken: ext.calendarToken || null,
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: Number(row.streakCount) || 0,
       streakFreezes:
@@ -661,6 +689,13 @@ async function getUserByEmail(email) {
       customCoachPrompt: ext.customCoachPrompt || null,
       weeklyDigestEnabled: ext.weeklyDigestEnabled !== false,
       weeklyDigestDay: ext.weeklyDigestDay || "sunday",
+      weekendRoutineTrack: ext.weekendRoutineTrack || null,
+      weekendCronPattern: ext.weekendCronPattern || null,
+      vacationUntil: ext.vacationUntil || null,
+      vacationReason: ext.vacationReason || null,
+      emailDensity: ext.emailDensity || "standard",
+      locationCity: ext.locationCity || null,
+      calendarToken: ext.calendarToken || null,
       isActive: row.isActive !== false && row.isActive !== 0 && row.isActive !== "false",
       streakCount: 0,
       streakFreezes: 2,
@@ -772,6 +807,13 @@ async function updateUser(email, updates) {
     "customCoachPrompt",
     "weeklyDigestEnabled",
     "weeklyDigestDay",
+    "weekendRoutineTrack",
+    "weekendCronPattern",
+    "vacationUntil",
+    "vacationReason",
+    "emailDensity",
+    "locationCity",
+    "calendarToken",
   ];
   const hasExtUpdates = extensionFields.some((f) => updates[f] !== undefined);
   if (hasExtUpdates) {
