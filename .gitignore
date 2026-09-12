@@ -23,6 +23,7 @@ yarn-error.log*
 .vscode
 # Test coverage output
 coverage/
+storage
 
 # Local Agent Guidelines (kept only on local)
 AGENTS.md

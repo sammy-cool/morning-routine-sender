@@ -209,7 +209,9 @@
   color: #333;
 }
 
-.footer {
+.off-load-page .footer,
+.loader-container .footer,
+.skeleton-footer {
   position: fixed;
   bottom: 20px;
   color: #999;
