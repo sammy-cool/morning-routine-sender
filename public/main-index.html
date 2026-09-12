@@ -682,6 +682,14 @@
         border-radius: 16px;
         border: 1px solid var(--border-subtle);
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      .sim-track-tabs::-webkit-scrollbar {
+        display: none;
       }
 
       .sim-tab-btn {
@@ -1230,20 +1238,167 @@
         }
       }
 
-      @media (max-width: 640px) {
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 16px;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+
+        main.container {
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+
+        .hero-section {
+          padding: 48px 0 28px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .hero-title {
+          font-size: clamp(30px, 8.5vw, 44px);
+          line-height: 1.15;
+          margin-bottom: 16px;
+          width: 100%;
+          word-break: normal;
+        }
+
+        .hero-subtitle {
+          font-size: 15px;
+          line-height: 1.5;
+          margin-bottom: 8px;
+          width: 100%;
+        }
+
+        .hero-cta-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 16px;
+          width: 100%;
+          justify-content: center;
+        }
+
+        .hero-cta-group .btn {
+          flex: 1 1 150px;
+          justify-content: center;
+          text-align: center;
+        }
+
+        /* Full-width 1-column bento grid on mobile */
+        .bento-grid {
+          grid-template-columns: minmax(0, 1fr) !important;
+          gap: 16px;
+          margin: 24px 0 48px;
+          width: 100%;
+        }
+
+        .simulator-card,
+        .portal-card,
+        .bento-col-4 {
+          grid-column: 1 / -1 !important;
+          width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+
+        .bento-card {
+          padding: 20px 16px;
+          border-radius: 20px;
+          min-width: 0;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .sim-header-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .sim-title h3 {
+          font-size: 20px;
+        }
+
+        .email-mock-bar {
+          flex-wrap: wrap;
+          gap: 8px;
+          padding: 12px 14px;
+        }
+
+        #simEmailSubject {
+          width: 100%;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+
+        .email-mock-body {
+          padding: 18px 14px;
+        }
+
+        .mock-quote-box {
+          padding: 16px;
+          margin-bottom: 18px;
+        }
+
+        .mock-quote-text {
+          font-size: 15px;
+        }
+
+        .sim-actions-row {
+          flex-direction: column;
+          align-items: stretch !important;
+          width: 100%;
+          gap: 10px !important;
+        }
+
+        .sim-actions-row .btn {
+          width: 100%;
+          justify-content: center;
+          text-align: center;
+        }
+
+        .input-group {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .input-group .btn {
+          width: 100%;
+          justify-content: center;
+        }
+
+        body.has-dock {
+          padding-bottom: calc(76px + env(safe-area-inset-bottom, 12px)) !important;
+        }
+
         footer.footer {
-          padding: 40px 0 max(32px, env(safe-area-inset-bottom, 24px));
+          padding: 36px 0 max(36px, env(safe-area-inset-bottom, 24px));
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .footer-container {
+          padding: 0 16px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .footer-top-grid {
           grid-template-columns: 1fr;
           gap: 28px;
+          width: 100%;
         }
 
         .footer-bottom-bar {
           flex-direction: column;
           align-items: flex-start;
           gap: 12px;
+          width: 100%;
         }
       }
 
@@ -1372,7 +1527,16 @@
           Curated morning routines, deep work reflections, habit streak shields, and tailored wisdom
           delivered right when you wake up.
         </p>
-        <div style="display: flex; gap: 16px; margin-top: 16px">
+        <div
+          class="hero-cta-group"
+          style="
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+          "
+        >
           <a href="#signupView" class="btn btn-primary"
             ><i class="fas fa-rocket"></i> Start Your Journey</a
           >
@@ -1507,7 +1671,10 @@
                   gap: 16px;
                 "
               >
-                <div style="display: flex; align-items: center; gap: 12px">
+                <div
+                  class="sim-actions-row"
+                  style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap"
+                >
                   <a href="#signupView" class="btn btn-primary btn-sm"
                     ><i class="fas fa-check-double"></i> 1-Click Habit Check-in Demo</a
                   >
