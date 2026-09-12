@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.10.1] - 2026-09-12
+
+### 🛠️ Desktop Sidebar Flex Stabilization & Layout Containment
+
+- **Admin Command Center Desktop Layout Fix**:
+  - Resolved flexbox width resolution conflict in [`admin-renderer/views/admin-dashboard.html`](file:///home/smarty/projects/morning-routine-sender/admin-renderer/views/admin-dashboard.html) where `main.main-content` had `width: 100%; margin: 0 auto;` inside a horizontal flex `body`.
+  - Prevented negative free-space distribution (`-140px`) that previously pulled the main content under the sticky sidebar on screens `> 1100px`, eliminating title truncation and KPI card obscuration.
+  - Stabilized `aside.sidebar` with `flex-shrink: 0`, `min-width: 280px`, `height: 100dvh`, and independent vertical scrollability (`overflow-y: auto; overscroll-behavior: contain;`).
+  - Isolated `.sidebar-backdrop` with `display: none;` on desktop viewports so it does not interfere as an in-flow flex child.
+- **Scroll & Containment Compliance**:
+  - Enforced `overscroll-behavior: contain` on `.table-responsive` and `.table-container` in accordance with design guidelines.
+- **Cache & Telemetry Versioning**:
+  - Bumped Service Worker cache version to `v4.6.1` in [`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js) for automatic client-side cache invalidation.
+  - Bumped Admin Command Center footer telemetry stamp to `v2.10.1`.
+- **Quality Gates & Comprehensive Test Matrix**:
+  - 100% green across all 4 mandatory quality gates: Syntax AST check, Prettier formatting compliance, ESLint (0 errors, 0 warnings), and all 62 test suites (790/790 tests passing).
+
+---
+
 ## [2.10.0] - 2026-09-12
 
 ### 🌟 Dual-Track Scheduling, Vacation Mode, RFC 5545 Calendar Feed, Streak Milestone Trophies & Admin Command Center
