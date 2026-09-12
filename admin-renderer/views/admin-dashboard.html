@@ -130,6 +130,8 @@
       /* Sidebar */
       aside.sidebar {
         width: 280px;
+        min-width: 280px;
+        flex-shrink: 0;
         background: var(--bg-sidebar);
         border-right: 1px solid var(--border-subtle);
         padding: 24px 18px;
@@ -139,9 +141,16 @@
         position: sticky;
         top: 0;
         height: 100vh;
+        height: 100dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
         z-index: 40;
         contain: paint layout;
         transform: translateZ(0);
+      }
+
+      .sidebar-backdrop {
+        display: none;
       }
 
       .brand {
@@ -310,13 +319,14 @@
 
       /* Main Content */
       main.main-content {
-        flex: 1;
+        flex: 1 1 0%;
+        min-width: 0;
+        width: auto;
+        max-width: 1600px;
+        margin: 0;
         padding: max(32px, env(safe-area-inset-top, 32px))
           max(40px, env(safe-area-inset-right, 40px)) max(32px, env(safe-area-inset-bottom, 32px))
           max(40px, env(safe-area-inset-left, 40px));
-        max-width: 1600px;
-        margin: 0 auto;
-        width: 100%;
         display: flex;
         flex-direction: column;
         gap: 32px;
@@ -569,6 +579,7 @@
           transform: translateX(0);
         }
         .sidebar-backdrop {
+          display: block;
           position: fixed;
           inset: 0;
           background: rgba(0, 0, 0, 0.65);
@@ -756,6 +767,7 @@
       .table-container {
         width: 100%;
         overflow-x: auto;
+        overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
       }
 
