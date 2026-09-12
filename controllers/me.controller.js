@@ -673,6 +673,27 @@ async function updateMe(req, res) {
       await sharedData.setUserActive(req.subscriberEmail, Boolean(isActive));
     }
 
+    // Dynamic Hot-Reload: Reschedule user cron job if schedule, timezone, or active status changed
+    if (
+      cronPattern !== undefined ||
+      timezone !== undefined ||
+      isActive !== undefined ||
+      templateType !== undefined ||
+      routineTrack !== undefined
+    ) {
+      try {
+        const emailScheduler = require("../email-core/emailScheduler");
+        if (typeof emailScheduler.rescheduleUserJob === "function") {
+          await emailScheduler.rescheduleUserJob(req.subscriberEmail);
+        }
+      } catch (schedErr) {
+        logger.warn("Non-fatal failure rescheduling user cron job in updateMe", {
+          email: req.subscriberEmail,
+          error: schedErr.message,
+        });
+      }
+    }
+
     const updated = await sharedData.getUserByEmail(req.subscriberEmail);
     if (!updated) {
       return res.status(404).json({ error: "Subscriber not found" });

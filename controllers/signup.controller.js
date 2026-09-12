@@ -118,6 +118,19 @@ async function confirmSignup(req, res) {
     // Always ensure subscriber is marked active upon confirmation
     await sharedData.setUserActive(email, true);
 
+    // Dynamic Hot-Reload: Schedule cron immediately for confirmed user
+    try {
+      const emailScheduler = require("../email-core/emailScheduler");
+      if (typeof emailScheduler.rescheduleUserJob === "function") {
+        await emailScheduler.rescheduleUserJob(email);
+      }
+    } catch (schedErr) {
+      logger.warn("Non-fatal failure scheduling confirmed user cron", {
+        email,
+        error: schedErr.message,
+      });
+    }
+
     // If they double-clicked the link (or it somehow got confirmed
     // twice), don't error -- just log them in. The subscriber already
     // exists either way, which is what matters.

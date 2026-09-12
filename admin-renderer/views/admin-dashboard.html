@@ -311,7 +311,9 @@
       /* Main Content */
       main.main-content {
         flex: 1;
-        padding: 32px 40px;
+        padding: max(32px, env(safe-area-inset-top, 32px))
+          max(40px, env(safe-area-inset-right, 40px)) max(32px, env(safe-area-inset-bottom, 32px))
+          max(40px, env(safe-area-inset-left, 40px));
         max-width: 1600px;
         margin: 0 auto;
         width: 100%;
@@ -553,6 +555,10 @@
           left: 0;
           bottom: 0;
           width: 280px;
+          padding-top: max(24px, env(safe-area-inset-top, 24px));
+          padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+          padding-left: max(20px, env(safe-area-inset-left, 20px));
+          padding-right: 20px;
           z-index: 200;
           transform: translateX(-100%);
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -913,18 +919,31 @@
           order: -1;
         }
         .header-actions .btn {
-          flex: 1 1 calc(50% - 4px);
-          min-width: 120px;
+          flex: 1 1 calc(33.333% - 6px);
+          min-width: 0;
           justify-content: center;
-          font-size: 13px;
-          padding: 8px 12px;
+          font-size: clamp(11.5px, 3.2vw, 13px);
+          padding: 8px 10px;
+          white-space: nowrap;
+        }
+        @media (max-width: 480px) {
+          .header-actions .btn {
+            flex: 1 1 calc(50% - 4px);
+          }
+        }
+        @media (max-width: 360px) {
+          .header-actions .btn {
+            flex: 1 1 100%;
+          }
         }
         .modal-dialog {
           padding: 20px 16px;
           margin: 12px;
         }
         main.main-content {
-          padding: 16px;
+          padding: max(16px, env(safe-area-inset-top, 16px))
+            max(16px, env(safe-area-inset-right, 16px)) max(24px, env(safe-area-inset-bottom, 24px))
+            max(16px, env(safe-area-inset-left, 16px));
           gap: 20px;
         }
       }
@@ -1481,8 +1500,20 @@
             <span>Quick actions…</span>
             <span class="cmd-badge">⌘K</span>
           </div>
-          <button class="btn btn-glass" onclick="refreshAllData()">
+          <button
+            class="btn btn-glass"
+            onclick="refreshAllData()"
+            title="Refresh telemetry, subscribers and jobs"
+          >
             <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
+          </button>
+          <button
+            class="btn btn-glass"
+            id="btnRescheduleJobs"
+            onclick="rescheduleAllSchedulers()"
+            title="Hot-reload and reschedule all user cron schedules"
+          >
+            <i class="fas fa-clock" id="rescheduleIcon"></i> Reschedule Schedulers
           </button>
           <button class="btn btn-primary" onclick="openAddSubscriberModal()">
             <i class="fas fa-user-plus"></i> Add Subscriber
@@ -2596,6 +2627,44 @@
               <i class="fas fa-eye"></i> View Live Records
             </button>
           </div>
+
+          <!-- Cron Scheduler Engine Hot-Reload -->
+          <div
+            style="
+              background: rgba(15, 23, 42, 0.5);
+              padding: 20px;
+              border-radius: var(--radius-md);
+              border: 1px solid var(--border-subtle);
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            "
+          >
+            <div
+              style="
+                font-weight: 700;
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <i class="fas fa-clock" style="color: var(--accent-cyan)"></i>
+              <span>Scheduler Re-synchronization</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted)">
+              Re-query database and hot-reload all node-cron in-memory delivery schedules
+              immediately.
+            </p>
+            <button
+              class="btn btn-primary btn-sm"
+              id="btnDiagReschedule"
+              style="margin-top: auto"
+              onclick="rescheduleAllSchedulers()"
+            >
+              <i class="fas fa-sync-alt" id="diagRescheduleIcon"></i> Reschedule Schedulers Now
+            </button>
+          </div>
         </div>
       </section>
 
@@ -3345,6 +3414,57 @@ Loading records…</pre>
 
         if (icon) icon.classList.remove("fa-spin");
         ToastManager.info("Dashboard refreshed");
+      }
+
+      async function rescheduleAllSchedulers() {
+        const confirmed = await showConfirmDialog({
+          title: "Reschedule All Cron Jobs",
+          message:
+            "This will re-query all active subscribers from the database and hot-reload every in-memory node-cron schedule immediately. Proceed?",
+          confirmText: "Reschedule Now",
+          confirmVariant: "btn-primary",
+        });
+        if (!confirmed) return;
+
+        const btn1 = document.getElementById("btnRescheduleJobs");
+        const btn2 = document.getElementById("btnDiagReschedule");
+        const icon1 = document.getElementById("rescheduleIcon");
+        const icon2 = document.getElementById("diagRescheduleIcon");
+
+        if (btn1) btn1.disabled = true;
+        if (btn2) btn2.disabled = true;
+        if (icon1) icon1.className = "fas fa-spinner fa-spin";
+        if (icon2) icon2.className = "fas fa-spinner fa-spin";
+
+        ToastManager.info("Rescheduling all active subscriber delivery jobs...");
+
+        try {
+          const res = await apiCall("/admin/api/reschedule-all", {
+            method: "POST",
+          });
+
+          if (res.ok && res.data?.success) {
+            ToastManager.success(res.data.message || "All cron jobs successfully rescheduled!");
+            ActivityLogger.log(
+              `Cron Schedulers hot-reloaded: ${res.data.totalJobs || 0} active schedules running.`,
+              "success",
+            );
+            await loadScheduledJobs();
+          } else {
+            ToastManager.error(res.data?.error || "Failed to reschedule cron jobs.");
+            ActivityLogger.log(
+              `Scheduler reload failed: ${res.data?.error || "Unknown error"}`,
+              "error",
+            );
+          }
+        } catch (err) {
+          ToastManager.error("Network error while rescheduling cron jobs: " + err.message);
+        } finally {
+          if (btn1) btn1.disabled = false;
+          if (btn2) btn2.disabled = false;
+          if (icon1) icon1.className = "fas fa-clock";
+          if (icon2) icon2.className = "fas fa-sync-alt";
+        }
       }
 
       // 1. Load Subscribers

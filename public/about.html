@@ -250,7 +250,7 @@
         -webkit-backdrop-filter: blur(10px);
         position: sticky;
         top: 0;
-        z-index: 50;
+        z-index: 1001;
         transform: translateZ(0);
       }
 
@@ -297,6 +297,52 @@
         display: flex;
         align-items: center;
         gap: 8px;
+      }
+
+      .mobile-menu-toggle {
+        display: none;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-main);
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-md);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: var(--transition);
+        padding: 0;
+        flex-shrink: 0;
+      }
+
+      .mobile-menu-toggle:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--border-hover);
+      }
+
+      .hamburger-bar {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background-color: var(--text-main);
+        border-radius: 2px;
+        transition:
+          transform 0.3s ease,
+          opacity 0.3s ease;
+      }
+
+      .mobile-menu-toggle.active .hamburger-bar:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+      }
+
+      .mobile-menu-toggle.active .hamburger-bar:nth-child(2) {
+        opacity: 0;
+      }
+
+      .mobile-menu-toggle.active .hamburger-bar:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
       }
 
       .nav-link-item {
@@ -1048,13 +1094,93 @@
         }
       }
 
-      @media (max-width: 768px) {
+      @media (max-width: 860px) {
         header.navbar {
-          background: rgba(12, 17, 29, 0.9);
+          padding: max(12px, env(safe-area-inset-top, 12px)) 16px 12px 16px;
+          background: rgba(8, 12, 22, 0.96);
         }
+
+        .mobile-menu-toggle {
+          display: flex;
+        }
+
         .nav-links {
-          display: none;
+          position: fixed;
+          top: calc(56px + env(safe-area-inset-top, 12px));
+          left: 0;
+          right: 0;
+          width: 100%;
+          background: rgba(8, 12, 22, 0.98);
+          backdrop-filter: blur(28px);
+          -webkit-backdrop-filter: blur(28px);
+          border-bottom: 1px solid var(--border-subtle);
+          box-shadow: 0 24px 48px rgba(0, 0, 0, 0.75);
+          padding: 0 20px;
+          max-height: 0;
+          opacity: 0;
+          pointer-events: none;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+          transition:
+            max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 0.25s ease,
+            padding 0.35s ease;
+          z-index: 1002;
         }
+
+        .nav-links.nav-open {
+          max-height: calc(100dvh - 70px - env(safe-area-inset-top, 12px));
+          overflow-y: auto;
+          opacity: 1;
+          pointer-events: auto;
+          padding: 16px 20px 24px;
+        }
+
+        .nav-links .nav-link-item,
+        .nav-links .btn {
+          width: 100%;
+          justify-content: flex-start;
+          padding: 12px 16px;
+          font-size: 14px;
+          border-radius: 12px;
+          min-height: 46px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid var(--border-subtle);
+          display: flex;
+          align-items: center;
+        }
+
+        .nav-links .btn {
+          background: var(--primary);
+          border-color: var(--primary);
+          justify-content: center;
+          font-weight: 700;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header.navbar {
+          padding: max(10px, env(safe-area-inset-top, 10px)) 12px 10px 12px;
+        }
+        .brand-name {
+          font-size: clamp(14px, 4vw, 17px);
+        }
+        .brand-icon {
+          width: 34px;
+          height: 34px;
+        }
+      }
+
+      @media (max-width: 360px) {
+        header.navbar {
+          padding: max(8px, env(safe-area-inset-top, 8px)) 8px 8px 8px;
+        }
+      }
+
+      @media (max-width: 768px) {
         /* Mobile Bottom Nav via Glassmorphism */
         .mobile-bottom-nav {
           display: flex;
@@ -1173,7 +1299,7 @@
           <span class="brand-name">Morning Routine</span>
         </a>
 
-        <nav class="nav-links" aria-label="Main Navigation">
+        <nav class="nav-links" id="aboutNavLinksMenu" aria-label="Main Navigation">
           <a href="/" class="nav-link-item">Home</a>
           <a href="/routine" class="nav-link-item">Focus Companion</a>
           <a href="/about" class="nav-link-item active" aria-current="page">About</a>
@@ -1182,6 +1308,19 @@
             <i class="fas fa-paper-plane" aria-hidden="true"></i> Start Free
           </a>
         </nav>
+
+        <button
+          type="button"
+          class="mobile-menu-toggle"
+          id="aboutNavToggleBtn"
+          aria-label="Toggle Navigation Menu"
+          aria-expanded="false"
+          aria-controls="aboutNavLinksMenu"
+        >
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
       </div>
     </header>
 
@@ -1680,5 +1819,44 @@
         <span>About</span>
       </a>
     </nav>
+
+    <script>
+      (function initAboutMobileNav() {
+        const toggleBtn = document.getElementById("aboutNavToggleBtn");
+        const navMenu = document.getElementById("aboutNavLinksMenu");
+        if (!toggleBtn || !navMenu) return;
+
+        function setNavOpen(isOpen) {
+          navMenu.classList.toggle("nav-open", isOpen);
+          toggleBtn.classList.toggle("active", isOpen);
+          toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        }
+
+        toggleBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const isOpen = navMenu.classList.contains("nav-open");
+          setNavOpen(!isOpen);
+        });
+
+        navMenu.querySelectorAll("a, button").forEach(function (el) {
+          el.addEventListener("click", function () {
+            setNavOpen(false);
+          });
+        });
+
+        document.addEventListener("click", function (e) {
+          if (!navMenu.contains(e.target) && !toggleBtn.contains(e.target)) {
+            setNavOpen(false);
+          }
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && navMenu.classList.contains("nav-open")) {
+            setNavOpen(false);
+            toggleBtn.focus();
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

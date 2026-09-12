@@ -72,7 +72,13 @@ const logger = require("../logger");
 // email-core/emailScheduler.js
 const cron = require("node-cron");
 const { getTransporter } = require("../config/mailTransporter");
-const emailService = require("./emailService");
+let emailServiceInstance = null;
+function getEmailService() {
+  if (!emailServiceInstance) {
+    emailServiceInstance = require("./emailService");
+  }
+  return emailServiceInstance;
+}
 const emailTracker = require("./emailTracker");
 const { cleanupOldEmailRecords, optimizeDatabase } = require("../helper/database-cleanup");
 const { maskEmail } = require("../helper/util");
@@ -132,7 +138,7 @@ async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process
       async (attempt) => {
         finalAttempts = attempt + 1;
         finalRetries = attempt;
-        return await emailService.sendRoutineEmail(getTransporter(), appLocals, userData);
+        return await getEmailService().sendRoutineEmail(getTransporter(), appLocals, userData);
       },
       {
         maxRetries: 3,
@@ -275,7 +281,7 @@ async function sendUserWeeklyDigest(
       async (attempt) => {
         finalAttempts = attempt + 1;
         finalRetries = attempt;
-        return await emailService.sendWeeklyDigestEmail(getTransporter(), appLocals, userData);
+        return await getEmailService().sendWeeklyDigestEmail(getTransporter(), appLocals, userData);
       },
       {
         maxRetries: 3,
@@ -332,6 +338,154 @@ async function sendUserWeeklyDigest(
 }
 
 /**
+ * Schedule recurring jobs (daily routine + Sunday weekly digest) for a single user
+ * @param {Object} user - User object with email, cronPattern, timezone, isActive
+ */
+function scheduleUserJob(user) {
+  if (!user || !user.email) return;
+  const email = user.email.trim().toLowerCase();
+
+  // Stop any preexisting job for this user first
+  stopUserJob(email);
+
+  // If user is explicitly inactive, skip scheduling
+  if (user.isActive === false) {
+    logger.info("Skipping cron scheduling for inactive user", { email });
+    return;
+  }
+
+  const cronPattern = user.cronPattern || "0 8 * * *"; // Default: 8 AM daily
+  const userTz = user.timezone || "Asia/Kolkata";
+  const sundayCron = "0 8 * * 0"; // Every Sunday at 8 AM local time
+
+  // 1. Schedule Daily Routine Job
+  try {
+    if (cron.validate(cronPattern)) {
+      const job = cron.schedule(
+        cronPattern,
+        async () => {
+          logger.info("⏰ Daily cron job triggered", {
+            email,
+            templateType: user.templateType || "basic",
+            time: new Date().toISOString(),
+          });
+
+          const currentUser = await sharedData.getUserByEmail(email);
+          if (!currentUser || !currentUser.isActive) {
+            logger.info("Skipping inactive user", { email });
+            return;
+          }
+
+          await sendRoutineEmail(currentUser);
+        },
+        {
+          scheduled: true,
+          timezone: userTz,
+        },
+      );
+      scheduledJobs.push({
+        email,
+        job,
+        cronPattern,
+        type: "daily_routine",
+      });
+    } else {
+      logger.warn("Invalid cronPattern provided for user", { email, cronPattern });
+    }
+  } catch (error) {
+    logger.error("Failed to schedule recurring daily job", {
+      error: error.message,
+      email,
+      cronPattern,
+    });
+  }
+
+  // 2. Schedule Sunday Weekly Digest Job
+  try {
+    const weeklyJob = cron.schedule(
+      sundayCron,
+      async () => {
+        logger.info("⏰ Sunday Weekly Digest cron triggered", {
+          email,
+          timezone: userTz,
+          time: new Date().toISOString(),
+        });
+
+        const currentUser = await sharedData.getUserByEmail(email);
+        if (!currentUser || !currentUser.isActive) {
+          return;
+        }
+
+        await sendUserWeeklyDigest(currentUser);
+      },
+      {
+        scheduled: true,
+        timezone: userTz,
+      },
+    );
+    scheduledJobs.push({
+      email,
+      job: weeklyJob,
+      cronPattern: sundayCron,
+      type: "weekly_digest",
+    });
+  } catch (error) {
+    logger.error("Failed to schedule Sunday weekly digest job", {
+      error: error.message,
+      email,
+    });
+  }
+}
+
+/**
+ * Stop and remove scheduled cron jobs for a specific user email
+ * @param {string} email
+ * @returns {number} Count of stopped jobs
+ */
+function stopUserJob(email) {
+  if (!email) return 0;
+  const target = String(email).trim().toLowerCase();
+  let stoppedCount = 0;
+  const remainingJobs = [];
+
+  for (const jobData of scheduledJobs) {
+    if (jobData.email && jobData.email.toLowerCase() === target) {
+      if (jobData.job && typeof jobData.job.stop === "function") {
+        jobData.job.stop();
+      }
+      stoppedCount++;
+      logger.info("Stopped user cron job", { email: target, type: jobData.type });
+    } else {
+      remainingJobs.push(jobData);
+    }
+  }
+
+  scheduledJobs = remainingJobs;
+  return stoppedCount;
+}
+
+/**
+ * Hot-reschedule jobs for a single user by fetching latest state from database
+ * @param {string} email
+ * @returns {Promise<{ email: string, rescheduled: boolean }>}
+ */
+async function rescheduleUserJob(email) {
+  if (!email) return { email: "", rescheduled: false };
+  const target = String(email).trim().toLowerCase();
+  stopUserJob(target);
+
+  const user = await sharedData.getUserByEmail(target);
+  if (user && user.isActive) {
+    scheduleUserJob(user);
+    logger.info("Hot-rescheduled user cron job", { email: target, cronPattern: user.cronPattern });
+    return { email: target, rescheduled: true };
+  }
+
+  logger.info("User inactive or not found during reschedule", { email: target });
+  return { email: target, rescheduled: false };
+}
+
+/**
  * Schedule recurring jobs for all users (Daily Routines + Sunday Weekly Digests)
  */
 async function scheduleAllJobs() {
@@ -345,86 +499,21 @@ async function scheduleAllJobs() {
   });
 
   for (const user of users) {
-    const cronPattern = user.cronPattern || "0 8 * * *"; // Default: 8 AM daily
-    const userTz = user.timezone || "Asia/Kolkata";
-    const sundayCron = "0 8 * * 0"; // Every Sunday at 8 AM local time
-
-    // 1. Schedule Daily Routine Job
-    try {
-      if (cron.validate(cronPattern)) {
-        const job = cron.schedule(
-          cronPattern,
-          async () => {
-            logger.info("⏰ Daily cron job triggered", {
-              email: user.email,
-              templateType: user.templateType || "basic",
-              time: new Date().toISOString(),
-            });
-
-            const currentUser = await sharedData.getUserByEmail(user.email);
-            if (!currentUser || !currentUser.isActive) {
-              logger.info("Skipping inactive user", { email: user.email });
-              return;
-            }
-
-            await sendRoutineEmail(currentUser);
-          },
-          {
-            scheduled: true,
-            timezone: userTz,
-          },
-        );
-        scheduledJobs.push({
-          email: user.email,
-          job,
-          cronPattern,
-          type: "daily_routine",
-        });
-      }
-    } catch (error) {
-      logger.error("Failed to schedule recurring daily job", {
-        error: error.message,
-        email: user.email,
-        cronPattern,
-      });
-    }
-
-    // 2. Schedule Sunday Weekly Digest Job
-    try {
-      const weeklyJob = cron.schedule(
-        sundayCron,
-        async () => {
-          logger.info("⏰ Sunday Weekly Digest cron triggered", {
-            email: user.email,
-            timezone: userTz,
-            time: new Date().toISOString(),
-          });
-
-          const currentUser = await sharedData.getUserByEmail(user.email);
-          if (!currentUser || !currentUser.isActive) {
-            return;
-          }
-
-          await sendUserWeeklyDigest(currentUser);
-        },
-        {
-          scheduled: true,
-          timezone: userTz,
-        },
-      );
-      scheduledJobs.push({
-        email: user.email,
-        job: weeklyJob,
-        cronPattern: sundayCron,
-        type: "weekly_digest",
-      });
-    } catch (error) {
-      logger.error("Failed to schedule Sunday weekly digest job", {
-        error: error.message,
-        email: user.email,
-      });
-    }
+    scheduleUserJob(user);
   }
+}
+
+/**
+ * Stops and re-schedules all jobs from the database (on-demand hot reload)
+ * @returns {Promise<{ success: boolean, totalJobs: number, activeJobs: Array }>}
+ */
+async function rescheduleAllJobs() {
+  await scheduleAllJobs();
+  return {
+    success: true,
+    totalJobs: scheduledJobs.length,
+    activeJobs: getScheduledJobsStatus(),
+  };
 }
 
 /**
@@ -498,6 +587,10 @@ function scheduleCleanupJobs() {
 module.exports = {
   scheduleAllJobs,
   stopAllJobs,
+  scheduleUserJob,
+  stopUserJob,
+  rescheduleUserJob,
+  rescheduleAllJobs,
   sendRoutineEmail,
   sendUserWeeklyDigest,
   sendBulkEmails,

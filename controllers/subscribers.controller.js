@@ -2,6 +2,7 @@ const validator = require("validator");
 const logger = require("../logger");
 const sharedData = require("../helper/shared-data");
 const { validateSubscriberInput } = require("../helper/validateSubscriber");
+const emailScheduler = require("../email-core/emailScheduler");
 
 // GET /admin/subscribers -- list everyone, including paused subscribers
 // (the admin UI needs to show and toggle paused ones, not just active).
@@ -25,8 +26,9 @@ async function addSubscriber(req, res) {
   }
 
   try {
+    const normalizedEmail = email.trim().toLowerCase();
     const result = await sharedData.addUser({
-      email: email.trim().toLowerCase(),
+      email: normalizedEmail,
       templateType,
       cronPattern,
       timezone,
@@ -34,6 +36,11 @@ async function addSubscriber(req, res) {
 
     if (result && result.created === false) {
       return res.status(409).json({ error: "Subscriber already exists" });
+    }
+
+    // Dynamic Hot-Reload: Schedule job immediately in running cron engine
+    if (typeof emailScheduler.rescheduleUserJob === "function") {
+      await emailScheduler.rescheduleUserJob(normalizedEmail);
     }
 
     res.status(201).json(result);
@@ -101,6 +108,11 @@ async function updateSubscriber(req, res) {
       return res.status(404).json({ error: "Subscriber not found" });
     }
 
+    // Dynamic Hot-Reload: Re-synchronize running cron schedule for this subscriber
+    if (typeof emailScheduler.rescheduleUserJob === "function") {
+      await emailScheduler.rescheduleUserJob(email);
+    }
+
     res.json({ email, updated: true });
   } catch (error) {
     logger.error("Failed to update subscriber", { error: error.message });
@@ -121,6 +133,12 @@ async function deleteSubscriber(req, res) {
     if (!deleted) {
       return res.status(404).json({ error: "Subscriber not found" });
     }
+
+    // Dynamic Hot-Reload: Remove running cron job immediately from in-memory scheduler
+    if (typeof emailScheduler.stopUserJob === "function") {
+      emailScheduler.stopUserJob(email);
+    }
+
     res.json({ email, deleted: true });
   } catch (error) {
     logger.error("Failed to delete subscriber", { error: error.message });

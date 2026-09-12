@@ -19,7 +19,14 @@ jest.mock("../helper/shared-data", () => ({
   updateUser: jest.fn(),
   setUserActive: jest.fn(),
 }));
+
+jest.mock("../email-core/emailScheduler", () => ({
+  rescheduleUserJob: jest.fn().mockResolvedValue({ rescheduled: true }),
+  stopUserJob: jest.fn().mockReturnValue(1),
+}));
+
 const sharedData = require("../helper/shared-data");
+const emailScheduler = require("../email-core/emailScheduler");
 
 const subscribersRoutes = require("../routes/subscribers.routes");
 

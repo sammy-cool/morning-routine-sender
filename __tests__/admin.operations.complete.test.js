@@ -65,6 +65,9 @@ jest.mock("../email-core/emailScheduler", () => ({
   getScheduledJobsStatus: jest.fn(),
   scheduleAllJobs: jest.fn(),
   stopAllJobs: jest.fn(),
+  rescheduleAllJobs: jest.fn(),
+  rescheduleUserJob: jest.fn(),
+  stopUserJob: jest.fn(),
 }));
 
 jest.mock("../helper/shared-data", () => ({
@@ -1027,6 +1030,43 @@ describe("Admin Operations & Operational Telemetry Controller Suite", () => {
         } catch (_e) {
           /* ignore */
         }
+      });
+    });
+
+    describe("POST /admin/api/reschedule-all", () => {
+      test("rejects unauthenticated request with 403", async () => {
+        const res = await request(app).post("/admin/api/reschedule-all");
+        expect(res.status).toBe(403);
+      });
+
+      test("calls emailScheduler.rescheduleAllJobs and returns 200 with result", async () => {
+        const emailScheduler = require("../email-core/emailScheduler");
+        emailScheduler.rescheduleAllJobs.mockResolvedValueOnce({
+          success: true,
+          totalJobs: 5,
+          activeJobs: [],
+        });
+
+        const res = await request(app)
+          .post("/admin/api/reschedule-all")
+          .set("Cookie", [signedAdminCookie]);
+
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.totalJobs).toBe(5);
+        expect(emailScheduler.rescheduleAllJobs).toHaveBeenCalledTimes(1);
+      });
+
+      test("returns 500 when emailScheduler.rescheduleAllJobs rejects", async () => {
+        const emailScheduler = require("../email-core/emailScheduler");
+        emailScheduler.rescheduleAllJobs.mockRejectedValueOnce(new Error("DB Connection Lost"));
+
+        const res = await request(app)
+          .post("/admin/api/reschedule-all")
+          .set("Cookie", [signedAdminCookie]);
+
+        expect(res.status).toBe(500);
+        expect(res.body.success).toBe(false);
       });
     });
   });

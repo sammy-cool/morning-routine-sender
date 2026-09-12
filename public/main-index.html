@@ -302,7 +302,7 @@
       header.navbar {
         position: sticky;
         top: 0;
-        z-index: 50;
+        z-index: 1001;
         padding: max(16px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 16px
           max(24px, env(safe-area-inset-left));
         background: rgba(5, 6, 8, 0.88);
@@ -1145,6 +1145,20 @@
         }
       }
 
+      @media (min-width: 861px) and (max-width: 1040px) {
+        .nav-links {
+          gap: 6px;
+        }
+        .nav-links .btn {
+          padding: 8px 10px;
+          font-size: 13px;
+        }
+        .live-hud-pill {
+          padding: 4px 8px;
+          font-size: 11px;
+        }
+      }
+
       @media (max-width: 860px) {
         header.navbar {
           padding: max(12px, env(safe-area-inset-top, 12px)) 16px 12px 16px;
@@ -1173,7 +1187,7 @@
 
         .nav-links {
           position: fixed;
-          top: 67px;
+          top: calc(56px + env(safe-area-inset-top, 12px));
           left: 0;
           right: 0;
           width: 100%;
@@ -1195,11 +1209,11 @@
             max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
             opacity 0.25s ease,
             padding 0.35s ease;
-          z-index: 85;
+          z-index: 1002;
         }
 
         .nav-links.nav-open {
-          max-height: calc(100vh - 75px);
+          max-height: calc(100dvh - 70px - env(safe-area-inset-top, 12px));
           overflow-y: auto;
           opacity: 1;
           pointer-events: auto;
@@ -1399,6 +1413,41 @@
           align-items: flex-start;
           gap: 12px;
           width: 100%;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header.navbar {
+          padding: max(10px, env(safe-area-inset-top, 10px)) 12px 10px 12px;
+        }
+        .brand-name {
+          font-size: clamp(15px, 4.2vw, 18px);
+        }
+        .brand-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+        }
+        .brand-icon img {
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      @media (max-width: 360px) {
+        header.navbar {
+          padding: max(8px, env(safe-area-inset-top, 8px)) 8px 8px 8px;
+        }
+        .mobile-subscribe-pill span {
+          display: none !important;
+        }
+        .mobile-subscribe-pill {
+          padding: 6px 10px;
+          min-height: 36px;
+        }
+        .mobile-menu-toggle {
+          width: 36px;
+          height: 36px;
         }
       }
 

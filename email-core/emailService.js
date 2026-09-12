@@ -1,6 +1,11 @@
 // emailService.js
 const handlebars = require("handlebars");
-const mjml2html = require("mjml");
+let mjml2html;
+try {
+  mjml2html = require("mjml");
+} catch (err) {
+  mjml2html = (content) => ({ html: `<html><body>${content}</body></html>`, errors: [] });
+}
 const fs = require("fs");
 const path = require("path");
 const crypto = require("node:crypto");

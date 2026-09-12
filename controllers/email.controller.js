@@ -363,6 +363,19 @@ async function unsubscribe(req, res) {
     const updated = await sharedData.setUserActive(email, false);
     logger.info("Subscriber unsubscribed", { email });
 
+    // Dynamic Hot-Reload: Stop and purge user cron immediately from in-memory scheduler
+    try {
+      const emailScheduler = require("../email-core/emailScheduler");
+      if (typeof emailScheduler.stopUserJob === "function") {
+        emailScheduler.stopUserJob(email);
+      }
+    } catch (schedErr) {
+      logger.warn("Non-fatal failure stopping user cron on unsubscribe", {
+        email,
+        error: schedErr.message,
+      });
+    }
+
     if (!updated) {
       return renderPage(
         "Already Unsubscribed",

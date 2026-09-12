@@ -423,5 +423,57 @@ describe("Email Jobs & Scheduler Comprehensive Suite", () => {
       expect(mockJobStop).toHaveBeenCalledTimes(3);
       expect(emailScheduler.getScheduledJobsStatus().length).toBe(0);
     });
+
+    test("scheduleUserJob, stopUserJob, and rescheduleUserJob perform dynamic hot-reloading", async () => {
+      const user = {
+        email: "dynamic@example.com",
+        cronPattern: "0 7 * * 1-5",
+        timezone: "America/New_York",
+        isActive: true,
+      };
+
+      // 1. Schedule single user
+      emailScheduler.scheduleUserJob(user);
+      expect(emailScheduler.getScheduledJobsStatus().length).toBe(2);
+
+      // 2. Stop single user
+      const stopped = emailScheduler.stopUserJob("dynamic@example.com");
+      expect(stopped).toBe(2);
+      expect(emailScheduler.getScheduledJobsStatus().length).toBe(0);
+
+      // 3. Hot-reschedule active user from DB
+      mockGetUserByEmail.mockResolvedValueOnce({
+        email: "dynamic@example.com",
+        cronPattern: "0 6 * * *",
+        timezone: "Asia/Kolkata",
+        isActive: true,
+      });
+
+      const res = await emailScheduler.rescheduleUserJob("dynamic@example.com");
+      expect(res.rescheduled).toBe(true);
+      expect(emailScheduler.getScheduledJobsStatus().length).toBe(2);
+
+      // 4. Hot-reschedule inactive user removes jobs
+      mockGetUserByEmail.mockResolvedValueOnce({
+        email: "dynamic@example.com",
+        isActive: false,
+      });
+
+      const resInactive = await emailScheduler.rescheduleUserJob("dynamic@example.com");
+      expect(resInactive.rescheduled).toBe(false);
+      expect(emailScheduler.getScheduledJobsStatus().length).toBe(0);
+    });
+
+    test("rescheduleAllJobs re-queries DB and hot-reloads all active schedules", async () => {
+      mockGetUsers.mockResolvedValue([
+        { email: "user1@example.com", cronPattern: "0 8 * * *" },
+        { email: "user2@example.com", cronPattern: "0 9 * * *" },
+      ]);
+
+      const result = await emailScheduler.rescheduleAllJobs();
+      expect(result.success).toBe(true);
+      expect(result.totalJobs).toBe(4); // 2 users * 2 jobs (daily + weekly)
+      expect(result.activeJobs.length).toBe(4);
+    });
   });
 });

@@ -106,4 +106,27 @@ async function cleanupLogs(req, res) {
   }
 }
 
-module.exports = { readDb, cleanupDatabase, getDatabaseStats, cleanupLogs };
+// POST /admin/api/reschedule-all
+async function rescheduleAllCronJobs(req, res) {
+  try {
+    const emailScheduler = require("../email-core/emailScheduler");
+    const result = await emailScheduler.rescheduleAllJobs();
+    logger.info("Admin triggered rescheduleAllCronJobs", { totalJobs: result.totalJobs });
+    res.json({
+      success: true,
+      message: `Successfully reloaded and rescheduled ${result.totalJobs} active cron schedules.`,
+      ...result,
+    });
+  } catch (error) {
+    logger.error("Failed to reschedule cron jobs via admin", { error: error.message || error });
+    res.status(500).json({ success: false, error: error.message || error });
+  }
+}
+
+module.exports = {
+  readDb,
+  cleanupDatabase,
+  getDatabaseStats,
+  cleanupLogs,
+  rescheduleAllCronJobs,
+};

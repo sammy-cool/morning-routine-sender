@@ -421,7 +421,7 @@
         -webkit-backdrop-filter: blur(16px);
         position: sticky;
         top: 0;
-        z-index: 90;
+        z-index: 1001;
         transform: translateZ(0);
         transition: var(--transition);
       }
@@ -489,6 +489,10 @@
       }
 
       @media (max-width: 860px) {
+        header.navbar {
+          padding: max(12px, env(safe-area-inset-top, 12px)) 16px 12px 16px;
+        }
+
         .dashboard-mobile-nav-toggle {
           display: flex;
         }
@@ -499,7 +503,7 @@
 
         #userNavActions {
           position: fixed;
-          top: 65px;
+          top: calc(56px + env(safe-area-inset-top, 12px));
           left: 0;
           right: 0;
           width: 100%;
@@ -521,11 +525,12 @@
             max-height 0.32s cubic-bezier(0.16, 1, 0.3, 1),
             opacity 0.25s ease,
             padding 0.32s ease;
-          z-index: 85;
+          z-index: 1002;
         }
 
         #userNavActions.nav-open {
-          max-height: 380px;
+          max-height: calc(100dvh - 70px - env(safe-area-inset-top, 12px));
+          overflow-y: auto;
           opacity: 1;
           pointer-events: auto;
           padding: 16px 20px 20px;
@@ -549,6 +554,42 @@
           display: flex;
           align-items: center;
           min-height: 46px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header.navbar {
+          padding: max(10px, env(safe-area-inset-top, 10px)) 12px 10px 12px;
+        }
+        #themeActiveLabel {
+          display: none;
+        }
+        .theme-picker-btn {
+          padding: 8px 10px;
+          gap: 6px;
+        }
+        .brand-name {
+          font-size: clamp(13.5px, 3.8vw, 15px);
+        }
+        .brand-name-prefix {
+          display: none;
+        }
+        .brand-icon {
+          width: 32px;
+          height: 32px;
+        }
+      }
+
+      @media (max-width: 360px) {
+        header.navbar {
+          padding: max(8px, env(safe-area-inset-top, 8px)) 8px 8px 8px;
+        }
+        .nav-actions-cluster {
+          gap: 4px;
+        }
+        .dashboard-mobile-nav-toggle {
+          width: 34px;
+          height: 34px;
         }
       }
 
@@ -1854,7 +1895,9 @@
             />
           </div>
           <div>
-            <div class="brand-name">Your Morning Routine</div>
+            <div class="brand-name">
+              <span class="brand-name-prefix">Your </span>Morning Routine
+            </div>
             <div class="brand-sub-label" style="font-size: 11px; color: var(--text-muted)">
               Subscriber Management Portal
             </div>
@@ -2743,7 +2786,7 @@
                 >(0/5 members)</span
               >
             </div>
-            <div style="display: flex; gap: 8px; align-items: center">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
               <button
                 type="button"
                 id="copySquadCodeBtn"
@@ -2751,6 +2794,24 @@
                 style="padding: 6px 12px; font-size: 12px"
               >
                 <i class="fas fa-copy"></i> <span id="squadCodeLabel">Invite Code</span>
+              </button>
+              <button
+                type="button"
+                id="shareSquadWhatsAppBtn"
+                class="btn btn-ghost touch-btn"
+                style="padding: 6px 12px; font-size: 12px; color: #25d366"
+                title="Share invite on WhatsApp"
+              >
+                <i class="fab fa-whatsapp"></i> WhatsApp
+              </button>
+              <button
+                type="button"
+                id="shareSquadTelegramBtn"
+                class="btn btn-ghost touch-btn"
+                style="padding: 6px 12px; font-size: 12px; color: #38bdf8"
+                title="Share invite on Telegram"
+              >
+                <i class="fab fa-telegram-plane"></i> Telegram
               </button>
               <button
                 type="button"
@@ -3415,7 +3476,39 @@
                 style="display: none; margin-top: 8px"
               />
               <div class="small" style="margin-top: 4px; color: var(--text-muted); font-size: 12px">
-                Delivered directly to your inbox every morning.
+                Delivered directly to your inbox at your chosen routine time.
+              </div>
+              <!-- Schedule Frequency -->
+              <div style="margin-top: 10px">
+                <label style="font-size: 12px; margin-bottom: 6px; display: block"
+                  >Delivery Frequency</label
+                >
+                <div style="display: flex; gap: 6px; flex-wrap: wrap" id="frequencyPickerGroup">
+                  <button
+                    type="button"
+                    class="btn btn-primary freq-select-btn active"
+                    data-freq="daily"
+                    style="padding: 5px 12px; font-size: 12px"
+                  >
+                    <i class="fas fa-calendar-day"></i> All 7 Days
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary freq-select-btn"
+                    data-freq="weekdays"
+                    style="padding: 5px 12px; font-size: 12px"
+                  >
+                    <i class="fas fa-briefcase"></i> Weekdays (Mon-Fri)
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary freq-select-btn"
+                    data-freq="weekends"
+                    style="padding: 5px 12px; font-size: 12px"
+                  >
+                    <i class="fas fa-sun"></i> Weekends Only
+                  </button>
+                </div>
               </div>
             </div>
             <div>

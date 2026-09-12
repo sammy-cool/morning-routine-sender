@@ -29,5 +29,6 @@ router.post(
   requireAdmin,
   weeklyDigestController.triggerWeeklyDigest,
 );
+router.post("/admin/api/reschedule-all", requireAdmin, adminController.rescheduleAllCronJobs);
 
 module.exports = router;

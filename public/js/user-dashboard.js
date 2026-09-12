@@ -134,17 +134,45 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    let currentFrequency = "daily";
+
+    function updateCronExpression() {
+      if (!visualTimeSelect) return;
+      if (visualTimeSelect.value === "custom") {
+        prefCron.style.display = "block";
+        return;
+      }
+      prefCron.style.display = "none";
+      const baseParts = visualTimeSelect.value.trim().split(/\s+/);
+      const minute = baseParts[0] || "0";
+      const hour = baseParts[1] || "8";
+      let dayOfWeek = "*";
+      if (currentFrequency === "weekdays") dayOfWeek = "1-5";
+      else if (currentFrequency === "weekends") dayOfWeek = "6,0";
+
+      prefCron.value = `${minute} ${hour} * * ${dayOfWeek}`;
+    }
+
     // Time select handling
     if (visualTimeSelect) {
       visualTimeSelect.addEventListener("change", function () {
-        if (this.value === "custom") {
-          prefCron.style.display = "block";
-        } else {
-          prefCron.style.display = "none";
-          prefCron.value = this.value;
-        }
+        updateCronExpression();
       });
     }
+
+    // Frequency picker buttons handling
+    document.querySelectorAll(".freq-select-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".freq-select-btn").forEach((b) => {
+          b.classList.remove("active", "btn-primary");
+          b.classList.add("btn-secondary");
+        });
+        this.classList.remove("btn-secondary");
+        this.classList.add("active", "btn-primary");
+        currentFrequency = this.dataset.freq || "daily";
+        updateCronExpression();
+      });
+    });
 
     // Auto-detect timezone
     if (autoDetectTzBtn) {
@@ -204,11 +232,29 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       // Cron & Time Select
       const cron = sub.cronPattern || "0 8 * * *";
       prefCron.value = cron;
+
+      // Extract day-of-week and hour/min
+      const cronParts = cron.trim().split(/\s+/);
+      if (cronParts.length >= 5) {
+        const dow = cronParts[4];
+        if (dow === "1-5") currentFrequency = "weekdays";
+        else if (dow === "6,0" || dow === "0,6") currentFrequency = "weekends";
+        else currentFrequency = "daily";
+
+        document.querySelectorAll(".freq-select-btn").forEach((b) => {
+          const isAct = (b.dataset.freq || "daily") === currentFrequency;
+          b.classList.toggle("active", isAct);
+          b.classList.toggle("btn-primary", isAct);
+          b.classList.toggle("btn-secondary", !isAct);
+        });
+      }
+
       let matchedOption = false;
       if (visualTimeSelect) {
+        const hourMinPrefix = `${cronParts[0] || "0"} ${cronParts[1] || "8"} * *`;
         for (let opt of visualTimeSelect.options) {
-          if (opt.value === cron) {
-            visualTimeSelect.value = cron;
+          if (opt.value === cron || opt.value.startsWith(hourMinPrefix)) {
+            visualTimeSelect.value = opt.value;
             matchedOption = true;
             prefCron.style.display = "none";
             break;
@@ -405,8 +451,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       saveStatus.textContent = "Saving preferences...";
 
       try {
-        const cronValue =
-          visualTimeSelect.value === "custom" ? prefCron.value.trim() : visualTimeSelect.value;
+        const cronValue = prefCron.value.trim() || visualTimeSelect.value || "0 8 * * *";
 
         const durationVal = prefFocusDuration ? Number(prefFocusDuration.value) || 25 : 25;
         const customQuoteVal = prefCustomQuote ? prefCustomQuote.value.trim() : null;
@@ -2688,6 +2733,53 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             showToast(`Code: ${currentSquadData.squad.inviteCode}`, "info");
           });
       });
+    }
+
+    const shareSquadWhatsAppBtn = document.getElementById("shareSquadWhatsAppBtn");
+    if (shareSquadWhatsAppBtn) {
+      shareSquadWhatsAppBtn.addEventListener("click", () => {
+        if (!currentSquadData?.squad?.inviteCode) return;
+        const code = currentSquadData.squad.inviteCode;
+        const name = currentSquadData.squad.name || "Morning Routine Squad";
+        const shareUrl = `${window.location.origin}/user-dashboard?joinSquad=${code}`;
+        const text = `Join my morning accountability squad "${name}" on Morning Routine! Let's conquer our daily goals together. 🌅\n\nInvite Code: ${code}\nLink: ${shareUrl}`;
+        window.open(
+          `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
+      });
+    }
+
+    const shareSquadTelegramBtn = document.getElementById("shareSquadTelegramBtn");
+    if (shareSquadTelegramBtn) {
+      shareSquadTelegramBtn.addEventListener("click", () => {
+        if (!currentSquadData?.squad?.inviteCode) return;
+        const code = currentSquadData.squad.inviteCode;
+        const name = currentSquadData.squad.name || "Morning Routine Squad";
+        const shareUrl = `${window.location.origin}/user-dashboard?joinSquad=${code}`;
+        const text = `Join my morning accountability squad "${name}"! Invite Code: ${code}`;
+        window.open(
+          `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
+      });
+    }
+
+    // Auto-populate squad join code from URL params if present
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const joinCodeParam = urlParams.get("joinSquad");
+      if (joinCodeParam) {
+        const joinInput = document.getElementById("joinSquadCodeInput");
+        if (joinInput) {
+          joinInput.value = joinCodeParam.toUpperCase().trim();
+          showToast(`Squad invite code ${joinCodeParam} ready to join!`, "info");
+        }
+      }
+    } catch (_err) {
+      /* Non-fatal URL param parse */
     }
 
     const createSquadBtn = document.getElementById("createSquadBtn");
