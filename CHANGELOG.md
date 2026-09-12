@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.10.0] - 2026-09-12
+
+### 🌟 Dual-Track Scheduling, Vacation Mode, RFC 5545 Calendar Feed, Streak Milestone Trophies & Admin Command Center
+
+- **Dual-Track Scheduling (Weekday vs. Weekend)**:
+  - Added support for distinct routine tracks and dispatch times between weekdays and weekends.
+  - Dynamically resolved and scheduled via [`email-core/emailScheduler.js`](file:///home/smarty/projects/morning-routine-sender/email-core/emailScheduler.js) and [`email-core/emailService.js`](file:///home/smarty/projects/morning-routine-sender/email-core/emailService.js) with instant hot-reloading on schedule modification.
+- **Vacation & Routine Pause Mode (Streak Freeze Protection)**:
+  - Added Vacation / Routine Pause mode allowing users to suspend daily emails for 3, 7, 14 days or a custom return date without resetting their streak.
+  - Preserves streaks in [`helper/shared-data.js`](file:///home/smarty/projects/morning-routine-sender/helper/shared-data.js) checkin logic and displays an active vacation banner with 1-click early resumption in [`public/user-dashboard.html`](file:///home/smarty/projects/morning-routine-sender/public/user-dashboard.html).
+- **Email Density Selector & Dynamic In-Email Sparks**:
+  - Added 3 reading depth modes: Bite-Sized (30s Skim), Balanced (Standard 90s), and Deep Focus (3m Reflection).
+  - Integrated localized weather sparks into morning routines based on user location city with zero-latency deterministic calculation via [`helper/weatherSpark.js`](file:///home/smarty/projects/morning-routine-sender/helper/weatherSpark.js).
+- **Streak Milestone Trophies (Gamification)**:
+  - Introduced 7 unlockable lifetime milestone trophies (Bronze Ignition 3d, Momentum Builder 7d, Fortitude Pioneer 14d, Habit Alchemist 21d, Golden Architect 30d, Iron Will 50d, Centurion Legend 100d).
+  - Interactive trophy rack, next milestone countdown, and animated progress bar in the subscriber portal via [`helper/streakMilestones.js`](file:///home/smarty/projects/morning-routine-sender/helper/streakMilestones.js).
+- **Live RFC 5545 iCalendar Feed Sync (`.ics` & `webcal://`)**:
+  - Full RFC 5545 calendar subscription endpoint (`GET /api/calendar/feed/:token.ics`) with HMAC token security via [`controllers/calendar.feed.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/calendar.feed.controller.js) and [`helper/calendarFeedGenerator.js`](file:///home/smarty/projects/morning-routine-sender/helper/calendarFeedGenerator.js).
+  - Syncs daily morning routine blocks directly to Apple Calendar, Google Calendar, and Outlook with 10-minute alarms and check-in links.
+- **Admin Command Center & Telemetry Upgrades**:
+  - **Upcoming Dispatch Queue (Next 24h)**: Live inspector showing scheduled dispatches, tracks, countdown timers, and 1-click test preview dispatch.
+  - **Suppression & Bounce Registry Manager**: Real-time blocked email inspector with 1-click unsuppress / whitelist action.
+  - **Global Routine Announcement Studio**: Broadcast bulletin generator injecting announcements into daily emails with live preview and track targeting.
+- **Dynamic Hot-Reloading Cron Schedulers & Header CSS Overhaul**:
+  - In-memory node-cron hot-rescheduling on any user or admin update without requiring server restart.
+  - Fluid cross-breakpoint responsive header across mobile, tablet, and desktop with safe-area insets.
+- **Comprehensive Quality Gates & Testing**:
+  - **All 62 test suites passed with 790/790 tests green (100%)**.
+  - Prettier formatting compliance and zero ESLint errors or warnings.
+  - Service Worker cache bumped to `v4.6.0` in [`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js) for automatic client cache invalidation.
+
+---
+
 ## [2.9.0] - 2026-09-11
 
 ### 🚀 Vector Favicon Brand Transformation, Universal Smooth Scrolling & Unified Cross-Device Responsive Layout
