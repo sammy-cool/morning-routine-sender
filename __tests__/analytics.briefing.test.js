@@ -12,7 +12,7 @@ const channelsMigration = require("../db/migrations/20260829010000_add_channels_
 const coachPersonaMigration = require("../db/migrations/20260829020000_add_coach_persona_to_subscribers");
 const outboundWebhooksMigration = require("../db/migrations/20260829030000_add_outbound_webhooks_to_subscribers");
 const streakFreezesMigration = require("../db/migrations/20260831000000_add_streak_freezes_to_subscribers");
-const { generateActionToken } = require("../helper/unsubscribeToken");
+const { generateActionToken, generateCalendarToken } = require("../helper/unsubscribeToken");
 
 jest.mock("../config/redisClient", () => {
   const store = new Map();
@@ -158,5 +158,61 @@ describe("Habit Analytics & Morning Audio Briefing Services", () => {
     expect(Array.isArray(b.sections)).toBe(true);
     expect(b.fullScript).toContain("Welcome");
     expect(b.fullScript).toContain("discipline");
+  });
+
+  test("4. generates valid podcast RSS 2.0 feed via /feed/podcast/:token with iTunes tags", async () => {
+    const token = generateCalendarToken("leader@example.com");
+    const res = await request(app).get(`/feed/podcast/${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/application\/rss\+xml/);
+    expect(res.text).toContain("<rss");
+    expect(res.text).toContain("<enclosure");
+    expect(res.text).toContain('xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"');
+    expect(res.text).toContain("<title>Morning Routine Audio Briefing • leader</title>");
+    expect(res.text).toContain(
+      "<description>Personalized morning kickoff with daily habit rituals, consistency momentum, and stoic focus wisdom.</description>",
+    );
+    expect(res.text).toContain("/me/dashboard</link>");
+    expect(res.text).toContain("<language>en-us</language>");
+    expect(res.text).toContain("<itunes:author>Morning Routine Sender</itunes:author>");
+    expect(res.text).toContain("/assets/mrn-brand-ico.png");
+    expect(res.text).toContain('/api/me/briefing?email=leader@example.com&amp;format=audio"');
+    expect(res.text).toContain('length="1024000"');
+    expect(res.text).toContain('type="audio/mpeg"');
+    expect(res.text).toContain("<itunes:duration>");
+    expect(res.text).toContain("<guid");
+    expect(res.text).toContain("<pubDate>");
+  });
+
+  test("5. generates valid podcast RSS XML via /feed/podcast/:token.xml", async () => {
+    const token = generateCalendarToken("leader@example.com");
+    const res = await request(app).get(`/feed/podcast/${token}.xml`);
+
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/application\/rss\+xml/);
+    expect(res.text).toContain("<rss");
+    expect(res.text).toContain("<enclosure");
+    expect(res.text).toContain('type="audio/mpeg"');
+  });
+
+  test("6. generates podcast feed via /api/me/podcast-feed with subscriber session or token", async () => {
+    const token = generateActionToken("leader@example.com", "routine");
+    const res = await request(app)
+      .get("/api/me/podcast-feed")
+      .query({ email: "leader@example.com", token });
+
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/application\/rss\+xml/);
+    expect(res.text).toContain("<rss");
+    expect(res.text).toContain("<enclosure");
+  });
+
+  test("7. rejects invalid or missing tokens for podcast feeds with 401", async () => {
+    const resA = await request(app).get("/feed/podcast/invalid-token-12345");
+    expect(resA.status).toBe(401);
+
+    const resB = await request(app).get("/api/me/podcast-feed");
+    expect(resB.status).toBe(401);
   });
 });

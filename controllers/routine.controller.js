@@ -496,15 +496,15 @@ async function liveRoutine(req, res) {
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Today's Morning Routine • ${escapeHtml(trackContent.name)}</title>
   <link rel="canonical" href="${domain}/routine">
-  <meta property="og:title" content="Today's Morning Routine • ${escapeHtml(trackContent.name)}">
-  <meta property="og:description" content="Interactive 25-minute live morning routine focus companion with procedural soundscapes, ritual checklist, and daily inspiration.">
+  <meta property="og:title" content="3-Minute Live Morning Ritual &amp; Habit Companion">
+  <meta property="og:description" content="Box breathing, procedural ambient soundscapes, tactile wake-up challenge, and goal locks.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="${domain}/routine">
-  <meta property="og:image" content="${domain}/assets/screenshot-desktop.png">
+  <meta property="og:image" content="/assets/mrn-brand-ico.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Today's Morning Routine • ${escapeHtml(trackContent.name)}">
-  <meta name="twitter:description" content="Interactive 25-minute live morning routine focus companion with procedural soundscapes, ritual checklist, and daily inspiration.">
-  <meta name="twitter:image" content="${domain}/assets/screenshot-desktop.png">
+  <meta name="twitter:title" content="3-Minute Live Morning Ritual &amp; Habit Companion">
+  <meta name="twitter:description" content="Box breathing, procedural ambient soundscapes, tactile wake-up challenge, and goal locks.">
+  <meta name="twitter:image" content="/assets/mrn-brand-ico.png">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png">
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -2868,6 +2868,14 @@ async function liveRoutine(req, res) {
     // =========================================================================
     // Web Audio Procedural Chimes, Ocean Drone & Fanfare Synthesizers
     // =========================================================================
+    function triggerHaptic(pattern) {
+      if (typeof window !== "undefined" && "vibrate" in navigator && typeof navigator.vibrate === "function") {
+        try {
+          navigator.vibrate(pattern);
+        } catch (_e) {}
+      }
+    }
+
     let ritualAudioNodes = [];
     let ritualTimerInterval = null;
     let ritualSecondsLeft = 180; // 3 minutes total
@@ -3185,18 +3193,22 @@ async function liveRoutine(req, res) {
         orb.className = 'breathing-orb inhale';
         txt.textContent = 'Inhale';
         cnt.textContent = (4 - breathingCycleTick) + 's';
+        if (breathingCycleTick === 0) triggerHaptic(40);
       } else if (breathingCycleTick < 8) {
         orb.className = 'breathing-orb hold';
         txt.textContent = 'Hold';
         cnt.textContent = (8 - breathingCycleTick) + 's';
+        if (breathingCycleTick === 4) triggerHaptic(20);
       } else if (breathingCycleTick < 12) {
         orb.className = 'breathing-orb exhale';
         txt.textContent = 'Exhale';
         cnt.textContent = (12 - breathingCycleTick) + 's';
+        if (breathingCycleTick === 8) triggerHaptic(40);
       } else {
         orb.className = 'breathing-orb hold-empty';
         txt.textContent = 'Hold';
         cnt.textContent = (16 - breathingCycleTick) + 's';
+        if (breathingCycleTick === 12) triggerHaptic(20);
       }
     }
 
@@ -3213,6 +3225,7 @@ async function liveRoutine(req, res) {
 
       if (ritualPhase === 1) {
         startRitualBreathingDrone();
+        if (breathingCycleTick === 0) triggerHaptic(40);
       }
 
       ritualTimerInterval = setInterval(() => {
@@ -3244,6 +3257,7 @@ async function liveRoutine(req, res) {
     function handleWaterTap() {
       waterTapCount = Math.min(3, waterTapCount + 1);
       playWaterDropletSound();
+      triggerHaptic(25);
       if (window.UXCore?.haptics) window.UXCore.haptics.light();
 
       for (let i = 1; i <= 3; i++) {
@@ -3320,6 +3334,7 @@ async function liveRoutine(req, res) {
       btn.classList.add('locked');
       btn.innerHTML = 'Locked ✓';
       playPriorityLockChime();
+      triggerHaptic(35);
       if (window.UXCore?.haptics) window.UXCore.haptics.success();
 
       // Mirror into reflection input
@@ -3350,6 +3365,7 @@ async function liveRoutine(req, res) {
 
       playVictoryFanfare();
       fireCelebrationConfetti();
+      triggerHaptic([60, 60, 60, 60, 140]);
 
       const priorityGoal = document.getElementById('livePriorityInput')?.value.trim() || '';
 

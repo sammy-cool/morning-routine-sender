@@ -8,6 +8,11 @@ jest.mock("../middleware/subscriberSession", () => ({
     req.subscriberSession = { email: mockSubscriberEmail };
     next();
   },
+  requireSubscriberAuth: (req, _res, next) => {
+    req.subscriberEmail = mockSubscriberEmail;
+    req.subscriberSession = { email: mockSubscriberEmail };
+    next();
+  },
 }));
 
 const channelDispatcher = require("../helper/channelDispatcher");

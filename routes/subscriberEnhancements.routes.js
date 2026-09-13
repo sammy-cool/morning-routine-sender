@@ -11,4 +11,11 @@ router.get("/api/me/analytics", requireSubscriberAuth, analyticsController.getSu
 // AI Morning Audio Briefing API
 router.get("/api/me/briefing", requireSubscriberAuth, briefingController.getDailyBriefing);
 
+// Personalized Podcast RSS Feed
+router.get("/feed/podcast/:token", briefingController.getPodcastFeed);
+router.get("/feed/podcast/:token.xml", briefingController.getPodcastFeed);
+router.get("/api/me/podcast-feed", requireSubscriberAuth, (req, res) =>
+  briefingController.getPodcastFeed(req, res),
+);
+
 module.exports = router;

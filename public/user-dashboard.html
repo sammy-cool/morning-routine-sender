@@ -4330,7 +4330,7 @@
               Pause emails temporarily without deleting your streak or account.
             </div>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
             <button
               type="button"
               class="btn btn-secondary"
@@ -4341,6 +4341,22 @@
               <i class="fas fa-plane" aria-hidden="true"></i> Vacation Mode
             </button>
             <button class="btn btn-warning" id="pauseResumeBtn"></button>
+            <a
+              href="/me/export?format=csv"
+              id="exportDisciplineDataBtn"
+              class="btn btn-secondary"
+              download
+              style="
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 13px;
+              "
+              title="1-Click Download of your routine &amp; discipline logs (.CSV / .JSON)"
+            >
+              📥 Export Data (.CSV / .JSON)
+            </a>
           </div>
         </div>
         <p id="actionStatus" class="small" aria-live="polite" style="color: #60a5fa"></p>

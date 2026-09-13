@@ -99,6 +99,261 @@ async function exportJournal(req, res) {
   }
 }
 
+// GET /api/me/export and GET /me/export
+async function exportDisciplineData(req, res) {
+  try {
+    const email = (req.subscriberEmail || req.subscriber?.email || "").toLowerCase().trim();
+    if (!email) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const subscriber = await sharedData.getUserByEmail(email);
+    if (!subscriber) {
+      return res.status(404).json({ error: "Subscriber not found" });
+    }
+
+    const journalService = require("../helper/journalService");
+    const entries = (await journalService.getAllEntries(subscriber.email)) || [];
+
+    const format = (req.query.format || "json").toLowerCase().trim();
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const track = subscriber.routineTrack || subscriber.templateType || "deep-work";
+    const streakCount = Number(subscriber.streakCount) || 0;
+    const streakFreezes =
+      subscriber.streakFreezes !== undefined && subscriber.streakFreezes !== null
+        ? Number(subscriber.streakFreezes)
+        : 2;
+    const freezeHistory = Array.isArray(subscriber.freezeHistory) ? subscriber.freezeHistory : [];
+    const customHabits = Array.isArray(subscriber.customHabits) ? subscriber.customHabits : [];
+
+    if (format === "csv") {
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="morning-routine-export-${todayStr}.csv"`,
+      );
+
+      const headers = [
+        "Date",
+        "Streak",
+        "Verified Wakeup",
+        "Priority Goal",
+        "Mood",
+        "Gratitude",
+        "Reflection",
+      ];
+
+      const escapeCsv = (val) => {
+        if (val === null || val === undefined) return '""';
+        let str = String(val).replace(/"/g, '""');
+        if (/^[=+\-@\t\r]/.test(str)) {
+          str = `'${str}`;
+        }
+        return `"${str}"`;
+      };
+
+      const rows = entries.map((entry) => {
+        const date = entry.entry_date || entry.date || "";
+        const streak =
+          entry.streak !== undefined && entry.streak !== null
+            ? entry.streak
+            : entry.streak_count !== undefined && entry.streak_count !== null
+              ? entry.streak_count
+              : entry.streakCount !== undefined && entry.streakCount !== null
+                ? entry.streakCount
+                : streakCount;
+
+        let verifiedWakeup = true;
+        if (entry.verified_wakeup !== undefined && entry.verified_wakeup !== null) {
+          verifiedWakeup = entry.verified_wakeup;
+        } else if (entry.verifiedWakeup !== undefined && entry.verifiedWakeup !== null) {
+          verifiedWakeup = entry.verifiedWakeup;
+        }
+
+        const priorityGoal =
+          entry.priority_goal ||
+          entry.priorityGoal ||
+          entry.one_big_thing ||
+          entry.oneBigThing ||
+          "";
+        const mood =
+          entry.mood_score !== undefined && entry.mood_score !== null
+            ? entry.mood_score
+            : entry.mood !== undefined && entry.mood !== null
+              ? entry.mood
+              : "";
+        const gratitude = entry.gratitude || "";
+        const reflection = entry.reflection_text || entry.reflectionText || entry.reflection || "";
+
+        return [
+          escapeCsv(date),
+          escapeCsv(streak),
+          escapeCsv(verifiedWakeup),
+          escapeCsv(priorityGoal),
+          escapeCsv(mood),
+          escapeCsv(gratitude),
+          escapeCsv(reflection),
+        ];
+      });
+
+      const csvContent = [
+        headers.map((h) => `"${h}"`).join(","),
+        ...rows.map((r) => r.join(",")),
+      ].join("\r\n");
+
+      return res.send(csvContent);
+    }
+
+    if (format === "markdown" || format === "md") {
+      res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="morning-routine-export-${todayStr}.md"`,
+      );
+
+      // Notion & Obsidian compatible frontmatter
+      let md = "---\n";
+      md += `title: Morning Routine & Discipline Archive\n`;
+      md += `subscriber: ${subscriber.email}\n`;
+      md += `track: ${track}\n`;
+      md += `streak_count: ${streakCount}\n`;
+      md += `streak_freezes: ${streakFreezes}\n`;
+      md += `total_entries: ${entries.length}\n`;
+      md += `exported_at: ${new Date().toISOString()}\n`;
+      if (customHabits.length > 0) {
+        md += "custom_habits:\n";
+        customHabits.forEach((h) => {
+          md += `  - "${String(h).replace(/"/g, '\\"')}"\n`;
+        });
+      } else {
+        md += "custom_habits: []\n";
+      }
+      md += "tags:\n";
+      md += "  - discipline\n";
+      md += "  - morning-routine\n";
+      md += "  - habit-tracker\n";
+      md += "---\n\n";
+
+      md += `# 🌅 Morning Routine & Discipline Archive\n\n`;
+      md += `> **Subscriber:** \`${subscriber.email}\` • **Track:** \`${track}\` • **Current Streak:** 🔥 **${streakCount} Days** • **Shield Freezes:** 🛡️ **${streakFreezes} Available**\n\n`;
+
+      if (customHabits.length > 0) {
+        md += `## 🎯 Custom Habits\n`;
+        customHabits.forEach((h) => {
+          md += `- [ ] ${h}\n`;
+        });
+        md += `\n`;
+      }
+
+      md += `## 📅 Daily Discipline Logs\n\n`;
+
+      if (!entries || entries.length === 0) {
+        md += `*No discipline logs recorded yet. Begin your morning routine ritual to build your daily archive!*\n`;
+      } else {
+        const moodEmojis = {
+          1: "😫 Challenging (1/5)",
+          2: "😕 Low Energy (2/5)",
+          3: "😐 Steady / Balanced (3/5)",
+          4: "🙂 Energized & Focused (4/5)",
+          5: "⚡ Peak Flow & Momentum (5/5)",
+        };
+
+        entries.forEach((entry, idx) => {
+          const entryNum = entries.length - idx;
+          const date = entry.entry_date || entry.date || "Unknown Date";
+          const streak =
+            entry.streak !== undefined && entry.streak !== null
+              ? entry.streak
+              : entry.streak_count !== undefined && entry.streak_count !== null
+                ? entry.streak_count
+                : entry.streakCount !== undefined && entry.streakCount !== null
+                  ? entry.streakCount
+                  : streakCount;
+
+          let verified = "Yes";
+          if (typeof entry.verified_wakeup === "boolean") {
+            verified = entry.verified_wakeup ? "Yes" : "No";
+          } else if (entry.verified_wakeup !== undefined && entry.verified_wakeup !== null) {
+            verified = String(entry.verified_wakeup);
+          } else if (typeof entry.verifiedWakeup === "boolean") {
+            verified = entry.verifiedWakeup ? "Yes" : "No";
+          } else if (entry.verifiedWakeup !== undefined && entry.verifiedWakeup !== null) {
+            verified = String(entry.verifiedWakeup);
+          }
+
+          const priorityGoal =
+            entry.priority_goal ||
+            entry.priorityGoal ||
+            entry.one_big_thing ||
+            entry.oneBigThing ||
+            null;
+          const mood =
+            entry.mood_score !== undefined && entry.mood_score !== null
+              ? entry.mood_score
+              : entry.mood !== undefined && entry.mood !== null
+                ? entry.mood
+                : null;
+          const gratitude = entry.gratitude || null;
+          const reflection =
+            entry.reflection_text || entry.reflectionText || entry.reflection || null;
+
+          md += `### #${entryNum} • 📅 ${date}\n`;
+          md += `- **Streak:** 🔥 ${streak} Days\n`;
+          md += `- **Verified Wakeup:** ☀️ ${verified}\n`;
+          if (mood) {
+            const moodLabel = moodEmojis[mood] || `${mood}/5`;
+            md += `- **Mood:** ${moodLabel}\n`;
+          }
+          if (priorityGoal) {
+            md += `- **Priority Goal:** ${priorityGoal.trim()}\n`;
+          }
+          if (gratitude) {
+            md += `- **Gratitude:** ${gratitude.trim()}\n`;
+          }
+          if (reflection) {
+            md += `- **Reflection:** ${reflection.trim()}\n`;
+          }
+          md += `\n---\n\n`;
+        });
+      }
+
+      return res.send(md);
+    }
+
+    // Default: JSON format
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="morning-routine-export-${todayStr}.json"`,
+    );
+
+    return res.json({
+      success: true,
+      subscriber: subscriber.email,
+      profile: {
+        email: subscriber.email,
+        name: subscriber.name || null,
+        timezone: subscriber.timezone || "UTC",
+        cronPattern: subscriber.cronPattern,
+        isActive: subscriber.isActive,
+        coachPersona: subscriber.coachPersona,
+      },
+      track,
+      streakCount,
+      streakFreezes,
+      freezeHistory,
+      customHabits,
+      totalEntries: entries.length,
+      exportedAt: new Date().toISOString(),
+      entries,
+    });
+  } catch (error) {
+    logger.error("Failed to export discipline data", { error: error.message });
+    res.status(500).json({ error: "Failed to generate discipline data export" });
+  }
+}
+
 function formatIcsDateTime(date) {
   return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 }
@@ -1257,4 +1512,5 @@ module.exports = {
   getCalendarFeedByToken,
   getWeeklyReportCard,
   getMyWeeklyReportCard,
+  exportDisciplineData,
 };

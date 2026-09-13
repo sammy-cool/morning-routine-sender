@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-let { sendEmailLimiter, authLimiter } = require("../middleware/rateLimiters");
-if (!authLimiter) authLimiter = (req, res, next) => next();
-const { requireSubscriberSession } = require("../middleware/subscriberSession");
+const rateLimiters = require("../middleware/rateLimiters");
+const sendEmailLimiter = rateLimiters.sendEmailLimiter;
+const authLimiter = rateLimiters.authLimiter || ((req, res, next) => next());
+const subscriberSession = require("../middleware/subscriberSession");
+const requireSubscriberSession = subscriberSession.requireSubscriberSession;
 const { checkHoneypot } = require("../middleware/honeypot");
 const authController = require("../controllers/subscriberAuth.controller");
 const signupController = require("../controllers/signup.controller");
@@ -53,7 +55,8 @@ router.get("/api/coach-personas", meController.getCoachPersonas);
 router.get("/me", requireSubscriberSession, meController.getMe);
 router.get("/me/history", requireSubscriberSession, meController.getMyHistory);
 router.get("/me/export-journal", requireSubscriberSession, meController.exportJournal);
-router.get("/me/export", requireSubscriberSession, meController.exportJournal);
+router.get("/me/export", requireSubscriberSession, meController.exportDisciplineData);
+router.get("/api/me/export", requireSubscriberSession, meController.exportDisciplineData);
 router.get("/me/calendar.ics", requireSubscriberSession, meController.exportCalendar);
 router.get("/me/calendar", requireSubscriberSession, meController.exportCalendar);
 router.get("/calendar/feed/:token", meController.getCalendarFeedByToken);

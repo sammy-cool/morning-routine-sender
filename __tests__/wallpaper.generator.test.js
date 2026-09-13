@@ -142,5 +142,56 @@ describe("Dynamic 9:16 Mobile Wallpaper Generator & Controller", () => {
       const text = res.text || (res.body ? res.body.toString("utf8") : "");
       expect(text).toContain("Invalid or Expired Wallpaper Token");
     });
+
+    test("GET /s/:handle returns 200 with HTML, OpenGraph tags, and action buttons", async () => {
+      const res = await request(app).get("/s/alex");
+      expect(res.status).toBe(200);
+      expect(res.headers["content-type"]).toContain("text/html");
+
+      // User handle, flame, and track badge
+      expect(res.text).toContain("@alex");
+      expect(res.text).toContain("🔥");
+      expect(res.text).toContain("Deep Work &amp; Builder");
+
+      // OpenGraph tags
+      expect(res.text).toContain('property="og:title"');
+      expect(res.text).toContain("@alex's Morning Momentum");
+      expect(res.text).toContain('property="og:description"');
+      expect(res.text).toContain(
+        "Check out @alex's unbroken morning streak and routine on Morning Routine Sender!",
+      );
+      expect(res.text).toContain('property="og:image"');
+      expect(res.text).toContain("/wallpaper/alex.svg");
+
+      // Twitter Card tags
+      expect(res.text).toContain('name="twitter:card" content="summary_large_image"');
+      expect(res.text).toContain('name="twitter:image"');
+      expect(res.text).toContain("/wallpaper/alex.svg");
+
+      // Action buttons
+      expect(res.text).toContain("📱 Download Lockscreen Wallpaper");
+      expect(res.text).toContain("/wallpaper/alex?download=1");
+      expect(res.text).toContain("⚡ Start Your Own Morning Routine");
+      expect(res.text).toContain("⚔️ Challenge to Morning Duel");
+      expect(res.text).toContain('href="/"');
+    });
+
+    test("GET /s/:handle supports @handle and GET /share/:handle alias", async () => {
+      const resAt = await request(app).get("/s/@alex?streak=14&track=mindfulness");
+      expect(resAt.status).toBe(200);
+      expect(resAt.text).toContain("@alex");
+      expect(resAt.text).toContain("14 Day Streak");
+      expect(resAt.text).toContain("Mindfulness &amp; Stoic");
+      expect(resAt.text).toContain("/wallpaper/alex.svg");
+
+      const resShare = await request(app).get("/share/alex");
+      expect(resShare.status).toBe(200);
+      expect(resShare.headers["content-type"]).toContain("text/html");
+      expect(resShare.text).toContain("@alex's Morning Momentum");
+    });
+
+    test("renderSocialShareCard is exported from wallpaper.controller.js", () => {
+      expect(typeof wallpaperController.renderSocialShareCard).toBe("function");
+    });
   });
 });

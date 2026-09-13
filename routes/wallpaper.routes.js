@@ -15,4 +15,8 @@ router.get("/api/wallpaper", wallpaperController.getWallpaper);
 router.get("/me/wallpaper.svg", requireSubscriberSession, wallpaperController.getMyWallpaper);
 router.get("/me/wallpaper", requireSubscriberSession, wallpaperController.getMyWallpaper);
 
+// Social share preview card endpoints
+router.get("/s/:handle", wallpaperController.renderSocialShareCard);
+router.get("/share/:handle", wallpaperController.renderSocialShareCard);
+
 module.exports = router;

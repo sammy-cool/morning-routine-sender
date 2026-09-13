@@ -174,6 +174,20 @@ describe("3-Minute Morning Ritual, Tactile Wake-Up & Morning Duel", () => {
       expect(res.text).toContain("waterTapBtn");
       expect(res.text).toContain("livePriorityInput");
       expect(res.text).toContain("startMorningRitual");
+      expect(res.text).toContain("triggerHaptic");
+      expect(res.text).toContain(
+        'property="og:title" content="3-Minute Live Morning Ritual &amp; Habit Companion"',
+      );
+      expect(res.text).toContain(
+        'property="og:description" content="Box breathing, procedural ambient soundscapes, tactile wake-up challenge, and goal locks."',
+      );
+      expect(res.text).toContain('property="og:image" content="/assets/mrn-brand-ico.png"');
+      expect(res.text).toContain('name="twitter:card" content="summary_large_image"');
+      expect(res.text).toContain("triggerHaptic(40)");
+      expect(res.text).toContain("triggerHaptic(20)");
+      expect(res.text).toContain("triggerHaptic(25)");
+      expect(res.text).toContain("triggerHaptic(35)");
+      expect(res.text).toContain("triggerHaptic([60, 60, 60, 60, 140])");
     });
   });
 
