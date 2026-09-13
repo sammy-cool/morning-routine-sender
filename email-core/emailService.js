@@ -132,6 +132,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}${routineQueryDuration}`,
       ctaText: `⚡ Open Interactive Routine & ${focusDuration}-Min Focus Timer`,
       checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}`,
+      wallpaperUrl: `${baseUrl}/wallpaper/${encodeURIComponent(userData.email)}`,
       preferencesUrl: `${baseUrl}/user-dashboard`,
       trendingNews,
       weatherSpark,
@@ -203,6 +204,7 @@ ${textChecklist}
 
 ⚡ Open Live Routine & Timer: ${data.ctaUrl}
 🔥 1-Click Streak Check-in: ${data.checkinUrl}
+📱 Today's Lockscreen Wallpaper: ${data.wallpaperUrl}
 Manage Preferences: ${data.preferencesUrl}
 Unsubscribe: ${data.unsubscribeUrl}`;
 

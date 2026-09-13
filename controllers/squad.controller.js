@@ -337,10 +337,170 @@ async function leaveSquad(req, res) {
   }
 }
 
+/**
+ * GET /api/duel/status & GET /api/me/duel
+ * Calculates the real-time morning duel status between the user and either:
+ * - A squad peer (if user is in a squad with other members), or
+ * - An AI Ghost (derived from subscriber's 7-day average pace / routine cron time).
+ */
+async function getMorningDuelStatus(req, res) {
+  const email = getSubscriberEmail(req);
+  const todayDate = new Intl.DateTimeFormat("en-CA").format(new Date());
+
+  try {
+    const subscriber = email ? await sharedData.getUserByEmail(email) : null;
+    const userStreak = subscriber ? Number(subscriber.streakCount) || 0 : 0;
+    const userCheckedIn = subscriber ? subscriber.lastCheckinDate === todayDate : false;
+    const userDisplayName = subscriber?.email ? subscriber.email.split("@")[0] : "You";
+
+    // 1. Check if user is in an accountability squad
+    let squadMembership = null;
+    let peerOpponent = null;
+
+    if (email) {
+      squadMembership = await db("squad_members").where("subscriber_email", email).first();
+      if (squadMembership) {
+        // Find other members
+        const peers = await db("squad_members")
+          .where("squad_id", squadMembership.squad_id)
+          .whereNot("subscriber_email", email);
+
+        if (peers.length > 0) {
+          // Find the most active rival
+          const enrichedPeers = await Promise.all(
+            peers.map(async (p) => {
+              const pSub = await sharedData.getUserByEmail(p.subscriber_email);
+              const pStreak = pSub ? Number(pSub.streakCount) || 0 : 0;
+              const pCheckedIn = pSub?.lastCheckinDate === todayDate;
+              return {
+                email: p.subscriber_email,
+                displayName: p.subscriber_email.split("@")[0],
+                streak: pStreak,
+                checkedInToday: pCheckedIn,
+                track: pSub?.routineTrack || "deep-work",
+              };
+            }),
+          );
+
+          // Prioritize peer who checked in today, or peer with highest streak
+          enrichedPeers.sort((a, b) => {
+            if (a.checkedInToday && !b.checkedInToday) return -1;
+            if (!a.checkedInToday && b.checkedInToday) return 1;
+            return b.streak - a.streak;
+          });
+
+          peerOpponent = enrichedPeers[0];
+        }
+      }
+    }
+
+    // 2. Decide mode: squad_duel vs ai_ghost
+    if (peerOpponent) {
+      // Squad Peer Duel
+      let duelState = "in_progress";
+      let headline = "";
+      let cheerMessage = "";
+
+      if (userCheckedIn && peerOpponent.checkedInToday) {
+        duelState = "completed";
+        headline = "Morning Conquered! ⚡";
+        cheerMessage = `Both you and @${peerOpponent.displayName} checked in today! Squad momentum is unmatched.`;
+      } else if (userCheckedIn && !peerOpponent.checkedInToday) {
+        duelState = "ahead";
+        headline = "You're in the Lead! 🏆";
+        cheerMessage = `You completed your morning routine first! Waiting for @${peerOpponent.displayName} to catch up.`;
+      } else if (!userCheckedIn && peerOpponent.checkedInToday) {
+        duelState = "behind";
+        headline = `@${peerOpponent.displayName} Checked In! 🔥`;
+        cheerMessage = `@${peerOpponent.displayName} has already logged their routine. Check in now to equalize the duel!`;
+      } else {
+        duelState = "in_progress";
+        headline = "Morning Duel is Live! ⚔️";
+        cheerMessage = `First to complete their routine wins today's morning race against @${peerOpponent.displayName}.`;
+      }
+
+      return res.json({
+        success: true,
+        mode: "squad_duel",
+        user: {
+          displayName: userDisplayName,
+          streak: userStreak,
+          checkedInToday: userCheckedIn,
+        },
+        opponent: {
+          type: "peer",
+          displayName: `@${peerOpponent.displayName}`,
+          streak: peerOpponent.streak,
+          checkedInToday: peerOpponent.checkedInToday,
+          track: peerOpponent.track,
+        },
+        duelState,
+        headline,
+        cheerMessage,
+      });
+    }
+
+    // 3. Fallback to AI Ghost Mode
+    // Derive ghost benchmark time from subscriber cron or default 06:30 AM
+    const cronTime = subscriber?.cronPattern || "30 6 * * *";
+    let benchmarkTime = "06:30 AM";
+    const parts = cronTime.trim().split(/\s+/);
+    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      const min = String(parts[0]).padStart(2, "0");
+      const hr = parseInt(parts[1], 10);
+      const ampm = hr >= 12 ? "PM" : "AM";
+      const displayHr = hr % 12 === 0 ? 12 : hr % 12;
+      benchmarkTime = `${String(displayHr).padStart(2, "0")}:${min} ${ampm}`;
+    }
+
+    const ghostStreak = Math.max(1, userStreak > 0 ? userStreak - 1 : 3);
+    let duelState = "in_progress";
+    let headline = "";
+    let cheerMessage = "";
+
+    if (userCheckedIn) {
+      duelState = "victory";
+      headline = "AI Ghost Defeated! 🏆";
+      cheerMessage = `You crushed today's routine ahead of your AI Ghost benchmark (${benchmarkTime})! +1 Victory point.`;
+    } else {
+      duelState = "in_progress";
+      headline = "Beat Your AI Ghost ⚡";
+      cheerMessage = `AI Ghost benchmark is set at ${benchmarkTime} (past 7-day average pace). Check in to beat your past self!`;
+    }
+
+    return res.json({
+      success: true,
+      mode: "ai_ghost",
+      user: {
+        displayName: userDisplayName,
+        streak: userStreak,
+        checkedInToday: userCheckedIn,
+      },
+      opponent: {
+        type: "ai_ghost",
+        displayName: "AI Ghost (Past 7-Day Pace)",
+        benchmarkTime,
+        streak: ghostStreak,
+        checkedInToday: true, // Ghost always wakes up on time
+      },
+      duelState,
+      headline,
+      cheerMessage,
+    });
+  } catch (err) {
+    logger.error("Failed to calculate morning duel status", { error: err.message, email });
+    return res.status(500).json({
+      success: false,
+      error: "Failed to calculate morning duel status",
+    });
+  }
+}
+
 module.exports = {
   createSquad,
   joinSquad,
   getSquad,
   leaveSquad,
   generateInviteCode,
+  getMorningDuelStatus,
 };

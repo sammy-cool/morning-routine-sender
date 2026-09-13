@@ -671,6 +671,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         loadDailyBriefing();
         loadHabitAnalytics();
         loadAccountabilitySquad();
+        loadMorningDuelStatus();
         historyCard.style.display = "block";
       } catch (err) {
         console.error(err);
@@ -2912,6 +2913,93 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         // Silently catch if analytics unavailable
       }
     }
+
+    // =========================================================================
+    // Morning Duel & AI Ghost Mode Race
+    // =========================================================================
+    async function loadMorningDuelStatus() {
+      const card = document.getElementById("morningDuelCard");
+      if (!card) return;
+
+      try {
+        const res = await fetch("/api/duel/status", { headers: { Accept: "application/json" } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success) return;
+
+        const modeBadge = document.getElementById("duelModeBadge");
+        if (modeBadge) {
+          modeBadge.textContent = data.mode === "squad_duel" ? "Squad Rival Duel" : "AI Ghost Mode";
+          modeBadge.style.color = data.mode === "squad_duel" ? "#38bdf8" : "#a5b4fc";
+        }
+
+        const headline = document.getElementById("duelHeadline");
+        if (headline) headline.textContent = data.headline;
+
+        const cheerMsg = document.getElementById("duelCheerMessage");
+        if (cheerMsg) cheerMsg.textContent = data.cheerMessage;
+
+        const stateBadge = document.getElementById("duelStateBadge");
+        if (stateBadge) {
+          if (data.duelState === "victory" || data.duelState === "completed") {
+            stateBadge.textContent = "🏆 Victory / Completed";
+            stateBadge.style.background = "rgba(16, 185, 129, 0.2)";
+            stateBadge.style.borderColor = "#10b981";
+            stateBadge.style.color = "#34d399";
+          } else if (data.duelState === "ahead") {
+            stateBadge.textContent = "⚡ Leading Race";
+            stateBadge.style.background = "rgba(56, 189, 248, 0.2)";
+            stateBadge.style.borderColor = "#38bdf8";
+            stateBadge.style.color = "#38bdf8";
+          } else if (data.duelState === "behind") {
+            stateBadge.textContent = "🔥 Opponent Finished First";
+            stateBadge.style.background = "rgba(239, 68, 68, 0.2)";
+            stateBadge.style.borderColor = "#ef4444";
+            stateBadge.style.color = "#f87171";
+          } else {
+            stateBadge.textContent = "⚔️ Race in Progress";
+            stateBadge.style.background = "rgba(245, 158, 11, 0.15)";
+            stateBadge.style.borderColor = "#f59e0b";
+            stateBadge.style.color = "#fbbf24";
+          }
+        }
+
+        // User Side
+        const uName = document.getElementById("duelUserName");
+        const uStatus = document.getElementById("duelUserStatus");
+        const uStreak = document.getElementById("duelUserStreak");
+        if (uName) uName.textContent = data.user?.displayName || "You";
+        if (uStatus) {
+          uStatus.textContent = data.user?.checkedInToday ? "Done ✓" : "Pending";
+          uStatus.style.color = data.user?.checkedInToday ? "#34d399" : "#fbbf24";
+        }
+        if (uStreak) uStreak.textContent = `Streak: ${data.user?.streak || 0}d`;
+
+        // Opponent Side
+        const oName = document.getElementById("duelOpponentName");
+        const oStatus = document.getElementById("duelOpponentStatus");
+        const oStreak = document.getElementById("duelOpponentStreak");
+        if (oName) oName.textContent = data.opponent?.displayName || "AI Ghost";
+        if (oStatus) {
+          if (data.opponent?.type === "ai_ghost") {
+            oStatus.textContent = data.opponent.benchmarkTime || "06:30 AM";
+            oStatus.style.color = "#a78bfa";
+          } else {
+            oStatus.textContent = data.opponent?.checkedInToday ? "Done ✓" : "Pending";
+            oStatus.style.color = data.opponent?.checkedInToday ? "#34d399" : "#fbbf24";
+          }
+        }
+        if (oStreak) {
+          oStreak.textContent =
+            data.opponent?.type === "ai_ghost"
+              ? "Pace: 7-Day Avg"
+              : `Streak: ${data.opponent?.streak || 0}d`;
+        }
+      } catch (_e) {
+        // Non-blocking
+      }
+    }
+    globalThis.loadMorningDuelStatus = loadMorningDuelStatus;
 
     // =========================================================================
     // Accountability Squads & Peer Streaks

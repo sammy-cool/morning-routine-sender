@@ -34,6 +34,8 @@ async function getSessionEmail(req) {
 async function checkin(req, res) {
   const email = (req.query.email || req.body?.email || "").trim().toLowerCase();
   const token = req.query.token || req.body?.token;
+  const verifiedWakeup = Boolean(req.body?.verified_wakeup ?? req.query.verified_wakeup === "true");
+  const priorityGoal = (req.body?.priority_goal || req.query.priority_goal || "").trim();
 
   function sendResponse(data, statusCode = 200) {
     const isJson =
@@ -105,6 +107,9 @@ async function checkin(req, res) {
         message: `You've already logged your routine for today. Your streak is safe at ${finalStreak} days!`,
         quote: trackInfo.quote,
         badge: `${finalStreak}-Day Streak Maintained 🔥`,
+        verifiedWakeup,
+        priorityGoal: priorityGoal || undefined,
+        morningVerified: verifiedWakeup,
         routineUrl: `/routine?email=${encodeURIComponent(email)}&token=${token}`,
       });
     }
@@ -113,6 +118,8 @@ async function checkin(req, res) {
       email,
       streakCount: finalStreak,
       timezone: subscriber.timezone,
+      verifiedWakeup,
+      priorityGoal: priorityGoal || undefined,
     });
 
     // Non-blocking trigger of routine.completed outbound webhook
@@ -124,6 +131,8 @@ async function checkin(req, res) {
         checkedInAt: new Date().toISOString(),
         track: subscriber.routineTrack || subscriber.templateType || "deep-work",
         quote: trackInfo.quote,
+        verifiedWakeup,
+        priorityGoal: priorityGoal || undefined,
       })
       .catch((err) => {
         logger.error("Outbound webhook trigger failed on routine checkin", {
@@ -138,10 +147,15 @@ async function checkin(req, res) {
         .dispatchWebhookForSubscriber(subscriber, "streak.milestone_reached", {
           milestone: finalStreak,
           streak: finalStreak,
-          freezeEarned: Boolean(checkinResult.freezeEarned),
-          reachedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          track: subscriber.routineTrack || subscriber.templateType || "deep-work",
         })
-        .catch(() => {});
+        .catch((err) => {
+          logger.error("Outbound webhook trigger failed on streak milestone", {
+            error: err.message,
+            email,
+          });
+        });
     }
 
     const badgeText = checkinResult.freezeEarned
@@ -157,6 +171,9 @@ async function checkin(req, res) {
         : `Great job completing your morning routine. You have maintained a ${finalStreak}-day streak!`,
       quote: trackInfo.quote,
       badge: badgeText,
+      verifiedWakeup,
+      priorityGoal: priorityGoal || undefined,
+      morningVerified: verifiedWakeup,
       freezeEarned: Boolean(checkinResult.freezeEarned),
       streakFreezes: checkinResult.streakFreezes,
       routineUrl: `/routine?email=${encodeURIComponent(email)}&token=${token}`,
@@ -1097,6 +1114,304 @@ async function liveRoutine(req, res) {
       accent-color: var(--primary);
       cursor: pointer;
     }
+
+    /* ==========================================================================
+       Live 3-Minute Morning Ritual & Tactile Wake-Up Challenge Styles
+       ========================================================================== */
+    .morning-ritual-panel {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 27, 75, 0.6) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.5);
+    }
+    .morning-ritual-panel::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .ritual-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .ritual-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #a5b4fc;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .ritual-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .ritual-status-pill.verified {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #34d399;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Phase Progress Stepper */
+    .ritual-phase-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .phase-step {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .phase-step.active {
+      background: rgba(99, 102, 241, 0.22);
+      border-color: #818cf8;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+    }
+    .phase-step.completed {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: #10b981;
+    }
+    .phase-step-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #cbd5e1;
+    }
+    .phase-step.active .phase-step-title { color: #818cf8; }
+    .phase-step.completed .phase-step-title { color: #34d399; }
+    .phase-step-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Box Breathing Visualizer */
+    .breathing-ring-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 0;
+      position: relative;
+    }
+    .breathing-orb {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(124, 58, 237, 0.1) 70%);
+      border: 2px solid rgba(129, 140, 248, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.5s ease, box-shadow 4s ease;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+      position: relative;
+    }
+    .breathing-orb.inhale {
+      transform: scale(1.32);
+      border-color: #34d399;
+      box-shadow: 0 0 35px rgba(52, 211, 153, 0.5);
+    }
+    .breathing-orb.hold {
+      transform: scale(1.32);
+      border-color: #38bdf8;
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+    }
+    .breathing-orb.exhale {
+      transform: scale(0.92);
+      border-color: #818cf8;
+      box-shadow: 0 0 15px rgba(129, 140, 248, 0.3);
+    }
+    .breathing-orb.hold-empty {
+      transform: scale(0.92);
+      border-color: #a78bfa;
+      box-shadow: 0 0 15px rgba(167, 139, 250, 0.3);
+    }
+    .breathing-text {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+    .breathing-subtext {
+      font-size: 11px;
+      color: #cbd5e1;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 4px;
+    }
+
+    /* Tactile Wake-Up Cards */
+    .tactile-challenge-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .hydration-taps-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .water-tap-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px 14px;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      border-radius: 12px;
+      color: #e0f2fe;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    .water-tap-btn:hover {
+      background: rgba(14, 165, 233, 0.24);
+      transform: translateY(-2px);
+    }
+    .water-tap-btn:active {
+      transform: scale(0.96);
+    }
+    .water-progress-track {
+      display: flex;
+      gap: 6px;
+    }
+    .water-drop-badge {
+      font-size: 20px;
+      opacity: 0.25;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .water-drop-badge.active {
+      opacity: 1;
+      transform: scale(1.22);
+      filter: drop-shadow(0 0 8px #38bdf8);
+    }
+
+    /* Mental Spark arithmetic pills */
+    .math-options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .math-opt-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #fff;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .math-opt-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: #818cf8;
+    }
+    .math-opt-btn.correct {
+      background: rgba(16, 185, 129, 0.3) !important;
+      border-color: #10b981 !important;
+      color: #34d399 !important;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    }
+    .math-opt-btn.wrong {
+      background: rgba(239, 68, 68, 0.25) !important;
+      border-color: #ef4444 !important;
+      color: #f87171 !important;
+    }
+
+    /* Priority Lock Field */
+    .priority-lock-box {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+    }
+    .priority-lock-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(129, 140, 248, 0.4);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #fff;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .priority-lock-input:focus {
+      border-color: #818cf8;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+    }
+    .btn-lock-priority {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 0 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-lock-priority:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+    .btn-lock-priority.locked {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      color: #34d399;
+      cursor: default;
+    }
   </style>
 </head>
 <body>
@@ -1145,6 +1460,117 @@ async function liveRoutine(req, res) {
           <span style="font-size: 12px; font-weight: 800; color: #34d399; text-transform: uppercase;">🚀 2-Min Micro-Action:</span>
           <div style="font-size: 14px; color: #cbd5e1; margin-top: 2px; line-height: 1.5;">
             ${escapeHtml(spark.microAction)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive 3-Minute Live Morning Ritual & Tactile Wake-Up Challenge -->
+      <div class="morning-ritual-panel" id="morningRitualPanel">
+        <div class="ritual-header-row">
+          <div class="ritual-badge">
+            ⚡ 3-Minute Live Morning Ritual
+          </div>
+          <div class="ritual-status-pill" id="ritualStatusPill">
+            <span id="ritualStatusDot">⚪</span> <span id="ritualStatusText">Ready to Begin</span>
+          </div>
+        </div>
+
+        <!-- 3-Phase Stepper Tracker -->
+        <div class="ritual-phase-steps">
+          <div class="phase-step active" id="phaseStep1">
+            <div class="phase-step-title">1. Hydrate & Breathe</div>
+            <div class="phase-step-time" id="phaseStep1Time">01:00</div>
+          </div>
+          <div class="phase-step" id="phaseStep2">
+            <div class="phase-step-title">2. Daily Spark</div>
+            <div class="phase-step-time" id="phaseStep2Time">01:00</div>
+          </div>
+          <div class="phase-step" id="phaseStep3">
+            <div class="phase-step-title">3. Lock #1 Goal</div>
+            <div class="phase-step-time" id="phaseStep3Time">01:00</div>
+          </div>
+        </div>
+
+        <!-- Phase 1 Container: Box Breathing & Hydration -->
+        <div id="ritualPhase1Content">
+          <div class="breathing-ring-container">
+            <div class="breathing-orb inhale" id="breathingOrb">
+              <span class="breathing-text" id="breathingActionText">Inhale</span>
+              <span class="breathing-subtext" id="breathingCount">4s</span>
+            </div>
+          </div>
+          <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin: 12px 0 4px 0;">
+            Follow the 4-4-4-4 rhythm. Calm your vagus nerve and hydrate your mind.
+          </p>
+        </div>
+
+        <!-- Phase 2 Container: Daily Focus & AI Spark -->
+        <div id="ritualPhase2Content" style="display: none; padding: 12px 0;">
+          <div style="background: rgba(99, 102, 241, 0.12); border-left: 3px solid #818cf8; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;">
+            <div style="font-size: 11px; font-weight: 800; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.5px;">Today's Strategic Mantra</div>
+            <div style="font-size: 16px; font-weight: 700; color: #fff; margin-top: 4px;">"${escapeHtml(spark.focusMantra)}"</div>
+          </div>
+          <div style="font-size: 14px; color: #e2e8f0; line-height: 1.6; background: rgba(0,0,0,0.25); border-radius: 12px; padding: 14px; border: 1px solid var(--border);">
+            ${escapeHtml(spark.sparkReflection)}
+          </div>
+        </div>
+
+        <!-- Phase 3 Container: Lock Priority Goal -->
+        <div id="ritualPhase3Content" style="display: none; padding: 8px 0;">
+          <label for="livePriorityInput" style="display: block; font-size: 13px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">
+            🎯 What is your #1 Priority Goal today?
+          </label>
+          <div class="priority-lock-box">
+            <input type="text" id="livePriorityInput" class="priority-lock-input" placeholder="e.g. Ship core module without distractions" maxlength="120">
+            <button type="button" class="btn-lock-priority" id="btnLockPriority" onclick="lockPriorityGoal()">
+              🔒 Lock Goal
+            </button>
+          </div>
+        </div>
+
+        <!-- Tactile Wake-Up Challenge Section -->
+        <div class="tactile-challenge-box" id="tactileChallengeBox">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px;">
+              ⚡ Tactile Wake-Up Challenge
+            </div>
+            <div class="water-progress-track" id="waterProgressTrack" title="Hydration Progress">
+              <span class="water-drop-badge" id="drop1">💧</span>
+              <span class="water-drop-badge" id="drop2">💧</span>
+              <span class="water-drop-badge" id="drop3">💧</span>
+            </div>
+          </div>
+
+          <div class="hydration-taps-row">
+            <button type="button" class="water-tap-btn" id="waterTapBtn" onclick="handleWaterTap()">
+              <span>💧</span> <span id="waterTapLabel">I drank a full glass of water (Tap 1/3)</span>
+            </button>
+          </div>
+
+          <!-- Quick Mental Arithmetic Spark -->
+          <div id="mentalSparkContainer" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; color: #cbd5e1;">
+              <span>🧠 Mental Wake-Up: <span id="mathQuestionLabel">17 + 28 = ?</span></span>
+              <span id="mathResultBadge" style="font-size: 11px; color: var(--text-muted);">Select answer:</span>
+            </div>
+            <div class="math-options-grid" id="mathOptionsGrid">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Ritual Controls -->
+        <div style="display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-top: 18px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-start" id="btnStartRitual" onclick="startMorningRitual()">
+              ▶ Start 3-Min Ritual
+            </button>
+            <button type="button" class="btn btn-pause" id="btnPauseRitual" onclick="pauseMorningRitual()" style="display: none;">
+              ⏸ Pause
+            </button>
+          </div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 800; color: #f8fafc;" id="ritualTotalCountdown">
+            03:00
           </div>
         </div>
       </div>
@@ -2439,9 +2865,552 @@ async function liveRoutine(req, res) {
       }
     }
 
-    // Auto-load journal on page load
+    // =========================================================================
+    // Web Audio Procedural Chimes, Ocean Drone & Fanfare Synthesizers
+    // =========================================================================
+    let ritualAudioNodes = [];
+    let ritualTimerInterval = null;
+    let ritualSecondsLeft = 180; // 3 minutes total
+    let ritualPhase = 1;
+    let breathingCycleTick = 0;
+    let waterTapCount = 0;
+    let mathChallengeCompleted = false;
+    let priorityGoalLocked = false;
+    let correctMathAnswer = 45;
+
+    /**
+     * Synthesizes warm harmonic ocean drone for Phase 1 box breathing.
+     */
+    function startRitualBreathingDrone() {
+      stopRitualAudio();
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.001, ctx.currentTime);
+      master.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.8);
+      if (typeof masterGainNode !== 'undefined' && masterGainNode) {
+        master.connect(masterGainNode);
+      } else {
+        master.connect(ctx.destination);
+      }
+
+      // Pink noise filtered ocean wave
+      const pinkSrc = ctx.createBufferSource();
+      pinkSrc.buffer = createPinkNoiseBuffer(ctx, 6);
+      pinkSrc.loop = true;
+
+      const waveFilter = ctx.createBiquadFilter();
+      waveFilter.type = 'lowpass';
+      waveFilter.frequency.setValueAtTime(260, ctx.currentTime);
+      waveFilter.Q.setValueAtTime(1.8, ctx.currentTime);
+
+      const waveGain = ctx.createGain();
+      waveGain.gain.setValueAtTime(0.3, ctx.currentTime);
+
+      // 16s LFO matching 4s inhale / 4s hold / 4s exhale / 4s hold cycle (0.0625 Hz)
+      const lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(0.0625, ctx.currentTime);
+
+      const lfoFilterMod = ctx.createGain();
+      lfoFilterMod.gain.setValueAtTime(180, ctx.currentTime);
+      lfo.connect(lfoFilterMod);
+      lfoFilterMod.connect(waveFilter.frequency);
+
+      // Warm calming 108Hz + 162Hz drones
+      const drone1 = ctx.createOscillator();
+      drone1.type = 'sine';
+      drone1.frequency.setValueAtTime(108, ctx.currentTime);
+      const droneGain1 = ctx.createGain();
+      droneGain1.gain.setValueAtTime(0.14, ctx.currentTime);
+
+      const drone2 = ctx.createOscillator();
+      drone2.type = 'sine';
+      drone2.frequency.setValueAtTime(162, ctx.currentTime);
+      const droneGain2 = ctx.createGain();
+      droneGain2.gain.setValueAtTime(0.09, ctx.currentTime);
+
+      pinkSrc.connect(waveFilter);
+      waveFilter.connect(waveGain);
+      waveGain.connect(master);
+
+      drone1.connect(droneGain1);
+      droneGain1.connect(master);
+      drone2.connect(droneGain2);
+      droneGain2.connect(master);
+
+      pinkSrc.start();
+      drone1.start();
+      drone2.start();
+      lfo.start();
+
+      ritualAudioNodes = [pinkSrc, drone1, drone2, lfo, master];
+    }
+
+    function stopRitualAudio(fadeDuration = 0.5) {
+      if (ritualAudioNodes.length === 0) return;
+      const nodes = [...ritualAudioNodes];
+      ritualAudioNodes = [];
+      const ctx = typeof audioCtx !== 'undefined' ? audioCtx : null;
+      if (ctx) {
+        nodes.forEach(n => {
+          if (n instanceof GainNode) {
+            try { n.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + fadeDuration); } catch(e){}
+          }
+        });
+      }
+      setTimeout(() => {
+        nodes.forEach(n => {
+          try { if (n.stop) n.stop(); if (n.disconnect) n.disconnect(); } catch(e){}
+        });
+      }, fadeDuration * 1000 + 20);
+    }
+
+    /**
+     * Procedural 528Hz Solfeggio singing bowl chime for Phase transitions.
+     */
+    function playRitualPhaseChime(freq = 528) {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.28, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+
+      osc.connect(gain);
+      if (typeof masterGainNode !== 'undefined' && masterGainNode) {
+        gain.connect(masterGainNode);
+      } else {
+        gain.connect(ctx.destination);
+      }
+
+      osc.start(now);
+      osc.stop(now + 2.6);
+      osc.onended = () => {
+        try { osc.disconnect(); gain.disconnect(); } catch(_e){}
+      };
+    }
+
+    /**
+     * Water bubble/droplet audio tone for hydration taps.
+     */
+    function playWaterDropletSound() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(1350, now + 0.045);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+      osc.connect(gain);
+      if (typeof masterGainNode !== 'undefined' && masterGainNode) {
+        gain.connect(masterGainNode);
+      } else {
+        gain.connect(ctx.destination);
+      }
+
+      osc.start(now);
+      osc.stop(now + 0.07);
+      osc.onended = () => {
+        try { osc.disconnect(); gain.disconnect(); } catch(_e){}
+      };
+    }
+
+    /**
+     * Uplifting major confirmation chime for Goal Locking.
+     */
+    function playPriorityLockChime() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const notes = [
+        { f: 739.99, t: 0.00, d: 0.25 }, // F#5
+        { f: 932.33, t: 0.07, d: 0.28 }, // A#5
+        { f: 1108.73, t: 0.14, d: 0.32 }, // C#6
+        { f: 1479.98, t: 0.22, d: 0.65 }  // F#6
+      ];
+      notes.forEach(n => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(n.f, now + n.t);
+
+        gain.gain.setValueAtTime(0.0001, now + n.t);
+        gain.gain.linearRampToValueAtTime(0.18, now + n.t + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
+
+        osc.connect(gain);
+        if (typeof masterGainNode !== 'undefined' && masterGainNode) {
+          gain.connect(masterGainNode);
+        } else {
+          gain.connect(ctx.destination);
+        }
+        osc.start(now + n.t);
+        osc.stop(now + n.t + n.d + 0.05);
+      });
+    }
+
+    /**
+     * Triumphant Victory Fanfare on Ritual & Challenge completion.
+     */
+    function playVictoryFanfare() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const chordNotes = [
+        { f: 523.25, t: 0.00, d: 0.18, type: 'triangle' }, // C5
+        { f: 659.25, t: 0.12, d: 0.18, type: 'sine' },     // E5
+        { f: 783.99, t: 0.24, d: 0.22, type: 'sine' },     // G5
+        { f: 1046.50, t: 0.38, d: 0.85, type: 'triangle' }, // C6
+        { f: 1318.51, t: 0.44, d: 0.85, type: 'sine' }      // E6
+      ];
+
+      chordNotes.forEach(n => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = n.type;
+        osc.frequency.setValueAtTime(n.f, now + n.t);
+
+        gain.gain.setValueAtTime(0.0001, now + n.t);
+        gain.gain.linearRampToValueAtTime(0.24, now + n.t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
+
+        osc.connect(gain);
+        if (typeof masterGainNode !== 'undefined' && masterGainNode) {
+          gain.connect(masterGainNode);
+        } else {
+          gain.connect(ctx.destination);
+        }
+        osc.start(now + n.t);
+        osc.stop(now + n.t + n.d + 0.05);
+      });
+    }
+
+    // =========================================================================
+    // Ritual Timing, Breathing Engine & Challenge Flow
+    // =========================================================================
+    function updateRitualDisplay() {
+      const mins = Math.floor(ritualSecondsLeft / 60).toString().padStart(2, '0');
+      const secs = (ritualSecondsLeft % 60).toString().padStart(2, '0');
+      const cd = document.getElementById('ritualTotalCountdown');
+      if (cd) cd.textContent = mins + ':' + secs;
+
+      // Phase calculation
+      const elapsed = 180 - ritualSecondsLeft;
+      if (elapsed < 60) {
+        setRitualPhase(1, 60 - elapsed);
+      } else if (elapsed < 120) {
+        setRitualPhase(2, 120 - elapsed);
+      } else {
+        setRitualPhase(3, 180 - elapsed);
+      }
+    }
+
+    function setRitualPhase(phase, phaseTimeLeft) {
+      if (ritualPhase !== phase) {
+        ritualPhase = phase;
+        playRitualPhaseChime(phase === 2 ? 528 : 659.25);
+        if (phase === 2) {
+          stopRitualAudio(0.8);
+          const p1 = document.getElementById('ritualPhase1Content');
+          const p2 = document.getElementById('ritualPhase2Content');
+          const p3 = document.getElementById('ritualPhase3Content');
+          if (p1) p1.style.display = 'none';
+          if (p2) p2.style.display = 'block';
+          if (p3) p3.style.display = 'none';
+          showRoutineToast("💡 <b>Phase 2: Daily Focus & AI Spark</b>", "info", { duration: 3000, progressColor: "#818cf8" });
+        } else if (phase === 3) {
+          const p1 = document.getElementById('ritualPhase1Content');
+          const p2 = document.getElementById('ritualPhase2Content');
+          const p3 = document.getElementById('ritualPhase3Content');
+          if (p1) p1.style.display = 'none';
+          if (p2) p2.style.display = 'none';
+          if (p3) p3.style.display = 'block';
+          const inp = document.getElementById('livePriorityInput');
+          if (inp) inp.focus();
+          showRoutineToast("🎯 <b>Phase 3: Lock Your #1 Priority Goal</b>", "info", { duration: 3500, progressColor: "#10b981" });
+        }
+      }
+
+      const p1 = document.getElementById('phaseStep1');
+      const p2 = document.getElementById('phaseStep2');
+      const p3 = document.getElementById('phaseStep3');
+      const t1 = document.getElementById('phaseStep1Time');
+      const t2 = document.getElementById('phaseStep2Time');
+      const t3 = document.getElementById('phaseStep3Time');
+
+      if (phase === 1) {
+        if (p1) p1.className = 'phase-step active';
+        if (p2) p2.className = 'phase-step';
+        if (p3) p3.className = 'phase-step';
+        if (t1) t1.textContent = '00:' + String(phaseTimeLeft).padStart(2, '0');
+      } else if (phase === 2) {
+        if (p1) p1.className = 'phase-step completed';
+        if (p2) p2.className = 'phase-step active';
+        if (p3) p3.className = 'phase-step';
+        if (t1) t1.textContent = 'Done ✓';
+        if (t2) t2.textContent = '00:' + String(phaseTimeLeft).padStart(2, '0');
+      } else {
+        if (p1) p1.className = 'phase-step completed';
+        if (p2) p2.className = 'phase-step completed';
+        if (p3) p3.className = 'phase-step active';
+        if (t1) t1.textContent = 'Done ✓';
+        if (t2) t2.textContent = 'Done ✓';
+        if (t3) t3.textContent = '00:' + String(phaseTimeLeft).padStart(2, '0');
+      }
+    }
+
+    function tickBreathingOrb() {
+      const orb = document.getElementById('breathingOrb');
+      const txt = document.getElementById('breathingActionText');
+      const cnt = document.getElementById('breathingCount');
+      if (!orb || !txt || !cnt) return;
+
+      breathingCycleTick = (breathingCycleTick + 1) % 16;
+      if (breathingCycleTick < 4) {
+        orb.className = 'breathing-orb inhale';
+        txt.textContent = 'Inhale';
+        cnt.textContent = (4 - breathingCycleTick) + 's';
+      } else if (breathingCycleTick < 8) {
+        orb.className = 'breathing-orb hold';
+        txt.textContent = 'Hold';
+        cnt.textContent = (8 - breathingCycleTick) + 's';
+      } else if (breathingCycleTick < 12) {
+        orb.className = 'breathing-orb exhale';
+        txt.textContent = 'Exhale';
+        cnt.textContent = (12 - breathingCycleTick) + 's';
+      } else {
+        orb.className = 'breathing-orb hold-empty';
+        txt.textContent = 'Hold';
+        cnt.textContent = (16 - breathingCycleTick) + 's';
+      }
+    }
+
+    function startMorningRitual() {
+      if (ritualTimerInterval) return;
+      const bStart = document.getElementById('btnStartRitual');
+      const bPause = document.getElementById('btnPauseRitual');
+      const sDot = document.getElementById('ritualStatusDot');
+      const sTxt = document.getElementById('ritualStatusText');
+      if (bStart) bStart.style.display = 'none';
+      if (bPause) bPause.style.display = 'inline-block';
+      if (sDot) sDot.textContent = '🟢';
+      if (sTxt) sTxt.textContent = 'Ritual Active';
+
+      if (ritualPhase === 1) {
+        startRitualBreathingDrone();
+      }
+
+      ritualTimerInterval = setInterval(() => {
+        if (ritualSecondsLeft > 0) {
+          ritualSecondsLeft--;
+          updateRitualDisplay();
+          if (ritualPhase === 1) tickBreathingOrb();
+        } else {
+          completeMorningRitual();
+        }
+      }, 1000);
+    }
+
+    function pauseMorningRitual() {
+      clearInterval(ritualTimerInterval);
+      ritualTimerInterval = null;
+      const bStart = document.getElementById('btnStartRitual');
+      const bPause = document.getElementById('btnPauseRitual');
+      const sDot = document.getElementById('ritualStatusDot');
+      const sTxt = document.getElementById('ritualStatusText');
+      if (bStart) bStart.style.display = 'inline-block';
+      if (bPause) bPause.style.display = 'none';
+      if (sDot) sDot.textContent = '🟡';
+      if (sTxt) sTxt.textContent = 'Ritual Paused';
+      stopRitualAudio(0.3);
+    }
+
+    // --- Tactile Hydration Counter ---
+    function handleWaterTap() {
+      waterTapCount = Math.min(3, waterTapCount + 1);
+      playWaterDropletSound();
+      if (window.UXCore?.haptics) window.UXCore.haptics.light();
+
+      for (let i = 1; i <= 3; i++) {
+        const drop = document.getElementById('drop' + i);
+        if (drop) drop.classList.toggle('active', i <= waterTapCount);
+      }
+
+      const label = document.getElementById('waterTapLabel');
+      if (label) {
+        if (waterTapCount === 1) label.textContent = 'Full glass of water: 1/3 drank';
+        else if (waterTapCount === 2) label.textContent = 'Hydration almost full: 2/3 drank';
+        else label.textContent = 'Hydration Complete: 100% ✓';
+      }
+
+      if (waterTapCount === 3) {
+        const btn = document.getElementById('waterTapBtn');
+        if (btn) {
+          btn.style.background = 'rgba(16, 185, 129, 0.2)';
+          btn.style.borderColor = '#10b981';
+        }
+        checkFullVerificationReady();
+      }
+    }
+
+    // --- Quick Mental Spark (Math Challenge) ---
+    function initMentalSpark() {
+      const a = 14 + Math.floor(Math.random() * 18);
+      const b = 16 + Math.floor(Math.random() * 22);
+      correctMathAnswer = a + b;
+
+      const qLabel = document.getElementById('mathQuestionLabel');
+      if (qLabel) qLabel.textContent = a + ' + ' + b + ' = ?';
+
+      const answers = [correctMathAnswer, correctMathAnswer - 3, correctMathAnswer + 4]
+        .sort(() => Math.random() - 0.5);
+
+      const grid = document.getElementById('mathOptionsGrid');
+      if (!grid) return;
+      grid.innerHTML = answers.map(ans => '<button type="button" class="math-opt-btn" onclick="submitMathAnswer(' + ans + ', this)">' + ans + '</button>').join('');
+    }
+
+    function submitMathAnswer(chosen, btn) {
+      if (mathChallengeCompleted) return;
+      if (chosen === correctMathAnswer) {
+        mathChallengeCompleted = true;
+        btn.classList.add('correct');
+        const badge = document.getElementById('mathResultBadge');
+        if (badge) {
+          badge.textContent = 'Awake & Verified ✓';
+          badge.style.color = '#34d399';
+        }
+        playWaterDropletSound();
+        if (window.UXCore?.haptics) window.UXCore.haptics.success();
+        checkFullVerificationReady();
+      } else {
+        btn.classList.add('wrong');
+        setTimeout(() => btn.classList.remove('wrong'), 800);
+      }
+    }
+
+    // --- Phase 3 Priority Goal Lock ---
+    function lockPriorityGoal() {
+      const inp = document.getElementById('livePriorityInput');
+      const btn = document.getElementById('btnLockPriority');
+      const val = inp?.value.trim();
+      if (!val) {
+        if (inp) inp.focus();
+        showRoutineToast("Please enter your #1 priority goal before locking", "warning");
+        return;
+      }
+
+      priorityGoalLocked = true;
+      inp.disabled = true;
+      btn.classList.add('locked');
+      btn.innerHTML = 'Locked ✓';
+      playPriorityLockChime();
+      if (window.UXCore?.haptics) window.UXCore.haptics.success();
+
+      // Mirror into reflection input
+      const bigThing = document.getElementById('oneBigThingInput');
+      if (bigThing) bigThing.value = val;
+
+      checkFullVerificationReady();
+    }
+
+    function checkFullVerificationReady() {
+      if (waterTapCount >= 3 && mathChallengeCompleted && priorityGoalLocked) {
+        completeMorningRitual();
+      }
+    }
+
+    /**
+     * Completes Ritual, triggers Victory Fanfare, Confetti, and POST /routine/checkin.
+     */
+    async function completeMorningRitual() {
+      pauseMorningRitual();
+      stopRitualAudio(0.3);
+
+      const statusPill = document.getElementById('ritualStatusPill');
+      if (statusPill) {
+        statusPill.className = 'ritual-status-pill verified';
+        statusPill.innerHTML = '<span>☀️</span> <span>Morning Verified ✓</span>';
+      }
+
+      playVictoryFanfare();
+      fireCelebrationConfetti();
+
+      const priorityGoal = document.getElementById('livePriorityInput')?.value.trim() || '';
+
+      showRoutineToast(
+        "🏆 <b>Morning Verified!</b> Ritual & Wake-Up Challenge successfully conquered.",
+        "success",
+        { duration: 8000, progressColor: "#10b981" }
+      );
+
+      // Call Checkin Endpoint with verified_wakeup & priority_goal
+      try {
+        const payload = {
+          email: subscriberEmail,
+          token: subscriberToken,
+          verified_wakeup: true,
+          priority_goal: priorityGoal
+        };
+
+        const res = await fetch('/routine/checkin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        // Fallback to /checkin if /routine/checkin is routed to base checkin
+        if (!res.ok && res.status === 404) {
+          await fetch('/checkin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+        }
+
+        const btnCheckin = document.getElementById('routineCheckinBtn');
+        if (btnCheckin) {
+          btnCheckin.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+          btnCheckin.innerHTML = '☀️ Morning Verified & Streak Maintained ✓';
+        }
+      } catch (err) {
+        // Safe offline fallback
+        if (globalThis.OfflineSync?.queueCheckin) {
+          await globalThis.OfflineSync.queueCheckin({
+            email: subscriberEmail,
+            token: subscriberToken,
+            verified_wakeup: true,
+            priority_goal: priorityGoal
+          });
+        }
+      }
+    }
+
+    // Auto-load journal and mental spark on page load
     document.addEventListener('DOMContentLoaded', function () {
       loadTodayJournal();
+      initMentalSpark();
       try {
         const savedDuration = parseInt(localStorage.getItem('mrn_focus_duration'), 10);
         if (savedDuration && savedDuration >= 5 && savedDuration <= 180 && !window.location.search.includes('duration=')) {

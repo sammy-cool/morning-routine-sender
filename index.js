@@ -176,6 +176,7 @@ app.use(require("./routes/push.routes"));
 app.use(require("./routes/email.routes"));
 app.use(require("./routes/squad.routes"));
 app.use(require("./routes/subscriberEnhancements.routes"));
+app.use(require("./routes/wallpaper.routes"));
 
 // High performance static asset serving with caching and ETags
 app.use(
