@@ -3,6 +3,7 @@ const sharedData = require("../helper/shared-data");
 const emailTracker = require("../email-core/emailTracker");
 const { validateSubscriberInput } = require("../helper/validateSubscriber");
 const { generateStreakSvg, generateWeeklyReportCardSvg } = require("../helper/streakCardGenerator");
+const { generateRadarChartSvg } = require("../helper/radarChartGenerator");
 
 // GET /me
 async function getMe(req, res) {
@@ -704,6 +705,188 @@ async function getWeeklyReportCard(req, res) {
 // GET /me/weekly-report & GET /me/weekly-report.svg (authenticated)
 async function getMyWeeklyReportCard(req, res) {
   return getWeeklyReportCard(req, res);
+}
+
+// GET /api/me/radar.svg & GET /radar/:token.svg & GET /radar/:email/radar.svg
+async function getRadarChart(req, res) {
+  try {
+    const rawIdentifier =
+      req.params?.token ||
+      req.params?.email ||
+      req.query?.token ||
+      req.query?.email ||
+      req.subscriberEmail;
+
+    let subscriber = null;
+    let subscriberEmail = null;
+
+    if (req.subscriberEmail) {
+      subscriberEmail = req.subscriberEmail;
+    } else if (rawIdentifier) {
+      const cleanId = String(rawIdentifier)
+        .trim()
+        .replace(/\.svg$/, "");
+
+      // 1. Direct email match
+      if (cleanId.includes("@")) {
+        subscriberEmail = cleanId.toLowerCase();
+      } else {
+        // 2. Token resolution (action token, calendar token, or Redis session)
+        const { verifyCalendarToken } = require("../helper/unsubscribeToken");
+        const calEmail = verifyCalendarToken(cleanId);
+        if (calEmail) {
+          subscriberEmail = calEmail;
+        } else {
+          try {
+            const redis = require("../config/redisClient");
+            const sessionEmail = await redis.get(`subscriber_session:${cleanId}`).catch(() => null);
+            if (sessionEmail) {
+              subscriberEmail = sessionEmail;
+            }
+          } catch (_e) {
+            // Redis fallback
+          }
+        }
+      }
+
+      // 3. Knex lookup by email prefix / handle
+      if (!subscriberEmail && cleanId) {
+        try {
+          const db = require("../db/knex");
+          const row = await db("subscribers")
+            .where("email", cleanId)
+            .orWhere("email", "like", `${cleanId}@%`)
+            .first();
+          if (row) {
+            subscriber = {
+              ...row,
+              streakCount: Number(row.streak_count) || 0,
+              routineTrack: row.routine_track || row.template_type || "deep-work",
+            };
+            subscriberEmail = row.email;
+          }
+        } catch (_dbErr) {
+          // Knex error fallback
+        }
+      }
+    }
+
+    if (subscriberEmail && !subscriber) {
+      try {
+        subscriber = await sharedData.getUserByEmail(subscriberEmail);
+      } catch (_e) {
+        // Shared-data lookup fallback
+      }
+    }
+
+    const streakCount = subscriber ? (subscriber.streakCount ?? 1) : Number(req.query.streak) || 7;
+    const trackName = subscriber
+      ? subscriber.routineTrack || subscriber.templateType || "deep-work"
+      : req.query.track || "deep-work";
+
+    const subscriberName = subscriber?.email
+      ? subscriber.email.split("@")[0]
+      : subscriberEmail
+        ? subscriberEmail.split("@")[0]
+        : req.query.name || "Morning Builder";
+
+    // Journal entries count for reflection depth estimation
+    let journalCount = 0;
+    if (subscriberEmail) {
+      try {
+        const db = require("../db/knex");
+        const [{ count }] = await db("journal_entries")
+          .where("subscriber_email", subscriberEmail.toLowerCase().trim())
+          .count("* as count");
+        journalCount = Number(count) || 0;
+      } catch (_e) {
+        journalCount = Math.min(streakCount, 14);
+      }
+    } else {
+      journalCount = Number(req.query.journals) || Math.min(streakCount, 14);
+    }
+
+    const track = String(trackName).toLowerCase();
+
+    // 1. Rise Time Precision (0-100)
+    let riseTimeScore = 72;
+    if (streakCount >= 30) riseTimeScore = 96;
+    else if (streakCount >= 14) riseTimeScore = 90;
+    else if (streakCount >= 7) riseTimeScore = 84;
+    else if (streakCount >= 3) riseTimeScore = 78;
+    if (track === "classic" || track === "executive") {
+      riseTimeScore = Math.min(100, riseTimeScore + 4);
+    }
+
+    // 2. Physical Grounding (0-100)
+    let physicalScore = 75;
+    if (track === "mindfulness" || track === "classic") physicalScore = 92;
+    else if (track === "executive") physicalScore = 88;
+    else if (track === "deep-work") physicalScore = 80;
+    if (streakCount >= 7) physicalScore = Math.min(100, physicalScore + 6);
+
+    // 3. Deep Work Sprint (0-100)
+    let deepWorkScore = 80;
+    if (track === "deep-work") deepWorkScore = 95;
+    else if (track === "learning") deepWorkScore = 92;
+    else if (track === "executive") deepWorkScore = 90;
+    if (streakCount >= 14) deepWorkScore = Math.min(100, deepWorkScore + 8);
+
+    // 4. Reflection Depth (0-100)
+    let reflectionScore = 65;
+    if (journalCount >= 20) reflectionScore = 96;
+    else if (journalCount >= 10) reflectionScore = 90;
+    else if (journalCount >= 5) reflectionScore = 84;
+    else if (journalCount >= 1) reflectionScore = 76;
+    if (track === "mindfulness") reflectionScore = Math.min(100, reflectionScore + 6);
+
+    // 5. Streak Grit (0-100)
+    let gritScore = 65;
+    if (streakCount >= 60) gritScore = 99;
+    else if (streakCount >= 30) gritScore = 95;
+    else if (streakCount >= 14) gritScore = 88;
+    else if (streakCount >= 7) gritScore = 82;
+    else if (streakCount >= 3) gritScore = 74;
+
+    const scores = {
+      riseTime: req.query.riseTime !== undefined ? Number(req.query.riseTime) : riseTimeScore,
+      physical: req.query.physical !== undefined ? Number(req.query.physical) : physicalScore,
+      deepWork: req.query.deepWork !== undefined ? Number(req.query.deepWork) : deepWorkScore,
+      reflection:
+        req.query.reflection !== undefined ? Number(req.query.reflection) : reflectionScore,
+      grit: req.query.grit !== undefined ? Number(req.query.grit) : gritScore,
+    };
+
+    const grade = req.query.grade ? String(req.query.grade).toUpperCase() : null;
+
+    const svg = generateRadarChartSvg({
+      subscriberName,
+      trackName,
+      streakCount,
+      scores,
+      grade,
+    });
+
+    res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=1800, s-maxage=3600, stale-while-revalidate=86400",
+    );
+    if (req.query.download === "true" || req.query.download === "1") {
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="consistency-radar-${subscriberName.replace(/[^a-zA-Z0-9_-]/g, "")}.svg"`,
+      );
+    }
+    return res.send(svg);
+  } catch (error) {
+    logger.error("Failed to generate radar chart SVG", { error: error.message });
+    return res
+      .status(500)
+      .send(
+        '<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg"><rect width="800" height="800" fill="#06080e"/><text x="400" y="400" fill="#f43f5e" text-anchor="middle" font-family="sans-serif" font-size="20">Error generating radar chart</text></svg>',
+      );
+  }
 }
 
 // GET /api/coach-personas
@@ -1490,6 +1673,221 @@ async function getMilestones(req, res) {
   }
 }
 
+// POST & GET /api/me/hardware-checkin (NFC / Apple Shortcuts / Automation)
+async function hardwareCheckin(req, res) {
+  try {
+    let token = req.query?.token || req.body?.token;
+    if (!token && req.headers?.authorization) {
+      const authHeader = req.headers.authorization.trim();
+      if (authHeader.toLowerCase().startsWith("bearer ")) {
+        token = authHeader.slice(7).trim();
+      } else {
+        token = authHeader;
+      }
+    }
+
+    let email = (
+      req.query?.email ||
+      req.body?.email ||
+      req.subscriberEmail ||
+      req.session?.subscriberEmail ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+    // If email is not passed explicitly, attempt to resolve from composite or encoded token
+    if (!email && token && typeof token === "string") {
+      if (token.includes(":")) {
+        const parts = token.split(":");
+        const possibleEmail = parts[0].trim().toLowerCase();
+        const rawToken = parts.slice(1).join(":").trim();
+        if (possibleEmail && rawToken) {
+          email = possibleEmail;
+          token = rawToken;
+        }
+      } else {
+        try {
+          const decoded = Buffer.from(token, "base64url").toString("utf8");
+          if (decoded.includes(":")) {
+            const parts = decoded.split(":");
+            const possibleEmail = parts[0].trim().toLowerCase();
+            const rawToken = parts.slice(1).join(":").trim();
+            if (possibleEmail && rawToken) {
+              email = possibleEmail;
+              token = rawToken;
+            }
+          }
+        } catch (_e) {
+          // ignore malformed basic auth header
+        }
+      }
+    }
+
+    // If still no email, attempt lookup across subscribers by matching token
+    const { verifyActionToken } = require("../helper/unsubscribeToken");
+    if (!email && token) {
+      try {
+        const db = require("../db/knex");
+        const subscribers = await db("subscribers").select("email");
+        for (const sub of subscribers) {
+          if (
+            verifyActionToken(sub.email, token, "hardware") ||
+            verifyActionToken(sub.email, token, "checkin")
+          ) {
+            email = (sub.email || "").trim().toLowerCase();
+            break;
+          }
+        }
+      } catch (_e) {
+        // ignore db lookup failure
+      }
+    }
+
+    if (!token || !email) {
+      return res.status(401).json({
+        success: false,
+        error: "Missing or invalid hardware verification token",
+      });
+    }
+
+    const isValid =
+      verifyActionToken(email, token, "hardware") || verifyActionToken(email, token, "checkin");
+
+    if (!isValid) {
+      logger.warn("Invalid hardware check-in token attempt", { email, ip: req.ip });
+      return res.status(401).json({
+        success: false,
+        error: "Invalid or expired verification token",
+      });
+    }
+
+    const subscriber = await sharedData.getUserByEmail(email);
+    if (!subscriber) {
+      return res.status(404).json({
+        success: false,
+        error: "Subscriber not found",
+      });
+    }
+
+    const checkinResult = await sharedData.recordCheckin(email, subscriber.timezone);
+    const finalStreak =
+      checkinResult.streakCount !== undefined
+        ? checkinResult.streakCount
+        : checkinResult.streak !== undefined
+          ? checkinResult.streak
+          : Number(subscriber.streakCount) || 1;
+
+    subscriber.streakCount = finalStreak;
+
+    if (checkinResult.alreadyCheckedInToday) {
+      return res.status(200).json({
+        success: true,
+        message: "Morning routine already verified today!",
+        streak: subscriber.streakCount,
+        streakCount: subscriber.streakCount,
+        alreadyCheckedIn: true,
+      });
+    }
+
+    const journalService = require("../helper/journalService");
+    try {
+      await journalService.recordEntry(email, {
+        one_big_thing: "Physical NFC / Hardware Wake-Up Verified",
+        verified_wakeup: true,
+        streak: subscriber.streakCount,
+      });
+    } catch (journalErr) {
+      logger.warn("Failed to record hardware checkin journal entry", {
+        email,
+        error: journalErr.message,
+      });
+    }
+
+    // Optional notification trigger via channelDispatcher and pushService
+    try {
+      const channelDispatcher = require("../helper/channelDispatcher");
+      if (channelDispatcher?.dispatchChannelsForSubscriber) {
+        channelDispatcher.dispatchChannelsForSubscriber(subscriber).catch((notifErr) => {
+          logger.warn("Channel dispatch failed on hardware checkin", {
+            email,
+            error: notifErr.message,
+          });
+        });
+      }
+      const pushService = require("../push-core/pushService");
+      if (pushService && typeof pushService.dispatchMorningPushForSubscriber === "function") {
+        pushService.dispatchMorningPushForSubscriber(subscriber).catch(() => {});
+      }
+    } catch (_notifErr) {
+      // ignore notification dispatch errors in physical checkin
+    }
+
+    logger.info("Physical NFC / Hardware Wake-Up verified", {
+      email,
+      streakCount: subscriber.streakCount,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "⚡ Physical Wake-Up Verified!",
+      streak: subscriber.streakCount,
+      streakCount: subscriber.streakCount,
+      verifiedWakeup: true,
+    });
+  } catch (error) {
+    logger.error("Hardware check-in error", { error: error.message });
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error during hardware check-in",
+    });
+  }
+}
+
+// GET /api/me/shortcut-config (authenticated)
+async function getShortcutConfig(req, res) {
+  try {
+    const email = (req.subscriberEmail || req.session?.subscriberEmail || "").trim().toLowerCase();
+
+    if (!email) {
+      return res.status(401).json({ success: false, error: "Authentication required" });
+    }
+
+    const subscriber = await sharedData.getUserByEmail(email);
+    if (!subscriber) {
+      return res.status(404).json({ success: false, error: "Subscriber not found" });
+    }
+
+    const { generateActionToken } = require("../helper/unsubscribeToken");
+    const token = generateActionToken(email, "hardware");
+
+    const baseUrl =
+      res.locals.apiBase ||
+      (req.get && req.get("host") ? `${req.protocol}://${req.get("host")}` : null) ||
+      req.app?.locals?.officialDomain ||
+      process.env.RENDER_URL ||
+      "https://morning-routine-sender.onrender.com";
+
+    const webhookUrl = `${baseUrl}/api/me/hardware-checkin?token=${token}&email=${encodeURIComponent(email)}`;
+
+    return res.json({
+      success: true,
+      webhookUrl,
+      token,
+      instructions: {
+        ios: "Open Apple Shortcuts app -> Create Automation -> When NFC tag is tapped -> Add 'Get Contents of URL' with Method POST to webhookUrl",
+        android:
+          "Open Tasker or Automate -> Add NFC Tag trigger -> HTTP Request POST to webhookUrl",
+      },
+    });
+  } catch (error) {
+    logger.error("Failed to generate shortcut config", { error: error.message });
+    return res
+      .status(500)
+      .json({ success: false, error: "Failed to generate shortcut configuration" });
+  }
+}
+
 module.exports = {
   getMe,
   getMyHistory,
@@ -1512,5 +1910,8 @@ module.exports = {
   getCalendarFeedByToken,
   getWeeklyReportCard,
   getMyWeeklyReportCard,
+  getRadarChart,
   exportDisciplineData,
+  hardwareCheckin,
+  getShortcutConfig,
 };

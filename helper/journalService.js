@@ -452,12 +452,29 @@ async function getActivityHeatmap(email, days = 365) {
   };
 }
 
+/**
+ * Record or upsert a journal entry for a subscriber
+ */
+async function recordEntry(emailOrData, data = {}) {
+  if (
+    typeof emailOrData === "object" &&
+    emailOrData !== null &&
+    !data.subscriber_email &&
+    !data.email
+  ) {
+    const email = emailOrData.subscriber_email || emailOrData.email || emailOrData.subscriberEmail;
+    return saveEntry(email, emailOrData);
+  }
+  return saveEntry(emailOrData, data);
+}
+
 module.exports = {
   normalizeEmail,
   getTodayDateInTimezone,
   getSubscriberContext,
   getEntryByDate,
   saveEntry,
+  recordEntry,
   getHistory,
   getAllEntries,
   generateMarkdownExport,

@@ -608,11 +608,14 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           subscriptionCard.style.display = "block";
           const streakExportCard = document.getElementById("streakExportCard");
           if (streakExportCard) streakExportCard.style.display = "block";
+          const radarChartCard = document.getElementById("radarChartCard");
+          if (radarChartCard) radarChartCard.style.display = "block";
           const dashboardJournalCard = document.getElementById("dashboardJournalCard");
           if (dashboardJournalCard) dashboardJournalCard.style.display = "block";
           renderChannels(cachedProfile.data);
           renderCoachPersona(cachedProfile.data);
           renderOutboundWebhook(cachedProfile.data);
+          loadHardwareShortcutConfig();
           historyCard.style.display = "block";
         }
       }
@@ -658,6 +661,8 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         subscriptionCard.style.display = "block";
         const streakExportCard = document.getElementById("streakExportCard");
         if (streakExportCard) streakExportCard.style.display = "block";
+        const radarChartCard = document.getElementById("radarChartCard");
+        if (radarChartCard) radarChartCard.style.display = "block";
         const dashboardJournalCard = document.getElementById("dashboardJournalCard");
         if (dashboardJournalCard) {
           dashboardJournalCard.style.display = "block";
@@ -666,6 +671,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         renderChannels(sub);
         renderCoachPersona(sub);
         renderOutboundWebhook(sub);
+        loadHardwareShortcutConfig();
         loadActivityHeatmap();
         loadStreakFreezeStatus();
         loadDailyBriefing();
@@ -2001,6 +2007,135 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    // --- Hardware NFC & Apple Shortcuts Integration Manager ---
+    const hardwareShortcutCard = document.getElementById("hardwareShortcutCard");
+    const hardwareWebhookUrl = document.getElementById("hardwareWebhookUrl");
+    const copyHardwareWebhookBtn = document.getElementById("copyHardwareWebhookBtn");
+    const testHardwareTriggerBtn = document.getElementById("testHardwareTriggerBtn");
+    const hardwareTriggerStatus = document.getElementById("hardwareTriggerStatus");
+
+    let activeHardwareWebhookUrl = "";
+
+    async function loadHardwareShortcutConfig() {
+      if (!hardwareShortcutCard) return;
+      hardwareShortcutCard.style.display = "block";
+
+      try {
+        const resp = await fetch("/api/me/shortcut-config", {
+          cache: "no-store",
+          headers: { Pragma: "no-cache" },
+        });
+        if (!resp.ok) {
+          if (hardwareWebhookUrl)
+            hardwareWebhookUrl.value = "Failed to load hardware shortcut webhook.";
+          return;
+        }
+        const data = await resp.json();
+        if (data && data.webhookUrl) {
+          activeHardwareWebhookUrl = data.webhookUrl;
+          if (hardwareWebhookUrl) hardwareWebhookUrl.value = data.webhookUrl;
+        }
+      } catch (err) {
+        console.error("Failed to load shortcut configuration", err);
+        if (hardwareWebhookUrl)
+          hardwareWebhookUrl.value = "Error loading hardware shortcut webhook.";
+      }
+    }
+
+    if (copyHardwareWebhookBtn) {
+      copyHardwareWebhookBtn.addEventListener("click", async function () {
+        const urlToCopy =
+          activeHardwareWebhookUrl || (hardwareWebhookUrl ? hardwareWebhookUrl.value : "");
+        if (
+          !urlToCopy ||
+          urlToCopy.startsWith("Loading") ||
+          urlToCopy.startsWith("Failed") ||
+          urlToCopy.startsWith("Error")
+        ) {
+          showToast("Webhook URL not ready yet.", "warn");
+          return;
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(urlToCopy);
+          } else {
+            hardwareWebhookUrl.select();
+            document.execCommand("copy");
+          }
+          showToast("📋 Hardware webhook URL copied to clipboard!", "success");
+          if (hardwareTriggerStatus) {
+            hardwareTriggerStatus.textContent =
+              "✅ Webhook URL copied! Ready to paste into Apple Shortcuts.";
+            hardwareTriggerStatus.style.color = "#34d399";
+          }
+        } catch (_err) {
+          showToast("Failed to copy webhook URL.", "error");
+        }
+      });
+    }
+
+    if (testHardwareTriggerBtn) {
+      testHardwareTriggerBtn.addEventListener("click", async function () {
+        const targetUrl =
+          activeHardwareWebhookUrl || (hardwareWebhookUrl ? hardwareWebhookUrl.value : "");
+        if (
+          !targetUrl ||
+          targetUrl.startsWith("Loading") ||
+          targetUrl.startsWith("Failed") ||
+          targetUrl.startsWith("Error")
+        ) {
+          showToast("Webhook URL not ready yet.", "warn");
+          return;
+        }
+
+        testHardwareTriggerBtn.disabled = true;
+        testHardwareTriggerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+        if (hardwareTriggerStatus) {
+          hardwareTriggerStatus.textContent = "⚡ Triggering hardware check-in test...";
+          hardwareTriggerStatus.style.color = "#38bdf8";
+        }
+
+        try {
+          const resp = await fetch(targetUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await resp.json();
+
+          if (resp.ok && data.success) {
+            showToast(data.message || "⚡ Physical Wake-Up Verified!", "success");
+            if (hardwareTriggerStatus) {
+              const streakVal = data.streak || data.streakCount || "🔥";
+              hardwareTriggerStatus.textContent = `✅ ${data.message || "Physical Wake-Up Verified!"} (Streak: ${streakVal} days)`;
+              hardwareTriggerStatus.style.color = "#34d399";
+            }
+            if (data.streak || data.streakCount) {
+              const streakVal = data.streak || data.streakCount;
+              const streakCountEl = document.getElementById("streakCount");
+              if (streakCountEl) streakCountEl.textContent = streakVal;
+            }
+          } else {
+            showToast(data.error || "Hardware check-in failed", "error");
+            if (hardwareTriggerStatus) {
+              hardwareTriggerStatus.textContent = `❌ ${data.error || "Verification failed"}`;
+              hardwareTriggerStatus.style.color = "#f43f5e";
+            }
+          }
+        } catch (err) {
+          console.error("Hardware test trigger error", err);
+          showToast("Network error testing hardware trigger", "error");
+          if (hardwareTriggerStatus) {
+            hardwareTriggerStatus.textContent = "❌ Network error testing hardware trigger.";
+            hardwareTriggerStatus.style.color = "#f43f5e";
+          }
+        } finally {
+          testHardwareTriggerBtn.disabled = false;
+          testHardwareTriggerBtn.innerHTML =
+            '<i class="fas fa-bolt" style="color: #f59e0b"></i> Test Trigger';
+        }
+      });
+    }
+
     // --- Social Streak Share Modal Controller ---
     const streakShareModal = document.getElementById("streakShareModal");
     const openShareModalBtn = document.getElementById("openShareModalBtn");
@@ -2014,7 +2149,19 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const copyMarkdownBadgeBtn = document.getElementById("copyMarkdownBadgeBtn");
     const shareTabStreak = document.getElementById("shareTabStreak");
     const shareTabWeekly = document.getElementById("shareTabWeekly");
+    const shareTabRadar = document.getElementById("shareTabRadar");
     const subscribeWebcalBtn = document.getElementById("subscribeWebcalBtn");
+    const refreshRadarBtn = document.getElementById("refreshRadarBtn");
+
+    if (refreshRadarBtn) {
+      refreshRadarBtn.addEventListener("click", function () {
+        const radarImg = document.getElementById("radarChartPreviewImg");
+        if (radarImg) {
+          radarImg.src = `/api/me/radar.svg?t=${Date.now()}`;
+          showToast("🕸️ Consistency Radar refreshed!", "info");
+        }
+      });
+    }
 
     let currentShareCardMode = "streak";
 
@@ -2026,12 +2173,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       const officialDomain = window.location.origin;
 
       if (shareTabStreak && shareTabWeekly) {
-        if (mode === "streak") {
-          shareTabStreak.className = "btn btn-sm btn-primary";
-          shareTabWeekly.className = "btn btn-sm btn-secondary";
-        } else {
-          shareTabStreak.className = "btn btn-sm btn-secondary";
-          shareTabWeekly.className = "btn btn-sm btn-primary";
+        shareTabStreak.className =
+          mode === "streak" ? "btn btn-sm btn-primary" : "btn btn-sm btn-secondary";
+        shareTabWeekly.className =
+          mode === "weekly" ? "btn btn-sm btn-primary" : "btn btn-sm btn-secondary";
+        if (shareTabRadar) {
+          shareTabRadar.className =
+            mode === "radar" ? "btn btn-sm btn-primary" : "btn btn-sm btn-secondary";
         }
       }
 
@@ -2048,6 +2196,23 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const encodedShareUrl = encodeURIComponent(streakShareUrl);
         if (shareTwitterBtn) {
           shareTwitterBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodedShareUrl}&hashtags=MorningRoutine,DeepWork,Habits,Discipline`;
+        }
+        if (shareLinkedinBtn) {
+          shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`;
+        }
+      } else if (mode === "radar") {
+        const radarUrl = `${officialDomain}/radar/${encodeURIComponent(email)}/radar.svg`;
+        const streakShareUrl = `${officialDomain}/streak/${encodeURIComponent(email)}?view=radar`;
+        if (shareCardPreviewImg) {
+          shareCardPreviewImg.src = radarUrl;
+          shareCardPreviewImg.alt = "5-Pillar Consistency Radar";
+        }
+        const tweetText = encodeURIComponent(
+          `🕸️ Visualized my 5 Pillars of Morning Consistency on Morning Routine Sender! ⚡ Multi-dimensional discipline polygon & morning momentum:`,
+        );
+        const encodedShareUrl = encodeURIComponent(streakShareUrl);
+        if (shareTwitterBtn) {
+          shareTwitterBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodedShareUrl}&hashtags=MorningRoutine,Discipline,Habits,Focus`;
         }
         if (shareLinkedinBtn) {
           shareLinkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`;
@@ -2077,6 +2242,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     }
     if (shareTabWeekly) {
       shareTabWeekly.addEventListener("click", () => renderShareCardMode("weekly"));
+    }
+    if (shareTabRadar) {
+      shareTabRadar.addEventListener("click", () => renderShareCardMode("radar"));
     }
 
     function openStreakShareModal() {
@@ -2115,7 +2283,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const shareUrl =
           currentShareCardMode === "weekly"
             ? `${window.location.origin}/streak/${encodeURIComponent(email)}?view=weekly`
-            : `${window.location.origin}/streak/${encodeURIComponent(email)}`;
+            : currentShareCardMode === "radar"
+              ? `${window.location.origin}/streak/${encodeURIComponent(email)}?view=radar`
+              : `${window.location.origin}/streak/${encodeURIComponent(email)}`;
 
         navigator.clipboard
           .writeText(shareUrl)
@@ -2123,7 +2293,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             showToast(
               currentShareCardMode === "weekly"
                 ? "📋 Weekly Scorecard link copied to clipboard!"
-                : "📋 Public Streak Share link copied to clipboard!",
+                : currentShareCardMode === "radar"
+                  ? "📋 5-Pillar Radar link copied to clipboard!"
+                  : "📋 Public Streak Share link copied to clipboard!",
               "success",
             );
           })
@@ -2141,6 +2313,10 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           const svgUrl = `${window.location.origin}/api/weekly-report/${encodeURIComponent(email)}/card.svg`;
           const shareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}?view=weekly`;
           markdownBadge = `[![Weekly Habit Scorecard](${svgUrl})](${shareUrl})`;
+        } else if (currentShareCardMode === "radar") {
+          const svgUrl = `${window.location.origin}/radar/${encodeURIComponent(email)}/radar.svg`;
+          const shareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}?view=radar`;
+          markdownBadge = `[![5-Pillar Consistency Radar](${svgUrl})](${shareUrl})`;
         } else {
           const svgUrl = `${window.location.origin}/api/streak-card/${encodeURIComponent(email)}/card.svg`;
           const streakShareUrl = `${window.location.origin}/streak/${encodeURIComponent(email)}`;

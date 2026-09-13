@@ -48,6 +48,24 @@ router.get("/api/weekly-report", meController.getWeeklyReportCard);
 router.get("/api/weekly-report.svg", meController.getWeeklyReportCard);
 router.get("/api/weekly-report/:email/card.svg", meController.getWeeklyReportCard);
 
+// 5-Pillar Consistency Radar Chart SVG
+const resolveSessionOrToken = async (req, res, next) => {
+  if (req.subscriberEmail) return next();
+  try {
+    const { getSubscriberAuthEmail } = require("../middleware/subscriberSession");
+    const email = await getSubscriberAuthEmail(req);
+    if (email) req.subscriberEmail = email;
+  } catch (_e) {
+    // ignore session lookup failure
+  }
+  next();
+};
+router.get("/api/me/radar.svg", resolveSessionOrToken, meController.getRadarChart);
+router.get("/api/me/radar", resolveSessionOrToken, meController.getRadarChart);
+router.get("/radar/:email/radar.svg", meController.getRadarChart);
+router.get("/radar/:token.svg", meController.getRadarChart);
+router.get("/radar/:token", meController.getRadarChart);
+
 // Public AI Coach Personas Registry
 router.get("/api/coach-personas", meController.getCoachPersonas);
 
@@ -63,6 +81,8 @@ router.get("/calendar/feed/:token", meController.getCalendarFeedByToken);
 router.get("/me/streak-card", requireSubscriberSession, meController.getMyStreakCard);
 router.get("/me/weekly-report.svg", requireSubscriberSession, meController.getMyWeeklyReportCard);
 router.get("/me/weekly-report", requireSubscriberSession, meController.getMyWeeklyReportCard);
+router.get("/me/radar.svg", requireSubscriberSession, meController.getRadarChart);
+router.get("/me/radar", requireSubscriberSession, meController.getRadarChart);
 router.patch("/me", requireSubscriberSession, meController.updateMe);
 router.patch("/me/preferences", requireSubscriberSession, meController.updateMe);
 router.post("/me/preferences", requireSubscriberSession, meController.updateMe);
@@ -92,5 +112,11 @@ router.get(
 );
 router.post("/me/streak-freeze/use", requireSubscriberSession, meController.useStreakFreeze);
 router.post("/me/use-streak-freeze", requireSubscriberSession, meController.useStreakFreeze);
+
+// Physical NFC & Apple Shortcuts Hardware Wake-Up Integration
+router.post("/api/me/hardware-checkin", meController.hardwareCheckin);
+router.get("/api/me/hardware-checkin", meController.hardwareCheckin);
+router.get("/api/me/shortcut-config", requireSubscriberSession, meController.getShortcutConfig);
+router.get("/me/shortcut-config", requireSubscriberSession, meController.getShortcutConfig);
 
 module.exports = router;

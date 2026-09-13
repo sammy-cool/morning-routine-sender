@@ -2006,6 +2006,14 @@
             <a href="/about" class="btn btn-secondary" title="Learn about the routine science">
               <i class="fas fa-info-circle" aria-hidden="true"></i> <span>About</span>
             </a>
+            <a
+              href="/leaderboard"
+              class="btn btn-secondary"
+              title="Community Hall of Fame & Streaks"
+            >
+              <i class="fas fa-trophy" aria-hidden="true" style="color: var(--accent-amber)"></i>
+              <span>Leaderboard</span>
+            </a>
             <a href="/routine" class="btn btn-primary">
               <i class="fas fa-bolt" aria-hidden="true"></i> <span>Live Routine</span>
             </a>
@@ -4862,6 +4870,165 @@
         </form>
       </div>
 
+      <!-- Apple Shortcuts & Physical NFC Wake-Up Integration Card -->
+      <div class="card" id="hardwareShortcutCard" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+          "
+        >
+          <div>
+            <h2>
+              <i class="fas fa-tag" style="color: var(--accent-cyan)" aria-hidden="true"></i>
+              🏷️ Apple Shortcuts &amp; Physical NFC Wake-Up
+            </h2>
+            <p class="meta" style="font-size: 13px; margin-top: 4px; color: var(--text-muted)">
+              Verify your physical wake-up instantly by tapping an NFC sticker on your nightstand or
+              triggering an iOS Shortcut automation.
+            </p>
+          </div>
+          <span
+            style="
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 5px 12px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: 800;
+              background: rgba(56, 189, 248, 0.12);
+              border: 1px solid rgba(56, 189, 248, 0.3);
+              color: var(--accent-cyan);
+            "
+          >
+            <i class="fas fa-bolt" aria-hidden="true"></i> 1-Tap Wake-Up
+          </span>
+        </div>
+
+        <div style="margin-top: 18px">
+          <label
+            for="hardwareWebhookUrl"
+            style="
+              display: block;
+              font-size: 13px;
+              font-weight: 600;
+              color: #cbd5e1;
+              margin-bottom: 6px;
+            "
+          >
+            Personal Hardware Webhook URL
+          </label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <input
+              type="text"
+              id="hardwareWebhookUrl"
+              readonly
+              value="Loading personal webhook endpoint..."
+              style="
+                flex: 1;
+                min-width: 260px;
+                padding: 10px 14px;
+                background: rgba(0, 0, 0, 0.35);
+                border: 1px solid var(--border-subtle);
+                border-radius: 8px;
+                color: #38bdf8;
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 14px;
+              "
+            />
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="copyHardwareWebhookBtn"
+              style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px"
+            >
+              <i class="fas fa-copy" aria-hidden="true"></i> Copy URL
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="testHardwareTriggerBtn"
+              style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px"
+            >
+              <i class="fas fa-bolt" style="color: #f59e0b" aria-hidden="true"></i> Test Trigger
+            </button>
+          </div>
+          <div
+            id="hardwareTriggerStatus"
+            class="small"
+            style="margin-top: 8px; font-weight: 600"
+            aria-live="polite"
+          ></div>
+        </div>
+
+        <!-- Quick Setup Instructions Accordion / Guides -->
+        <div
+          style="
+            margin-top: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+          "
+        >
+          <div
+            style="
+              font-size: 13.5px;
+              font-weight: 700;
+              color: #fff;
+              margin-bottom: 10px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            "
+          >
+            <i class="fab fa-apple" style="color: #cbd5e1" aria-hidden="true"></i>
+            <span>How to Configure Apple Shortcuts (iOS NFC Automation)</span>
+          </div>
+          <ol
+            style="margin: 0; padding-left: 20px; color: #94a3b8; font-size: 13px; line-height: 1.6"
+          >
+            <li>
+              Open the <strong>Shortcuts</strong> app on your iPhone and switch to the
+              <strong>Automation</strong> tab.
+            </li>
+            <li>
+              Tap <strong>+</strong> and select <strong>NFC</strong> as the trigger. Scan your
+              physical NFC tag or nightstand sticker.
+            </li>
+            <li>Choose <strong>Run Immediately</strong> (disable "Ask Before Running").</li>
+            <li>
+              Add the action: <strong>Get Contents of URL</strong>, paste your copied Webhook URL,
+              and set Method to <strong>POST</strong> (or <strong>GET</strong>).
+            </li>
+            <li>
+              Tap <strong>Done</strong>. Touching your iPhone to your nightstand now verifies your
+              morning wake-up and maintains your streak!
+            </li>
+          </ol>
+          <div
+            style="
+              margin-top: 12px;
+              font-size: 12.5px;
+              color: #64748b;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+            "
+          >
+            <i class="fab fa-android" aria-hidden="true"></i>
+            <span
+              >Android users: Use <strong>Tasker</strong> or <strong>Automate</strong> with an NFC
+              tag trigger and HTTP Request action to the same URL.</span
+            >
+          </div>
+        </div>
+      </div>
+
       <!-- Push Notifications Configuration Card -->
       <div class="card" id="notificationCard" style="display: none">
         <div
@@ -5027,6 +5194,17 @@
             <i class="fas fa-award" style="color: #10b981" aria-hidden="true"></i>
             Weekly Report Card (.svg)
           </a>
+          <a
+            href="/me/radar.svg?download=1"
+            class="btn btn-secondary"
+            id="downloadRadarChartBtn"
+            style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px"
+            download="consistency-radar.svg"
+            title="Download high-resolution 5-Pillar Consistency Radar Chart SVG"
+          >
+            <i class="fas fa-spider" style="color: #38bdf8" aria-hidden="true"></i>
+            5-Pillar Radar (.svg)
+          </a>
           <button
             type="button"
             class="btn btn-secondary"
@@ -5037,6 +5215,77 @@
             <i class="fas fa-rss" style="color: #f59e0b" aria-hidden="true"></i>
             Subscribe Feed (Webcal)
           </button>
+        </div>
+      </div>
+
+      <!-- 5-Pillar Consistency Radar Preview Card -->
+      <div class="card" id="radarChartCard" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+          "
+        >
+          <div>
+            <h2>
+              <i class="fas fa-project-diagram" style="color: #38bdf8" aria-hidden="true"></i>
+              🕸️ 5-Pillar Consistency Radar
+            </h2>
+            <p class="meta" style="font-size: 13px; margin-top: 4px; color: var(--text-muted)">
+              Visualizing your Rise Time Precision, Physical Grounding, Deep Work Sprint, Reflection
+              Depth, and Streak Grit.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="refreshRadarBtn"
+              style="display: inline-flex; align-items: center; gap: 6px"
+            >
+              <i class="fas fa-sync-alt" aria-hidden="true"></i> Refresh
+            </button>
+            <a
+              href="/me/radar.svg?download=1"
+              id="downloadRadarCardLink"
+              class="btn btn-primary"
+              style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px"
+              download="consistency-radar.svg"
+            >
+              <i class="fas fa-download" aria-hidden="true"></i> Download Vector SVG
+            </a>
+          </div>
+        </div>
+
+        <div
+          class="radar-preview-container"
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 16px;
+            background: rgba(6, 8, 14, 0.6);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+          "
+        >
+          <img
+            id="radarChartPreviewImg"
+            src="/me/radar.svg"
+            alt="5-Pillar Consistency Radar"
+            style="
+              max-width: 100%;
+              max-height: 520px;
+              height: auto;
+              border-radius: 12px;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            "
+            loading="lazy"
+          />
         </div>
       </div>
 
@@ -5160,6 +5409,14 @@
             style="flex: 1; font-size: 13px; padding: 6px 12px; transition: all 0.2s ease"
           >
             📊 Weekly Scorecard
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-secondary"
+            id="shareTabRadar"
+            style="flex: 1; font-size: 13px; padding: 6px 12px; transition: all 0.2s ease"
+          >
+            🕸️ 5-Pillar Radar
           </button>
         </div>
 

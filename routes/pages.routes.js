@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const pagesController = require("../controllers/pages.controller");
+const leaderboardController = require("../controllers/leaderboard.controller");
 
 router.get("/health", pagesController.health);
 router.get("/offline", pagesController.offline);
@@ -13,6 +14,9 @@ router.get("/llms.txt", pagesController.llmsTxt);
 router.get("/llms-full.txt", pagesController.llmsFullTxt);
 router.get("/.well-known/llms.txt", pagesController.llmsTxt);
 router.get("/about", pagesController.about);
+router.get("/leaderboard", leaderboardController.getPublicLeaderboard);
+router.get("/hall-of-fame", leaderboardController.getPublicLeaderboard);
+router.get("/api/leaderboard", leaderboardController.getPublicLeaderboard);
 router.get("/streak/:handleOrEmail", pagesController.streakShare);
 router.get("/user-dashboard", pagesController.userDashboard);
 router.get("/dashboard", pagesController.userDashboard);

@@ -882,12 +882,114 @@ async function liveRoutine(req, res) {
       color: #fff;
     }
     .binaural-layer-box {
-      margin-top: 16px;
-      padding: 14px 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      margin-top: 18px;
+      padding: 16px 18px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 14px;
       text-align: left;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4);
+    }
+    .binaural-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .binaural-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .binaural-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 6px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 6px;
+      color: #a5b4fc;
+    }
+    .binaural-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      letter-spacing: 0.02em;
+    }
+    .binaural-vol-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 140px;
+    }
+    .binaural-vol-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+    .binaural-slider {
+      flex: 1;
+      height: 4px;
+      accent-color: #818cf8;
+    }
+    .binaural-modes-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 580px) {
+      .binaural-modes-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .binaural-mode-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .binaural-mode-btn:hover {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #fff;
+    }
+    .binaural-mode-btn.active {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: #818cf8;
+      color: #fff;
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.4);
+    }
+    .binaural-status-info {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.4;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      border-left: 3px solid #6366f1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .binaural-mode-btn {
+        transition: none !important;
+      }
+      .binaural-mode-btn.active {
+        box-shadow: none !important;
+      }
     }
     .btn-checkin {
       width: 100%;
@@ -1712,13 +1814,42 @@ async function liveRoutine(req, res) {
           <span>Auto-start ambient soundscape when 25-min sprint timer starts</span>
         </label>
 
-        <div class="binaural-layer-box">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #cbd5e1; cursor: pointer;">
-              <input type="checkbox" id="binauralOverlayToggle" onchange="toggleBinauralOverlay()">
-              <span>🧠 Layer Binaural Beats with Soundscape</span>
-            </label>
-            <select id="binauralBeatSelect" onchange="updateBinauralFrequency()" style="background: #0f1423; color: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 12px; outline: none;">
+        <div class="binaural-layer-box" id="binauralStudioBox">
+          <div class="binaural-header">
+            <div class="binaural-title-wrap">
+              <span class="binaural-badge">Pure Web Audio</span>
+              <span class="binaural-title">🧠 Procedural Binaural Beats Generator</span>
+            </div>
+            <div class="binaural-vol-wrap">
+              <span class="binaural-vol-icon" title="Binaural Beats Volume">🎧</span>
+              <input type="range" class="vol-slider binaural-slider" id="binauralVolumeSlider" min="0" max="100" value="40" oninput="setBinauralVolume(this.value)" aria-label="Binaural Beats Volume" title="Binaural Beats Volume">
+              <span class="vol-label" id="binauralVolPercent">40%</span>
+            </div>
+          </div>
+
+          <div class="binaural-modes-grid" role="group" aria-label="Binaural Beats Frequency Presets">
+            <button type="button" class="binaural-mode-btn active" id="binaural-btn-none" onclick="setBinauralMode('none')" title="Mute binaural beats generator">
+              None
+            </button>
+            <button type="button" class="binaural-mode-btn" id="binaural-btn-gamma" onclick="setBinauralMode('gamma')" title="Gamma Focus (40 Hz): Peak cognitive processing and intense problem solving. Left ear = 200 Hz, Right ear = 240 Hz.">
+              ⚡ Gamma 40Hz
+            </button>
+            <button type="button" class="binaural-mode-btn" id="binaural-btn-alpha" onclick="setBinauralMode('alpha')" title="Alpha Flow (10 Hz): Relaxed alertness, flow state, and creative planning. Left ear = 200 Hz, Right ear = 210 Hz.">
+              🌊 Alpha 10Hz
+            </button>
+            <button type="button" class="binaural-mode-btn" id="binaural-btn-theta" onclick="setBinauralMode('theta')" title="Theta Calm (6 Hz): Morning visualization, meditation, and anxiety reduction. Left ear = 200 Hz, Right ear = 206 Hz.">
+              🧘 Theta 6Hz
+            </button>
+          </div>
+
+          <div class="binaural-status-info" id="binauralPresetDesc">
+            Off • Two pure sine wave tones with slightly different frequencies played into left and right ears.
+          </div>
+
+          <!-- Synchronized legacy toggles for backwards compatibility -->
+          <div style="display: none;" aria-hidden="true">
+            <input type="checkbox" id="binauralOverlayToggle" onchange="toggleBinauralOverlay()">
+            <select id="binauralBeatSelect" onchange="updateBinauralFrequency()">
               <option value="40">40Hz Gamma (Deep Flow & Focus)</option>
               <option value="18">18Hz Beta (Active Problem Solving)</option>
               <option value="10" selected>10Hz Alpha (Relaxed Alertness)</option>
@@ -2430,84 +2561,252 @@ async function liveRoutine(req, res) {
 
     const PRESETS = ['rain', 'waves', 'binaural', 'flow', 'theta', 'cafe', 'forest'];
 
+    // --- Scientifically Tuned Binaural Beats Presets ---
+    const BINAURAL_PRESETS = {
+      gamma: {
+        id: 'gamma',
+        name: 'Gamma Focus',
+        hz: 40,
+        baseFreq: 200,
+        diff: 40,
+        desc: 'Peak cognitive processing and intense problem solving'
+      },
+      alpha: {
+        id: 'alpha',
+        name: 'Alpha Flow',
+        hz: 10,
+        baseFreq: 200,
+        diff: 10,
+        desc: 'Relaxed alertness, flow state, and creative planning'
+      },
+      theta: {
+        id: 'theta',
+        name: 'Theta Calm',
+        hz: 6,
+        baseFreq: 200,
+        diff: 6,
+        desc: 'Morning visualization, meditation, and anxiety reduction'
+      }
+    };
+
     let binauralActiveNodes = [];
+    let currentBinauralMode = 'none';
+    let currentBinauralGainNode = null;
+    let binauralVolume = 0.4;
     let isBinauralOverlayActive = false;
 
-    function buildBinauralLayer(ctx, outNode, hz = 10) {
-      const layerMaster = ctx.createGain();
-      layerMaster.gain.setValueAtTime(0.001, ctx.currentTime);
-      layerMaster.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.3);
-      layerMaster.connect(outNode);
+    function createBinauralBeats(type, volume) {
+      stopBinauralBeats();
 
-      const carrier = 200;
-      const leftOsc = ctx.createOscillator();
-      leftOsc.type = 'sine';
-      leftOsc.frequency.setValueAtTime(carrier, ctx.currentTime);
-
-      const rightOsc = ctx.createOscillator();
-      rightOsc.type = 'sine';
-      rightOsc.frequency.setValueAtTime(carrier + hz, ctx.currentTime);
-
-      const pannerLeft = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-      if (pannerLeft) {
-        pannerLeft.pan.setValueAtTime(-0.8, ctx.currentTime);
-        leftOsc.connect(pannerLeft);
-        pannerLeft.connect(layerMaster);
-      } else {
-        leftOsc.connect(layerMaster);
+      if (!type || type === 'none' || type === 'off') {
+        currentBinauralMode = 'none';
+        isBinauralOverlayActive = false;
+        updateBinauralUI();
+        return null;
       }
 
-      const pannerRight = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-      if (pannerRight) {
-        pannerRight.pan.setValueAtTime(0.8, ctx.currentTime);
-        rightOsc.connect(pannerRight);
-        pannerRight.connect(layerMaster);
-      } else {
-        rightOsc.connect(layerMaster);
+      let preset = BINAURAL_PRESETS[type];
+      if (!preset) {
+        if (type === 40 || type === '40') preset = BINAURAL_PRESETS.gamma;
+        else if (type === 10 || type === '10') preset = BINAURAL_PRESETS.alpha;
+        else if (type === 6 || type === '6') preset = BINAURAL_PRESETS.theta;
+        else preset = BINAURAL_PRESETS.alpha;
+      }
+
+      const ctx = getAudioContext();
+      const targetVol = typeof volume === 'number' ? volume : binauralVolume;
+
+      // Binaural GainNode connected to master companion gain node
+      const binauralGain = ctx.createGain();
+      binauralGain.gain.setValueAtTime(0.001, ctx.currentTime);
+      binauralGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVol), ctx.currentTime + 0.2);
+      binauralGain.connect(masterGainNode);
+      currentBinauralGainNode = binauralGain;
+
+      // Left oscillator (sine, baseFreq) -> StereoPannerNode({ pan: -1 }) -> GainNode
+      const leftOsc = ctx.createOscillator();
+      leftOsc.type = 'sine';
+      leftOsc.frequency.setValueAtTime(preset.baseFreq, ctx.currentTime);
+
+      // Right oscillator (sine, baseFreq + diff) -> StereoPannerNode({ pan: 1 }) -> GainNode
+      const rightOsc = ctx.createOscillator();
+      rightOsc.type = 'sine';
+      rightOsc.frequency.setValueAtTime(preset.baseFreq + preset.diff, ctx.currentTime);
+
+      const nodes = [leftOsc, rightOsc, binauralGain];
+
+      let panned = false;
+      try {
+        if (typeof StereoPannerNode !== 'undefined') {
+          const leftPan = new StereoPannerNode(ctx, { pan: -1 });
+          const rightPan = new StereoPannerNode(ctx, { pan: 1 });
+          leftOsc.connect(leftPan);
+          leftPan.connect(binauralGain);
+          rightOsc.connect(rightPan);
+          rightPan.connect(binauralGain);
+          nodes.push(leftPan, rightPan);
+          panned = true;
+        } else if (ctx.createStereoPanner) {
+          const leftPan = ctx.createStereoPanner();
+          leftPan.pan.setValueAtTime(-1, ctx.currentTime);
+          const rightPan = ctx.createStereoPanner();
+          rightPan.pan.setValueAtTime(1, ctx.currentTime);
+          leftOsc.connect(leftPan);
+          leftPan.connect(binauralGain);
+          rightOsc.connect(rightPan);
+          rightPan.connect(binauralGain);
+          nodes.push(leftPan, rightPan);
+          panned = true;
+        }
+      } catch (_e) {
+        panned = false;
+      }
+
+      // Fallback to createChannelSplitter / createChannelMerger if StereoPanner is not supported
+      if (!panned) {
+        const merger = ctx.createChannelMerger(2);
+        leftOsc.connect(merger, 0, 0);  // Left ear routed to channel 0
+        rightOsc.connect(merger, 0, 1); // Right ear routed to channel 1
+        merger.connect(binauralGain);
+        nodes.push(merger);
       }
 
       leftOsc.start();
       rightOsc.start();
-      return [leftOsc, rightOsc, layerMaster];
+
+      binauralActiveNodes = nodes;
+      currentBinauralMode = preset.id;
+      isBinauralOverlayActive = true;
+      updateBinauralUI();
+
+      return nodes;
     }
 
-    function stopBinauralLayer() {
+    function stopBinauralBeats() {
       if (binauralActiveNodes.length === 0) return;
       const nodes = [...binauralActiveNodes];
       binauralActiveNodes = [];
-      nodes.forEach(n => {
-        try { if (n.stop) n.stop(); if (n.disconnect) n.disconnect(); } catch(_e) {}
+      const ctx = audioCtx;
+      if (ctx && currentBinauralGainNode) {
+        try {
+          currentBinauralGainNode.gain.cancelScheduledValues(ctx.currentTime);
+          currentBinauralGainNode.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
+        } catch (_e) {}
+      }
+      setTimeout(() => {
+        nodes.forEach(n => {
+          try {
+            if (n.stop) n.stop();
+            if (n.disconnect) n.disconnect();
+          } catch (_e) {}
+        });
+      }, 120);
+      currentBinauralGainNode = null;
+    }
+
+    function setBinauralMode(mode) {
+      if (mode === currentBinauralMode && mode !== 'none') {
+        mode = 'none';
+      }
+      if (mode === 'none') {
+        stopBinauralBeats();
+        currentBinauralMode = 'none';
+        isBinauralOverlayActive = false;
+        const toggle = document.getElementById('binauralOverlayToggle');
+        if (toggle) toggle.checked = false;
+        showRoutineToast("Binaural Beats Disabled", "info", { duration: 2000 });
+      } else {
+        const preset = BINAURAL_PRESETS[mode];
+        createBinauralBeats(mode, binauralVolume);
+        isBinauralOverlayActive = true;
+        const toggle = document.getElementById('binauralOverlayToggle');
+        if (toggle) toggle.checked = true;
+        const select = document.getElementById('binauralBeatSelect');
+        if (select && preset) select.value = String(preset.hz);
+        showRoutineToast("🧠 " + preset.name + " (" + preset.hz + "Hz) Active", "info", {
+          duration: 3000,
+          progressColor: "#818cf8"
+        });
+      }
+      updateBinauralUI();
+    }
+
+    function setBinauralVolume(val) {
+      binauralVolume = Math.max(0, Math.min(100, parseInt(val, 10))) / 100;
+      const label = document.getElementById('binauralVolPercent');
+      if (label) label.innerText = Math.round(binauralVolume * 100) + '%';
+      if (currentBinauralGainNode && audioCtx) {
+        try {
+          currentBinauralGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+          currentBinauralGainNode.gain.linearRampToValueAtTime(binauralVolume, audioCtx.currentTime + 0.05);
+        } catch (_e) {}
+      }
+    }
+
+    function updateBinauralUI() {
+      ['none', 'gamma', 'alpha', 'theta'].forEach(m => {
+        const btn = document.getElementById('binaural-btn-' + m);
+        if (btn) {
+          btn.classList.toggle('active', m === currentBinauralMode);
+        }
       });
+      const descEl = document.getElementById('binauralPresetDesc');
+      if (descEl) {
+        if (currentBinauralMode === 'none') {
+          descEl.innerText = 'Off • Two pure sine wave tones with slightly different frequencies played into left and right ears.';
+        } else {
+          const p = BINAURAL_PRESETS[currentBinauralMode];
+          if (p) {
+            descEl.innerText = p.name + ' (' + p.hz + 'Hz): ' + p.desc + ' [Left: ' + p.baseFreq + 'Hz | Right: ' + (p.baseFreq + p.diff) + 'Hz]';
+          }
+        }
+      }
+    }
+
+    function buildBinauralLayer(ctx, outNode, hz = 10) {
+      let mode = 'alpha';
+      if (hz >= 30) mode = 'gamma';
+      else if (hz <= 7) mode = 'theta';
+      return createBinauralBeats(mode, binauralVolume);
+    }
+
+    function stopBinauralLayer() {
+      stopBinauralBeats();
     }
 
     function toggleBinauralOverlay() {
       const toggle = document.getElementById('binauralOverlayToggle');
       if (!toggle) return;
-      const ctx = getAudioContext();
       if (toggle.checked) {
         const select = document.getElementById('binauralBeatSelect');
         const hz = Number(select?.value) || 10;
-        stopBinauralLayer();
-        binauralActiveNodes = buildBinauralLayer(ctx, masterGainNode, hz);
-        isBinauralOverlayActive = true;
-        showRoutineToast("🧠 Binaural Waves Layer Active (" + hz + "Hz)", "info", { duration: 3000, progressColor: "#7c3aed" });
+        let mode = 'alpha';
+        if (hz >= 30) mode = 'gamma';
+        else if (hz <= 7) mode = 'theta';
+        setBinauralMode(mode);
       } else {
-        stopBinauralLayer();
-        isBinauralOverlayActive = false;
-        showRoutineToast("Binaural Waves Layer Off", "info", { duration: 2200 });
+        setBinauralMode('none');
       }
     }
 
     function updateBinauralFrequency() {
-      if (!isBinauralOverlayActive) return;
-      toggleBinauralOverlay();
+      const select = document.getElementById('binauralBeatSelect');
+      const hz = Number(select?.value) || 10;
+      let mode = 'alpha';
+      if (hz >= 30) mode = 'gamma';
+      else if (hz <= 7) mode = 'theta';
+      setBinauralMode(mode);
     }
 
-    function stopSoundNodes(duration = 0.15) {
-      stopBinauralLayer();
-      const toggle = document.getElementById('binauralOverlayToggle');
-      if (toggle) toggle.checked = false;
-      isBinauralOverlayActive = false;
+    function stopSoundNodes(duration = 0.15, preserveBinaural = false) {
+      if (!preserveBinaural) {
+        stopBinauralBeats();
+        const toggle = document.getElementById('binauralOverlayToggle');
+        if (toggle) toggle.checked = false;
+        isBinauralOverlayActive = false;
+        currentBinauralMode = 'none';
+        updateBinauralUI();
+      }
 
       if (activeNodes.length === 0) return;
       const nodes = [...activeNodes];
@@ -2528,7 +2827,7 @@ async function liveRoutine(req, res) {
 
     function startSoundscape(preset) {
       const ctx = getAudioContext();
-      stopSoundNodes(0.12);
+      stopSoundNodes(0.12, true);
       setTimeout(() => {
         if (preset === 'rain') activeNodes = buildRain(ctx, masterGainNode);
         else if (preset === 'waves') activeNodes = buildOcean(ctx, masterGainNode);
@@ -3438,13 +3737,30 @@ async function liveRoutine(req, res) {
       }
     });
 
-    // Teardown audio and sprint timer on pagehide
+    // Teardown audio and sprint timer on pagehide / beforeunload
+    window.addEventListener('beforeunload', function () {
+      stopSoundNodes(0);
+    });
+
     window.addEventListener('pagehide', function () {
       if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
       }
       stopSoundNodes(0);
+    });
+
+    // Mobile battery friendliness: suspend AudioContext if tab hidden and no sound active
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        if (audioCtx && audioCtx.state === 'running' && !isSoundPlaying && currentBinauralMode === 'none') {
+          try { audioCtx.suspend(); } catch (_e) {}
+        }
+      } else {
+        if (audioCtx && audioCtx.state === 'suspended' && (isSoundPlaying || currentBinauralMode !== 'none')) {
+          try { audioCtx.resume(); } catch (_e) {}
+        }
+      }
     });
   </script>
 </body>
