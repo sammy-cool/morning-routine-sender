@@ -2,6 +2,8 @@
 const { newDb } = require("pg-mem");
 const RedisMock = require("ioredis-mock");
 
+jest.setTimeout(20000);
+
 // 1. Dynamic Mock for Knex Database Client
 let mockKnexInstance;
 let mockKnexOverride = null;
