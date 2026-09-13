@@ -96,6 +96,8 @@ router.post("/me/vacation/resume", requireSubscriberSession, meController.resume
 router.post("/api/me/vacation/resume", requireSubscriberSession, meController.resumeVacation);
 router.get("/me/milestones", requireSubscriberSession, meController.getMilestones);
 router.get("/api/me/milestones", requireSubscriberSession, meController.getMilestones);
+router.get("/me/xp", requireSubscriberSession, meController.getXpProfile);
+router.get("/api/me/xp", requireSubscriberSession, meController.getXpProfile);
 
 router.post("/me/outbound-webhook", requireSubscriberSession, meController.updateOutboundWebhook);
 router.post(

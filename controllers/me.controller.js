@@ -966,7 +966,7 @@ async function updateCoachPersona(req, res) {
 
 // PATCH /me  { templateType?, routineTrack?, cronPattern?, timezone?, isActive?, focusDurationMinutes?, customHabits?, customQuote?, customRitual?, newsCategory?, customCoachPrompt?, weeklyDigestEnabled?, weeklyDigestDay? }
 async function updateMe(req, res) {
-  const {
+  let {
     templateType,
     routineTrack,
     cronPattern,
@@ -986,9 +986,53 @@ async function updateMe(req, res) {
     vacationReason,
     emailDensity,
     locationCity,
+    sendTime,
+    weekendSendTime,
+    optimalSendWindow,
+    quietHours,
   } = req.body || {};
 
   const errors = [];
+
+  if (sendTime !== undefined && sendTime !== null && sendTime !== "") {
+    const timeMatch = String(sendTime)
+      .trim()
+      .match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    if (!timeMatch) {
+      errors.push("sendTime must be in HH:MM 24-hour format (e.g. '06:30')");
+    } else if (cronPattern === undefined) {
+      const min = parseInt(timeMatch[2], 10);
+      const hour = parseInt(timeMatch[1], 10);
+      cronPattern = `${min} ${hour} * * 1-5`;
+    }
+  }
+
+  if (weekendSendTime !== undefined && weekendSendTime !== null && weekendSendTime !== "") {
+    const wTimeMatch = String(weekendSendTime)
+      .trim()
+      .match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    if (!wTimeMatch) {
+      errors.push("weekendSendTime must be in HH:MM 24-hour format (e.g. '08:00')");
+    } else if (weekendCronPattern === undefined) {
+      const wMin = parseInt(wTimeMatch[2], 10);
+      const wHour = parseInt(wTimeMatch[1], 10);
+      weekendCronPattern = `${wMin} ${wHour} * * 0,6`;
+    }
+  }
+
+  if (quietHours !== undefined && quietHours !== null) {
+    if (
+      typeof quietHours !== "object" ||
+      typeof quietHours.start !== "number" ||
+      typeof quietHours.end !== "number" ||
+      quietHours.start < 0 ||
+      quietHours.start > 23 ||
+      quietHours.end < 0 ||
+      quietHours.end > 23
+    ) {
+      errors.push("quietHours must be an object with start and end numbers between 0 and 23");
+    }
+  }
 
   if (
     weekendRoutineTrack !== undefined &&
@@ -1065,7 +1109,11 @@ async function updateMe(req, res) {
     vacationUntil === undefined &&
     vacationReason === undefined &&
     emailDensity === undefined &&
-    locationCity === undefined
+    locationCity === undefined &&
+    sendTime === undefined &&
+    weekendSendTime === undefined &&
+    optimalSendWindow === undefined &&
+    quietHours === undefined
   ) {
     return res.status(400).json({ error: "No fields provided to update" });
   }
@@ -1193,6 +1241,22 @@ async function updateMe(req, res) {
     }
     if (vacationReason !== undefined) {
       updates.vacationReason = vacationReason ? String(vacationReason).trim() : null;
+    }
+    if (sendTime !== undefined) {
+      updates.sendTime = sendTime ? String(sendTime).trim() : null;
+      if (cronPattern !== undefined && !updates.cronPattern) updates.cronPattern = cronPattern;
+    }
+    if (weekendSendTime !== undefined) {
+      updates.weekendSendTime = weekendSendTime ? String(weekendSendTime).trim() : null;
+      if (weekendCronPattern !== undefined && !updates.weekendCronPattern) {
+        updates.weekendCronPattern = weekendCronPattern;
+      }
+    }
+    if (optimalSendWindow !== undefined) {
+      updates.optimalSendWindow = Boolean(optimalSendWindow);
+    }
+    if (quietHours !== undefined) {
+      updates.quietHours = quietHours;
     }
 
     if (Object.keys(updates).length > 0) {
@@ -1888,6 +1952,81 @@ async function getShortcutConfig(req, res) {
   }
 }
 
+// GET /api/me/xp & GET /me/xp (authenticated)
+async function getXpProfile(req, res) {
+  try {
+    const email = (req.subscriberEmail || req.session?.subscriberEmail || req.query?.email || "")
+      .trim()
+      .toLowerCase();
+
+    if (!email) {
+      return res.status(401).json({ success: false, error: "Authentication required" });
+    }
+
+    const subscriber = await sharedData.getUserByEmail(email);
+    if (!subscriber) {
+      return res.status(404).json({ success: false, error: "Subscriber not found" });
+    }
+
+    const journalService = require("../helper/journalService");
+    let entries = [];
+    try {
+      entries = (await journalService.getAllEntries(email)) || [];
+    } catch (_jErr) {
+      entries = [];
+    }
+
+    const streakCount = Number(subscriber.streakCount) || 0;
+    const journalEntries = entries.length;
+    let verifiedWakeups = 0;
+    let hardwareCheckins = 0;
+    let moodLogs = 0;
+    let gratitudeLogs = 0;
+    let reflections = 0;
+
+    for (const entry of entries) {
+      if (entry.verified_wakeup || entry.verifiedWakeup) verifiedWakeups++;
+      if (
+        (entry.one_big_thing && entry.one_big_thing.includes("Hardware")) ||
+        (entry.oneBigThing && entry.oneBigThing.includes("Hardware")) ||
+        (entry.one_big_thing && entry.one_big_thing.includes("NFC"))
+      ) {
+        hardwareCheckins++;
+      }
+      if (entry.mood_score !== undefined || entry.mood !== undefined) moodLogs++;
+      if (entry.gratitude && String(entry.gratitude).trim()) gratitudeLogs++;
+      if (
+        (entry.reflection_text && String(entry.reflection_text).trim()) ||
+        (entry.reflection && String(entry.reflection).trim())
+      ) {
+        reflections++;
+      }
+    }
+
+    const xpEngine = require("../helper/xpEngine");
+    const xpData = xpEngine.getXpProfile({
+      streakCount,
+      totalCheckins: streakCount,
+      journalEntries,
+      verifiedWakeups,
+      hardwareCheckins,
+      duelWins: Number(subscriber.duelWins) || 0,
+      moodLogs,
+      gratitudeLogs,
+      reflections,
+    });
+
+    return res.json({
+      success: true,
+      subscriber: email,
+      ...xpData,
+    });
+  } catch (error) {
+    logger.error("Failed to load subscriber XP profile", { error: error.message });
+    return res.status(500).json({ success: false, error: "Failed to load XP profile" });
+  }
+}
+
 module.exports = {
   getMe,
   getMyHistory,
@@ -1914,4 +2053,5 @@ module.exports = {
   exportDisciplineData,
   hardwareCheckin,
   getShortcutConfig,
+  getXpProfile,
 };

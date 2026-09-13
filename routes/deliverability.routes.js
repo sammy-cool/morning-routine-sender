@@ -10,6 +10,8 @@ router.get("/dns-audit", deliverabilityController.getDnsAudit);
 router.get("/telemetry-stats", deliverabilityController.getTelemetryStats);
 router.get("/telemetry-overview", deliverabilityController.getTelemetryOverview);
 router.get("/recent-events", deliverabilityController.getRecentEvents);
+router.get("/sparkline.svg", deliverabilityController.getSparklineSvg);
+router.get("/health", deliverabilityController.getDeliverabilityHealth);
 router.post("/retry-failed", deliverabilityController.retryFailedDispatches);
 router.post("/unsuppress", deliverabilityController.unsuppressEmail);
 

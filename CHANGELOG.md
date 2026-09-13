@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.11.0] - 2026-09-13
+
+### 🌟 Elite Polish: Gamification XP, NFC Hardware Wake-Up, 5-Pillar Radar Chart, Binaural Beats & Public Hall of Fame
+
+- **Gamification XP & Level-Up System**:
+  - Implemented [`helper/xpEngine.js`](file:///home/smarty/projects/morning-routine-sender/helper/xpEngine.js) calculating XP rewards for check-ins, journal entries, verified wakeups, hardware NFC taps, squad duel wins, and milestone achievements.
+  - Added 6 progression level tiers (_Rookie_, _Apprentice_, _Warrior_, _Master_, _Grandmaster_, _Legend_) with percentage progress and XP-to-next-level telemetry.
+  - Mounted authenticated `GET /me/xp` and `GET /api/me/xp` in [`routes/subscriberPortal.routes.js`](file:///home/smarty/projects/morning-routine-sender/routes/subscriberPortal.routes.js).
+- **Physical NFC & Apple Shortcuts / Android Tasker Instant Wake-Up**:
+  - Implemented `hardwareCheckin(req, res)` and `getShortcutConfig(req, res)` in [`controllers/me.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/me.controller.js).
+  - Mounted `POST /api/me/hardware-checkin` (token-authenticated), `GET /api/me/hardware-checkin` (browser/NFC-tap friendly), and `GET /api/me/shortcut-config`.
+  - Added 1-click Apple Shortcuts & Tasker webhook configuration with automated streak advancement and idempotency protection.
+- **5-Pillar Consistency Radar Chart SVG**:
+  - Implemented pure SVG polygon radar generator in [`helper/radarChartGenerator.js`](file:///home/smarty/projects/morning-routine-sender/helper/radarChartGenerator.js) mapping Rise Time Precision, Physical Grounding, Deep Work Sprint, Reflection Depth, and Streak Grit.
+  - Mounted `GET /api/me/radar.svg`, `GET /me/radar.svg`, and `GET /radar/:token.svg` returning standalone obsidian glassmorphic vector graphics.
+- **Procedural Binaural Beats Engine**:
+  - Added Web Audio API stereo binaural beats synthesizer to [`controllers/routine.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/routine.controller.js) featuring Gamma 40Hz (Deep Focus), Alpha 10Hz (Flow State), and Theta 6Hz (Morning Calm) presets with stereo panning.
+- **Public Hall of Fame & Community Leaderboard**:
+  - Created [`controllers/leaderboard.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/leaderboard.controller.js) and mounted `GET /leaderboard`, `GET /hall-of-fame`, and `GET /api/leaderboard` in [`routes/pages.routes.js`](file:///home/smarty/projects/morning-routine-sender/routes/pages.routes.js).
+  - Renders an obsidian glassmorphic community showcase featuring top unbroken streaks, podium rankings, squad leaderboards, and track filtering.
+- **Deliverability Sparklines & Health Telemetry**:
+  - Added `getSparklineSvg` and `getDeliverabilityHealth` in [`controllers/deliverability.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/deliverability.controller.js).
+  - Mounted `GET /admin/deliverability/sparkline.svg` and `GET /admin/deliverability/health` in [`routes/deliverability.routes.js`](file:///home/smarty/projects/morning-routine-sender/routes/deliverability.routes.js).
+- **Multi-Timezone Smart Scheduling & Time Picker**:
+  - Extended `updateMe` in [`controllers/me.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/me.controller.js) supporting `sendTime` ("06:30"), `weekendSendTime`, `optimalSendWindow`, and `quietHours` with automatic cron expression calculation.
+- **Smart Notification Orchestrator**:
+  - Implemented [`helper/notificationOrchestrator.js`](file:///home/smarty/projects/morning-routine-sender/helper/notificationOrchestrator.js) managing quiet hours, escalation ladders (Push -> Telegram -> Discord -> Email), and coach-persona tone adaptation.
+- **Mobile Haptics, Podcast RSS Feed, Habit Data Export & Social Share Previews**:
+  - Added `navigator.vibrate` integration to the 3-minute morning ritual.
+  - Added RSS 2.0 iTunes podcast feed at `GET /feed/podcast/:token.xml`.
+  - Added RFC 4180 CSV, JSON, and Markdown export at `GET /api/me/export`.
+  - Added OpenGraph / Twitter social previews at `GET /s/:handle`.
+- **Quality Gates & Test Coverage**:
+  - 100% green across all 4 mandatory quality gates: Syntax AST validation, Prettier formatting compliance, ESLint (0 errors, 0 warnings), and all 70 test suites passing.
+
+---
+
 ## [2.10.1] - 2026-09-12
 
 ### 🛠️ Desktop Sidebar Flex Stabilization & Layout Containment
