@@ -67,6 +67,7 @@ async function verifyAdminKey(req, res) {
         if (keyExists) {
           isOneTimeKeyValid = true;
           await redis.del(`admin_key:${key}`);
+          await redis.set(`admin:key:${key}`, "active", "EX", 24 * 60 * 60);
         }
       } catch (redisErr) {
         logger.warn("Redis lookup failed during admin key verify", { error: redisErr.message });

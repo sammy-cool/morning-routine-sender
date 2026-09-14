@@ -1,6 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const logger = require("../logger");
+const redis = require("../config/redisClient");
+const { safeCompare } = require("../helper/util");
 
 const ROOT_DIR = path.join(__dirname, "..");
 
@@ -53,12 +55,93 @@ function getCachedTemplate(relativePath) {
   return "";
 }
 
+// GET /admin (route alias)
+function admin(req, res) {
+  return res.redirect(302, "/admin-dashboard");
+}
+
 // GET /admin-dashboard
-function adminDashboard(req, res) {
+async function adminDashboard(req, res) {
   setNoCacheHeaders(res);
-  const role = req.signedCookies?.mrn_role;
-  if (role !== "admin") {
+  let isAuthorized = req.signedCookies?.mrn_role === "admin";
+
+  if (!isAuthorized) {
+    const authHeader =
+      typeof req.get === "function" ? req.get("authorization") : req.headers?.authorization;
+    const xAdminKey =
+      typeof req.get === "function" ? req.get("x-admin-key") : req.headers?.["x-admin-key"];
+    const xAdminSecret =
+      typeof req.get === "function" ? req.get("x-admin-secret") : req.headers?.["x-admin-secret"];
+    const queryKey = req.query?.key || req.query?.adminKey;
+
+    let token = null;
+    if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+      const candidate = authHeader.slice(7).trim();
+      if (candidate && candidate !== "undefined" && candidate !== "null") {
+        token = candidate;
+      }
+    }
+
+    if (!token && xAdminKey && typeof xAdminKey === "string") {
+      const candidate = xAdminKey.trim();
+      if (candidate && candidate !== "undefined" && candidate !== "null") {
+        token = candidate;
+      }
+    }
+
+    if (!token && xAdminSecret && typeof xAdminSecret === "string") {
+      const candidate = xAdminSecret.trim();
+      if (candidate && candidate !== "undefined" && candidate !== "null") {
+        token = candidate;
+      }
+    }
+
+    if (!token && queryKey && typeof queryKey === "string") {
+      const candidate = queryKey.trim();
+      if (candidate && candidate !== "undefined" && candidate !== "null") {
+        token = candidate;
+      }
+    }
+
+    if (token) {
+      const masterKey = process.env.ADMIN_KEY;
+      if (masterKey && safeCompare(token, masterKey)) {
+        isAuthorized = true;
+      } else {
+        try {
+          const [key1, key2] = await Promise.all([
+            redis.get(`admin_key:${token}`),
+            redis.get(`admin:key:${token}`),
+          ]);
+          if (key1 || key2) {
+            isAuthorized = true;
+          }
+        } catch (err) {
+          logger.warn("Redis lookup failed in adminDashboard", { error: err.message });
+        }
+      }
+    }
+  }
+
+  if (!isAuthorized) {
     return res.redirect(302, "/");
+  }
+
+  if (req.signedCookies?.mrn_role !== "admin" && typeof res.cookie === "function") {
+    const isProd = process.env.NODE_ENV === "production";
+    const SESSION_DURATION = 24 * 60 * 60 * 1000;
+    try {
+      res.cookie("mrn_role", "admin", {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: "lax",
+        path: "/",
+        maxAge: SESSION_DURATION,
+        signed: Boolean(req.secret),
+      });
+    } catch (cookieErr) {
+      logger.warn("Failed to re-issue admin session cookie", { error: cookieErr.message });
+    }
   }
 
   const domain = getDomain(req, res);
@@ -201,12 +284,9 @@ async function userDashboard(req, res) {
 
   const { getSessionEmail } = require("../middleware/subscriberSession");
   const email = await getSessionEmail(req);
-  if (!email) {
-    return res.redirect(302, "/");
-  }
 
   const domain = getDomain(req, res);
-  logger.info("User Dashboard accessed", { domain, ip: req.ip, email });
+  logger.info("User Dashboard accessed", { domain, ip: req.ip, email: email || "client-hydrated" });
   let html = getCachedTemplate("public/user-dashboard.html");
   html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
   res.send(html);
@@ -844,6 +924,7 @@ async function streakShare(req, res) {
 }
 
 module.exports = {
+  admin,
   adminDashboard,
   health,
   offline,

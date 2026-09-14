@@ -27,4 +27,7 @@ storage
 
 # Local Agent Guidelines (kept only on local)
 AGENTS.md
-
+.agents
+ORIGINAL_REQUEST.md
+TEST_INFRA.md
+TEST_READY.md

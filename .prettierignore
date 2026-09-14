@@ -25,6 +25,10 @@ dist/
 build/
 .cache/
 
+# Agent metadata & working directories
+.agents/
+
 # Email MJML templates
 *.mjml
 email-templates/
+

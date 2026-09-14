@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4.8.0";
+const CACHE_VERSION = "v4.8.1";
 const CACHE_NAME = `mrn-pwa-${CACHE_VERSION}`;
 
 // STATIC ASSETS ONLY (NO HTML, NO AUTH, NO SUBSCRIBER DATA)
@@ -380,6 +380,10 @@ self.addEventListener("fetch", (event) => {
 
   // 2. DYNAMIC & AUTH & SUBSCRIBER APIS → STRICT NETWORK ONLY (NEVER CACHE)
   const isDynamicApi =
+    /\/generate-admin-key/.test(url.pathname) ||
+    /\/verify-admin-key/.test(url.pathname) ||
+    /\/admin-dashboard/.test(url.pathname) ||
+    /\/admin/.test(url.pathname) ||
     url.pathname.startsWith("/me") ||
     url.pathname.startsWith("/login") ||
     url.pathname.startsWith("/verify-login") ||
@@ -388,7 +392,6 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/confirm-subscription") ||
     url.pathname.startsWith("/checkin") ||
     url.pathname.startsWith("/routine") ||
-    url.pathname.startsWith("/admin") ||
     url.pathname.startsWith("/read-db") ||
     url.pathname.startsWith("/send-test-email") ||
     url.pathname.startsWith("/send-bulk-now") ||

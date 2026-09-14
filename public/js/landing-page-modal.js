@@ -97,6 +97,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         });
         const j = await resp.json();
         if (resp.ok && j.role === "admin") {
+          try {
+            if (typeof sessionStorage !== "undefined") {
+              sessionStorage.setItem("mrn_admin_key", key);
+            }
+          } catch (storageErr) {
+            console.warn("Could not save admin key to sessionStorage", storageErr);
+          }
           globalThis.location.href = "/admin-dashboard";
         } else {
           showToast("Key not recognized — showing standard user view.", "warning");

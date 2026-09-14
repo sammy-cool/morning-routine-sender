@@ -28,15 +28,9 @@
     },
     {
       "src": "/assets/mrn-brand-ico.png",
-      "sizes": "192x192",
+      "sizes": "192x192 512x512",
       "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/assets/mrn-brand-ico.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "screenshots": [

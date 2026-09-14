@@ -9,16 +9,19 @@
       content="Morning Routine Email Sender - Next-Gen Admin Command Center with automated scheduling, analytics, subscriber management, and real-time monitoring"
     />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#090d16" />
+    <meta name="theme-color" content="#050608" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Routine Admin" />
     <title>Morning Routine • Admin Command Center</title>
 
-    <link rel="icon" type="image/png" sizes="64x64" href="/assets/mrn-brand-ico.png" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="apple-touch-icon" href="/assets/mrn-brand-ico.png" />
+    <!-- Favicons, Icons & Web Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/mrn-brand-ico.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/mrn-brand-ico.png" />
+    <link rel="manifest" href="/manifest.json" />
 
     <!-- Resource Hints & DNS Prefetching -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -43,9 +46,11 @@
       rel="stylesheet"
     />
     <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/loader.css" />
     <link rel="stylesheet" href="/css/responsive-layout.css" />
 
     <!-- Toast Notification & Chart.js -->
+    <script src="/js/skeleton-loader.js" defer></script>
     <script
       src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
       defer
@@ -1369,6 +1374,16 @@
   </head>
 
   <body>
+    <!-- Standardized Obsidian Page Loader -->
+    <div id="loaderRoot" class="loader-container">
+      <div id="loader" class="loader">
+        <div class="logo-ring"></div>
+        <div id="logoBox" class="logo">
+          <img src="/assets/mrn-brand-ico.png" alt="Morning Routine Logo" width="48" height="48" />
+        </div>
+      </div>
+    </div>
+
     <!-- Navigation Sidebar -->
     <aside class="sidebar">
       <div>
@@ -1519,7 +1534,7 @@
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleAdminSidebar(false)"></div>
 
     <!-- Main Workspace -->
-    <main class="main-content">
+    <main class="main-content" id="mainRoot">
       <!-- Top Navigation & Global Header -->
       <header class="topbar">
         <div class="header-title-wrap">
@@ -2960,7 +2975,7 @@
             <span>Cluster: Operational</span>
           </div>
           <span style="font-size: 12px; color: var(--text-muted)">
-            Morning Routine Command Center &bull; v2.10.1
+            Morning Routine Command Center &bull; v2.12.0
           </span>
         </div>
         <div class="admin-footer-right">
@@ -3665,10 +3680,25 @@ Loading records…</pre>
       /* ==================== API Helper ==================== */
       async function apiCall(endpoint, options = {}) {
         try {
+          const authHeaders = {};
+          try {
+            const savedKey =
+              typeof sessionStorage !== "undefined"
+                ? sessionStorage.getItem("mrn_admin_key")
+                : null;
+            if (savedKey) {
+              authHeaders["Authorization"] = `Bearer ${savedKey}`;
+              authHeaders["x-admin-key"] = savedKey;
+            }
+          } catch (storageErr) {
+            console.warn("Could not read admin key from sessionStorage", storageErr);
+          }
+
           const res = await fetch(endpoint, {
             credentials: "include",
             headers: {
               "Content-Type": "application/json",
+              ...authHeaders,
               ...(options.headers || {}),
             },
             ...options,
@@ -5416,10 +5446,35 @@ Loading records…</pre>
         }
       });
 
-      // Initialize on Load
+      // Cooperative Scheduler: Defers heavy work off the main thread to prevent UI freezing
+      function scheduleIdle(task, timeout = 2000) {
+        if (typeof window.requestIdleCallback === "function") {
+          return window.requestIdleCallback(task, { timeout });
+        }
+        return setTimeout(task, 16);
+      }
+
+      // Phased Cooperative Initialization on Load (Eliminates main-thread freeze)
       window.addEventListener("DOMContentLoaded", () => {
-        refreshAllData();
-        toggleWebhookAutoPoll(true, false);
+        // Phase 1: Critical essentials (subscribers & growth table)
+        loadSubscribers();
+        loadGrowthStats(7);
+
+        // Phase 2: Deferred metrics and charts via cooperative scheduling
+        scheduleIdle(() => {
+          loadDatabaseStats();
+          loadScheduledJobs();
+          loadSchedulerQueue();
+        }, 1000);
+
+        // Phase 3: Telemetry, suppressions, announcements, and background polling
+        scheduleIdle(() => {
+          loadDeliverabilityTelemetry();
+          loadAllTelemetryData();
+          loadSuppressions();
+          loadActiveAnnouncement();
+          toggleWebhookAutoPoll(true, false);
+        }, 2000);
       });
 
       // Cleanup on Page Hide / Unload

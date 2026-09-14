@@ -23,6 +23,7 @@
     <link rel="canonical" href="__DOMAIN__/about" />
 
     <!-- Favicons, Icons & Web Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/mrn-brand-ico.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="/assets/mrn-brand-ico.png" />
@@ -165,6 +166,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="/css/loader.css" />
+    <script src="/js/skeleton-loader.js" defer></script>
     <link rel="stylesheet" href="/css/responsive-layout.css" />
 
     <!-- Toast Notification CDN (latest) -->
@@ -1281,6 +1283,16 @@
   </head>
 
   <body class="has-dock">
+    <!-- Standardized Obsidian Page Loader -->
+    <div id="loaderRoot" class="loader-container">
+      <div id="loader" class="loader">
+        <div class="logo-ring"></div>
+        <div id="logoBox" class="logo">
+          <img src="/assets/mrn-brand-ico.png" alt="Morning Routine Logo" width="48" height="48" />
+        </div>
+      </div>
+    </div>
+
     <!-- Top Header Navbar -->
     <header class="navbar" id="mainHeader">
       <div class="container nav-wrap">
@@ -1325,7 +1337,7 @@
       </div>
     </header>
 
-    <main class="container" id="mainContent">
+    <main class="container" id="mainRoot">
       <!-- Hero Section -->
       <section class="about-hero" aria-labelledby="hero-title">
         <div class="badge-pill">

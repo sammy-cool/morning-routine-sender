@@ -516,7 +516,9 @@ async function liveRoutine(req, res) {
   <link rel="preload" href="/assets/logo.svg" as="image" type="image/svg+xml" fetchpriority="high">
   <link rel="prefetch" href="/user-dashboard">
   <link rel="prefetch" href="/about">
+  <link rel="stylesheet" href="/css/loader.css">
   <link rel="stylesheet" href="/css/responsive-layout.css">
+  <script src="/js/skeleton-loader.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer crossorigin="anonymous"></script>
   <script src="/js/offline-sync.js?v=4.3.0" defer></script>
@@ -1517,7 +1519,17 @@ async function liveRoutine(req, res) {
   </style>
 </head>
 <body>
-  <div class="container">
+  <!-- Standardized Obsidian Page Loader -->
+  <div id="loaderRoot" class="loader-container">
+    <div id="loader" class="loader">
+      <div class="logo-ring"></div>
+      <div id="logoBox" class="logo">
+        <img src="/assets/mrn-brand-ico.png" alt="Morning Routine Logo" width="48" height="48">
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="mainRoot">
     <div class="header">
       <a href="/" class="brand" aria-label="Morning Routine Home">
         <img src="/assets/logo.svg" alt="Logo" width="28" height="28" style="border-radius: 8px;" loading="eager" decoding="async" fetchpriority="high"> Morning Routine
