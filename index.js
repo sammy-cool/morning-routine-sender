@@ -178,12 +178,29 @@ app.use(require("./routes/squad.routes"));
 app.use(require("./routes/subscriberEnhancements.routes"));
 app.use(require("./routes/wallpaper.routes"));
 
-// High performance static asset serving with caching and ETags
+// High performance static asset serving with caching, immutable headers, and ETags
 app.use(
   "/assets",
-  express.static(path.join(__dirname, "public", "assets"), { maxAge: "7d", etag: true }),
+  express.static(path.join(__dirname, "public", "assets"), {
+    maxAge: "365d",
+    immutable: true,
+    etag: true,
+  }),
 );
-app.use(express.static(path.join(__dirname, "public"), { maxAge: "1d", etag: true }));
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    maxAge: "30d",
+    etag: true,
+    setHeaders: (res, filePath) => {
+      // Ensure service worker and HTML are never stale
+      if (filePath.endsWith("sw.js") || filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      } else if (filePath.match(/\.(css|js|woff2?|svg|png|jpg|ico)$/)) {
+        res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+      }
+    },
+  }),
+);
 
 // 404 handler
 app.use((req, res, next) => {

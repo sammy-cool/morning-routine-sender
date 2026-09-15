@@ -152,22 +152,72 @@
       type="image/svg+xml"
       fetchpriority="high"
     />
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      as="style"
+    />
 
     <!-- Speculative Navigation Prefetch -->
     <link rel="prefetch" href="/" />
     <link rel="prefetch" href="/user-dashboard" />
+
+    <!-- Non-render-blocking Google Fonts (preloaded above) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media = 'all'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
+    <!-- Non-render-blocking Font Awesome (solid icons only — reduced unused CSS) -->
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css"
+      media="print"
+      onload="this.media = 'all'"
       crossorigin="anonymous"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css"
+      media="print"
+      onload="this.media = 'all'"
+      crossorigin="anonymous"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css"
+        crossorigin="anonymous"
+      />
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css"
+        crossorigin="anonymous"
+      />
+    </noscript>
+
+    <!-- Critical loader CSS (render-blocking intentionally) -->
     <link rel="stylesheet" href="/css/loader.css" />
     <script src="/js/skeleton-loader.js" defer></script>
-    <link rel="stylesheet" href="/css/responsive-layout.css" />
+
+    <!-- Non-render-blocking layout CSS -->
+    <link
+      rel="stylesheet"
+      href="/css/responsive-layout.css"
+      media="print"
+      onload="this.media = 'all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="/css/responsive-layout.css" />
+    </noscript>
 
     <!-- Toast Notification CDN (latest) -->
     <script
@@ -1288,7 +1338,7 @@
       <div id="loader" class="loader">
         <div class="logo-ring"></div>
         <div id="logoBox" class="logo">
-          <img src="/assets/mrn-brand-ico.png" alt="Morning Routine Logo" width="48" height="48" />
+          <img src="/assets/logo.svg" alt="Morning Routine Logo" width="48" height="48" />
         </div>
       </div>
     </div>
@@ -1517,7 +1567,7 @@
           <div class="feature-box">
             <div class="feature-box-icon"><i class="fas fa-fire"></i></div>
             <div class="feature-box-content">
-              <h4>1-Click Habit Streak Engine</h4>
+              <h3>1-Click Habit Streak Engine</h3>
               <p>
                 Secure signed token check-in directly from your inbox. Log consistency without
                 passwords and build lasting morning momentum.
@@ -1528,7 +1578,7 @@
           <div class="feature-box">
             <div class="feature-box-icon"><i class="fas fa-stopwatch"></i></div>
             <div class="feature-box-content">
-              <h4>25-Minute Focus Sprint Timer</h4>
+              <h3>25-Minute Focus Sprint Timer</h3>
               <p>
                 Built-in Pomodoro sprint companion to immediately channel your morning inspiration
                 into real, focused execution.
@@ -1539,7 +1589,7 @@
           <div class="feature-box">
             <div class="feature-box-icon"><i class="fas fa-headphones"></i></div>
             <div class="feature-box-content">
-              <h4>4 Procedural Ambient Soundscapes</h4>
+              <h3>4 Procedural Ambient Soundscapes</h3>
               <p>
                 Synthesized in real-time with Web Audio API: Rain &amp; Storm, Ocean Waves, 40Hz
                 Binaural Beats, and Deep Flow Tone.
@@ -1550,7 +1600,7 @@
           <div class="feature-box">
             <div class="feature-box-icon"><i class="fas fa-calendar-week"></i></div>
             <div class="feature-box-content">
-              <h4>Sunday Weekly Digest</h4>
+              <h3>Sunday Weekly Digest</h3>
               <p>
                 Automated Sunday summaries aggregating your habit streaks, completed routines, and
                 reflections for the week ahead.
@@ -1561,7 +1611,7 @@
           <div class="feature-box">
             <div class="feature-box-icon"><i class="fas fa-bell"></i></div>
             <div class="feature-box-content">
-              <h4>PWA Push Notifications</h4>
+              <h3>PWA Push Notifications</h3>
               <p>
                 Installable standalone progressive web app with offline caching and gentle local
                 morning routine push reminders.
@@ -1572,7 +1622,7 @@
           <div class="feature-box">
             <div class="feature-box-icon"><i class="fas fa-shield-halved"></i></div>
             <div class="feature-box-content">
-              <h4>Zero-Ad Privacy Architecture</h4>
+              <h3>Zero-Ad Privacy Architecture</h3>
               <p>
                 No ad networks, no data brokering, zero tracking pixels, and instant RFC 8058
                 1-click self-service unsubscription.

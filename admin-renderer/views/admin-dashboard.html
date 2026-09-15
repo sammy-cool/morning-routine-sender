@@ -40,14 +40,50 @@
       fetchpriority="high"
     />
 
-    <!-- Google Fonts & FontAwesome -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      as="style"
     />
-    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
+
+    <!-- Non-render-blocking Google Fonts (preloaded above) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media = 'all'"
+    />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
+    <!-- Non-render-blocking FontAwesome -->
+    <link
+      href="/vendor/fontawesome/css/all.min.css"
+      rel="stylesheet"
+      media="print"
+      onload="this.media = 'all'"
+    />
+    <noscript>
+      <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
+    </noscript>
+
+    <!-- Critical loader CSS (render-blocking intentionally) -->
     <link rel="stylesheet" href="/css/loader.css" />
-    <link rel="stylesheet" href="/css/responsive-layout.css" />
+
+    <!-- Non-render-blocking layout CSS -->
+    <link
+      rel="stylesheet"
+      href="/css/responsive-layout.css"
+      media="print"
+      onload="this.media = 'all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="/css/responsive-layout.css" />
+    </noscript>
 
     <!-- Toast Notification & Chart.js -->
     <script src="/js/skeleton-loader.js" defer></script>
@@ -1379,7 +1415,7 @@
       <div id="loader" class="loader">
         <div class="logo-ring"></div>
         <div id="logoBox" class="logo">
-          <img src="/assets/mrn-brand-ico.png" alt="Morning Routine Logo" width="48" height="48" />
+          <img src="/assets/logo.svg" alt="Morning Routine Logo" width="48" height="48" />
         </div>
       </div>
     </div>

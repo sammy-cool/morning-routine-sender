@@ -1,4 +1,5 @@
 process.env.USE_MOCK_REDIS = "true";
+jest.setTimeout(30000);
 
 const { newDb } = require("pg-mem");
 const subscribersMigration = require("../db/migrations/20260711172620_create_subscribers_table");

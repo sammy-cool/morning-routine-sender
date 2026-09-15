@@ -174,24 +174,72 @@
       type="image/svg+xml"
       fetchpriority="high"
     />
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      as="style"
+    />
 
     <!-- Speculative Navigation Prefetch -->
     <link rel="prefetch" href="/user-dashboard" />
     <link rel="prefetch" href="/about" />
 
-    <!-- Google Fonts & FontAwesome -->
+    <!-- Non-render-blocking Google Fonts (preloaded above) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media = 'all'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
+    <!-- Non-render-blocking Font Awesome (solid icons only — reduced unused CSS) -->
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css"
+      media="print"
+      onload="this.media = 'all'"
       crossorigin="anonymous"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css"
+      media="print"
+      onload="this.media = 'all'"
+      crossorigin="anonymous"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css"
+        crossorigin="anonymous"
+      />
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css"
+        crossorigin="anonymous"
+      />
+    </noscript>
+
+    <!-- Critical loader CSS (render-blocking intentionally) -->
     <link rel="stylesheet" href="/css/loader.css" />
     <script src="/js/skeleton-loader.js" defer></script>
-    <link rel="stylesheet" href="/css/responsive-layout.css" />
+
+    <!-- Non-render-blocking layout CSS -->
+    <link
+      rel="stylesheet"
+      href="/css/responsive-layout.css"
+      media="print"
+      onload="this.media = 'all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="/css/responsive-layout.css" />
+    </noscript>
 
     <!-- Toast Notification CDN (latest) -->
     <script
@@ -663,6 +711,7 @@
         margin-bottom: 30px;
       }
 
+      .sim-title h2,
       .sim-title h3 {
         font-size: 24px;
         font-weight: 800;
@@ -1335,6 +1384,7 @@
           margin-bottom: 20px;
         }
 
+        .sim-title h2,
         .sim-title h3 {
           font-size: 20px;
         }
@@ -1491,7 +1541,7 @@
       <div id="loader" class="loader">
         <div class="logo-ring"></div>
         <div id="logoBox" class="logo">
-          <img src="/assets/mrn-brand-ico.png" alt="Morning Routine Logo" width="48" height="48" />
+          <img src="/assets/logo.svg" alt="Morning Routine Logo" width="48" height="48" />
         </div>
       </div>
     </div>
@@ -1613,10 +1663,10 @@
         <div class="bento-card simulator-card">
           <div class="sim-header-row">
             <div class="sim-title">
-              <h3>
+              <h2>
                 <i class="fas fa-sparkles" style="color: var(--accent-cyan); margin-right: 12px"></i
                 >Interactive Routine Simulator
-              </h3>
+              </h2>
               <p>Preview how your morning kickoff email looks across different discipline tracks</p>
             </div>
             <div class="sim-track-tabs">
@@ -2071,7 +2121,7 @@
 
           <!-- Col 2: Ritual Suite -->
           <div class="footer-nav-col">
-            <h4 class="footer-heading">Ritual Suite</h4>
+            <h3 class="footer-heading">Ritual Suite</h3>
             <ul class="footer-link-list">
               <li><a href="/" class="footer-link">Home Portal</a></li>
               <li>
@@ -2090,7 +2140,7 @@
 
           <!-- Col 3: Habit Tracks -->
           <div class="footer-nav-col">
-            <h4 class="footer-heading">5 Coach Tracks</h4>
+            <h3 class="footer-heading">5 Coach Tracks</h3>
             <ul class="footer-link-list">
               <li><span class="footer-track-item">⚡ Deep Work &amp; Builder</span></li>
               <li><span class="footer-track-item">🧘 Stoic Mindfulness</span></li>
@@ -2102,7 +2152,7 @@
 
           <!-- Col 4: Preferences & Admin -->
           <div class="footer-nav-col">
-            <h4 class="footer-heading">Self-Service &amp; Ops</h4>
+            <h3 class="footer-heading">Self-Service &amp; Ops</h3>
             <ul class="footer-link-list">
               <li><a href="/unsubscribe" class="footer-link">Manage Email Preferences</a></li>
               <li><a href="/user-dashboard" class="footer-link">Export Data (CSV / MD)</a></li>

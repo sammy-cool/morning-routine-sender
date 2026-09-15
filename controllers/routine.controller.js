@@ -515,9 +515,9 @@ async function liveRoutine(req, res) {
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preload" href="/assets/logo.svg" as="image" type="image/svg+xml" fetchpriority="high">
   <link rel="prefetch" href="/user-dashboard">
-  <link rel="prefetch" href="/about">
   <link rel="stylesheet" href="/css/loader.css">
-  <link rel="stylesheet" href="/css/responsive-layout.css">
+  <link rel="stylesheet" href="/css/responsive-layout.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/responsive-layout.css"></noscript>
   <script src="/js/skeleton-loader.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer crossorigin="anonymous"></script>
@@ -1524,7 +1524,7 @@ async function liveRoutine(req, res) {
     <div id="loader" class="loader">
       <div class="logo-ring"></div>
       <div id="logoBox" class="logo">
-        <img src="/assets/mrn-brand-ico.png" alt="Morning Routine Logo" width="48" height="48">
+        <img src="/assets/logo.svg" alt="Morning Routine Logo" width="48" height="48">
       </div>
     </div>
   </div>

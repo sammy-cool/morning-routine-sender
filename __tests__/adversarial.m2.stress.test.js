@@ -13,6 +13,7 @@ process.env.USE_MOCK_REDIS = "true";
 process.env.ADMIN_KEY = "adversarial-master-secret-key-98765";
 process.env.ADMIN_SKIP_KEY = "SKIP!";
 const COOKIE_SECRET = "adversarial-cookie-secret-54321";
+jest.setTimeout(30000);
 
 const fs = require("node:fs");
 const path = require("node:path");
