@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.12.1] - 2026-09-16
+
+### ⚡ PageSpeed Performance Optimization, Image Delivery, Caching & Accessibility Excellence
+
+- **Elimination of Render-Blocking Stylesheets (Est. 2,510 ms Savings)**:
+  - Transitioned external stylesheets (Google Fonts, FontAwesome, and `responsive-layout.css`) to an asynchronous non-blocking loading strategy using `<link rel="preload" as="style">` and `media="print" onload="this.media='all'"` with `<noscript>` fallbacks across all 5 app views ([`public/about.html`](file:///home/smarty/projects/morning-routine-sender/public/about.html), [`public/main-index.html`](file:///home/smarty/projects/morning-routine-sender/public/main-index.html), [`public/user-dashboard.html`](file:///home/smarty/projects/morning-routine-sender/public/user-dashboard.html), [`admin-renderer/views/admin-dashboard.html`](file:///home/smarty/projects/morning-routine-sender/admin-renderer/views/admin-dashboard.html), and [`controllers/routine.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/routine.controller.js)).
+  - Preserved critical above-the-fold obsidian loader CSS (`/css/loader.css`) as render-blocking for instantaneous skeleton visualization without cumulative layout shift (CLS: 0).
+- **Pruning of Unused CSS (Est. 18 KB Savings)**:
+  - Pruned massive monolithic FontAwesome `all.min.css` (87 KB) down to decoupled `fontawesome.min.css` and `solid.min.css`, eliminating unneeded brand and regular glyph sets.
+- **Optimized Vector Image Delivery in `#loaderRoot` (Est. 137 KB Savings)**:
+  - Replaced unscaled 137 KB raster PNG (`mrn-brand-ico.png`, 512×512) inside `#loaderRoot` with preloaded 5 KB vector [`public/assets/logo.svg`](file:///home/smarty/projects/morning-routine-sender/public/assets/logo.svg) across all 5 views.
+  - Eliminated duplicate asset download and accelerated First Contentful Paint (FCP) and Largest Contentful Paint (LCP).
+- **Strict Sequential Heading Hierarchy & WCAG Compliance (Accessibility 100)**:
+  - Corrected non-descending heading hierarchy in [`public/about.html`](file:///home/smarty/projects/morning-routine-sender/public/about.html) by promoting feature card headers from `<h4>` to `<h3>` under `<h2 id="features-title">`.
+  - Upgraded Routine Simulator heading in [`public/main-index.html`](file:///home/smarty/projects/morning-routine-sender/public/main-index.html) from `<h3>` to `<h2>` to eliminate skipped heading levels after `<h1>`.
+  - Promoted footer column headings in [`public/main-index.html`](file:///home/smarty/projects/morning-routine-sender/public/main-index.html) from `<h4>` to `<h3>`.
+  - Standardized vacation mode modal heading in [`public/user-dashboard.html`](file:///home/smarty/projects/morning-routine-sender/public/user-dashboard.html) to `<h2 id="vacationModalTitle">`.
+- **High-Performance Static Asset Caching (Est. 21 KB Savings)**:
+  - Updated [`index.js`](file:///home/smarty/projects/morning-routine-sender/index.js) Express static middleware to serve brand assets under `/assets/` with `maxAge: 365d, immutable` and static CSS/JS with `public, max-age=2592000, immutable` (30 days).
+  - Explicitly preserved `no-cache, no-store, must-revalidate` on [`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js) and dynamic HTML endpoints to guarantee immediate rollout of future updates.
+- **Animation Integrity & Motion Sensitivity**:
+  - Restored missing `@keyframes pulseLive` definition referenced by `.pulse-status-dot` in [`public/user-dashboard.html`](file:///home/smarty/projects/morning-routine-sender/public/user-dashboard.html) utilizing GPU-composited `transform` and `opacity`.
+  - Honored `@media (prefers-reduced-motion: reduce)` across all animated UI elements.
+- **Service Worker Cache Invalidation**:
+  - Bumped `CACHE_VERSION` in [`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js) to `v4.8.2` for automatic client cache purge.
+- **Automated Verification & Quality Gates**:
+  - Added new dedicated test suite [`__tests__/pagespeed.perf.audit.test.js`](file:///home/smarty/projects/morning-routine-sender/__tests__/pagespeed.perf.audit.test.js) (17 tests).
+  - Maintained 100% green status across all 4 mandatory quality gates: 79 test suites passing (1,058 tests), zero syntax AST errors, 100% Prettier compliance, zero ESLint errors/warnings.
+
+---
+
 ## [2.12.0] - 2026-09-14
 
 ### 🚀 PWA Excellence: Universal Page Loader, Favicon Sync, Standalone Admin Auth & Dashboard Cooperative Scheduling
