@@ -381,7 +381,7 @@ button {
 
 .dock-item.active,
 .dock-item:hover {
-  color: var(--primary);
+  color: #c4b5fd;
 }
 
 .dock-item.active i {

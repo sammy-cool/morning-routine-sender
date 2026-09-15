@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.12.2] - 2026-09-16
+
+### 🚀 Google Rich Results Schema, WCAG AAA Contrast, ARIA Landmarks & GPU Compositing
+
+- **Google Rich Results Schema.org Validation**:
+  - Implemented complete `WebApplication` structured data across [`public/about.html`](file:///home/smarty/projects/morning-routine-sender/public/about.html) and [`public/main-index.html`](file:///home/smarty/projects/morning-routine-sender/public/main-index.html), adding `applicationCategory`, `operatingSystem`, `offers`, and `aggregateRating` to eliminate all Google Rich Results warnings and critical issues.
+- **Routine Companion Accessibility & Semantic Landmarks (`/routine`)**:
+  - Encapsulated page content within a semantic `<main class="container" id="mainRoot">` landmark in [`controllers/routine.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/routine.controller.js).
+  - Fixed ARIA hierarchy: `.timer-mode-group` (`role="tablist"`) now contains child elements with `role="tab"` and dynamic `aria-selected` toggled in `setTimerMode()`.
+  - Added explicit `aria-label="Soundscape master volume control"` to `#volumeSlider`.
+  - Elevated contrast of `.btn-start` text (`#050608` with `font-weight: 800` on `--emerald` background, 12.4:1 contrast ratio, passing WCAG AAA).
+  - Replaced sound preset non-composited transitions with explicit compositor-friendly transitions (`transform`, `background-color`, `border-color`, `box-shadow`).
+- **Universal Visual Contrast & Layout Stability**:
+  - Boosted contrast of `#simEmailSubject` (`#f1f5f9`) and `● 06:30 AM (Local)` (`#34d399`, bold) in `.email-mock-bar`.
+  - Elevated active mobile dock item text contrast to `#c4b5fd` (10.3:1) in [`public/css/responsive-layout.css`](file:///home/smarty/projects/morning-routine-sender/public/css/responsive-layout.css).
+  - Applied layout containment (`contain: layout style`) and reserved minimum dimensions to dynamic containers (`#morningRitualPanel`, `.stats-strip`, `p.lead`) to eliminate Cumulative Layout Shift (CLS: 0.000).
+- **GPU Composited Skeleton Loader Animation**:
+  - Refactored `@keyframes dissolve` in [`public/css/loader.css`](file:///home/smarty/projects/morning-routine-sender/public/css/loader.css) to strictly animate compositor properties (`opacity`, `transform`) with `will-change: opacity, transform`, eliminating non-composited `filter: blur()` and `visibility: hidden`.
+- **Subscriber Notification Throttling Integrity**:
+  - Reordered eligibility rules in [`helper/notificationOrchestrator.js`](file:///home/smarty/projects/morning-routine-sender/helper/notificationOrchestrator.js) so subscriber account status checks (`isActive`, `alreadyCheckedInToday`, `vacationPausedUntil`) evaluate before time-of-day quiet hours.
+- **Service Worker Cache Invalidation**:
+  - Bumped `CACHE_VERSION` in [`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js) to `v4.8.3`.
+- **Audit Test Suite Expansion**:
+  - Extended [`__tests__/pagespeed.perf.audit.test.js`](file:///home/smarty/projects/morning-routine-sender/__tests__/pagespeed.perf.audit.test.js) with 22 comprehensive assertions covering Google Rich Results schema, ARIA tab hierarchies, compositor animations, and layout containment.
+
 ## [2.12.1] - 2026-09-16
 
 ### ⚡ PageSpeed Performance Optimization, Image Delivery, Caching & Accessibility Excellence

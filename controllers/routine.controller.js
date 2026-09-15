@@ -869,7 +869,11 @@ async function liveRoutine(req, res) {
       border: none;
       transition: all 0.2s;
     }
-    .btn-start { background: var(--emerald); color: #fff; }
+    .btn-start { background: var(--emerald); color: #050608; font-weight: 800; }
+    .morning-ritual-panel {
+      contain: layout style;
+      min-height: 480px;
+    }
     .btn-pause { background: var(--amber); color: #fff; }
     .btn-reset { background: rgba(255, 255, 255, 0.1); color: #fff; }
     .btn-fullscreen {
@@ -1110,7 +1114,7 @@ async function liveRoutine(req, res) {
       padding: 12px 14px;
       cursor: pointer;
       text-align: left;
-      transition: all 0.2s ease;
+      transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       color: var(--text-main);
     }
     .preset-btn:hover {
@@ -1529,7 +1533,7 @@ async function liveRoutine(req, res) {
     </div>
   </div>
 
-  <div class="container" id="mainRoot">
+  <main class="container" id="mainRoot">
     <div class="header">
       <a href="/" class="brand" aria-label="Morning Routine Home">
         <img src="/assets/logo.svg" alt="Logo" width="28" height="28" style="border-radius: 8px;" loading="eager" decoding="async" fetchpriority="high"> Morning Routine
@@ -1706,9 +1710,9 @@ async function liveRoutine(req, res) {
         </div>
 
         <div class="timer-mode-group" role="tablist" aria-label="Timer modes">
-          <button type="button" class="timer-mode-btn active" id="modeFocusBtn" onclick="setTimerMode('focus')">🎯 Focus</button>
-          <button type="button" class="timer-mode-btn" id="modeShortBreakBtn" onclick="setTimerMode('short-break')">☕ Short Break (5m)</button>
-          <button type="button" class="timer-mode-btn" id="modeLongBreakBtn" onclick="setTimerMode('long-break')">🧘 Long Break (15m)</button>
+          <button type="button" class="timer-mode-btn active" role="tab" aria-selected="true" id="modeFocusBtn" onclick="setTimerMode('focus')">🎯 Focus</button>
+          <button type="button" class="timer-mode-btn" role="tab" aria-selected="false" id="modeShortBreakBtn" onclick="setTimerMode('short-break')">☕ Short Break (5m)</button>
+          <button type="button" class="timer-mode-btn" role="tab" aria-selected="false" id="modeLongBreakBtn" onclick="setTimerMode('long-break')">🧘 Long Break (15m)</button>
         </div>
 
         <div class="timer-presets" id="timerPresetsRow" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
@@ -1816,7 +1820,7 @@ async function liveRoutine(req, res) {
 
           <div class="vol-container">
             <span style="font-size: 14px;">🔈</span>
-            <input type="range" class="vol-slider" id="volumeSlider" min="0" max="100" value="65" oninput="setMasterVolume(this.value)">
+            <input type="range" class="vol-slider" id="volumeSlider" min="0" max="100" value="65" aria-label="Soundscape master volume control" oninput="setMasterVolume(this.value)">
             <span class="vol-label" id="volPercent">65%</span>
           </div>
         </div>
@@ -1944,7 +1948,7 @@ async function liveRoutine(req, res) {
       </div>
       <p class="routine-footer-note">Morning Routine Sender • Daily Focus Companion</p>
     </footer>
-  </div>
+  </main>
 
   <script>
     function showRoutineToast(message, type = 'info', options = {}) {
@@ -2965,11 +2969,17 @@ async function liveRoutine(req, res) {
       const presetsRow = document.getElementById('timerPresetsRow');
       const label = document.getElementById('sprintDurationLabel');
 
-      document.querySelectorAll('.timer-mode-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.timer-mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
       const activeBtn = document.getElementById(
         mode === 'focus' ? 'modeFocusBtn' : mode === 'short-break' ? 'modeShortBreakBtn' : 'modeLongBreakBtn'
       );
-      if (activeBtn) activeBtn.classList.add('active');
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-selected', 'true');
+      }
 
       if (mode === 'focus') {
         if (presetsRow) presetsRow.style.display = 'flex';

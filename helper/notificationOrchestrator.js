@@ -120,22 +120,20 @@ function getEscalationStep(minutesSinceScheduled, ladder = DEFAULT_ESCALATION_LA
  * @returns {Object} { shouldSend, reason, tone }
  */
 function shouldSendNotification(subscriber = {}) {
-  // Rule 1: Don't send if already checked in today
-  if (subscriber.alreadyCheckedInToday) {
+  // Rule 1: Don't send if subscriber is inactive
+  if (subscriber.isActive === false) {
     return {
       shouldSend: false,
-      reason: "Already checked in today",
+      reason: "Subscriber is inactive",
       tone: null,
     };
   }
 
-  // Rule 2: Don't send during quiet hours
-  const tz = subscriber.timezone || "UTC";
-  const quietHours = subscriber.quietHours || DEFAULT_QUIET_HOURS;
-  if (isQuietHours(tz, quietHours)) {
+  // Rule 2: Don't send if already checked in today
+  if (subscriber.alreadyCheckedInToday) {
     return {
       shouldSend: false,
-      reason: "Quiet hours active",
+      reason: "Already checked in today",
       tone: null,
     };
   }
@@ -152,11 +150,13 @@ function shouldSendNotification(subscriber = {}) {
     }
   }
 
-  // Rule 4: Don't send if subscriber is inactive
-  if (subscriber.isActive === false) {
+  // Rule 4: Don't send during quiet hours
+  const tz = subscriber.timezone || "UTC";
+  const quietHours = subscriber.quietHours || DEFAULT_QUIET_HOURS;
+  if (isQuietHours(tz, quietHours)) {
     return {
       shouldSend: false,
-      reason: "Subscriber is inactive",
+      reason: "Quiet hours active",
       tone: null,
     };
   }

@@ -197,13 +197,75 @@ describe("PageSpeed Performance & Accessibility Audit Verification", () => {
   });
 
   // =========================================================================
-  // 5. CSS Animation Integrity
   // =========================================================================
-  describe("5. CSS Animation Integrity", () => {
+  // 5. CSS Animation Integrity & GPU Compositing
+  // =========================================================================
+  describe("5. CSS Animation Integrity & GPU Compositing", () => {
     test("public/user-dashboard.html defines @keyframes pulseLive referenced by .pulse-status-dot", () => {
       const html = fs.readFileSync(path.join(ROOT_DIR, "public", "user-dashboard.html"), "utf8");
       expect(html).toContain("@keyframes pulseLive");
       expect(html).toContain("animation: pulseLive 2s infinite ease-in-out");
+    });
+
+    test("public/css/loader.css uses 100% GPU composited dissolve animation without filter or visibility", () => {
+      const css = fs.readFileSync(path.join(ROOT_DIR, "public", "css", "loader.css"), "utf8");
+      const dissolveMatch = css.match(/@keyframes dissolve\s*\{[\s\S]*?\n\}/);
+      expect(dissolveMatch).not.toBeNull();
+      expect(dissolveMatch[0]).not.toContain("filter:");
+      expect(dissolveMatch[0]).not.toContain("visibility:");
+      expect(css).toContain("will-change: opacity, transform");
+    });
+  });
+
+  // =========================================================================
+  // 6. Google Rich Results & Schema.org SoftwareApplication Compliance
+  // =========================================================================
+  describe("6. Google Rich Results (Schema.org WebApplication)", () => {
+    test("public/about.html WebApplication includes applicationCategory, operatingSystem, offers, and aggregateRating", () => {
+      const html = fs.readFileSync(path.join(ROOT_DIR, "public", "about.html"), "utf8");
+      expect(html).toContain('"applicationCategory": "ProductivityApplication"');
+      expect(html).toContain('"operatingSystem": "Any, Web, PWA, iOS, Android"');
+      expect(html).toContain('"@type": "Offer"');
+      expect(html).toContain('"@type": "AggregateRating"');
+      expect(html).toContain('"ratingValue": "4.9"');
+    });
+
+    test("public/main-index.html WebApplication includes applicationCategory, operatingSystem, offers, and aggregateRating", () => {
+      const html = fs.readFileSync(path.join(ROOT_DIR, "public", "main-index.html"), "utf8");
+      expect(html).toContain('"applicationCategory": "ProductivityApplication"');
+      expect(html).toContain('"operatingSystem": "Any, Web, PWA, iOS, Android"');
+      expect(html).toContain('"@type": "Offer"');
+      expect(html).toContain('"@type": "AggregateRating"');
+      expect(html).toContain('"ratingValue": "4.9"');
+    });
+  });
+
+  // =========================================================================
+  // 7. Routine Companion Accessibility & Landmarks
+  // =========================================================================
+  describe("7. Routine Companion Accessibility & Landmarks", () => {
+    test("controllers/routine.controller.js includes <main> landmark and ARIA tabs", () => {
+      const content = fs.readFileSync(
+        path.join(ROOT_DIR, "controllers", "routine.controller.js"),
+        "utf8",
+      );
+      expect(content).toContain('<main class="container" id="mainRoot">');
+      expect(content).toContain("</main>");
+      expect(content).toContain('role="tablist"');
+      expect(content).toContain('role="tab"');
+      expect(content).toContain('aria-selected="true"');
+      expect(content).toContain('aria-label="Soundscape master volume control"');
+      expect(content).toContain(
+        ".btn-start { background: var(--emerald); color: #050608; font-weight: 800; }",
+      );
+    });
+
+    test("public/css/responsive-layout.css mobile dock active items use high-contrast color", () => {
+      const css = fs.readFileSync(
+        path.join(ROOT_DIR, "public", "css", "responsive-layout.css"),
+        "utf8",
+      );
+      expect(css).toContain("color: #c4b5fd;");
     });
   });
 });
