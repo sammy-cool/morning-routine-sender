@@ -212,6 +212,28 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       if (globalThis.AppBadging) {
         globalThis.AppBadging.updateStreakBadge(streak);
       }
+      // Dynamic Header User Data & Profile Chip
+      const headerSubLabel = document.getElementById("headerUserSubLabel");
+      const userHeaderChip = document.getElementById("userHeaderChip");
+      const headerAvatar = document.getElementById("headerAvatar");
+      const headerUserEmailFull = document.getElementById("headerUserEmailFull");
+      const headerUserMeta = document.getElementById("headerUserMeta");
+
+      if (sub.email) {
+        const initial = sub.email.charAt(0).toUpperCase();
+        const rawTrack = sub.routineTrack || sub.templateType || "deep-work";
+        const trackName = rawTrack.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+        if (headerSubLabel) {
+          headerSubLabel.innerHTML = `<span style="color: var(--accent-cyan); font-weight: 600;">${escapeHtml(sub.email)}</span> &bull; <span style="color: #fbbf24; font-weight: 700;">🔥 ${streak}d streak</span> &bull; <span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(trackName)}</span>`;
+        }
+        if (userHeaderChip) {
+          userHeaderChip.style.display = "inline-flex";
+          if (headerAvatar) headerAvatar.textContent = initial;
+          if (headerUserEmailFull) headerUserEmailFull.textContent = sub.email;
+          if (headerUserMeta) headerUserMeta.textContent = `🔥 ${streak}d streak • ${trackName}`;
+        }
+      }
+
       if (streakHeroCard) {
         streakHeroCard.style.display = "flex";
         streakCountTitle.textContent = `${streak}-Day Streak Active 🔥`;
@@ -1145,6 +1167,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             if (typeof loadDailyBriefing === "function") {
               loadDailyBriefing();
             }
+            if (typeof loadActivityHeatmap === "function") {
+              loadActivityHeatmap(true);
+            }
           } else {
             // Rollback optimistic state gracefully
             showToast(
@@ -1183,7 +1208,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           const data = await resp.json().catch(() => ({}));
           freezeCard.style.display = "flex";
           const remaining =
-            typeof data.streakFreezesRemaining === "number" ? data.streakFreezesRemaining : 2;
+            typeof data.streakFreezesRemaining === "number"
+              ? data.streakFreezesRemaining
+              : typeof data.streakFreezes === "number"
+                ? data.streakFreezes
+                : 2;
           if (countBadge) {
             countBadge.textContent = `${remaining}/2 Shields Available`;
             if (remaining === 0) {
@@ -1371,9 +1400,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             });
           }
 
-          // Refresh habit analytics with new journal entry
+          // Refresh habit analytics and heatmap with new journal entry
           if (typeof loadHabitAnalytics === "function") {
             loadHabitAnalytics();
+          }
+          if (typeof loadActivityHeatmap === "function") {
+            loadActivityHeatmap(true);
           }
         } else {
           showToast(data.error || "Failed to save reflection.", "warn");
@@ -1620,11 +1652,18 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     if (btnDrawerClose) btnDrawerClose.addEventListener("click", closeHeatmapDrawer);
     if (drawerBackdrop) drawerBackdrop.addEventListener("click", closeHeatmapDrawer);
 
-    async function loadActivityHeatmap() {
+    async function loadActivityHeatmap(force = false) {
       if (!heatmapCard) return;
 
-      // SWR Cache Instant Hit
-      if (globalThis.UXCore?.cache) {
+      if (force) {
+        cachedHeatmapData = null;
+        if (globalThis.UXCore?.cache) {
+          globalThis.UXCore.cache.invalidate("activity_heatmap_365");
+        }
+      }
+
+      // SWR Cache Instant Hit (only if !force)
+      if (!force && globalThis.UXCore?.cache) {
         const cachedHeatmap = globalThis.UXCore.cache.get("activity_heatmap_365", 60000);
         if (cachedHeatmap?.data) {
           const d = cachedHeatmap.data;
@@ -1641,6 +1680,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
       try {
         const res = await fetch("/api/journal/heatmap?days=365", {
+          cache: force ? "no-store" : "default",
           headers: { Accept: "application/json" },
         });
         if (!res.ok) return;
@@ -1680,7 +1720,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     function renderHeatmapGrid(days) {
       if (!heatmapGrid || !Array.isArray(days) || days.length === 0) return;
 
-      const dataSignature = `${days.length}_${days[0]?.date}_${days[days.length - 1]?.date}_${days[days.length - 1]?.intensity}`;
+      const dataSignature = `${days.length}_${days[0]?.date}_${days[days.length - 1]?.date}_${days[days.length - 1]?.intensity}_${days[days.length - 1]?.completed}`;
       if (cachedHeatmapData === dataSignature && heatmapGrid.children.length > 0) return;
       cachedHeatmapData = dataSignature;
 
@@ -1723,6 +1763,18 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       const gridFragment = document.createDocumentFragment();
       const dayLookup = new Map();
 
+      // Align day-of-week: compute day of week for the start date (0 = Sun, 1 = Mon, ... 6 = Sat)
+      const firstDate = new Date(`${days[0].date}T00:00:00Z`);
+      const leadingEmptyDays = isNaN(firstDate.getTime()) ? 0 : firstDate.getUTCDay();
+      for (let pad = 0; pad < leadingEmptyDays; pad++) {
+        const spacer = document.createElement("div");
+        spacer.className = "heatmap-cell heatmap-cell-pad";
+        spacer.setAttribute("aria-hidden", "true");
+        spacer.style.visibility = "hidden";
+        spacer.style.pointerEvents = "none";
+        gridFragment.appendChild(spacer);
+      }
+
       days.forEach((day, index) => {
         dayLookup.set(day.date, day);
         const cell = document.createElement("div");
@@ -1733,7 +1785,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         cell.setAttribute("data-idx", String(index));
         cell.setAttribute(
           "aria-label",
-          `${day.date}: ${day.completed ? `Active (Mood ${day.moodScore}/5)` : "No check-in"}`,
+          `${day.date}: ${day.completed ? `Active (Mood ${day.moodScore || 1}/5)` : "No check-in"}`,
         );
         gridFragment.appendChild(cell);
       });
@@ -1747,16 +1799,19 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         let activeTooltipCell = null;
         let tooltipRafId = null;
 
-        heatmapGrid.addEventListener("mouseover", (e) => {
-          const cell = e.target.closest(".heatmap-cell");
-          if (!cell || cell === activeTooltipCell || !heatmapTooltip) return;
+        function showTooltip(cell) {
+          if (!cell || !heatmapTooltip) return;
           activeTooltipCell = cell;
 
           const date = cell.getAttribute("data-date");
           const day = dayLookup.get(date);
           if (!day) return;
 
-          const moodText = day.completed ? ` • Mood: ${day.moodScore}/5` : " • Inactive";
+          const moodText = day.completed
+            ? day.moodScore
+              ? ` • Mood: ${day.moodScore}/5`
+              : " • Routine Completed"
+            : " • Inactive";
           const snippetText = day.oneBigThingSnippet
             ? `<br/>🎯 ${escapeHtml(day.oneBigThingSnippet)}`
             : "";
@@ -1765,24 +1820,54 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           tooltipRafId = requestAnimationFrame(() => {
             heatmapTooltip.innerHTML = `<strong>${day.date}</strong>${moodText}${snippetText}`;
             const rect = cell.getBoundingClientRect();
-            heatmapTooltip.style.left = `${rect.left + rect.width / 2}px`;
-            heatmapTooltip.style.top = `${rect.top - 8}px`;
+            const tooltipWidth = heatmapTooltip.offsetWidth || 150;
+            const showBelow = rect.top < 80;
+            heatmapTooltip.style.top = showBelow ? `${rect.bottom + 8}px` : `${rect.top - 8}px`;
+            heatmapTooltip.style.transform = showBelow
+              ? "translate(-50%, 0)"
+              : "translate(-50%, -100%)";
+            const rawLeft = rect.left + rect.width / 2;
+            const clampedLeft = Math.max(
+              tooltipWidth / 2 + 10,
+              Math.min(window.innerWidth - tooltipWidth / 2 - 10, rawLeft),
+            );
+            heatmapTooltip.style.left = `${clampedLeft}px`;
             heatmapTooltip.style.display = "block";
             heatmapTooltip.style.opacity = "1";
           });
-        });
+        }
 
-        heatmapGrid.addEventListener("mouseout", (e) => {
-          const cell = e.target.closest(".heatmap-cell");
-          if (!cell || !heatmapTooltip) return;
+        function hideTooltip() {
+          if (!heatmapTooltip) return;
           activeTooltipCell = null;
           if (tooltipRafId) cancelAnimationFrame(tooltipRafId);
           heatmapTooltip.style.opacity = "0";
           heatmapTooltip.style.display = "none";
+        }
+
+        heatmapGrid.addEventListener("mouseover", (e) => {
+          const cell = e.target.closest(".heatmap-cell:not(.heatmap-cell-pad)");
+          if (!cell || cell === activeTooltipCell) return;
+          showTooltip(cell);
+        });
+
+        heatmapGrid.addEventListener("mouseout", (e) => {
+          const cell = e.target.closest(".heatmap-cell");
+          if (!cell) return;
+          hideTooltip();
+        });
+
+        heatmapGrid.addEventListener("focusin", (e) => {
+          const cell = e.target.closest(".heatmap-cell:not(.heatmap-cell-pad)");
+          if (cell) showTooltip(cell);
+        });
+
+        heatmapGrid.addEventListener("focusout", () => {
+          hideTooltip();
         });
 
         heatmapGrid.addEventListener("click", (e) => {
-          const cell = e.target.closest(".heatmap-cell");
+          const cell = e.target.closest(".heatmap-cell:not(.heatmap-cell-pad)");
           if (!cell) return;
           const date = cell.getAttribute("data-date");
           const day = dayLookup.get(date);
@@ -1791,7 +1876,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
         heatmapGrid.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
-            const cell = e.target.closest(".heatmap-cell");
+            const cell = e.target.closest(".heatmap-cell:not(.heatmap-cell-pad)");
             if (!cell) return;
             e.preventDefault();
             const date = cell.getAttribute("data-date");
@@ -2644,6 +2729,15 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       el.classList.remove("section-flash-highlight");
       void el.offsetWidth;
       el.classList.add("section-flash-highlight");
+    }
+
+    globalThis.openShortcutsModal = openShortcutsModal;
+    globalThis.closeShortcutsModal = closeShortcutsModal;
+    globalThis.scrollToSection = scrollToSection;
+    if (typeof window !== "undefined") {
+      window.openShortcutsModal = openShortcutsModal;
+      window.closeShortcutsModal = closeShortcutsModal;
+      window.scrollToSection = scrollToSection;
     }
 
     // Initialize UXCore shortcuts

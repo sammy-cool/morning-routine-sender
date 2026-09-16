@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.12.3] - 2026-09-17
+
+### ⚡ User Dashboard Header Modernization, 365-Day Heatmap Dynamics & API Alignment
+
+- **Laptop & Desktop Header UI/UX Transformation**:
+  - Expanded `header.navbar .container.nav-wrap` max-width to `1320px` (previously constrained to single-column card reading width of `860px`), eliminating cramped margins and forced multi-line wrapping on laptop viewports (1024px–1440px).
+  - Enforced single-line flexbox alignment on `#userNavActions` with `flex-wrap: nowrap` and `gap: 8px`, preventing navbar height expansion from 68px to 120px.
+  - Added dynamic subscriber profile chip (`#userHeaderChip`) displaying the authenticated subscriber's avatar initial, email, and live streak badge (`🔥 Xd streak`).
+  - Added dynamic subscriber metadata subtitle (`#headerUserSubLabel`) displaying email, streak, and active routine track.
+  - Implemented responsive button labels (`.nav-btn-label`) that gracefully compress on medium laptop screens (861px–1240px) to prevent button overflow.
+  - Added dedicated in-dashboard navigation link for Accountability Squad (`#squadCard`) in both header and footer.
+- **365-Day Consistency & Reflection Heatmap Precision**:
+  - **Day-of-Week Vertical Shift Bug Resolution**: Corrected grid layout alignment in `renderHeatmapGrid` by calculating leading weekday offsets (`firstDate.getUTCDay()`) and injecting invisible spacer cells (`.heatmap-cell-pad`), ensuring Sunday lands on Row 0, Monday aligns with `Mon`, Wednesday aligns with `Wed`, and Friday aligns with `Fri`.
+  - **Habit Check-In & Journal Synthesis**: In [`helper/journalService.js`](file:///home/smarty/projects/morning-routine-sender/helper/journalService.js), synthesized active check-in streak dates from subscriber records with `journal_entries`, ensuring habit check-ins render as active days (intensity 1) even before writing a separate reflection.
+  - **Zero-Refresh Dynamic Updates**: Automatically re-invokes `loadActivityHeatmap(true)` with cache invalidation immediately upon 1-click habit check-in and upon saving morning journal reflections.
+  - **Viewport Tooltip Clamping & Keyboard Focus**: Clamped heatmap tooltip positioning to stay within browser viewport boundaries and added `focusin`/`focusout` listeners for complete keyboard accessibility.
+- **API & Session Authentication Hardening**:
+  - **1-Click Dashboard Checkin**: In [`controllers/routine.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/routine.controller.js), authorized logged-in subscribers with an active `mrn_session` cookie to perform 1-click check-ins without requiring an email action verification token.
+  - **Streak Freeze Shields Payload Compatibility**: Standardized both `streakFreezes` and `streakFreezesRemaining` across [`controllers/me.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/me.controller.js) and [`public/js/user-dashboard.js`](file:///home/smarty/projects/morning-routine-sender/public/js/user-dashboard.js), fixing shield count rendering and button disable state when 0 shields remain.
+- **Navigation & Link Repairs**:
+  - Corrected footer "Preferences" link to jump to `#subscriptionCard` using `scrollToSection('subscriptionCard')` instead of redirecting to `/unsubscribe`.
+  - Exposed `openShortcutsModal`, `closeShortcutsModal`, and `scrollToSection` on `window` to eliminate runtime `ReferenceError` when clicking footer shortcut buttons.
+- **Service Worker Cache Invalidation**:
+  - Bumped `CACHE_VERSION` in [`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js) to `v4.8.4`.
+
 ## [2.12.2] - 2026-09-16
 
 ### 🚀 Google Rich Results Schema, WCAG AAA Contrast, ARIA Landmarks & GPU Compositing

@@ -52,7 +52,12 @@ async function checkin(req, res) {
     return renderCheckinPage(res, data);
   }
 
-  if (!email || !token) {
+  const sessionEmail = await getSessionEmail(req);
+  const isSessionAuth = Boolean(
+    sessionEmail && email && sessionEmail.toLowerCase() === email.toLowerCase(),
+  );
+
+  if (!email || (!token && !isSessionAuth)) {
     return sendResponse({
       success: false,
       title: "Invalid Check-in Link",
@@ -62,9 +67,11 @@ async function checkin(req, res) {
   }
 
   const isValid =
-    verifyActionToken(email, token, "checkin") ||
-    verifyActionToken(email, token, "routine") ||
-    verifyUnsubscribeToken(email, token);
+    isSessionAuth ||
+    (token &&
+      (verifyActionToken(email, token, "checkin") ||
+        verifyActionToken(email, token, "routine") ||
+        verifyUnsubscribeToken(email, token)));
 
   if (!isValid) {
     logger.warn("Invalid checkin token attempt", { email, ip: req.ip });

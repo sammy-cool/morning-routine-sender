@@ -476,11 +476,18 @@
         transition: var(--transition);
       }
 
+      header.navbar .container.nav-wrap {
+        max-width: 1320px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
       .nav-wrap {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 12px;
+        gap: 16px;
         position: relative;
       }
 
@@ -515,7 +522,89 @@
       .nav-actions-cluster {
         display: flex;
         align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      #userNavActions {
+        display: flex;
+        align-items: center;
         gap: 8px;
+        flex-wrap: nowrap;
+      }
+
+      #userNavActions .btn {
+        padding: 8px 13px;
+        font-size: 13px;
+        min-height: 38px;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .user-header-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 12px 4px 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-subtle);
+        border-radius: 99px;
+        font-size: 12px;
+        transition: var(--transition);
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .user-header-chip:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: var(--border-hover);
+        box-shadow: 0 0 12px var(--primary-glow);
+      }
+      .user-header-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 12px;
+        color: #fff;
+        text-transform: uppercase;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+      .user-header-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+      }
+      .user-header-name {
+        font-weight: 700;
+        color: var(--text-main);
+        max-width: 145px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .user-header-meta {
+        font-size: 10px;
+        color: var(--accent-amber);
+        font-weight: 600;
+      }
+
+      @media (min-width: 861px) and (max-width: 1240px) {
+        #userNavActions .nav-btn-label {
+          display: none;
+        }
+        #userNavActions .btn {
+          padding: 8px 11px;
+        }
+        .user-header-name {
+          max-width: 100px;
+        }
       }
 
       .dashboard-mobile-nav-toggle {
@@ -1970,7 +2059,11 @@
             <div class="brand-name">
               <span class="brand-name-prefix">Your </span>Morning Routine
             </div>
-            <div class="brand-sub-label" style="font-size: 11px; color: var(--text-muted)">
+            <div
+              class="brand-sub-label"
+              id="headerUserSubLabel"
+              style="font-size: 11px; color: var(--text-muted)"
+            >
               Subscriber Management Portal
             </div>
           </div>
@@ -2066,31 +2159,73 @@
           </div>
 
           <nav id="userNavActions" aria-label="Subscriber Actions">
+            <!-- Dynamic User Header Chip -->
+            <a
+              href="#subscriptionCard"
+              class="user-header-chip"
+              id="userHeaderChip"
+              style="display: none"
+              title="View Subscriber Profile & Preferences"
+              onclick="
+                if (typeof scrollToSection === 'function') {
+                  scrollToSection('subscriptionCard');
+                  return false;
+                }
+              "
+            >
+              <div class="user-header-avatar" id="headerAvatar">U</div>
+              <div class="user-header-info">
+                <span class="user-header-name" id="headerUserEmailFull">user@example.com</span>
+                <span class="user-header-meta" id="headerUserMeta">🔥 0d streak</span>
+              </div>
+            </a>
+
             <button
               type="button"
               class="btn btn-secondary"
               id="startTourBtn"
               title="Start Interactive Dashboard Tour"
             >
-              <i class="fas fa-compass" aria-hidden="true"></i> <span>Tour</span>
+              <i class="fas fa-compass" aria-hidden="true"></i>
+              <span class="nav-btn-label">Tour</span>
             </button>
 
-            <a href="/about" class="btn btn-secondary" title="Learn about the routine science">
-              <i class="fas fa-info-circle" aria-hidden="true"></i> <span>About</span>
+            <a
+              href="#squadCard"
+              class="btn btn-secondary"
+              id="navSquadBtn"
+              title="Accountability Squad & Morning Duel"
+              onclick="
+                if (typeof scrollToSection === 'function') {
+                  scrollToSection('squadCard');
+                  return false;
+                }
+              "
+            >
+              <i class="fas fa-users" aria-hidden="true" style="color: var(--accent-cyan)"></i>
+              <span class="nav-btn-label">Squad</span>
             </a>
+
+            <a href="/about" class="btn btn-secondary" title="Learn about the routine science">
+              <i class="fas fa-info-circle" aria-hidden="true"></i>
+              <span class="nav-btn-label">About</span>
+            </a>
+
             <a
               href="/leaderboard"
               class="btn btn-secondary"
               title="Community Hall of Fame & Streaks"
             >
               <i class="fas fa-trophy" aria-hidden="true" style="color: var(--accent-amber)"></i>
-              <span>Leaderboard</span>
+              <span class="nav-btn-label">Leaderboard</span>
             </a>
-            <a href="/routine" class="btn btn-primary">
-              <i class="fas fa-bolt" aria-hidden="true"></i> <span>Live Routine</span>
+            <a href="/routine" class="btn btn-primary" title="Launch Live Routine Companion">
+              <i class="fas fa-bolt" aria-hidden="true"></i>
+              <span class="nav-btn-label">Live Routine</span>
             </a>
-            <button class="btn btn-secondary" id="logoutBtn">
-              <i class="fas fa-sign-out-alt" aria-hidden="true"></i> <span>Logout</span>
+            <button class="btn btn-secondary" id="logoutBtn" title="Sign out of subscriber session">
+              <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+              <span class="nav-btn-label">Logout</span>
             </button>
           </nav>
 
@@ -5628,8 +5763,30 @@
           <a href="/routine" class="footer-btn-link"
             ><i class="fas fa-bolt" style="color: var(--accent-cyan)"></i> Live Routine</a
           >
-          <a href="/unsubscribe" class="footer-btn-link"
+          <a
+            href="#subscriptionCard"
+            class="footer-btn-link"
+            onclick="
+              if (typeof scrollToSection === 'function') {
+                scrollToSection('subscriptionCard');
+                return false;
+              }
+            "
             ><i class="fas fa-sliders-h"></i> Preferences</a
+          >
+          <a
+            href="#squadCard"
+            class="footer-btn-link"
+            onclick="
+              if (typeof scrollToSection === 'function') {
+                scrollToSection('squadCard');
+                return false;
+              }
+            "
+            ><i class="fas fa-users" style="color: var(--accent-cyan)"></i> Squad</a
+          >
+          <a href="/unsubscribe" class="footer-btn-link" style="opacity: 0.75"
+            ><i class="fas fa-user-minus"></i> Unsubscribe</a
           >
           <button
             type="button"

@@ -357,6 +357,20 @@ async function getActivityHeatmap(email, days = 365) {
     entryMap.set(e.entry_date, e);
   });
 
+  // Synthesize habit check-in dates from subscriber's streak & last_checkin_date
+  const checkinDatesSet = new Set();
+  const checkinDateStr = subscriber?.last_checkin_date
+    ? String(subscriber.last_checkin_date).slice(0, 10)
+    : null;
+  const streakCount = Number(subscriber?.streak_count) || 0;
+  if (checkinDateStr && streakCount > 0) {
+    const cDate = new Date(`${checkinDateStr}T00:00:00Z`);
+    for (let s = 0; s < streakCount && s < days; s++) {
+      checkinDatesSet.add(cDate.toISOString().split("T")[0]);
+      cDate.setUTCDate(cDate.getUTCDate() - 1);
+    }
+  }
+
   const heatmapDays = [];
   let totalActiveDays = 0;
   let totalMoodSum = 0;
@@ -370,7 +384,8 @@ async function getActivityHeatmap(email, days = 365) {
   for (let i = 0; i < days; i++) {
     const dStr = iterDate.toISOString().split("T")[0];
     const entry = entryMap.get(dStr);
-    const completed = Boolean(entry);
+    const hasCheckin = checkinDatesSet.has(dStr);
+    const completed = Boolean(entry || hasCheckin);
 
     let count = 0;
     let moodScore = null;
@@ -383,22 +398,28 @@ async function getActivityHeatmap(email, days = 365) {
       tempStreak++;
       if (tempStreak > longestStreak) longestStreak = tempStreak;
 
-      moodScore =
-        typeof entry.mood_score === "number" && entry.mood_score > 0 ? entry.mood_score : 3;
-      totalMoodSum += moodScore;
-      moodCount++;
+      if (entry) {
+        moodScore =
+          typeof entry.mood_score === "number" && entry.mood_score > 0 ? entry.mood_score : 3;
+        totalMoodSum += moodScore;
+        moodCount++;
 
-      // Intensity level mapping (0 to 4)
-      if (moodScore <= 2) intensity = 1;
-      else if (moodScore === 3) intensity = 2;
-      else if (moodScore === 4) intensity = 3;
-      else intensity = 4;
+        // Intensity level mapping (1 to 4)
+        if (moodScore <= 2) intensity = 1;
+        else if (moodScore === 3) intensity = 2;
+        else if (moodScore === 4) intensity = 3;
+        else intensity = 4;
 
-      if (entry.one_big_thing) {
-        oneBigThingSnippet =
-          entry.one_big_thing.length > 60
-            ? entry.one_big_thing.slice(0, 57) + "…"
-            : entry.one_big_thing;
+        if (entry.one_big_thing) {
+          oneBigThingSnippet =
+            entry.one_big_thing.length > 60
+              ? entry.one_big_thing.slice(0, 57) + "…"
+              : entry.one_big_thing;
+        }
+      } else {
+        // Check-in completed without a separate journal reflection
+        intensity = 1;
+        oneBigThingSnippet = "Morning Habit Check-in Completed";
       }
     } else {
       tempStreak = 0;

@@ -1534,6 +1534,7 @@ async function getStreakFreezeStatus(req, res) {
     res.json({
       success: true,
       streakFreezes: subscriber.streakFreezes ?? 2,
+      streakFreezesRemaining: subscriber.streakFreezes ?? 2,
       freezeHistory: subscriber.freezeHistory || [],
       streakCount: subscriber.streakCount || 0,
       lastCheckinDate: subscriber.lastCheckinDate || null,
