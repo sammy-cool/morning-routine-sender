@@ -455,7 +455,7 @@
       }
 
       .container {
-        max-width: 860px;
+        max-width: 1080px;
         margin: 0 auto;
         padding: 0 20px;
         width: 100%;
@@ -477,7 +477,7 @@
       }
 
       header.navbar .container.nav-wrap {
-        max-width: 1320px;
+        max-width: 1080px;
         width: 100%;
         margin: 0 auto;
         padding: 0 20px;
@@ -1041,7 +1041,7 @@
 
       .heatmap-months {
         display: grid;
-        grid-template-columns: 32px repeat(52, 1fr);
+        grid-template-columns: 32px repeat(53, 12px);
         gap: 3px;
         font-size: 11px;
         font-weight: 600;
@@ -2492,9 +2492,12 @@
               type="text"
               id="calendarFeedUrlInput"
               readonly
+              onfocus="this.select()"
+              title="Click to select full calendar .ics feed URL"
+              placeholder="Generating personalized calendar feed URL..."
               style="
                 flex: 1;
-                min-width: 240px;
+                min-width: 260px;
                 font-family: &quot;JetBrains Mono&quot;, monospace;
                 font-size: 12px;
                 padding: 10px 14px;
@@ -3526,9 +3529,17 @@
             "
           >
             <div>
-              <h2>
-                <i class="fas fa-brain" style="color: var(--primary)" aria-hidden="true"></i>
-                AI Morning Coach Persona
+              <h2 style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                <span
+                  ><i class="fas fa-brain" style="color: var(--primary)" aria-hidden="true"></i> AI
+                  Morning Coach Persona</span
+                >
+                <span
+                  class="status-badge active"
+                  id="activePersonaBadge"
+                  style="font-size: 11.5px; font-weight: 600"
+                  >🏛️ Stoic Sage</span
+                >
               </h2>
               <p class="meta" style="font-size: 13px; margin-top: 4px; color: var(--text-muted)">
                 Select your AI morning coach archetype. Your daily morning reflections,
@@ -3632,8 +3643,6 @@
                   aria-hidden="true"
                 ></i>
               </div>
-
-              <span class="status-badge active" id="activePersonaBadge">🏛️ Stoic Sage</span>
             </div>
           </div>
 
@@ -4195,29 +4204,57 @@
                 <button
                   type="button"
                   class="btn btn-secondary duration-select-btn"
-                  data-mins="50"
-                  style="padding: 6px 14px; font-size: 13px"
-                >
-                  50 min
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-secondary duration-select-btn"
                   data-mins="60"
                   style="padding: 6px 14px; font-size: 13px"
                 >
                   60 min
                 </button>
-                <div style="display: inline-flex; align-items: center; gap: 6px; margin-left: 4px">
+                <button
+                  type="button"
+                  class="btn btn-secondary duration-select-btn"
+                  data-mins="90"
+                  style="padding: 6px 14px; font-size: 13px"
+                >
+                  90 min (Ultradian)
+                </button>
+                <div
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    background: rgba(15, 23, 42, 0.6);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 8px;
+                    padding: 4px 10px;
+                  "
+                >
+                  <span
+                    class="small"
+                    style="color: var(--text-muted); font-size: 12px; margin-right: 6px"
+                    >Custom:</span
+                  >
                   <input
                     type="number"
                     id="prefFocusDuration"
                     min="5"
                     max="180"
                     value="25"
-                    style="width: 75px; padding: 6px 10px; font-size: 13px; text-align: center"
+                    aria-label="Custom Focus Sprint Duration in minutes"
+                    style="
+                      width: 52px;
+                      padding: 2px 4px;
+                      font-size: 13px;
+                      text-align: center;
+                      background: transparent;
+                      border: none;
+                      color: var(--accent-cyan);
+                      font-weight: 600;
+                    "
                   />
-                  <span class="small" style="color: var(--text-muted)">mins</span>
+                  <span
+                    class="small"
+                    style="color: var(--text-muted); font-size: 12px; margin-left: 4px"
+                    >mins</span
+                  >
                 </div>
               </div>
               <div class="small" style="margin-top: 6px; color: var(--text-muted); font-size: 12px">
@@ -5183,6 +5220,8 @@
                 type="text"
                 id="hardwareWebhookUrl"
                 readonly
+                onfocus="this.select()"
+                title="Click to select full hardware webhook URL"
                 value="Loading personal webhook endpoint..."
                 style="
                   flex: 1;
@@ -5520,7 +5559,7 @@
                 <i class="fas fa-sync-alt" aria-hidden="true"></i> Refresh
               </button>
               <a
-                href="/me/radar.svg?download=1"
+                href="/api/me/radar.svg?download=1"
                 id="downloadRadarCardLink"
                 class="btn btn-primary"
                 style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px"
@@ -5546,7 +5585,7 @@
           >
             <img
               id="radarChartPreviewImg"
-              src="/me/radar.svg"
+              src="/api/me/radar.svg"
               alt="5-Pillar Consistency Radar"
               style="
                 max-width: 100%;
@@ -5754,7 +5793,7 @@
             <span style="font-weight: 700; color: #fff">Morning Routine Hub</span>
           </div>
           <span style="font-size: 12px; color: var(--text-muted)">
-            Empowering daily consistency &bull; Encrypted Sessions &bull; v2.6.10
+            Empowering daily consistency &bull; Encrypted Sessions &bull; v2.12.4
           </span>
         </div>
         <nav class="dashboard-footer-links" aria-label="Footer Quick Links">

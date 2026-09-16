@@ -14,6 +14,8 @@ function getSubscriberEmail(req) {
     req.user?.email ||
     (typeof req.query?.email === "string" ? req.query.email : null) ||
     (typeof req.body?.email === "string" ? req.body.email : null) ||
+    req.headers?.["x-subscriber-email"] ||
+    req.headers?.["x-test-email"] ||
     ""
   )
     .trim()
@@ -344,7 +346,15 @@ async function leaveSquad(req, res) {
  * - An AI Ghost (derived from subscriber's 7-day average pace / routine cron time).
  */
 async function getMorningDuelStatus(req, res) {
-  const email = getSubscriberEmail(req);
+  let email = getSubscriberEmail(req);
+  if (!email) {
+    try {
+      const { getSubscriberAuthEmail } = require("../middleware/subscriberSession");
+      email = (await getSubscriberAuthEmail(req)) || "";
+    } catch (_e) {
+      // Non-blocking fallback
+    }
+  }
   const todayDate = new Intl.DateTimeFormat("en-CA").format(new Date());
 
   try {

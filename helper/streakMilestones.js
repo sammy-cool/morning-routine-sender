@@ -71,6 +71,9 @@ function getStreakMilestones(streakCount = 0) {
     const isUnlocked = streak >= tier.days;
     return {
       ...tier,
+      badge: tier.icon,
+      thresholdDays: tier.days,
+      daysRemaining: Math.max(0, tier.days - streak),
       unlocked: isUnlocked,
     };
   });
@@ -90,6 +93,9 @@ function getStreakMilestones(streakCount = 0) {
     const progressIntoRange = streak - prevDays;
     progressPct = Math.min(100, Math.max(0, Math.round((progressIntoRange / range) * 100)));
     daysRemaining = Math.max(0, nextMilestone.days - streak);
+    nextMilestone.daysRemaining = daysRemaining;
+    nextMilestone.percent = progressPct;
+    nextMilestone.progressPct = progressPct;
   }
 
   return {

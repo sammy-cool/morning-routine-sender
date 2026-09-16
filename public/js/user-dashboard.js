@@ -224,7 +224,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const rawTrack = sub.routineTrack || sub.templateType || "deep-work";
         const trackName = rawTrack.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
         if (headerSubLabel) {
-          headerSubLabel.innerHTML = `<span style="color: var(--accent-cyan); font-weight: 600;">${escapeHtml(sub.email)}</span> &bull; <span style="color: #fbbf24; font-weight: 700;">🔥 ${streak}d streak</span> &bull; <span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(trackName)}</span>`;
+          headerSubLabel.textContent = "Subscriber Command Center";
         }
         if (userHeaderChip) {
           userHeaderChip.style.display = "inline-flex";
@@ -382,10 +382,23 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const calUrl =
           sub.calendarFeedUrl || `${window.location.origin}/calendar/feed/${sub.calendarToken}.ics`;
         calendarInput.value = calUrl;
+        calendarInput.title = calUrl;
         if (webcalBtn) {
           webcalBtn.href = sub.webcalUrl || calUrl.replace(/^https?:\/\//i, "webcal://");
         }
         if (calendarCard) calendarCard.style.display = "block";
+      }
+
+      // 5-Pillar Consistency Radar Chart
+      const radarImg = document.getElementById("radarChartPreviewImg");
+      const downloadRadarLink = document.getElementById("downloadRadarCardLink");
+      const radarTrack = sub.routineTrack || sub.templateType || "deep-work";
+      const radarUrl = `/api/me/radar.svg?email=${encodeURIComponent(sub.email || "")}&streak=${streak}&track=${encodeURIComponent(radarTrack)}&t=${Date.now()}`;
+      if (radarImg) {
+        radarImg.src = radarUrl;
+      }
+      if (downloadRadarLink) {
+        downloadRadarLink.href = `${radarUrl}&download=1`;
       }
 
       // Streak Milestone Badges
@@ -514,9 +527,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
         badgesCard.style.display = "block";
         if (data.nextMilestone) {
-          if (nextName) nextName.textContent = `Next: ${data.nextMilestone.name}`;
-          if (nextRem) nextRem.textContent = `${data.nextMilestone.daysRemaining} days left`;
-          if (bar) bar.style.width = `${Math.min(100, Math.max(0, data.nextMilestone.percent))}%`;
+          const rem = data.nextMilestone.daysRemaining ?? data.daysRemaining ?? 0;
+          const pct =
+            data.nextMilestone.percent ?? data.nextMilestone.progressPct ?? data.progressPct ?? 0;
+          if (nextName) nextName.textContent = `Next: ${data.nextMilestone.name || "Milestone"}`;
+          if (nextRem) nextRem.textContent = `${rem} days left`;
+          if (bar) bar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
         } else {
           if (nextName) nextName.textContent = "All Milestones Achieved! 🏆";
           if (nextRem) nextRem.textContent = "Legendary Consistency";
@@ -531,18 +547,18 @@ globalThis.addEventListener("DOMContentLoaded", function () {
                       border-radius: 12px; padding: 12px 10px; text-align: center;
                       opacity: ${m.unlocked ? "1" : "0.55"}; transition: transform 0.2s ease;">
             <div style="font-size: 26px; margin-bottom: 4px; filter: ${m.unlocked ? "drop-shadow(0 2px 8px rgba(245, 158, 11, 0.4))" : "grayscale(100%)"}">
-              ${m.badge}
+              ${m.badge || m.icon || "🏆"}
             </div>
             <div style="font-size: 12px; font-weight: 600; color: ${m.unlocked ? "#fef3c7" : "#94a3b8"}; margin-bottom: 2px;">
-              ${escapeHtml(m.name)}
+              ${escapeHtml(m.name || "")}
             </div>
             <div style="font-size: 10.5px; color: ${m.unlocked ? "#fbbf24" : "#64748b"};">
-              ${m.thresholdDays} Days
+              ${m.thresholdDays || m.days || 0} Days
             </div>
             <div style="margin-top: 4px; font-size: 10px; padding: 2px 6px; border-radius: 99px;
                         background: ${m.unlocked ? "rgba(16, 185, 129, 0.2)" : "rgba(255, 255, 255, 0.05)"};
                         color: ${m.unlocked ? "#34d399" : "#64748b"}; display: inline-block;">
-              ${m.unlocked ? "Unlocked" : `${m.daysRemaining}d to go`}
+              ${m.unlocked ? "Unlocked" : `${m.daysRemaining !== undefined ? m.daysRemaining : Math.max(0, (m.days || 0) - (data.streakCount || 0))}d to go`}
             </div>
           </div>
         `,
@@ -3190,7 +3206,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             <div>
               <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
                 <span style="color: #cbd5e1;">🌅 Early Bird (5am-7am)</span>
-                <span style="color: var(--text-muted);">${tod.earlyBird} logs</span>
+                <span style="color: var(--text-muted);">${tod.earlyBird} ${tod.earlyBird === 1 ? "log" : "logs"}</span>
               </div>
               <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
                 <div style="height: 100%; width: ${getBarPct(tod.earlyBird)}%; background: #f59e0b;"></div>
@@ -3199,7 +3215,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             <div>
               <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
                 <span style="color: #cbd5e1;">⚡ Prime Focus (7am-9am)</span>
-                <span style="color: var(--text-muted);">${tod.primeFocus} logs</span>
+                <span style="color: var(--text-muted);">${tod.primeFocus} ${tod.primeFocus === 1 ? "log" : "logs"}</span>
               </div>
               <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
                 <div style="height: 100%; width: ${getBarPct(tod.primeFocus)}%; background: #10b981;"></div>
@@ -3208,7 +3224,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             <div>
               <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
                 <span style="color: #cbd5e1;">☕ Mid-Morning (9am-12pm)</span>
-                <span style="color: var(--text-muted);">${tod.midMorning} logs</span>
+                <span style="color: var(--text-muted);">${tod.midMorning} ${tod.midMorning === 1 ? "log" : "logs"}</span>
               </div>
               <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
                 <div style="height: 100%; width: ${getBarPct(tod.midMorning)}%; background: #7c3aed;"></div>
@@ -3229,7 +3245,12 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       if (!card) return;
 
       try {
-        const res = await fetch("/api/duel/status", { headers: { Accept: "application/json" } });
+        const emailParam = currentSubscriber?.email
+          ? `?email=${encodeURIComponent(currentSubscriber.email)}`
+          : "";
+        const res = await fetch(`/api/duel/status${emailParam}`, {
+          headers: { Accept: "application/json" },
+        });
         if (!res.ok) return;
         const data = await res.json();
         if (!data.success) return;
@@ -3280,7 +3301,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           uStatus.textContent = data.user?.checkedInToday ? "Done ✓" : "Pending";
           uStatus.style.color = data.user?.checkedInToday ? "#34d399" : "#fbbf24";
         }
-        if (uStreak) uStreak.textContent = `Streak: ${data.user?.streak || 0}d`;
+        const resolvedUserStreak =
+          data.user?.streak !== undefined && data.user?.streak !== null && data.user.streak > 0
+            ? data.user.streak
+            : Number(currentSubscriber?.streakCount) || data.user?.streak || 0;
+        if (uStreak) uStreak.textContent = `Streak: ${resolvedUserStreak}d`;
 
         // Opponent Side
         const oName = document.getElementById("duelOpponentName");

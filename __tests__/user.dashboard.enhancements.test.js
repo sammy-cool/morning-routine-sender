@@ -161,10 +161,20 @@ describe("User Dashboard Enhancements & Verification", () => {
       expect(html).toContain('id="headerUserMeta"');
     });
 
-    test("navbar container expands on laptop/desktop viewports up to 1320px", () => {
+    test("navbar container aligns symmetrically with main content container on laptop/desktop viewports", () => {
       expect(html).toContain("header.navbar .container.nav-wrap");
-      expect(html).toContain("max-width: 1320px");
+      expect(html).toContain("max-width: 1080px");
       expect(html).toContain("flex-wrap: nowrap");
+    });
+
+    test("heatmap months grid columns match heatmap grid 53 columns exactly", () => {
+      expect(html).toContain("grid-template-columns: 32px repeat(53, 12px)");
+    });
+
+    test("active coach persona badge is positioned inside heading and removed from audio controls", () => {
+      expect(html).toMatch(
+        /<h2[^>]*>[\s\S]*AI Morning Coach Persona[\s\S]*id="activePersonaBadge"/,
+      );
     });
 
     test("contains squad navigation button in header and footer", () => {
@@ -193,6 +203,30 @@ describe("User Dashboard Enhancements & Verification", () => {
 
     test("reloads heatmap on 1-click checkin and journal save", () => {
       expect(js).toContain("loadActivityHeatmap(true)");
+    });
+
+    test("pluralizes time-of-day habit logs accurately without '1 logs'", () => {
+      expect(js).toContain('${tod.earlyBird === 1 ? "log" : "logs"}');
+      expect(js).toContain('${tod.primeFocus === 1 ? "log" : "logs"}');
+      expect(js).toContain('${tod.midMorning === 1 ? "log" : "logs"}');
+    });
+
+    test("dynamically attaches radar chart URL with cache buster", () => {
+      expect(js).toContain("radarUrl = `/api/me/radar.svg");
+      expect(js).toContain("downloadRadarLink.href = `${radarUrl}&download=1`");
+    });
+  });
+
+  describe("6. Streak Milestones & Duel Model Integrity", () => {
+    test("getStreakMilestones populates badge, thresholdDays, and daysRemaining symmetrically", () => {
+      const { getStreakMilestones } = require("../helper/streakMilestones");
+      const res = getStreakMilestones(6);
+      expect(res.milestones[0].badge).toBeDefined();
+      expect(res.milestones[0].thresholdDays).toBe(3);
+      expect(res.milestones[0].unlocked).toBe(true);
+      expect(res.nextMilestone).toBeDefined();
+      expect(res.nextMilestone.daysRemaining).toBe(1);
+      expect(res.nextMilestone.percent).toBeDefined();
     });
   });
 });
