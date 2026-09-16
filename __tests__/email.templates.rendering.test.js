@@ -115,6 +115,39 @@ describe("📧 Email Templates, Cross-ESP & Plain-Text Fallback Test Suite", () 
       expect(sendArgs.text).toContain("1-Click Streak Check-in:");
       expect(sendArgs.text).toContain("Unsubscribe:");
     });
+
+    test("renders brand logo, streak momentum bar, habit checklist, and quick companion tools", async () => {
+      const mockUser = {
+        email: "habits.user@example.com",
+        routineTrack: "deep-work",
+        streakCount: 6,
+        timezone: "America/New_York",
+        customHabits: ["Drink 500ml water", "Review daily objectives", "No-phone meditation"],
+      };
+
+      const result = await emailService.sendRoutineEmail(
+        mockTransporterInstance,
+        "https://routine.test",
+        mockUser,
+      );
+      expect(result.success).toBe(true);
+
+      const sendArgs = mockSendMail.mock.calls[0][0];
+      // Logo and header
+      expect(sendArgs.html).toContain("Morning Routine");
+      expect(sendArgs.html).toContain("logo.png");
+      // Streak momentum and milestone
+      expect(sendArgs.html).toContain("Streak Momentum");
+      expect(sendArgs.html).toContain("Momentum Builder");
+      // Habit architecture checklist
+      expect(sendArgs.html).toContain("Habit Architecture");
+      expect(sendArgs.html).toContain("Drink 500ml water");
+      expect(sendArgs.html).toContain("Review daily objectives");
+      // Companion quick links
+      expect(sendArgs.html).toContain("Lockscreen Wallpaper");
+      expect(sendArgs.html).toContain("Voice Spark");
+      expect(sendArgs.html).toContain("Squad &amp; Duel");
+    });
   });
 
   describe("2. Weekly Consistency Digest Metrics & Configs", () => {

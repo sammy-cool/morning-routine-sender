@@ -212,6 +212,7 @@ async function buildWeeklyDigestPayload(subscriber, appLocals = process.env.REND
   const unsubscribeToken = generateUnsubscribeToken(email);
 
   return {
+    logoUrl: process.env.LOGO_URL || `${baseUrl}/assets/logo.png`,
     userName: subscriber.name || (email ? email.split("@")[0] : "Subscriber"),
     year: new Intl.DateTimeFormat("en-US", { timeZone: timezone, year: "numeric" }).format(
       new Date(),

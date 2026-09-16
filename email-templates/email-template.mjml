@@ -52,9 +52,27 @@
         padding: 14px;
         margin-bottom: 10px;
       }
+      .companion-chip {
+        display: inline-block;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        padding: 6px 14px;
+        border-radius: 20px;
+        margin: 3px 4px;
+      }
       @media only screen and (max-width: 480px) {
         .mobile-pad { padding: 16px !important; }
         .headline { font-size: 22px !important; line-height: 28px !important; }
+        .companion-chip { display: block !important; margin: 6px auto !important; max-width: 200px !important; }
+      }
+      @media (prefers-color-scheme: dark) {
+        .card-box { background-color: #0f172a !important; }
+        .headline { color: #f8fafc !important; }
+        .body-text { color: #cbd5e1 !important; }
       }
     </mj-style>
   </mj-head>
@@ -93,19 +111,55 @@
       {{/if}}
 
       <!-- Header / Logo / Badges -->
-      <mj-section padding="0 0 20px 0">
+      <mj-section padding="0 0 16px 0">
         <mj-column>
+          <mj-image
+            src="{{logoUrl}}"
+            alt="Morning Routine"
+            width="44px"
+            height="44px"
+            align="center"
+            padding="0 0 12px 0"
+            border-radius="12px"
+          />
           <mj-text align="center">
             <span class="brand-badge">{{trackBadge}}</span>
             <span class="streak-badge">🔥 {{streakBadge}}</span>
           </mj-text>
-          <mj-text mj-class="headline" padding="14px 0 6px 0">
+          <mj-text mj-class="headline" padding="12px 0 6px 0">
             Rise. Focus. Make Today Count.
           </mj-text>
           <mj-text mj-class="subhead" padding="0">
             Good morning, {{userName}}!
           </mj-text>
-          <mj-divider border-width="1px" border-color="#f1f5f9" padding="20px 0 10px 0" width="80%" />
+          <mj-divider border-width="1px" border-color="#f1f5f9" padding="16px 0 10px 0" width="80%" />
+        </mj-column>
+      </mj-section>
+
+      <!-- Streak Momentum & Milestone Bar -->
+      <mj-section padding="0 0 15px 0">
+        <mj-column>
+          <mj-text padding="0 10px">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px;">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-family: inherit;">
+                <tr>
+                  <td align="left" style="font-size: 12px; font-weight: 700; color: #0f172a;">
+                    🔥 Streak Momentum: <span style="color: #d97706;">{{streakBadge}}</span>
+                  </td>
+                  <td align="right" style="font-size: 11px; font-weight: 600; color: #64748b;">
+                    Next: {{nextMilestoneName}} ({{nextMilestoneDaysRemaining}}d left)
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding-top: 8px;">
+                    <div style="height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden;">
+                      <div style="height: 100%; width: {{streakProgressPct}}%; background: #10b981; border-radius: 99px;"></div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </mj-text>
         </mj-column>
       </mj-section>
 
@@ -162,8 +216,28 @@
         </mj-column>
       </mj-section>
 
+      <!-- Daily Habit Architecture Checklist -->
+      {{#if hasChecklist}}
+      <mj-section padding="0 0 16px 0">
+        <mj-column>
+          <mj-text font-size="15px" font-weight="700" color="#0f172a" padding="0 10px 8px 10px">
+            📋 Today's Habit Architecture
+          </mj-text>
+          <mj-text padding="0 10px">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px;">
+              {{#each checklist}}
+              <div style="padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; font-weight: 600; color: #334155;">
+                <span style="color: #7c3aed; margin-right: 8px; font-weight: 800;">✦</span> {{this}}
+              </div>
+              {{/each}}
+            </div>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      {{/if}}
+
       <!-- Habit Streak Check-in Callout -->
-      <mj-section padding="10px 0 20px 0">
+      <mj-section padding="10px 0 12px 0">
         <mj-column>
           <mj-text align="center" font-size="13px" color="#64748b" padding="0 0 10px 0">
             Completed your morning ritual? Log today's progress with 1 click:
@@ -171,6 +245,25 @@
           <mj-button mj-class="btn-streak" href="{{checkinUrl}}" align="center">
             ⚡ I Completed My Routine (Maintain Streak)
           </mj-button>
+        </mj-column>
+      </mj-section>
+
+      <!-- Quick Companion Tools Bar -->
+      <mj-section padding="0 0 16px 0">
+        <mj-column>
+          <mj-text align="center" padding="0 10px">
+            <div style="text-align: center; margin-top: 2px;">
+              <a href="{{wallpaperUrl}}" class="companion-chip" target="_blank">
+                📱 Lockscreen Wallpaper
+              </a>
+              <a href="{{audioBriefingUrl}}" class="companion-chip" target="_blank">
+                🎙️ Voice Spark
+              </a>
+              <a href="{{squadUrl}}" class="companion-chip" target="_blank">
+                👥 Squad &amp; Duel
+              </a>
+            </div>
+          </mj-text>
         </mj-column>
       </mj-section>
 

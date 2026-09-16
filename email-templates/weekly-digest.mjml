@@ -109,6 +109,11 @@
         font-size: 13px;
         color: #334155;
       }
+      @media (prefers-color-scheme: dark) {
+        .card-box { background-color: #0f172a !important; }
+        .headline { color: #f8fafc !important; }
+        .body-text { color: #cbd5e1 !important; }
+      }
     </mj-style>
   </mj-head>
 
@@ -119,6 +124,15 @@
       <!-- Header / Badges -->
       <mj-section padding="0 0 16px 0">
         <mj-column>
+          <mj-image
+            src="{{logoUrl}}"
+            alt="Morning Routine"
+            width="44px"
+            height="44px"
+            align="center"
+            padding="0 0 12px 0"
+            border-radius="12px"
+          />
           <mj-text align="center">
             <span class="brand-badge">{{trackBadge}}</span>
             <span class="streak-badge">🔥 {{streakBadge}}</span>

@@ -112,6 +112,9 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     const focusDuration = Number(userData.focusDurationMinutes) || 25;
     const routineQueryDuration = focusDuration !== 25 ? `&duration=${focusDuration}` : "";
 
+    const { getStreakMilestones } = require("../helper/streakMilestones");
+    const streakMilestones = getStreakMilestones(userStreak);
+
     const data = {
       logoUrl: process.env.LOGO_URL || `${baseUrl}/assets/logo.png`,
       userName: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
@@ -122,6 +125,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       dailyQuote: dailyQuote,
       dailyTip: dailyTip,
       checklist: activeChecklist,
+      hasChecklist: Array.isArray(activeChecklist) && activeChecklist.length > 0,
       focusDurationMinutes: focusDuration,
       coachPersona: userData.coachPersona || "stoic",
       aiSparkReflection: morningSpark.sparkReflection,
@@ -129,10 +133,16 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       aiFocusMantra: morningSpark.focusMantra,
       aiSourceBadge: morningSpark.source === "curated" ? "Curated Spark" : "AI Spark",
       streakTier: morningSpark.streakTier,
+      streakMilestones,
+      nextMilestoneName: streakMilestones.nextMilestone?.name || "All Milestones Achieved! 🏆",
+      nextMilestoneDaysRemaining: streakMilestones.daysRemaining,
+      streakProgressPct: streakMilestones.progressPct,
       ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}${routineQueryDuration}`,
       ctaText: `⚡ Open Interactive Routine & ${focusDuration}-Min Focus Timer`,
       checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}`,
       wallpaperUrl: `${baseUrl}/wallpaper/${encodeURIComponent(userData.email)}`,
+      audioBriefingUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}&voice=1`,
+      squadUrl: `${baseUrl}/user-dashboard#squadCard`,
       preferencesUrl: `${baseUrl}/user-dashboard`,
       trendingNews,
       weatherSpark,
