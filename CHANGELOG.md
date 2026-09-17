@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.13.0] - 2026-09-17
+
+### 🚀 Email Template Overhaul, Dashboard Defect Remediation & Symmetrical UX Harmonization
+
+- **Email & Sunday Digest Template Architecture**:
+  - **Brand Logo Header Integration**: Injected the vector brand logo (`logo.png`) into both the daily morning routine and Sunday performance digest templates for instant brand recognition.
+  - **Dynamic Streak Momentum & Milestone Progress Bar**: Integrated `helper/streakMilestones.js` into outgoing email payloads. Subscribers now receive a visual milestone tracker showcasing their active tier, next milestone target, remaining days, and a cross-client rendered progress bar.
+  - **Daily Habit Architecture Checklist**: Embedded the user's customized habit checklist with custom bullet marks (`✦`) directly in the HTML email body, falling back to track-specific rituals when unconfigured.
+  - **Quick Companion Action Hub**: Injected a tactile, pill-styled companion action dock beneath the 1-click checkin button, linking directly to Lockscreen Wallpaper (`/wallpaper/:email`), Voice Briefing (`/routine?voice=1`), and Accountability Squad & Duel (`/user-dashboard#squadCard`).
+  - **Cross-ESP Dark Mode Resilience**: Added `@media (prefers-color-scheme: dark)` styling to prevent harsh glare and maintain contrast across Apple Mail, iOS, Outlook app, and Gmail dark mode.
+- **User Dashboard Visual Defect Remediation**:
+  - **Streak Milestone Badges**: Fixed `undefined` badge, days, and progress bar bugs by populating `badge: tier.icon`, `thresholdDays: tier.days`, and `daysRemaining` symmetrically across [`helper/streakMilestones.js`](file:///home/smarty/projects/morning-routine-sender/helper/streakMilestones.js) and [`public/js/user-dashboard.js`](file:///home/smarty/projects/morning-routine-sender/public/js/user-dashboard.js).
+  - **Morning Duel & AI Ghost Race Streak**: Resolved subscriber session and test headers in [`controllers/squad.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/squad.controller.js) and [`public/js/user-dashboard.js`](file:///home/smarty/projects/morning-routine-sender/public/js/user-dashboard.js), ensuring logged-in users display their actual active streak rather than `Streak: 0d`.
+  - **5-Pillar Consistency Radar Chart**: Converted `/me/radar.svg` to graceful fallback authorization, injected subscriber parameters with cache-busting timestamps into `#radarChartPreviewImg` and `#downloadRadarCardLink`, and corrected the default image source to `/api/me/radar.svg`.
+  - **365-Day Consistency Heatmap Grid Alignment**: Symmetrically aligned `.heatmap-months` with `.heatmap-grid` 53 weekly columns (`grid-template-columns: 32px repeat(53, 12px)`), eliminating header drift.
+  - **Laptop/Desktop Layout Symmetry**: Standardized `.container` and `header.navbar .container.nav-wrap` to `max-width: 1080px`, preventing disjointed card vs. navbar edges on laptop displays.
+  - **Focus Sprint Duration Controls**: Replaced malformed duplicate buttons with standardized presets (`15 min`, `25 min (Standard)`, `45 min`, `60 min`, `90 min (Ultradian)`) and a sleek `Custom: [ 25 ] mins` input box.
+  - **AI Coach Persona Heading**: Re-anchored `#activePersonaBadge` beside the card heading and removed the stray pill floating inside the audio controls cluster.
+  - **Usability & Grammar**: Fixed time-of-day analytics pluralization (`1 log` vs `logs`) and added `onfocus="this.select()"` with title tooltips to calendar and hardware webhook inputs.
+- **Service Worker Cache Invalidation**:
+  - Bumped `CACHE_VERSION` in [`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js) to `v4.8.5`.
+
 ## [2.12.3] - 2026-09-17
 
 ### ⚡ User Dashboard Header Modernization, 365-Day Heatmap Dynamics & API Alignment
