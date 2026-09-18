@@ -379,18 +379,38 @@ function generateCalendarIcs(subscriber, domain = "https://morningroutinesender.
   const now = new Date();
   const dtStamp = formatIcsDateTime(now);
 
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
+  let y, m, d;
+  try {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts = formatter.formatToParts(now);
+    y = parts.find((p) => p.type === "year").value;
+    m = parts.find((p) => p.type === "month").value;
+    d = parts.find((p) => p.type === "day").value;
+  } catch (_tzErr) {
+    y = String(now.getUTCFullYear());
+    m = String(now.getUTCMonth() + 1).padStart(2, "0");
+    d = String(now.getUTCDate()).padStart(2, "0");
+  }
+
   const hh = String(hour).padStart(2, "0");
   const mm = String(minute).padStart(2, "0");
 
-  const endTotalMinutes = hour * 60 + minute + durationMinutes;
-  const endHour = String(Math.floor(endTotalMinutes / 60) % 24).padStart(2, "0");
-  const endMinute = String(endTotalMinutes % 60).padStart(2, "0");
+  const startUtc = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d), hour, minute));
+  const endUtc = new Date(startUtc.getTime() + durationMinutes * 60 * 1000);
+
+  const endY = endUtc.getUTCFullYear();
+  const endM = String(endUtc.getUTCMonth() + 1).padStart(2, "0");
+  const endD = String(endUtc.getUTCDate()).padStart(2, "0");
+  const endHh = String(endUtc.getUTCHours()).padStart(2, "0");
+  const endMm = String(endUtc.getUTCMinutes()).padStart(2, "0");
 
   const dtStart = `${y}${m}${d}T${hh}${mm}00`;
-  const dtEnd = `${y}${m}${d}T${endHour}${endMinute}00`;
+  const dtEnd = `${endY}${endM}${endD}T${endHh}${endMm}00`;
   const uid = `mrn-routine-${Buffer.from(email).toString("hex").slice(0, 16)}@morningroutinesender.com`;
 
   return [
@@ -1389,8 +1409,18 @@ async function testChannel(req, res) {
       }
     }
 
-    if (channel === "discord" && !targetWebhook) {
-      return res.status(400).json({ error: "Discord Webhook URL is required" });
+    if (channel === "discord") {
+      if (!targetWebhook) {
+        return res.status(400).json({ error: "Discord Webhook URL is required" });
+      }
+      const isDiscordUrl =
+        typeof targetWebhook === "string" &&
+        /^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_-]+$/.test(
+          targetWebhook.trim(),
+        );
+      if (!isDiscordUrl) {
+        return res.status(400).json({ error: "Invalid Discord Webhook URL" });
+      }
     }
     if (channel === "telegram" && !targetChatId) {
       return res.status(400).json({ error: "Telegram Chat ID is required" });
@@ -1788,27 +1818,6 @@ async function hardwareCheckin(req, res) {
         }
       }
     }
-
-    // If still no email, attempt lookup across subscribers by matching token
-    const { verifyActionToken } = require("../helper/unsubscribeToken");
-    if (!email && token) {
-      try {
-        const db = require("../db/knex");
-        const subscribers = await db("subscribers").select("email");
-        for (const sub of subscribers) {
-          if (
-            verifyActionToken(sub.email, token, "hardware") ||
-            verifyActionToken(sub.email, token, "checkin")
-          ) {
-            email = (sub.email || "").trim().toLowerCase();
-            break;
-          }
-        }
-      } catch (_e) {
-        // ignore db lookup failure
-      }
-    }
-
     if (!token || !email) {
       return res.status(401).json({
         success: false,
@@ -1816,6 +1825,7 @@ async function hardwareCheckin(req, res) {
       });
     }
 
+    const { verifyActionToken } = require("../helper/unsubscribeToken");
     const isValid =
       verifyActionToken(email, token, "hardware") || verifyActionToken(email, token, "checkin");
 

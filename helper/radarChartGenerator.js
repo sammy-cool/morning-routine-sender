@@ -4,17 +4,20 @@
  * Morning Routine Sender
  */
 
+/* eslint-disable no-control-regex */
 /**
  * Escapes XML/SVG special characters.
  */
 function escapeXml(str) {
   return String(str || "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF]/g, "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 }
+/* eslint-enable no-control-regex */
 
 /**
  * The 5 Core Pillars of Consistency with labels, emojis, and geometric offsets.
@@ -85,51 +88,51 @@ function formatTrackLabel(track) {
 }
 
 /**
- * Generates an SVG radar / spider polygon chart of the "5 Pillars of Consistency".
+ * Generates an SVG Radar/Spider Chart for the 5 Pillars of Consistency.
  *
- * @param {Object} options
- * @param {string} [options.subscriberName="Morning Builder"]
- * @param {string} [options.trackName="deep-work"]
- * @param {number} [options.streakCount=7]
+ * @param {Object} [options]
+ * @param {string} [options.title="5 Pillars of Consistency"]
+ * @param {string} [options.subtitle="Daily Habit Calibration"]
+ * @param {string} [options.subscriberEmail=""]
  * @param {Object} [options.scores={}]
  * @param {number} [options.scores.riseTime=85]
  * @param {number} [options.scores.physical=80]
  * @param {number} [options.scores.deepWork=90]
  * @param {number} [options.scores.reflection=75]
  * @param {number} [options.scores.grit=88]
- * @param {string} [options.grade]
- * @returns {string} Standalone SVG XML string (800x800)
+ * @param {string} [options.theme="obsidian"]
+ * @param {string} [options.accentColor="#7c3aed"]
+ * @param {string} [options.fillColor="rgba(124, 58, 237, 0.28)"]
+ * @param {number} [options.width=800]
+ * @param {number} [options.height=800]
+ * @returns {string} Fully self-contained SVG XML string
  */
-function generateRadarChartSvg({
-  subscriberName = "Morning Builder",
-  trackName = "deep-work",
-  streakCount = 7,
-  scores = {},
-  grade = null,
-} = {}) {
+function generateRadarChartSvg(options = {}) {
+  const {
+    subscriberEmail = "",
+    subscriberName = subscriberEmail || "Morning Builder",
+    trackName = "deep-work",
+    streakCount = 7,
+    scores = {},
+    grade = null,
+  } = options;
+
   const CX = 400;
   const CY = 400;
   const MAX_R = 230;
 
+  const parseScore = (val, defaultVal) => {
+    const num = Number(val);
+    return Number.isFinite(num) ? Math.max(0, Math.min(100, num)) : defaultVal;
+  };
+
   // Sanitized scores bounded strictly between 0 and 100
   const safeScores = {
-    riseTime: Math.max(
-      0,
-      Math.min(100, scores?.riseTime !== undefined ? Number(scores.riseTime) : 85),
-    ),
-    physical: Math.max(
-      0,
-      Math.min(100, scores?.physical !== undefined ? Number(scores.physical) : 80),
-    ),
-    deepWork: Math.max(
-      0,
-      Math.min(100, scores?.deepWork !== undefined ? Number(scores.deepWork) : 90),
-    ),
-    reflection: Math.max(
-      0,
-      Math.min(100, scores?.reflection !== undefined ? Number(scores.reflection) : 75),
-    ),
-    grit: Math.max(0, Math.min(100, scores?.grit !== undefined ? Number(scores.grit) : 88)),
+    riseTime: parseScore(scores?.riseTime, 85),
+    physical: parseScore(scores?.physical, 80),
+    deepWork: parseScore(scores?.deepWork, 90),
+    reflection: parseScore(scores?.reflection, 75),
+    grit: parseScore(scores?.grit, 88),
   };
 
   const avgScore = Math.round(

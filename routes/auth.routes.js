@@ -6,11 +6,11 @@ const authController = require("../controllers/auth.controller");
 let { authLimiter } = require("../middleware/rateLimiters");
 if (!authLimiter) authLimiter = (req, res, next) => next();
 
-router.get("/generate-admin-key", authController.generateAdminKey);
+router.get("/generate-admin-key", authLimiter, authController.generateAdminKey);
 // express.json() kept here even though index.js already applies it globally --
 // preserving exact original middleware chain for this route rather than
 // assuming it's safe to drop.
 router.post("/verify-admin-key", express.json(), authLimiter, authController.verifyAdminKey);
-router.post("/secret-jobs-scheduler", authController.secretJobsScheduler);
+router.post("/secret-jobs-scheduler", authLimiter, authController.secretJobsScheduler);
 
 module.exports = router;

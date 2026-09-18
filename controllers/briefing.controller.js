@@ -207,11 +207,6 @@ async function resolveEmailFromToken(tokenParam) {
     // Redis unavailable
   }
 
-  // 4. Direct email fallback
-  if (cleanToken.includes("@")) {
-    return cleanToken.toLowerCase();
-  }
-
   return null;
 }
 

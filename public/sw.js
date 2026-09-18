@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4.8.6";
+const CACHE_VERSION = "v4.9.1";
 const CACHE_NAME = `mrn-pwa-${CACHE_VERSION}`;
 
 // STATIC ASSETS ONLY (NO HTML, NO AUTH, NO SUBSCRIBER DATA)
@@ -13,9 +13,14 @@ const STATIC_ASSETS = [
   "/css/loader.css",
   "/css/responsive-layout.css",
   "/offline",
+  "/offline.html",
   "/js/offline-sync.js",
   "/js/app-badging.js",
   "/js/ux-core.js",
+  "/js/pwa-install.js",
+  "/js/skeleton-loader.js",
+  "/js/subscriber-login.js",
+  "/js/subscriber-signup.js",
   "/llms.txt",
   "/llms-full.txt",
 ];
@@ -23,9 +28,8 @@ const STATIC_ASSETS = [
 // External CDN vendor libs to cache
 const VENDOR_LIBS = [
   "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
-  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
+  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
   "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js",
-  "https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js",
 ];
 
 // ---------------- INDEXEDDB OFFLINE QUEUE UTILS ----------------
@@ -198,6 +202,11 @@ async function drainOfflineCheckinQueue() {
               })
               .catch(() => {});
           }
+        } else if (response.status >= 400 && response.status < 500) {
+          console.warn(
+            `[SW] Permanent client error (${response.status}) for check-in ${item.id}; deleting from queue.`,
+          );
+          await deleteQueuedCheckin(db, item.id);
         } else {
           console.warn("[SW] Server rejected check-in sync with status:", response.status);
         }
@@ -282,6 +291,11 @@ async function drainOfflineJournalQueue() {
               })
               .catch(() => {});
           }
+        } else if (response.status >= 400 && response.status < 500) {
+          console.warn(
+            `[SW] Permanent client error (${response.status}) for journal ${item.id}; deleting from queue.`,
+          );
+          await deleteQueuedJournal(db, item.id);
         } else {
           console.warn("[SW] Server rejected journal sync with status:", response.status);
         }
@@ -298,11 +312,11 @@ async function drainOfflineJournalQueue() {
 
 // ---------------- BACKGROUND SYNC EVENT LISTENER ----------------
 self.addEventListener("sync", (event) => {
-  if (event.tag === "sync-morning-checkin") {
-    console.info("[SW] 🔄 Background Sync event received: sync-morning-checkin");
+  if (event.tag === "sync-morning-checkin" || event.tag === "offline-checkin-sync") {
+    console.info("[SW] 🔄 Background Sync event received:", event.tag);
     event.waitUntil(drainOfflineCheckinQueue());
   } else if (event.tag === "sync-morning-journal" || event.tag === "sync-reflection-journal") {
-    console.info("[SW] 🔄 Background Sync event received: sync-morning-journal");
+    console.info("[SW] 🔄 Background Sync event received:", event.tag);
     event.waitUntil(drainOfflineJournalQueue());
   }
 });
@@ -345,7 +359,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== CACHE_NAME)
+            .filter((key) => key.startsWith("mrn-pwa-") && key !== CACHE_NAME)
             .map((key) => {
               console.info("[SW] Deleting stale cache:", key);
               return caches.delete(key);
@@ -364,7 +378,7 @@ self.addEventListener("fetch", (event) => {
   // 1. NEVER CACHE NAVIGATION / HTML (Always Network First)
   if (req.mode === "navigate") {
     event.respondWith(
-      fetch(req).catch(() => {
+      fetch(req).catch(async () => {
         const path = url.pathname;
         if (path.startsWith("/admin") || path.startsWith("/verify")) {
           return new Response(
@@ -372,7 +386,12 @@ self.addEventListener("fetch", (event) => {
             { headers: { "Content-Type": "text/html" } },
           );
         }
-        return caches.match("/offline");
+        const offlineMatch =
+          (await caches.match("/offline")) || (await caches.match("/offline.html"));
+        if (offlineMatch) {
+          return offlineMatch;
+        }
+        return new Response("Offline", { status: 503, headers: { "Content-Type": "text/html" } });
       }),
     );
     return;
@@ -380,6 +399,10 @@ self.addEventListener("fetch", (event) => {
 
   // 2. DYNAMIC & AUTH & SUBSCRIBER APIS → STRICT NETWORK ONLY (NEVER CACHE)
   const isDynamicApi =
+    url.pathname.startsWith("/api") ||
+    url.pathname.startsWith("/auth") ||
+    url.pathname.startsWith("/feed") ||
+    url.pathname === "/health" ||
     /\/generate-admin-key/.test(url.pathname) ||
     /\/verify-admin-key/.test(url.pathname) ||
     /\/admin-dashboard/.test(url.pathname) ||
@@ -400,7 +423,7 @@ self.addEventListener("fetch", (event) => {
 
   if (isDynamicApi || req.method !== "GET") {
     event.respondWith(
-      fetch(req).catch(() => {
+      fetch(req).catch(async () => {
         const isJson =
           req.headers.get("accept")?.includes("application/json") || url.pathname.includes("/api");
         if (isJson) {
@@ -422,8 +445,10 @@ self.addEventListener("fetch", (event) => {
             { status: 503, headers: { "Content-Type": "text/html" } },
           );
         }
+        const offlineMatch =
+          (await caches.match("/offline")) || (await caches.match("/offline.html"));
         return (
-          caches.match("/offline") ||
+          offlineMatch ||
           new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain" } })
         );
       }),
@@ -571,7 +596,28 @@ self.addEventListener("notificationclick", (event) => {
             data: { url: notifData.url || "/routine" },
           });
         })
-        .catch(() => {
+        .catch(async () => {
+          try {
+            const db = await openIndexedDB();
+            if (db && db.objectStoreNames.contains(STORE_NAME)) {
+              await new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, "readwrite");
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.add({
+                  url: notifData.checkinUrl,
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: notifData.checkinBody || {},
+                  createdAt: new Date().toISOString(),
+                  source: "push_notification_action",
+                });
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+              });
+            }
+          } catch (storageErr) {
+            console.warn("[SW] Failed to persist push check-in to offline store:", storageErr);
+          }
           return self.registration.showNotification("⚡ Check-in Saved", {
             body: "Your check-in will automatically sync as soon as you are reconnected.",
             icon: "/assets/mrn-brand-ico.png",
@@ -620,18 +666,32 @@ self.addEventListener("notificationclick", (event) => {
     targetUrl = notifData.url || "/routine";
   }
 
+  const targetPath = new URL(targetUrl, location.origin).pathname;
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (clientList) => {
+      // 1. Try to focus an existing window on the exact target page
+      for (const client of clientList) {
+        const clientUrl = new URL(client.url);
+        if (
+          clientUrl.origin === location.origin &&
+          clientUrl.pathname === targetPath &&
+          "focus" in client
+        ) {
+          return client.focus();
+        }
+      }
+      // 2. Try to focus any app window and navigate it
       for (const client of clientList) {
         const clientUrl = new URL(client.url);
         if (clientUrl.origin === location.origin && "focus" in client) {
-          return client.focus().then(() => {
-            if (client.navigate) {
-              return client.navigate(targetUrl);
-            }
-          });
+          await client.focus();
+          if (client.navigate) {
+            return client.navigate(targetUrl);
+          }
+          return;
         }
       }
+      // 3. Otherwise open new window
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }

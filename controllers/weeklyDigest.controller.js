@@ -17,14 +17,25 @@ function isAuthorizedAdminOrCron(req) {
  */
 async function previewWeeklyDigest(req, res) {
   try {
-    const email = req.query.email || "demo.builder@example.com";
+    const rawEmail =
+      typeof req.query.email === "string" ? req.query.email.trim().toLowerCase() : "";
+    const isDemo = !rawEmail || rawEmail === "demo.builder@example.com";
+    const email = isDemo ? "demo.builder@example.com" : rawEmail;
     const track = req.query.track || "deep-work";
     const format = req.query.format || "html";
 
-    let subscriber = await sharedData.getUserByEmail(email);
+    let subscriber = null;
+    if (!isDemo) {
+      const isOwner = req.subscriberEmail && req.subscriberEmail === email;
+      const isAdmin = isAuthorizedAdminOrCron(req);
+      if (isOwner || isAdmin) {
+        subscriber = await sharedData.getUserByEmail(email);
+      }
+    }
+
     if (!subscriber) {
       subscriber = {
-        email,
+        email: isDemo ? email : "demo.builder@example.com",
         name: "Alex Vance",
         routineTrack: track,
         templateType: track,

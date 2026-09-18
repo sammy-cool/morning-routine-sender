@@ -142,7 +142,7 @@ async function saveEntry(email, data = {}) {
       .where({ subscriber_email: normalizedEmail, entry_date: date })
       .first();
 
-    return saved;
+    return saved || record;
   } catch (error) {
     logger.error("Failed to save journal entry", {
       email: normalizedEmail,
@@ -359,10 +359,9 @@ async function getActivityHeatmap(email, days = 365) {
 
   // Synthesize habit check-in dates from subscriber's streak & last_checkin_date
   const checkinDatesSet = new Set();
-  const checkinDateStr = subscriber?.last_checkin_date
-    ? String(subscriber.last_checkin_date).slice(0, 10)
-    : null;
-  const streakCount = Number(subscriber?.streak_count) || 0;
+  const rawDate = subscriber?.last_checkin_date || subscriber?.lastCheckinDate;
+  const checkinDateStr = rawDate ? String(rawDate).slice(0, 10) : null;
+  const streakCount = Number(subscriber?.streak_count || subscriber?.streakCount) || 0;
   if (checkinDateStr && streakCount > 0) {
     const cDate = new Date(`${checkinDateStr}T00:00:00Z`);
     for (let s = 0; s < streakCount && s < days; s++) {

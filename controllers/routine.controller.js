@@ -3678,10 +3678,14 @@ async function liveRoutine(req, res) {
       }
     }
 
+    let isCompletingRitual = false;
     /**
      * Completes Ritual, triggers Victory Fanfare, Confetti, and POST /routine/checkin.
      */
     async function completeMorningRitual() {
+      if (isCompletingRitual) return;
+      isCompletingRitual = true;
+
       pauseMorningRitual();
       stopRitualAudio(0.3);
 
@@ -3712,7 +3716,7 @@ async function liveRoutine(req, res) {
           priority_goal: priorityGoal
         };
 
-        const res = await fetch('/routine/checkin', {
+        let res = await fetch('/routine/checkin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -3723,7 +3727,7 @@ async function liveRoutine(req, res) {
 
         // Fallback to /checkin if /routine/checkin is routed to base checkin
         if (!res.ok && res.status === 404) {
-          await fetch('/checkin', {
+          res = await fetch('/checkin', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -3733,10 +3737,20 @@ async function liveRoutine(req, res) {
           });
         }
 
-        const btnCheckin = document.getElementById('routineCheckinBtn');
-        if (btnCheckin) {
-          btnCheckin.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-          btnCheckin.innerHTML = '☀️ Morning Verified & Streak Maintained ✓';
+        let isSuccess = false;
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data.success !== false) {
+            isSuccess = true;
+          }
+        }
+
+        if (isSuccess) {
+          const btnCheckin = document.getElementById('routineCheckinBtn');
+          if (btnCheckin) {
+            btnCheckin.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            btnCheckin.innerHTML = '☀️ Morning Verified & Streak Maintained ✓';
+          }
         }
       } catch (err) {
         // Safe offline fallback
@@ -3748,6 +3762,8 @@ async function liveRoutine(req, res) {
             priority_goal: priorityGoal
           });
         }
+      } finally {
+        isCompletingRitual = false;
       }
     }
 

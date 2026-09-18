@@ -236,11 +236,15 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
       if (streakHeroCard) {
         streakHeroCard.style.display = "flex";
-        streakCountTitle.textContent = `${streak}-Day Streak Active 🔥`;
-        if (streak > 0) {
-          streakSubtext.textContent = `You're on day ${streak} of building your daily morning routine. Consistency creates mastery!`;
-        } else {
-          streakSubtext.textContent = "Start today's ritual to ignite your morning focus streak.";
+        if (streakCountTitle) {
+          streakCountTitle.textContent = `${streak}-Day Streak Active 🔥`;
+        }
+        if (streakSubtext) {
+          if (streak > 0) {
+            streakSubtext.textContent = `You're on day ${streak} of building your daily morning routine. Consistency creates mastery!`;
+          } else {
+            streakSubtext.textContent = "Start today's ritual to ignite your morning focus streak.";
+          }
         }
       }
 
@@ -1271,7 +1275,8 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.success();
           await loadStreakFreezeStatus();
         } else {
-          const err = await resp.json().catch(() => ({}));
+          const err =
+            resp && typeof resp.json === "function" ? await resp.json().catch(() => ({})) : {};
           showToast(err.error || "Could not activate streak freeze.", "error");
           if (useBtn) {
             useBtn.disabled = false;
@@ -1625,7 +1630,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           html += `
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px;">
               <div style="font-size: 12px; font-weight: 700; color: #818cf8; text-transform: uppercase; margin-bottom: 6px;">🎯 Highest-Leverage Win</div>
-              <div style="font-size: 14.5px; color: #fff; line-height: 1.45;">${dayData.oneBigThingSnippet}</div>
+              <div style="font-size: 14.5px; color: #fff; line-height: 1.45;">${escapeHtml(dayData.oneBigThingSnippet)}</div>
             </div>
           `;
         }
@@ -2433,34 +2438,40 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    function handleWebcalCopy() {
+      const domain = window.location.origin;
+      const webcalUrl =
+        currentSubscriber?.webcalUrl ||
+        (currentSubscriber?.calendarFeedUrl
+          ? currentSubscriber.calendarFeedUrl.replace(/^https?:\/\//i, "webcal://")
+          : `${domain.replace(/^https?:\/\//i, "webcal://")}/me/calendar.ics`);
+
+      navigator.clipboard
+        .writeText(webcalUrl)
+        .then(() => {
+          showToast(
+            "📅 <b>Webcal Feed Copied!</b> Paste into Apple Calendar, Google Calendar, or Outlook for live automatic syncing.",
+            "success",
+            { duration: 6000, allowHtml: true },
+          );
+        })
+        .catch(() => {
+          showToast(`Webcal Feed: ${webcalUrl}`, "info");
+        });
+
+      try {
+        window.location.href = webcalUrl;
+      } catch (_e) {
+        /* Browser might not handle webcal: URI scheme directly */
+      }
+    }
+
     if (subscribeWebcalBtn) {
-      subscribeWebcalBtn.addEventListener("click", function () {
-        const domain = window.location.origin;
-        const webcalUrl =
-          currentSubscriber?.webcalUrl ||
-          (currentSubscriber?.calendarFeedUrl
-            ? currentSubscriber.calendarFeedUrl.replace(/^https?:\/\//i, "webcal://")
-            : `${domain.replace(/^https?:\/\//i, "webcal://")}/me/calendar.ics`);
-
-        navigator.clipboard
-          .writeText(webcalUrl)
-          .then(() => {
-            showToast(
-              "📅 <b>Webcal Feed Copied!</b> Paste into Apple Calendar, Google Calendar, or Outlook for live automatic syncing.",
-              "success",
-              { duration: 6000, allowHtml: true },
-            );
-          })
-          .catch(() => {
-            showToast(`Webcal Feed: ${webcalUrl}`, "info");
-          });
-
-        try {
-          window.location.href = webcalUrl;
-        } catch (_e) {
-          /* Browser might not handle webcal: URI scheme directly */
-        }
-      });
+      subscribeWebcalBtn.addEventListener("click", handleWebcalCopy);
+    }
+    const subscribeWebcalBtnFooter = document.getElementById("subscribeWebcalBtnFooter");
+    if (subscribeWebcalBtnFooter) {
+      subscribeWebcalBtnFooter.addEventListener("click", handleWebcalCopy);
     }
 
     // ==========================================
@@ -2696,6 +2707,9 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       closeShortcutsModal();
       closeMilestoneModal();
       closeStreakShareModal();
+      if (typeof closeVacationModal === "function") {
+        closeVacationModal();
+      }
       if (typeof closeHeatmapDrawer === "function") {
         closeHeatmapDrawer();
       }

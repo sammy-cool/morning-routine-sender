@@ -333,11 +333,17 @@ async function recordCheckin(email, timezone = "UTC") {
   const tz = subscriber.timezone || timezone || "UTC";
   const now = new Date();
 
-  // Format today's and yesterday's dates in subscriber timezone
-  const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now); // YYYY-MM-DD
-
-  const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const yesterdayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(yesterdayDate);
+  let todayStr;
+  let yesterdayStr;
+  try {
+    todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now); // YYYY-MM-DD
+    const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    yesterdayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(yesterdayDate);
+  } catch (_tzErr) {
+    todayStr = now.toISOString().slice(0, 10);
+    const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    yesterdayStr = yesterdayDate.toISOString().slice(0, 10);
+  }
 
   const lastCheckin = subscriber.lastCheckinDate;
   const currentStreak = Number(subscriber.streakCount) || 0;
@@ -362,13 +368,16 @@ async function recordCheckin(email, timezone = "UTC") {
   let newStreak = 1;
   let freezeUsed = false;
 
-  if (lastCheckin === yesterdayStr) {
-    newStreak = currentStreak + 1;
-  } else if (lastCheckin) {
+  let diffDays = 0;
+  if (lastCheckin) {
     const dLast = new Date(lastCheckin + "T00:00:00Z");
     const dToday = new Date(todayStr + "T00:00:00Z");
-    const diffDays = Math.round((dToday - dLast) / (24 * 60 * 60 * 1000));
+    diffDays = Math.round((dToday - dLast) / (24 * 60 * 60 * 1000));
+  }
 
+  if (lastCheckin === yesterdayStr || diffDays === 1) {
+    newStreak = currentStreak + 1;
+  } else if (lastCheckin) {
     if (diffDays === 2 && streakFreezes > 0) {
       streakFreezes -= 1;
       freezeUsed = true;

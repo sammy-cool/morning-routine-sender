@@ -279,14 +279,30 @@ async function sendUserWeeklyDigest(
   let finalAttempts = 0;
   let finalRetries = 0;
 
+  if (!userData || !userData.email) {
+    logger.warn("sendUserWeeklyDigest skipped: missing userData or email.");
+    return { status: "skipped", reason: "missing_user_data" };
+  }
+
   try {
+    const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
+
+    // Check pre-send suppression eligibility
+    const eligibility = await suppressionService.checkPreSendEligibility(userData.email);
+    if (eligibility.isSuppressed && !isAdminSkip) {
+      logger.warn("Recipient suppressed or on bounce cooldown, skipping weekly digest.", {
+        email: maskEmail(userData.email),
+        reason: eligibility.reason,
+      });
+      return { status: "skipped", reason: eligibility.reason };
+    }
+
     const alreadySent = await emailTracker.wasEmailSentToday(
       userData.email,
       "weekly-digest",
       userData.timezone,
     );
 
-    const isAdminSkip = adminSkip === process.env.ADMIN_SKIP_KEY;
     if (alreadySent && !isAdminSkip) {
       logger.info("Weekly digest already sent today, skipping.", {
         email: maskEmail(userData.email),
@@ -337,18 +353,20 @@ async function sendUserWeeklyDigest(
     const totalAttempts = error.totalAttempts !== undefined ? error.totalAttempts : finalAttempts;
 
     logger.error("❌ Failed to send Sunday weekly digest", {
-      email: maskEmail(userData.email),
+      email: maskEmail(userData?.email),
       error: error.message,
       totalAttempts,
     });
 
-    await emailTracker.recordFailure(userData.email, "weekly-digest", error, totalRetries, {
-      scheduled: true,
-      type: "weekly_digest",
-      phase: "weekly_digest_smtp",
-      isRetryable: error.isRetryable !== undefined ? error.isRetryable : isRetryableError(error),
-      totalAttempts,
-    });
+    if (userData?.email) {
+      await emailTracker.recordFailure(userData.email, "weekly-digest", error, totalRetries, {
+        scheduled: true,
+        type: "weekly_digest",
+        phase: "weekly_digest_smtp",
+        isRetryable: error.isRetryable !== undefined ? error.isRetryable : isRetryableError(error),
+        totalAttempts,
+      });
+    }
 
     return { status: "failed", error: error.message, retries: totalRetries };
   }
@@ -658,14 +676,35 @@ function getUpcomingDispatchQueue(limit = 15) {
     const hour = parseInt(parts[1], 10);
     const safeMin = Number.isFinite(minute) ? minute : 0;
     const safeHour = Number.isFinite(hour) ? hour : 8;
+    const itemTz = item.timezone || "UTC";
 
-    const target = new Date();
-    target.setSeconds(0, 0);
-    target.setMinutes(safeMin);
-    target.setHours(safeHour);
+    let target;
+    try {
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: itemTz,
+        hour: "numeric",
+        minute: "numeric",
+        hourCycle: "h23",
+      });
+      const tzParts = formatter.formatToParts(now);
+      const getTzPart = (t) => tzParts.find((p) => p.type === t)?.value;
+      const curHour = parseInt(getTzPart("hour"), 10);
+      const curMin = parseInt(getTzPart("minute"), 10);
 
-    if (target <= now) {
-      target.setDate(target.getDate() + 1);
+      let addMinutes = (safeHour - curHour) * 60 + (safeMin - curMin);
+      if (addMinutes <= 0) {
+        addMinutes += 24 * 60;
+      }
+      target = new Date(now.getTime() + addMinutes * 60 * 1000);
+      target.setSeconds(0, 0);
+    } catch (_tzErr) {
+      target = new Date();
+      target.setSeconds(0, 0);
+      target.setMinutes(safeMin);
+      target.setHours(safeHour);
+      if (target <= now) {
+        target.setDate(target.getDate() + 1);
+      }
     }
 
     const diffMs = target.getTime() - now.getTime();
@@ -678,7 +717,7 @@ function getUpcomingDispatchQueue(limit = 15) {
       email: item.email,
       type: item.type,
       routineTrack: item.routineTrack || "deep-work",
-      timezone: item.timezone || "UTC",
+      timezone: itemTz,
       cronPattern: item.cronPattern,
       nextRunIso: target.toISOString(),
       countdownMinutes: diffMins,

@@ -187,6 +187,16 @@ function getXpProfile(subscriberData = {}) {
   const totalXp = calculateTotalXp(subscriberData);
   const levelInfo = getLevelForXp(totalXp);
 
+  const streak = Math.max(0, Number(subscriberData.streakCount) || 0);
+  let milestoneBonus = 0;
+  if (streak >= 100) milestoneBonus = XP_REWARDS.STREAK_MILESTONE_100;
+  else if (streak >= 50) milestoneBonus = XP_REWARDS.STREAK_MILESTONE_50;
+  else if (streak >= 30) milestoneBonus = XP_REWARDS.STREAK_MILESTONE_30;
+  else if (streak >= 21) milestoneBonus = XP_REWARDS.STREAK_MILESTONE_21;
+  else if (streak >= 14) milestoneBonus = XP_REWARDS.STREAK_MILESTONE_14;
+  else if (streak >= 7) milestoneBonus = XP_REWARDS.STREAK_MILESTONE_7;
+  else if (streak >= 3) milestoneBonus = XP_REWARDS.STREAK_MILESTONE_3;
+
   return {
     ...levelInfo,
     breakdown: {
@@ -199,6 +209,7 @@ function getXpProfile(subscriberData = {}) {
       moodLogs: (Number(subscriberData.moodLogs) || 0) * XP_REWARDS.MOOD_LOG,
       gratitudeLogs: (Number(subscriberData.gratitudeLogs) || 0) * XP_REWARDS.GRATITUDE_LOG,
       reflections: (Number(subscriberData.reflections) || 0) * XP_REWARDS.REFLECTION_DEEP,
+      milestoneBonus,
     },
   };
 }

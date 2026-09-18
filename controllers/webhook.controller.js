@@ -67,12 +67,14 @@ async function handleSendGridWebhook(req, res) {
   if (secret) {
     const signature = req.get("X-Twilio-Email-Event-Webhook-Signature");
     const timestamp = req.get("X-Twilio-Email-Event-Webhook-Timestamp");
-    if (signature && timestamp) {
-      const payloadToSign = timestamp + JSON.stringify(req.body);
-      if (!verifyHmacSignature(payloadToSign, signature, secret)) {
-        logger.warn("Unauthorized SendGrid webhook signature");
-        return res.status(401).json({ error: "Invalid signature" });
-      }
+    if (!signature || !timestamp) {
+      logger.warn("Unauthorized SendGrid webhook: missing signature or timestamp");
+      return res.status(401).json({ error: "Missing signature" });
+    }
+    const payloadToSign = timestamp + JSON.stringify(req.body);
+    if (!verifyHmacSignature(payloadToSign, signature, secret)) {
+      logger.warn("Unauthorized SendGrid webhook signature");
+      return res.status(401).json({ error: "Invalid signature" });
     }
   }
 

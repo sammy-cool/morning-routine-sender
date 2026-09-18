@@ -22,10 +22,14 @@
  *   route already returns on "success" (real or fake), so detection is
  *   invisible from the outside.
  */
-function checkHoneypot(fieldName, genericResponse) {
+function checkHoneypot(fieldName = "website", genericResponse = {}) {
   return function (req, res, next) {
-    const value = req.body?.[fieldName];
-    if (value) {
+    const fieldsToCheck = Array.isArray(fieldName)
+      ? fieldName
+      : [fieldName, `${fieldName}_hp`, "website", "website_hp", "nickname_hp"];
+
+    const isTriggered = fieldsToCheck.some((f) => Boolean(req.body?.[f]));
+    if (isTriggered) {
       console.warn("Honeypot triggered, likely a bot", {
         path: req.originalUrl,
         ip: req.ip,

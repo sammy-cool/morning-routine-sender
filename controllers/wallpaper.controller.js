@@ -369,7 +369,7 @@ async function renderSocialShareCard(req, res) {
   <meta property="og:site_name" content="Morning Routine Sender">
   <meta property="og:title" content="@${escapeHtml(handle)}'s Morning Momentum &amp; Habit Routine">
   <meta property="og:description" content="${escapeHtml(ogDescription)}">
-  <meta property="og:image" content="${ogImageUrl}">
+  <meta property="og:image" content="${escapeHtml(ogImageUrl)}">
   <meta property="og:image:width" content="1080">
   <meta property="og:image:height" content="1920">
   <meta property="og:image:alt" content="@${escapeHtml(handle)}'s Lockscreen Routine Wallpaper">
@@ -379,7 +379,7 @@ async function renderSocialShareCard(req, res) {
   <meta name="twitter:site" content="@MorningRoutine">
   <meta name="twitter:title" content="@${escapeHtml(handle)}'s Morning Momentum &amp; Habit Routine">
   <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
-  <meta name="twitter:image" content="${ogImageUrl}">
+  <meta name="twitter:image" content="${escapeHtml(ogImageUrl)}">
   <meta name="twitter:image:alt" content="@${escapeHtml(handle)}'s Lockscreen Routine Wallpaper">
 
   <!-- Favicon & Touch Icons -->

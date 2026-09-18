@@ -1483,9 +1483,11 @@
    * @param {KeyboardEvent} event
    */
   function handleGlobalKeyDown(event) {
-    // 1. Ignore if user is typing into input, textarea, or contenteditable
+    // 1. Ignore if user is typing into input, textarea, or contenteditable (except for Escape)
     if (isInteractiveInputField(event.target)) {
-      return;
+      if (event.key !== "Escape") {
+        return;
+      }
     }
 
     // 2. Ignore with modifier keys (Ctrl, Alt, Meta/Cmd)

@@ -64,7 +64,17 @@
           db.createObjectStore(JOURNAL_STORE, { keyPath: "id" });
         }
       };
-      req.onsuccess = () => resolve(req.result);
+      req.onblocked = () => {
+        console.warn("[OfflineSync] IndexedDB open blocked by another open tab.");
+      };
+      req.onsuccess = () => {
+        const db = req.result;
+        db.onversionchange = () => {
+          db.close();
+          console.warn("[OfflineSync] Database closed due to version upgrade in another tab.");
+        };
+        resolve(db);
+      };
       req.onerror = () => reject(req.error);
     });
   }
@@ -276,18 +286,35 @@
           item.url ||
           `/checkin?email=${encodeURIComponent(item.email)}${item.token ? `&token=${encodeURIComponent(item.token)}` : ""}`;
 
+        const method = item.method || (item.body ? "POST" : "GET");
+        const headers = {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-Offline-Sync": "true",
+          Accept: "application/json, text/html, */*",
+          ...(item.body ? { "Content-Type": "application/json" } : {}),
+        };
+        const body =
+          item.body && method !== "GET" && method !== "HEAD"
+            ? typeof item.body === "string"
+              ? item.body
+              : JSON.stringify(item.body)
+            : undefined;
+
         const res = await fetch(url, {
-          method: item.method || "GET",
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-Offline-Sync": "true",
-            Accept: "application/json, text/html, */*",
-          },
+          method,
+          headers,
+          body,
         });
 
         if (res.ok || res.status < 400) {
           await removeStoredCheckin(item.id);
           syncedCount++;
+        } else if (res.status >= 400 && res.status < 500) {
+          console.warn(
+            `[OfflineSync] Check-in rejected by server (${res.status}), discarding:`,
+            item.id,
+          );
+          await removeStoredCheckin(item.id);
         }
       } catch (e) {
         console.warn("[OfflineSync] Failed to sync item:", item.id, e);
@@ -375,6 +402,12 @@
         if (res.ok || res.status < 400) {
           await removeStoredJournal(item.id);
           syncedCount++;
+        } else if (res.status >= 400 && res.status < 500) {
+          console.warn(
+            `[OfflineSync] Journal rejected by server (${res.status}), discarding:`,
+            item.id,
+          );
+          await removeStoredJournal(item.id);
         }
       } catch (e) {
         console.warn("[OfflineSync] Failed to sync journal:", item.id, e);

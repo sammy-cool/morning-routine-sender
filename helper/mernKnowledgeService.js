@@ -754,6 +754,7 @@ app.get('/metrics', (req, res) => {
 
 // In-memory fallback tracking for active session or test runs
 const seenMemoryStore = new Map();
+const resetMemoryStore = new Map();
 
 /**
  * Retrieve previously seen insight IDs for a subscriber from Redis, DB, or memory
@@ -787,13 +788,31 @@ async function getSeenMernInsightIds(email) {
     logger.debug("MERN Redis smembers lookup skipped", { error: redisErr.message });
   }
 
-  // 3. Query past sent email tracker metadata if available
+  // Check last curriculum reset timestamp
+  let lastResetAt = resetMemoryStore.get(normEmail) || 0;
+  try {
+    if (redis && typeof redis.get === "function") {
+      const redisReset = await redis.get(`mern:reset_at:${normEmail}`);
+      if (redisReset && Number(redisReset) > lastResetAt) {
+        lastResetAt = Number(redisReset);
+      }
+    }
+  } catch (redisErr) {
+    logger.debug("MERN Redis reset_at lookup skipped", { error: redisErr.message });
+  }
+
+  // 3. Query past sent email tracker metadata if available (only after last curriculum reset)
   try {
     if (db && typeof db === "function") {
-      const pastTrackerRows = await db("email_tracker")
+      let query = db("email_tracker")
         .where({ recipient_email: normEmail })
-        .select("metadata")
-        .limit(100);
+        .select("metadata", "created_at");
+
+      if (lastResetAt > 0) {
+        query = query.where("created_at", ">", new Date(lastResetAt));
+      }
+
+      const pastTrackerRows = await query.limit(100);
 
       for (const row of pastTrackerRows) {
         if (!row.metadata) continue;
@@ -859,10 +878,15 @@ async function resetMernProgress(email) {
   if (!normEmail) return;
 
   seenMemoryStore.delete(normEmail);
+  const now = Date.now();
+  resetMemoryStore.set(normEmail, now);
 
   try {
     if (redis && typeof redis.del === "function") {
       await redis.del(`mern:seen:${normEmail}`);
+      if (typeof redis.set === "function") {
+        await redis.set(`mern:reset_at:${normEmail}`, String(now));
+      }
     }
   } catch (redisErr) {
     logger.debug("MERN Redis del reset skipped", { error: redisErr.message });

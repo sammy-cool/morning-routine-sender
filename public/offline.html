@@ -518,21 +518,37 @@
         let count = 0;
         try {
           if (typeof indexedDB !== "undefined") {
-            const req = indexedDB.open("mrn-offline-sync-db", 1);
+            const req = indexedDB.open("mrn-offline-sync-db");
             req.onsuccess = (e) => {
               try {
                 const db = e.target.result;
-                if (db.objectStoreNames.contains("checkin_queue")) {
-                  const tx = db.transaction("checkin_queue", "readonly");
-                  const store = tx.objectStore("checkin_queue");
-                  const countReq = store.count();
-                  countReq.onsuccess = () => {
-                    count = countReq.result || 0;
-                    updateQueueUI(count);
-                  };
-                } else {
-                  checkLocalStorageBackup();
+                const stores = ["checkin_queue", "journal_queue"].filter((s) =>
+                  db.objectStoreNames.contains(s),
+                );
+                if (stores.length === 0) {
+                  return checkLocalStorageBackup();
                 }
+                let pending = stores.length;
+                let total = 0;
+                stores.forEach((storeName) => {
+                  try {
+                    const tx = db.transaction(storeName, "readonly");
+                    const store = tx.objectStore(storeName);
+                    const countReq = store.count();
+                    countReq.onsuccess = () => {
+                      total += countReq.result || 0;
+                      pending--;
+                      if (pending === 0) updateQueueUI(total);
+                    };
+                    countReq.onerror = () => {
+                      pending--;
+                      if (pending === 0) updateQueueUI(total);
+                    };
+                  } catch (_) {
+                    pending--;
+                    if (pending === 0) updateQueueUI(total);
+                  }
+                });
               } catch (_) {
                 checkLocalStorageBackup();
               }

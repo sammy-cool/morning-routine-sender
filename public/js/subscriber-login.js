@@ -57,15 +57,23 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       status.textContent = "Sending...";
 
       try {
+        const payload = {
+          email,
+          website: form.website ? form.website.value : "",
+        };
+        if (form.website_hp && form.website_hp.value) {
+          payload.website_hp = form.website_hp.value;
+        }
+        if (form.nickname_hp && form.nickname_hp.value) {
+          payload.nickname_hp = form.nickname_hp.value;
+        }
+
         const resp = await fetch("/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            website: form.website ? form.website.value : "",
-          }),
+          body: JSON.stringify(payload),
         });
-        const data = await resp.json();
+        const data = await resp.json().catch(() => ({}));
         if (resp.ok) {
           const successMsg =
             data.message || "If that email is subscribed, a magic login link has been sent.";

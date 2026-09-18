@@ -42,11 +42,20 @@ async function runEmailJob() {
     invalid: [],
   };
 
+  const suppressionService = require("./suppressionService");
+
   for (const email of recipients) {
     if (!validator.isEmail(email)) {
       logger.error(`Invalid email address: ${email}`);
       results.invalid.push(email);
       failedRecipients.push(email);
+      continue;
+    }
+
+    const eligibility = await suppressionService.checkPreSendEligibility(email);
+    if (eligibility.isSuppressed) {
+      logger.info(`Skipped: ${email} is suppressed (${eligibility.reason})`);
+      results.skipped.push({ email, reason: eligibility.reason });
       continue;
     }
 
@@ -78,6 +87,7 @@ async function runWeeklyDigestJob(options = {}) {
   const sharedData = require("../helper/shared-data");
   const weeklyDigestService = require("../helper/weeklyDigestService");
   const db = require("../db/knex");
+  const suppressionService = require("./suppressionService");
 
   const force = Boolean(options.force);
   const targetEmail = options.email ? options.email.trim().toLowerCase() : null;
@@ -108,6 +118,12 @@ async function runWeeklyDigestJob(options = {}) {
 
     if (!subscriber.isActive && !targetEmail) {
       results.skipped.push({ email, reason: "paused" });
+      continue;
+    }
+
+    const eligibility = await suppressionService.checkPreSendEligibility(email);
+    if (eligibility.isSuppressed && !force) {
+      results.skipped.push({ email, reason: eligibility.reason });
       continue;
     }
 

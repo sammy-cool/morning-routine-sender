@@ -11,8 +11,21 @@
   }
 
   function isIos() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !globalThis.MSStream;
+    return (
+      (/iPad|iPhone|iPod/.test(navigator.userAgent) && !globalThis.MSStream) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    );
   }
+
+  // Register beforeinstallprompt immediately at top-level so it is never missed if fired before DOMContentLoaded
+  let triggerRevealBanner = null;
+  globalThis.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (typeof triggerRevealBanner === "function") {
+      setTimeout(triggerRevealBanner, 800);
+    }
+  });
 
   function showToast(message, type = "info", options = {}) {
     if (globalThis.UXCore?.toast?.show) {
@@ -73,12 +86,12 @@
       }
     }
 
-    // Chrome, Edge, Android PWA event
-    globalThis.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      setTimeout(revealBanner, 1200);
-    });
+    triggerRevealBanner = revealBanner;
+
+    // If deferredPrompt was already captured before DOMContentLoaded
+    if (deferredPrompt) {
+      setTimeout(revealBanner, 1000);
+    }
 
     // If on iOS Safari, also reveal button after page load
     if (isIos() && !isStandalone()) {
@@ -97,6 +110,8 @@
         deferredPrompt = null;
       } else if (isIos()) {
         if (iosInstallModal) {
+          iosInstallModal.inert = false;
+          iosInstallModal.removeAttribute("aria-hidden");
           iosInstallModal.style.display = "flex";
           setTimeout(() => iosInstallModal.classList.add("visible"), 50);
         } else {
@@ -134,8 +149,10 @@
     function closeIosModal() {
       if (iosInstallModal) {
         iosInstallModal.classList.remove("visible");
+        iosInstallModal.setAttribute("aria-hidden", "true");
         setTimeout(() => {
           iosInstallModal.style.display = "none";
+          iosInstallModal.inert = true;
         }, 300);
       }
     }

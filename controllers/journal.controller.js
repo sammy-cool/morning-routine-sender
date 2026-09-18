@@ -56,6 +56,16 @@ async function saveTodayJournal(req, res) {
       return res.status(400).json({ error: "Invalid entry_date format. Expected YYYY-MM-DD" });
     }
 
+    if (body.one_big_thing && String(body.one_big_thing).length > 300) {
+      return res.status(400).json({ error: "one_big_thing cannot exceed 300 characters" });
+    }
+    if (body.gratitude && String(body.gratitude).length > 1000) {
+      return res.status(400).json({ error: "gratitude cannot exceed 1000 characters" });
+    }
+    if (body.reflection_text && String(body.reflection_text).length > 5000) {
+      return res.status(400).json({ error: "reflection_text cannot exceed 5000 characters" });
+    }
+
     const savedEntry = await journalService.saveEntry(email, body);
 
     // Non-blocking trigger of journal.logged outbound webhook
