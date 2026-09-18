@@ -2241,9 +2241,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     const streakShareModal = document.getElementById("streakShareModal");
     const openShareModalBtn = document.getElementById("openShareModalBtn");
     const closeShareModalBtn = document.getElementById("closeShareModalBtn");
-    const shareCardPreviewImg =
-      document.getElementById("shareCardPreviewImg") ||
-      document.getElementById("modalStreakPreviewImg");
+    const shareCardPreviewImg = document.getElementById("shareCardPreviewImg");
     const shareTwitterBtn = document.getElementById("shareTwitterBtn");
     const shareLinkedinBtn = document.getElementById("shareLinkedinBtn");
     const copyShareLinkBtn = document.getElementById("copyShareLinkBtn");
@@ -2467,38 +2465,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     // ==========================================
     // Discipline Data Export (1-Click Download)
-    // ==========================================
-    function triggerDisciplineExport(format = "csv") {
-      const link = document.createElement("a");
-      link.href = `/me/export?format=${encodeURIComponent(format)}`;
-      link.setAttribute("download", "");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-    globalThis.triggerDisciplineExport = triggerDisciplineExport;
-
     const exportDisciplineDataBtn = document.getElementById("exportDisciplineDataBtn");
     if (exportDisciplineDataBtn) {
       exportDisciplineDataBtn.addEventListener("click", function () {
-        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.impact();
-        if (globalThis.UXCore?.showToast) {
-          globalThis.UXCore.showToast("📥 Exporting your discipline data (.CSV)...", "info", {
-            duration: 2500,
-          });
-        }
-      });
-    }
-
-    const exportDisciplineDataQuickBtn = document.getElementById("exportDisciplineDataQuickBtn");
-    if (exportDisciplineDataQuickBtn) {
-      exportDisciplineDataQuickBtn.addEventListener("click", function () {
-        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.impact();
-        if (globalThis.UXCore?.showToast) {
-          globalThis.UXCore.showToast("📥 Exporting your discipline data (.CSV)...", "info", {
-            duration: 2500,
-          });
-        }
+        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.light();
+        showToast("📥 Exporting your discipline data (.CSV)...", "info");
       });
     }
 
@@ -3582,7 +3553,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
     if (dockCheckinBtn) {
       dockCheckinBtn.addEventListener("click", () => {
-        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.medium();
+        if (globalThis.UXCore?.haptics) globalThis.UXCore.haptics.light();
         if (
           dashboardCheckinBtn &&
           !dashboardCheckinBtn.disabled &&

@@ -234,6 +234,22 @@
     },
 
     /**
+     * Medium haptic pulse for tactile action docks (25ms).
+     * @returns {boolean}
+     */
+    medium() {
+      return this.vibrate(25);
+    },
+
+    /**
+     * Impact pulse for primary action buttons (20ms).
+     * @returns {boolean}
+     */
+    impact() {
+      return this.vibrate(20);
+    },
+
+    /**
      * Celebration milestone rhythm [30ms, 50ms, 30ms, 50ms, 80ms].
      * @returns {boolean}
      */
@@ -2055,6 +2071,8 @@
       const lib = this.getLib();
       if (lib && typeof lib.noop === "function") {
         lib.noop();
+      } else {
+        this.dismiss();
       }
     },
   };

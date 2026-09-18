@@ -17,8 +17,6 @@ export default [
       "**/dist/**",
       "**/build/**",
       "public/vendor/**",
-      "public/js/npm-mod/**",
-      "admin-renderer/js/npm-mod/**",
       "public/assets/**",
       "**/*.min.js",
       "**/*.min.css",

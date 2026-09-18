@@ -9,8 +9,6 @@ logs/
 
 # Third-party vendor and minified assets
 public/vendor/
-public/js/npm-mod/
-admin-renderer/js/npm-mod/
 public/assets/
 *.min.js
 *.min.css
