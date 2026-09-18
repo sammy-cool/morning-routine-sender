@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.14.1] - 2026-09-18
+
+### 🛡️ Comprehensive Security Hardening, PWA Offline Sync Resilience & Core Defect Remediation
+
+- **Security & Authorization Hardening**:
+  - **Constant-Time Comparison Utility ([`helper/safeCompare.js`](file:///home/smarty/projects/morning-routine-sender/helper/safeCompare.js))**: Created timing-safe comparison helper using `crypto.timingSafeEqual` with buffer normalization to prevent timing side-channel attacks across admin keys, action tokens, and HMAC signatures.
+  - **Authenticated RSS Briefing Feeds ([`controllers/briefing.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/briefing.controller.js))**: Removed insecure fallback (`cleanToken.includes("@")`), requiring valid subscriber tokens for all audio briefing RSS feeds.
+  - **SendGrid Webhook Verification ([`controllers/webhook.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/webhook.controller.js))**: Enforced strict signature verification, eliminating unauthenticated event processing bypass.
+  - **Weekly Digest Preview Guard ([`controllers/weeklyDigest.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/weeklyDigest.controller.js))**: Enforced session authorization on digest preview, allowing unauthenticated access only when explicit demo mode (`?demo=true`) is requested.
+  - **Hardware Checkin Protection & Webhook Safety ([`controllers/me.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/me.controller.js))**: Eliminated full-table scan DoS vector in hardware check-in and restricted Discord webhook URLs to official discordapp/discord domains.
+  - **Rate Limiting on Admin Auth ([`routes/auth.routes.js`](file:///home/smarty/projects/morning-routine-sender/routes/auth.routes.js))**: Added `authLimiter` to admin key generator route.
+- **PWA & Offline Subsystem Architecture**:
+  - **Service Worker Resilience ([`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js))**: Bumped `CACHE_VERSION` to `v4.9.1`, added offline fallback page navigation catch, scoped cache purging to `mrn-pwa-` prefixes, added background sync aliases, and queued offline push check-ins directly into IndexedDB.
+  - **Offline Sync & Replay ([`public/js/offline-sync.js`](file:///home/smarty/projects/morning-routine-sender/public/js/offline-sync.js))**: Added `onblocked` and `db.onversionchange` handlers to eliminate multi-tab IndexedDB locks, correctly forwarded request bodies and JSON headers, and discarded 4xx client errors to prevent poison pill loops.
+  - **Offline Screen ([`public/offline.html`](file:///home/smarty/projects/morning-routine-sender/public/offline.html))**: Removed hardcoded database version preventing version mismatch errors, and unified pending sync indicators across checkin and journal queues.
+  - **PWA Installation Flow ([`public/js/pwa-install.js`](file:///home/smarty/projects/morning-routine-sender/public/js/pwa-install.js))**: Bound `beforeinstallprompt` at top level to ensure no missed events, refined iPadOS 13+ detection, and managed modal accessibility attributes.
+- **Core Business Logic & Analytics**:
+  - **MERN Curriculum Reset Tracking ([`helper/mernKnowledgeService.js`](file:///home/smarty/projects/morning-routine-sender/helper/mernKnowledgeService.js))**: Recorded reset timestamp in memory and Redis (`mern:reset_at:${email}`) to correctly filter post-reset tracker records during curriculum cycling.
+  - **Suppression & Timezone Dispatch ([`email-core/emailScheduler.js`](file:///home/smarty/projects/morning-routine-sender/email-core/emailScheduler.js), [`email-core/emailJobs.js`](file:///home/smarty/projects/morning-routine-sender/email-core/emailJobs.js))**: Added pre-send suppression checks (`checkPreSendEligibility`) before dispatching emails or digests, and calculated timezone offsets accurately.
+  - **DST Streak Continuity ([`helper/shared-data.js`](file:///home/smarty/projects/morning-routine-sender/helper/shared-data.js))**: Preserved streaks across Daylight Saving Time shifts and wrapped timezone formatters in defensive try-catch with UTC fallbacks.
+  - **Calendar Midnight Rollover ([`controllers/me.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/me.controller.js))**: Corrected iCalendar `DTEND` inversion when routines cross midnight into the next day.
+  - **Payload Validation & Chart Security ([`controllers/journal.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/journal.controller.js), [`helper/radarChartGenerator.js`](file:///home/smarty/projects/morning-routine-sender/helper/radarChartGenerator.js))**: Enforced character length bounds on reflection text and XML-sanitized attributes in SVG radar charts.
+- **Frontend DOM, UX & Bot Protection**:
+  - **Stored XSS Elimination ([`public/js/user-dashboard.js`](file:///home/smarty/projects/morning-routine-sender/public/js/user-dashboard.js))**: Sanitized heatmap drawer text snippet rendering, added null guards for profile counters, and bound both desktop and mobile Webcal buttons.
+  - **Modal Focus & Keyboard Control ([`public/js/ux-core.js`](file:///home/smarty/projects/morning-routine-sender/public/js/ux-core.js))**: Allowed Escape key to dismiss modals regardless of active input focus.
+  - **Universal Honeypot Trapping ([`middleware/honeypot.js`](file:///home/smarty/projects/morning-routine-sender/middleware/honeypot.js), [`public/main-index.html`](file:///home/smarty/projects/morning-routine-sender/public/main-index.html))**: Standardized `website`, `website_hp`, and `nickname_hp` bot traps across all public forms.
+
 ## [2.14.0] - 2026-09-18
 
 ### 🚀 Dynamic Non-Repeating MERN Stack Knowledge Engine & Email Integration
