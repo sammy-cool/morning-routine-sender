@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.14.0] - 2026-09-18
+
+### 🚀 Dynamic Non-Repeating MERN Stack Knowledge Engine & Email Integration
+
+- **MERN Stack Knowledge Engine Architecture**:
+  - **40-Day Production Curriculum**: Engineered [`helper/mernKnowledgeService.js`](file:///home/smarty/projects/morning-routine-sender/helper/mernKnowledgeService.js) with 40 high-yield, production-tested lessons spanning MongoDB, Express.js, React 19, Node.js Core, and Full-Stack System Architecture.
+  - **High-Density Format**: Structured each lesson into Category, Pillar Icon (`🍃`, `🚂`, `⚛️`, `🟢`, `🏗️`), Lesson Index (`#1/40`), Bold Topic Title, 1-2 sentence Core Mental Model, Syntax-Highlighted Code Pattern (❌ Anti-Pattern vs ✅ Production Standard), and Actionable Daily Takeaway.
+  - **Guaranteed Non-Repeating Algorithm**: Implemented multi-layered stateful tracking across Redis Sets (`mern:seen:<email>`), persistent database metadata (`email_tracker.metadata.mernInsightId`), and in-memory caches.
+  - **Mastery Review Cycling**: When a subscriber finishes all 40 lessons, automatically cycles into "🏆 Mastery Review" mode, resetting seen history while ensuring consecutive emails never receive the same lesson twice.
+- **Email & Sunday Digest Integration**:
+  - **Daily Routine Template ([`email-templates/email-template.mjml`](file:///home/smarty/projects/morning-routine-sender/email-templates/email-template.mjml))**: Embedded a high-contrast Obsidian dark card between the habit checklist and the 1-click check-in CTA, rendering the daily MERN lesson with full responsive mobile and dark-mode support.
+  - **Sunday Weekly Digest ([`email-templates/weekly-digest.mjml`](file:///home/smarty/projects/morning-routine-sender/email-templates/weekly-digest.mjml))**: Injected a weekly MERN Architecture Masterclass spotlight into Sunday digests.
+  - **Plain-Text Compatibility ([`email-core/emailService.js`](file:///home/smarty/projects/morning-routine-sender/email-core/emailService.js))**: Added structured ASCII MERN Deep-Dive section to text-only fallbacks.
+  - **Scheduler State Synchronization ([`email-core/emailScheduler.js`](file:///home/smarty/projects/morning-routine-sender/email-core/emailScheduler.js))**: Synchronized `mernInsightId` with Knex `email_tracker` audit logs upon successful SMTP dispatches.
+- **Subscriber Portal API & Telemetry**:
+  - **API Endpoint**: Added `GET /api/me/mern-insight` and `GET /me/mern-insight` routes in [`routes/subscriberPortal.routes.js`](file:///home/smarty/projects/morning-routine-sender/routes/subscriberPortal.routes.js) and [`controllers/me.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/me.controller.js) allowing dashboard clients to query today's MERN lesson.
+- **Testing & Quality Assurance**:
+  - Added dedicated test suite [`__tests__/mern.knowledge.service.test.js`](file:///home/smarty/projects/morning-routine-sender/__tests__/mern.knowledge.service.test.js) with 6 comprehensive test scenarios validating curriculum structure, non-repetition, mastery cycling, and template rendering.
+  - Expanded [`__tests__/subscriberPortal.test.js`](file:///home/smarty/projects/morning-routine-sender/__tests__/subscriberPortal.test.js) to assert `/api/me/mern-insight` endpoint reliability.
+- **Service Worker Cache Invalidation**:
+  - Bumped `CACHE_VERSION` in [`public/sw.js`](file:///home/smarty/projects/morning-routine-sender/public/sw.js) to `v4.8.6`.
+
 ## [2.13.0] - 2026-09-17
 
 ### 🚀 Email Template Overhaul, Dashboard Defect Remediation & Symmetrical UX Harmonization
