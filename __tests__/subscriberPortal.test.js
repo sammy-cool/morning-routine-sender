@@ -402,5 +402,18 @@ describe("subscriber portal", () => {
         expect.objectContaining({ streakFreezes: 1 }),
       );
     });
+
+    test("GET /api/me/mern-insight returns dynamic MERN stack insight", async () => {
+      const res = await request(app)
+        .get("/api/me/mern-insight")
+        .set("Cookie", [`mrn_session=${sessionToken}`]);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.insight).toBeDefined();
+      expect(res.body.insight.id).toBeDefined();
+      expect(res.body.insight.category).toBeDefined();
+      expect(res.body.insight.mentalModel).toBeDefined();
+    });
   });
 });

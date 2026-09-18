@@ -66,6 +66,10 @@ router.get("/radar/:email/radar.svg", meController.getRadarChart);
 router.get("/radar/:token.svg", meController.getRadarChart);
 router.get("/radar/:token", meController.getRadarChart);
 
+// Daily MERN Stack Developer Insight Endpoint
+router.get("/api/me/mern-insight", resolveSessionOrToken, meController.getMernInsight);
+router.get("/me/mern-insight", resolveSessionOrToken, meController.getMernInsight);
+
 // Public AI Coach Personas Registry
 router.get("/api/coach-personas", meController.getCoachPersonas);
 

@@ -14,6 +14,7 @@ const sharedData = require("../helper/shared-data");
 const { dailyDevNews } = require("../helper/util");
 const { generateUnsubscribeToken, generateActionToken } = require("../helper/unsubscribeToken");
 const { getDailyMorningSpark } = require("../helper/aiSparkGenerator");
+const { getDailyMernInsight, markMernInsightDelivered } = require("../helper/mernKnowledgeService");
 
 // Load MJML template
 const mjmlTemplatePath = path.join(__dirname, "..", "email-templates", "email-template.mjml");
@@ -115,6 +116,21 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
     const { getStreakMilestones } = require("../helper/streakMilestones");
     const streakMilestones = getStreakMilestones(userStreak);
 
+    // Retrieve dynamic, non-repeating MERN Stack engineering insight
+    let mernInsight = null;
+    try {
+      mernInsight = await getDailyMernInsight({
+        email: userData.email,
+        timezone: userTimezone,
+        streakCount: userStreak,
+        dayNumber: dayNumber,
+        forceId: userData.forceMernInsightId || null,
+      });
+    } catch (mernErr) {
+      logger.warn("MERN insight lookup non-fatal error", { error: mernErr.message });
+      mernInsight = null;
+    }
+
     const data = {
       logoUrl: process.env.LOGO_URL || `${baseUrl}/assets/logo.png`,
       userName: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
@@ -137,6 +153,7 @@ async function sendRoutineEmail(transporter, appLocals, userData) {
       nextMilestoneName: streakMilestones.nextMilestone?.name || "All Milestones Achieved! 🏆",
       nextMilestoneDaysRemaining: streakMilestones.daysRemaining,
       streakProgressPct: streakMilestones.progressPct,
+      mernInsight,
       ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}${routineQueryDuration}`,
       ctaText: `⚡ Open Interactive Routine & ${focusDuration}-Min Focus Timer`,
       checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}`,
@@ -211,7 +228,14 @@ ${data.aiMicroAction}
 
 📋 Today's Habit Checklist:
 ${textChecklist}
-
+${
+  data.mernInsight
+    ? `\n💻 Daily MERN Stack Deep-Dive [${data.mernInsight.pillarIcon} ${data.mernInsight.category} • Lesson #${data.mernInsight.sequenceNumber}/${data.mernInsight.totalLessons}]:
+${data.mernInsight.title}
+🧠 Core Mental Model: ${data.mernInsight.mentalModel}
+⚡ Key Takeaway: ${data.mernInsight.takeaway}\n`
+    : ""
+}
 ⚡ Open Live Routine & Timer: ${data.ctaUrl}
 🔥 1-Click Streak Check-in: ${data.checkinUrl}
 📱 Today's Lockscreen Wallpaper: ${data.wallpaperUrl}
@@ -266,11 +290,17 @@ Unsubscribe: ${data.unsubscribeUrl}`;
         },
       });
 
+      // Mark MERN insight delivered to guarantee non-repetition
+      if (mernInsight && mernInsight.id) {
+        await markMernInsightDelivered(userData.email, mernInsight.id);
+      }
+
       logger.info(`Email sent successfully to ${userData.email} - ${messageRef}`);
       return {
         success: true,
         messageId: info.messageId,
         response: info.response,
+        mernInsightId: mernInsight?.id || null,
       };
     } catch (error) {
       logger.error("Transport error:", {
@@ -323,6 +353,20 @@ async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
     const checkinToken = generateActionToken(userData.email, "checkin");
     const routineToken = generateActionToken(userData.email, "routine");
 
+    let mernInsight = null;
+    try {
+      mernInsight = await getDailyMernInsight({
+        email: userData.email,
+        timezone: userTimezone,
+        streakCount: userStreak,
+        dayNumber: now.getDate(),
+        forceId: userData.forceMernInsightId || null,
+      });
+    } catch (mernErr) {
+      logger.warn("Weekly digest MERN insight lookup non-fatal error", { error: mernErr.message });
+      mernInsight = null;
+    }
+
     const data = {
       userName: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
       year: templateYear,
@@ -334,6 +378,7 @@ async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
       weeklyQuote: digestInfo.weeklyQuote,
       weeklyReflectionGuidance: digestInfo.weeklyReflectionGuidance,
       weeklyPrepItems: digestInfo.weeklyPrepItems,
+      mernInsight,
       ctaUrl: `${baseUrl}/routine?email=${encodeURIComponent(userData.email)}&token=${routineToken}&source=weekly_digest`,
       checkinUrl: `${baseUrl}/checkin?email=${encodeURIComponent(userData.email)}&token=${checkinToken}&source=weekly_digest`,
       preferencesUrl: `${baseUrl}/user-dashboard`,
@@ -351,7 +396,11 @@ async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
         userData.weeklyDigestDay.slice(1).toLowerCase()
       : "Sunday";
 
-    const text = `${dayCap} Weekly Streak Digest for ${data.userName}\n\nStreak: ${data.streakBadge}\nPersona: ${digestInfo.name}\n\nWeekly Reflection: ${digestInfo.weeklyReflectionGuidance}\n\nUpcoming Week Prep:\n${digestInfo.weeklyPrepItems.map((p) => `- ${p.title}: ${p.description}`).join("\n")}\n\nOpen Routine: ${data.ctaUrl}\nCheck-in: ${data.checkinUrl}`;
+    const mernText = data.mernInsight
+      ? `\n\n💻 MERN Architecture Weekly Spotlight [${data.mernInsight.pillarIcon} ${data.mernInsight.category} • Lesson #${data.mernInsight.sequenceNumber}/${data.mernInsight.totalLessons}]:\n${data.mernInsight.title}\n🧠 Core Mental Model: ${data.mernInsight.mentalModel}\n⚡ Key Takeaway: ${data.mernInsight.takeaway}`
+      : "";
+
+    const text = `${dayCap} Weekly Streak Digest for ${data.userName}\n\nStreak: ${data.streakBadge}\nPersona: ${digestInfo.name}\n\nWeekly Reflection: ${digestInfo.weeklyReflectionGuidance}\n\nUpcoming Week Prep:\n${digestInfo.weeklyPrepItems.map((p) => `- ${p.title}: ${p.description}`).join("\n")}${mernText}\n\nOpen Routine: ${data.ctaUrl}\nCheck-in: ${data.checkinUrl}`;
 
     const messageRef = crypto.randomBytes(8).toString("hex");
     const info = await transporter.sendMail({
@@ -372,8 +421,12 @@ async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
       },
     });
 
+    if (mernInsight && mernInsight.id) {
+      await markMernInsightDelivered(userData.email, mernInsight.id);
+    }
+
     logger.info(`✅ ${dayCap} Weekly Digest sent to ${userData.email} - ${messageRef}`);
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: info.messageId, mernInsightId: mernInsight?.id || null };
   } catch (error) {
     logger.error("Weekly digest send error:", { error: error.message, email: userData.email });
     throw error;

@@ -199,6 +199,7 @@ async function sendRoutineEmail(userData, adminSkip = "GG!", appLocals = process
         attempts: totalAttempts,
         recovered: retries > 0,
         routineTrack: userData.routineTrack || userData.templateType,
+        mernInsightId: result.mernInsightId || null,
       },
       retries,
     );

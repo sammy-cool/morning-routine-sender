@@ -2028,6 +2028,26 @@ async function getXpProfile(req, res) {
   }
 }
 
+// GET /api/me/mern-insight & GET /me/mern-insight
+async function getMernInsight(req, res) {
+  try {
+    const rawEmail = req.subscriberEmail || req.query?.email || "developer@example.com";
+    const { getDailyMernInsight } = require("../helper/mernKnowledgeService");
+    const insight = await getDailyMernInsight({
+      email: rawEmail,
+      timezone: req.query?.timezone || "UTC",
+      forceId: req.query?.id || null,
+    });
+    return res.json({
+      success: true,
+      insight,
+    });
+  } catch (error) {
+    logger.error("Failed to fetch MERN insight", { error: error.message });
+    return res.status(500).json({ success: false, error: "Failed to fetch MERN insight" });
+  }
+}
+
 module.exports = {
   getMe,
   getMyHistory,
@@ -2055,4 +2075,5 @@ module.exports = {
   hardwareCheckin,
   getShortcutConfig,
   getXpProfile,
+  getMernInsight,
 };

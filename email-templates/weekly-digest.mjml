@@ -257,6 +257,41 @@
         </mj-column>
       </mj-section>
 
+      <!-- MERN Architecture Weekly Spotlight (if available) -->
+      {{#if mernInsight}}
+      <mj-section padding="0 0 12px 0">
+        <mj-column>
+          <mj-text mj-class="card-title" padding="0 0 6px 0">
+            💻 MERN Architecture Weekly Masterclass • {{mernInsight.pillarIcon}} {{mernInsight.category}}
+          </mj-text>
+          <mj-text padding="0 10px">
+            <div style="background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 16px 18px; color: #f8fafc;">
+              <div style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">
+                {{mernInsight.pillarIcon}} {{mernInsight.category}} • Lesson #{{mernInsight.sequenceNumber}}/{{mernInsight.totalLessons}}
+              </div>
+              <div style="font-size: 15px; font-weight: 700; color: #f8fafc; line-height: 22px;">
+                {{mernInsight.title}}
+              </div>
+              <div style="font-size: 13.5px; color: #94a3b8; line-height: 20px; margin-top: 6px;">
+                <strong style="color: #cbd5e1;">🧠 Core Mental Model:</strong> {{mernInsight.mentalModel}}
+              </div>
+              {{#if mernInsight.codeIllustration}}
+              <div style="background: #030712; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 12px; margin: 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #38bdf8; overflow-x: auto; line-height: 1.45;">
+                <pre style="margin: 0; white-space: pre-wrap; word-break: break-word; font-family: inherit;"><code>{{mernInsight.codeIllustration}}</code></pre>
+              </div>
+              {{/if}}
+              <div style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 6px; padding: 8px 12px; margin-top: 6px;">
+                <span style="font-size: 11px; font-weight: 800; color: #34d399; text-transform: uppercase;">⚡ Key Takeaway:</span>
+                <div style="font-size: 13px; color: #e2e8f0; margin-top: 2px; line-height: 18px;">
+                  {{mernInsight.takeaway}}
+                </div>
+              </div>
+            </div>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      {{/if}}
+
       <!-- Upcoming Week Strategic Prep -->
       <mj-section padding="0 0 12px 0">
         <mj-column>
