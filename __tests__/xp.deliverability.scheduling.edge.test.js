@@ -26,6 +26,32 @@ jest.mock("../email-core/emailScheduler", () => ({
   stopUserJob: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock("../helper/dnsGuard", () => ({
+  performDeliverabilityAudit: jest.fn().mockResolvedValue({
+    domain: "example.com",
+    healthScore: 100,
+    grade: "A",
+    summaryStatus: "HEALTHY",
+    healthy: true,
+    checks: {},
+  }),
+}));
+
+jest.mock("../db/knex", () => {
+  const mockDb = jest.fn(() => mockDb);
+  mockDb.schema = {
+    hasTable: jest.fn().mockResolvedValue(true),
+  };
+  mockDb.where = jest.fn().mockReturnThis();
+  mockDb.select = jest.fn().mockReturnThis();
+  mockDb.count = jest.fn().mockReturnThis();
+  mockDb.groupBy = jest.fn().mockResolvedValue([{ event_type: "delivered", count: 10 }]);
+  mockDb.first = jest.fn().mockResolvedValue({ total: 0 });
+  mockDb.orderBy = jest.fn().mockReturnThis();
+  mockDb.limit = jest.fn().mockResolvedValue([]);
+  return mockDb;
+});
+
 jest.mock("../middleware/subscriberSession", () => ({
   requireSubscriberSession: (req, res, next) => {
     req.subscriberEmail = req.cookies?.mrn_session

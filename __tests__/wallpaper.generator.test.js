@@ -6,6 +6,16 @@ const {
   getMilestoneTier,
   generateWallpaperSvg,
 } = require("../helper/wallpaperGenerator");
+jest.mock("../db/knex", () => {
+  const queryBuilder = {
+    where: jest.fn().mockReturnThis(),
+    orWhere: jest.fn().mockReturnThis(),
+    first: jest.fn().mockResolvedValue(null),
+    select: jest.fn().mockReturnThis(),
+  };
+  return jest.fn(() => queryBuilder);
+});
+
 const wallpaperController = require("../controllers/wallpaper.controller");
 const wallpaperRoutes = require("../routes/wallpaper.routes");
 

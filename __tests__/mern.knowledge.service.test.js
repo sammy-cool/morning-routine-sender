@@ -22,6 +22,28 @@ jest.mock("../db/knex", () => {
   return jest.fn(() => queryBuilder);
 });
 
+jest.mock("../helper/util", () => {
+  const actual = jest.requireActual("../helper/util");
+  return {
+    ...actual,
+    dailyDevNews: jest.fn().mockResolvedValue({
+      title: "Tech News Headline",
+      description: "Summary of latest developer updates",
+      url: "https://news.example.com",
+    }),
+  };
+});
+
+jest.mock("../helper/aiSparkGenerator", () => ({
+  getDailyMorningSpark: jest.fn().mockResolvedValue({
+    sparkReflection: "Master your internal focus.",
+    microAction: "Define one critical task.",
+    focusMantra: "Deep work wins.",
+    source: "curated",
+    streakTier: "Tier 1: Spark Catalyst",
+  }),
+}));
+
 const {
   MERN_CURRICULUM,
   getDailyMernInsight,

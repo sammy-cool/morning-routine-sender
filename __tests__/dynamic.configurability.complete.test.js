@@ -14,6 +14,25 @@
 
 jest.mock("mjml", () => jest.fn((content) => ({ html: `<html><body>${content}</body></html>` })));
 
+jest.mock("../db/knex", () => {
+  const queryBuilder = {
+    where: jest.fn().mockReturnThis(),
+    orWhere: jest.fn().mockReturnThis(),
+    whereNull: jest.fn().mockReturnThis(),
+    first: jest.fn().mockResolvedValue(null),
+    select: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockResolvedValue([]),
+    insert: jest.fn().mockResolvedValue([1]),
+    update: jest.fn().mockResolvedValue(1),
+  };
+  const mockDb = jest.fn(() => queryBuilder);
+  mockDb.schema = {
+    hasTable: jest.fn().mockResolvedValue(true),
+  };
+  mockDb.fn = { now: jest.fn().mockReturnValue("2026-09-18T00:00:00Z") };
+  return mockDb;
+});
+
 const sharedData = require("../helper/shared-data");
 const { dailyDevNews } = require("../helper/util");
 const { COACH_PERSONAS_METADATA, getCuratedSpark } = require("../helper/curatedSparks");

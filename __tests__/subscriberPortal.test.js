@@ -33,6 +33,18 @@ jest.mock("../config/mailTransporter", () => ({
   getTransporter: () => ({ sendMail: mockSendMail }),
 }));
 
+jest.mock("../db/knex", () => {
+  const queryBuilder = {
+    where: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockResolvedValue([]),
+    first: jest.fn().mockResolvedValue(null),
+    insert: jest.fn().mockResolvedValue([1]),
+    update: jest.fn().mockResolvedValue(1),
+  };
+  return jest.fn(() => queryBuilder);
+});
+
 // sendEmailLimiter is a shared singleton (see middleware/rateLimiters.js)
 // whose internal per-IP request counter persists for the lifetime of the
 // test process, not per-test or per-file. With ALLOWED_RATE_LIMITER unset

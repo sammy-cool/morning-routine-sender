@@ -2,6 +2,25 @@ const request = require("supertest");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { setApiBase } = require("../middleware/setApiBase");
+
+jest.mock("../db/knex", () => {
+  const queryBuilder = {
+    where: jest.fn().mockReturnThis(),
+    orWhere: jest.fn().mockReturnThis(),
+    first: jest.fn().mockResolvedValue(null),
+    select: jest.fn().mockReturnThis(),
+  };
+  return jest.fn(() => queryBuilder);
+});
+
+jest.mock("../helper/shared-data", () => {
+  const actual = jest.requireActual("../helper/shared-data");
+  return {
+    ...actual,
+    getUserByEmail: jest.fn().mockResolvedValue(null),
+  };
+});
+
 const pagesRoutes = require("../routes/pages.routes");
 
 describe("OpenGraph & Dynamic Social Share Landing Page", () => {
