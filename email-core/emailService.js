@@ -368,6 +368,7 @@ async function sendWeeklyDigestEmail(transporter, appLocals, userData) {
     }
 
     const data = {
+      logoUrl: process.env.LOGO_URL || `${baseUrl}/assets/logo.png`,
       userName: userData.name || (userData.email ? userData.email.split("@")[0] : "Subscriber"),
       year: templateYear,
       trackName: digestInfo.name,

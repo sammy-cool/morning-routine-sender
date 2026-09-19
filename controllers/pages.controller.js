@@ -923,6 +923,35 @@ async function streakShare(req, res) {
   }
 }
 
+// 404 handler (Page Not Found & SEO)
+function notFound(req, res) {
+  res.status(404);
+  res.set("X-Robots-Tag", "noindex, follow");
+
+  const isApi =
+    req.path &&
+    (req.path.startsWith("/api") || req.path.startsWith("/me") || req.path.startsWith("/admin/"));
+  const acceptsHeader = typeof req.get === "function" ? req.get("accept") : req.headers?.accept;
+  const prefersJson =
+    req.xhr ||
+    (acceptsHeader &&
+      acceptsHeader.includes("application/json") &&
+      !acceptsHeader.includes("text/html"));
+
+  if (isApi || prefersJson) {
+    return res.json({ error: "Not found", path: req.path });
+  }
+
+  setNoCacheHeaders(res);
+  const domain = getDomain(req, res);
+  let html = getCachedTemplate("public/404.html");
+  if (html) {
+    html = html.replaceAll("__DOMAIN__", escapeHtml(domain));
+    return res.send(html);
+  }
+  return res.json({ error: "Not found" });
+}
+
 module.exports = {
   admin,
   adminDashboard,
@@ -938,4 +967,5 @@ module.exports = {
   userDashboard,
   root,
   streakShare,
+  notFound,
 };

@@ -93,6 +93,25 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       reflection: "Gratitude & Evening Reflection",
     };
 
+    // Dynamic Streak Card & Wallpaper asset link generator
+    function updateDownloadAssetButtons(streak, track, name) {
+      const downloadStreakCardBtn = document.getElementById("downloadStreakCardBtn");
+      const downloadWallpaperBtn = document.getElementById("downloadWallpaperBtn");
+      const safeStreak = Number(streak) || 0;
+      const safeTrack = encodeURIComponent(track || "deep-work");
+      const safeName = encodeURIComponent(name ? String(name).split("@")[0] : "builder");
+      const ts = Date.now();
+
+      if (downloadStreakCardBtn) {
+        downloadStreakCardBtn.href = `/me/streak-card?download=1&streak=${safeStreak}&track=${safeTrack}&name=${safeName}&t=${ts}`;
+        downloadStreakCardBtn.setAttribute("download", `streak-card-${safeStreak}d.svg`);
+      }
+      if (downloadWallpaperBtn) {
+        downloadWallpaperBtn.href = `/me/wallpaper.svg?download=1&streak=${safeStreak}&track=${safeTrack}&name=${safeName}&t=${ts}`;
+        downloadWallpaperBtn.setAttribute("download", `morning-wallpaper-${safeStreak}d.svg`);
+      }
+    }
+
     // Multi-track card selector
     function selectTrack(track, silent = false) {
       if (!track) return;
@@ -102,6 +121,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         c.classList.toggle("selected", isMatch);
         c.setAttribute("aria-checked", isMatch ? "true" : "false");
       });
+      if (currentSubscriber) {
+        updateDownloadAssetButtons(
+          currentSubscriber.streakCount,
+          track,
+          currentSubscriber.name || currentSubscriber.email,
+        );
+      }
       if (!silent) {
         showToast(
           `🎯 Focus Track: <b>${TRACK_DISPLAY_NAMES[track] || track}</b> selected`,
@@ -254,6 +280,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         activeTrack = "deep-work";
       }
       selectTrack(activeTrack, true);
+      updateDownloadAssetButtons(streak, activeTrack, sub.name || sub.email);
 
       // Cron & Time Select
       const cron = sub.cronPattern || "0 8 * * *";
@@ -1165,6 +1192,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             if (globalThis.AppBadging) {
               globalThis.AppBadging.updateStreakBadge(finalStreak);
             }
+            updateDownloadAssetButtons(
+              finalStreak,
+              currentSubscriber.routineTrack || currentSubscriber.templateType || "deep-work",
+              currentSubscriber.name || currentSubscriber.email,
+            );
 
             // Invalidate SWR caches so fresh data is loaded
             if (globalThis.UXCore?.cache) {

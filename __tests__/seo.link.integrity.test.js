@@ -27,6 +27,7 @@ jest.mock("../helper/shared-data", () => {
 
 const pagesRoutes = require("../routes/pages.routes");
 const subscriberPortalRoutes = require("../routes/subscriberPortal.routes");
+const pagesController = require("../controllers/pages.controller");
 
 describe("🔍 SEO, Social Metadata, Discovery & Link Integrity Suite", () => {
   let app;
@@ -38,15 +39,18 @@ describe("🔍 SEO, Social Metadata, Discovery & Link Integrity Suite", () => {
     app.use(setApiBase);
     app.use(pagesRoutes);
     app.use(subscriberPortalRoutes);
+    app.use(pagesController.notFound);
   });
 
   describe("1. Static Asset File Integrity", () => {
     const requiredFiles = [
       "public/assets/logo.svg",
       "public/assets/logo.png",
+      "public/assets/logo-email.png",
       "public/assets/mrn-brand-ico.png",
       "public/assets/screenshot-desktop.png",
       "public/assets/screenshot-mobile.png",
+      "public/404.html",
       "public/favicon.ico",
       "public/manifest.json",
       "public/robots.txt",
@@ -163,6 +167,38 @@ describe("🔍 SEO, Social Metadata, Discovery & Link Integrity Suite", () => {
       expect(res.body.name).toBe("Morning Routine Sender");
       expect(res.body.icons).toBeDefined();
       expect(res.body.icons.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("4. 404 Error Routing & SEO Protection", () => {
+    test("GET /404 returns HTTP 404, noindex headers, and obsidian glassmorphism page", async () => {
+      const res = await request(app).get("/404").set("Host", "routine.example.com");
+      expect(res.status).toBe(404);
+      expect(res.headers["x-robots-tag"]).toBe("noindex, follow");
+      expect(res.text).not.toContain("__DOMAIN__");
+      expect(res.text).toContain("<title>404 • Page Not Found | Morning Routine Sender</title>");
+      expect(res.text).toContain('name="robots" content="noindex, follow"');
+      expect(res.text).toContain("Ritual Not Found");
+      expect(res.text).toContain("Return to Main Flow");
+    });
+
+    test("GET non-existent page returns HTTP 404 with HTML and noindex directive", async () => {
+      const res = await request(app)
+        .get("/non-existent-subpage-abc-123")
+        .set("Host", "routine.example.com")
+        .set("Accept", "text/html,application/xhtml+xml");
+      expect(res.status).toBe(404);
+      expect(res.headers["x-robots-tag"]).toBe("noindex, follow");
+      expect(res.text).toContain("Ritual Not Found");
+      expect(res.text).not.toContain("__DOMAIN__");
+    });
+
+    test("GET non-existent API route returns JSON with HTTP 404", async () => {
+      const res = await request(app)
+        .get("/api/unknown-service-endpoint")
+        .set("Host", "routine.example.com");
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe("Not found");
     });
   });
 });

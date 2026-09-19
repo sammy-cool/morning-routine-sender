@@ -105,7 +105,11 @@ describe("Dynamic 9:16 Mobile Wallpaper Generator & Controller", () => {
       expect(svg).toContain("</svg>");
 
       const customSvg = generateWallpaperSvg({ streak: 1 });
-      expect(customSvg).toContain("🔥 1 DAYS");
+      expect(customSvg).toContain("🔥 1 DAY");
+
+      const zeroStreakSvg = generateWallpaperSvg({ streak: 0, name: "Priyanshu" });
+      expect(zeroStreakSvg).toContain("🔥 0 DAYS");
+      expect(zeroStreakSvg).toContain("@Priyanshu");
     });
   });
 

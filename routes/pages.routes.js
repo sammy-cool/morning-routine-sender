@@ -21,6 +21,8 @@ router.get("/streak/:handleOrEmail", pagesController.streakShare);
 router.get("/admin", (req, res) => res.redirect(302, "/admin-dashboard"));
 router.get("/user-dashboard", pagesController.userDashboard);
 router.get("/dashboard", pagesController.userDashboard);
+router.get("/404", pagesController.notFound);
+router.get("/page-not-found", pagesController.notFound);
 router.get("/", pagesController.root);
 
 module.exports = router;

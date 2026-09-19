@@ -868,32 +868,36 @@ class Canvas2D {
 }
 
 // --- Favicon Bitmap & Vector Helpers ---
-function cubicKernel(x) {
-  x = Math.abs(x);
-  if (x < 1) return (1.5 * x - 2.5) * x * x + 1;
-  if (x < 2) return ((-0.5 * x + 2.5) * x - 4) * x + 2;
-  return 0;
-}
+function sampleCrispChannel(src, W, H, x, y, scale) {
+  const cx = Math.max(0, Math.min(W - 1, x));
+  const cy = Math.max(0, Math.min(H - 1, y));
 
-function sampleBicubicChannel(src, W, H, x, y) {
-  const x0 = Math.floor(x);
-  const y0 = Math.floor(y);
-  const fx = x - x0;
-  const fy = y - y0;
-  let sum = 0;
-  let weightSum = 0;
-  for (let j = -1; j <= 2; j++) {
-    const py = Math.min(H - 1, Math.max(0, y0 + j));
-    const wy = cubicKernel(j - fy);
-    for (let i = -1; i <= 2; i++) {
-      const px = Math.min(W - 1, Math.max(0, x0 + i));
-      const wx = cubicKernel(i - fx);
-      const w = wx * wy;
-      sum += src[py * W + px] * w;
-      weightSum += w;
-    }
-  }
-  return weightSum > 0 ? Math.min(255, Math.max(0, sum / weightSum)) : 0;
+  const i0 = Math.max(0, Math.min(W - 1, Math.floor(cx)));
+  const j0 = Math.max(0, Math.min(H - 1, Math.floor(cy)));
+  const i1 = Math.min(W - 1, i0 + 1);
+  const j1 = Math.min(H - 1, j0 + 1);
+
+  // Sub-cell fraction
+  const fx = cx - i0;
+  const fy = cy - j0;
+
+  // Anti-aliasing window: exactly 1.2 canvas pixels wide for crisp, razor-sharp edges
+  const transition = Math.max(0.01, 0.6 / Math.max(1, scale));
+  const tx = Math.max(0, Math.min(1, (fx - (0.5 - transition)) / (2 * transition)));
+  const ty = Math.max(0, Math.min(1, (fy - (0.5 - transition)) / (2 * transition)));
+
+  // Smoothstep for silky sub-pixel edge definition without blur
+  const sx = tx * tx * (3 - 2 * tx);
+  const sy = ty * ty * (3 - 2 * ty);
+
+  const p00 = src[j0 * W + i0];
+  const p10 = src[j0 * W + i1];
+  const p01 = src[j1 * W + i0];
+  const p11 = src[j1 * W + i1];
+
+  const top = p00 + (p10 - p00) * sx;
+  const bottom = p01 + (p11 - p01) * sx;
+  return top + (bottom - top) * sy;
 }
 
 function readFaviconBitmap() {
@@ -929,7 +933,7 @@ function readFaviconBitmap() {
   }
 }
 
-// 1. Brand Icon (512x512) - Pixel-perfect reproduction of favicon.ico
+// 1. Brand Icon (512x512) - Razor-sharp, high-resolution reproduction of favicon.ico
 function generateBrandIcon() {
   const size = 512;
   const canvas = new Canvas2D(size, size);
@@ -954,13 +958,14 @@ function generateBrandIcon() {
 
     // Outer backdrop with subtle obsidian/purple ambient aura
     canvas.fill(6, 8, 14, 255);
-    canvas.fillRadialGlow(size / 2, size / 2, 250, [44, 0, 133, 140]);
-    canvas.fillRadialGlow(size / 2, size / 2, 200, [56, 189, 248, 45]);
+    canvas.fillRadialGlow(size / 2, size / 2, 250, [44, 0, 133, 160]);
+    canvas.fillRadialGlow(size / 2, size / 2, 200, [56, 189, 248, 65]);
 
-    // Resample 48x48 icon directly into 512x512 squircle card
-    const pad = 36;
+    // Resample 48x48 icon directly into 512x512 squircle card with crisp edge definition
+    const pad = 28;
     const innerSize = size - pad * 2;
-    const cornerRadius = 88;
+    const cornerRadius = 96;
+    const scale = innerSize / srcW;
 
     for (let y = 0; y < innerSize; y++) {
       const srcY = (y + 0.5) * (srcH / innerSize) - 0.5;
@@ -968,24 +973,25 @@ function generateBrandIcon() {
       for (let x = 0; x < innerSize; x++) {
         const px = pad + x;
 
-        // Check rounded rect boundary
+        // Check rounded rect boundary with anti-aliasing
         const dx = Math.min(x, innerSize - 1 - x);
         const dy = Math.min(y, innerSize - 1 - y);
-        let inBounds = true;
+        let alpha = 255;
         if (dx < cornerRadius && dy < cornerRadius) {
           const cornerDist = Math.hypot(cornerRadius - dx, cornerRadius - dy);
           if (cornerDist > cornerRadius) {
-            inBounds = false;
+            continue;
+          }
+          if (cornerDist > cornerRadius - 1.5) {
+            alpha = Math.round((255 * (cornerRadius - cornerDist)) / 1.5);
           }
         }
 
-        if (inBounds) {
-          const srcX = (x + 0.5) * (srcW / innerSize) - 0.5;
-          const r = Math.round(sampleBicubicChannel(chR, srcW, srcH, srcX, srcY));
-          const g = Math.round(sampleBicubicChannel(chG, srcW, srcH, srcX, srcY));
-          const b = Math.round(sampleBicubicChannel(chB, srcW, srcH, srcX, srcY));
-          canvas.setPixel(px, py, r, g, b, 255);
-        }
+        const srcX = (x + 0.5) * (srcW / innerSize) - 0.5;
+        const r = Math.round(sampleCrispChannel(chR, srcW, srcH, srcX, srcY, scale));
+        const g = Math.round(sampleCrispChannel(chG, srcW, srcH, srcX, srcY, scale));
+        const b = Math.round(sampleCrispChannel(chB, srcW, srcH, srcX, srcY, scale));
+        canvas.setPixel(px, py, r, g, b, alpha);
       }
     }
 
@@ -997,7 +1003,7 @@ function generateBrandIcon() {
       innerSize,
       cornerRadius,
       null,
-      [255, 255, 255, 25],
+      [255, 255, 255, 38],
       2,
     );
   } else {
@@ -1009,11 +1015,80 @@ function generateBrandIcon() {
   canvas.saveToPNG(destPng);
   console.log(`✓ Generated ${destPng} (512x512)`);
 
+  // Email-optimized logo: crisp 2x Retina with transparent corners
   const logoPng = path.join(ASSETS_DIR, "logo.png");
   try {
     canvas.saveToPNG(logoPng);
+    console.log(`✓ Generated ${logoPng} (512x512)`);
   } catch (_e) {
     /* Optional fallback */
+  }
+
+  // Also generate dedicated lightweight email logo (128x128)
+  try {
+    const emailLogoCanvas = new Canvas2D(128, 128);
+    const emailFav = readFaviconBitmap();
+    if (emailFav && emailFav.width > 0) {
+      const { width: srcW, height: srcH, pixelData } = emailFav;
+      const chR = new Float32Array(srcW * srcH);
+      const chG = new Float32Array(srcW * srcH);
+      const chB = new Float32Array(srcW * srcH);
+      for (let y = 0; y < srcH; y++) {
+        const dibY = srcH - 1 - y;
+        for (let x = 0; x < srcW; x++) {
+          const idx = (dibY * srcW + x) * 4;
+          const i = y * srcW + x;
+          chB[i] = pixelData[idx];
+          chG[i] = pixelData[idx + 1];
+          chR[i] = pixelData[idx + 2];
+        }
+      }
+      const ePad = 6;
+      const eInner = 128 - ePad * 2;
+      const eRadius = 24;
+      const eScale = eInner / srcW;
+
+      emailLogoCanvas.fillRadialGlow(64, 64, 60, [44, 0, 133, 140]);
+      emailLogoCanvas.fillRadialGlow(64, 64, 45, [56, 189, 248, 50]);
+
+      for (let y = 0; y < eInner; y++) {
+        const srcY = (y + 0.5) * (srcH / eInner) - 0.5;
+        const py = ePad + y;
+        for (let x = 0; x < eInner; x++) {
+          const px = ePad + x;
+          const dx = Math.min(x, eInner - 1 - x);
+          const dy = Math.min(y, eInner - 1 - y);
+          let alpha = 255;
+          if (dx < eRadius && dy < eRadius) {
+            const cornerDist = Math.hypot(eRadius - dx, eRadius - dy);
+            if (cornerDist > eRadius) continue;
+            if (cornerDist > eRadius - 1) {
+              alpha = Math.round(255 * (eRadius - cornerDist));
+            }
+          }
+          const srcX = (x + 0.5) * (srcW / eInner) - 0.5;
+          const r = Math.round(sampleCrispChannel(chR, srcW, srcH, srcX, srcY, eScale));
+          const g = Math.round(sampleCrispChannel(chG, srcW, srcH, srcX, srcY, eScale));
+          const b = Math.round(sampleCrispChannel(chB, srcW, srcH, srcX, srcY, eScale));
+          emailLogoCanvas.setPixel(px, py, r, g, b, alpha);
+        }
+      }
+      emailLogoCanvas.fillRoundedRect(
+        ePad,
+        ePad,
+        eInner,
+        eInner,
+        eRadius,
+        null,
+        [255, 255, 255, 45],
+        1,
+      );
+      const emailLogoPath = path.join(ASSETS_DIR, "logo-email.png");
+      emailLogoCanvas.saveToPNG(emailLogoPath);
+      console.log(`✓ Generated ${emailLogoPath} (128x128)`);
+    }
+  } catch (_err) {
+    /* Optional lightweight email logo */
   }
 }
 

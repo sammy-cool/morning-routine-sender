@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en" class="dark" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- 404 Page Metadata & SEO Non-Indexable Directive -->
+    <title>404 • Page Not Found | Morning Routine Sender</title>
+    <meta
+      name="description"
+      content="The requested page could not be found. Return to Morning Routine Sender to access your daily habits, routine companion, and consistency dashboard."
+    />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href="__DOMAIN__/404" />
+
+    <!-- Favicons, Icons & Web Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/mrn-brand-ico.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/mrn-brand-ico.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme & Mobile Specs -->
+    <meta name="theme-color" content="#06080e" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- OpenGraph Metadata -->
+    <meta property="og:site_name" content="Morning Routine Sender" />
+    <meta property="og:title" content="404 • Page Not Found | Morning Routine Sender" />
+    <meta
+      property="og:description"
+      content="The ritual or page you are looking for has moved or does not exist. Return to your morning focus flow."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="__DOMAIN__/assets/screenshot-desktop.png" />
+
+    <!-- Preconnect & Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/responsive-layout.css" />
+
+    <style>
+      :root {
+        --bg-void: #06080e;
+        --card-glass: rgba(13, 18, 30, 0.78);
+        --border-glass: rgba(255, 255, 255, 0.08);
+        --cyan-neon: #38bdf8;
+        --violet-neon: #818cf8;
+        --emerald-neon: #34d399;
+        --amber-neon: #fbbf24;
+        --text-pure: #f8fafc;
+        --text-sub: #94a3b8;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: var(--bg-void);
+        background-image:
+          radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 60%),
+          radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.12) 0%, transparent 50%),
+          radial-gradient(circle at 15% 80%, rgba(52, 211, 153, 0.08) 0%, transparent 45%);
+        color: var(--text-pure);
+        font-family:
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+          max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        overflow-x: hidden;
+      }
+      .error-wrapper {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+        text-align: center;
+      }
+      .brand-bar {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: var(--text-pure);
+        margin-bottom: 32px;
+        padding: 8px 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-glass);
+        border-radius: 9999px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition:
+          border-color 0.2s ease,
+          transform 0.2s ease;
+      }
+      .brand-bar:hover {
+        border-color: rgba(56, 189, 248, 0.4);
+        transform: translateY(-2px);
+      }
+      .brand-logo-img {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: block;
+      }
+      .brand-bar-title {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .error-card {
+        background: var(--card-glass);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--border-glass);
+        border-radius: 28px;
+        padding: 44px 32px;
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.6),
+          0 0 40px rgba(99, 102, 241, 0.08);
+      }
+      .error-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #f87171;
+        margin-bottom: 20px;
+      }
+      .error-code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: clamp(4rem, 10vw, 6.5rem);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        background: linear-gradient(135deg, #f8fafc 30%, var(--cyan-neon) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 14px;
+        text-shadow: 0 10px 30px rgba(56, 189, 248, 0.2);
+      }
+      .error-title {
+        font-size: clamp(1.4rem, 3vw, 1.85rem);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-pure);
+        margin-bottom: 12px;
+      }
+      .error-desc {
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text-sub);
+        max-width: 480px;
+        margin: 0 auto 32px auto;
+      }
+      .recovery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .nav-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px 12px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        text-decoration: none;
+        color: var(--text-pure);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .nav-chip:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(56, 189, 248, 0.4);
+        transform: translateY(-2px);
+      }
+      .nav-chip-icon {
+        font-size: 20px;
+        margin-bottom: 6px;
+      }
+      .nav-chip-label {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .action-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 24px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #6366f1, #38bdf8);
+        color: #ffffff;
+        border: none;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(56, 189, 248, 0.45);
+      }
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-pure);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+      }
+      .footer-quote {
+        margin-top: 32px;
+        font-size: 12px;
+        color: #64748b;
+        letter-spacing: 0.02em;
+      }
+      @media (max-width: 640px) {
+        .error-card {
+          padding: 32px 20px;
+        }
+        .recovery-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="error-wrapper">
+      <a href="/" class="brand-bar" aria-label="Morning Routine Sender Home">
+        <img
+          src="/assets/logo.svg"
+          alt="Morning Routine"
+          class="brand-logo-img"
+          width="28"
+          height="28"
+          loading="eager"
+          decoding="async"
+        />
+        <span class="brand-bar-title">Morning Routine Sender</span>
+      </a>
+
+      <main class="error-card">
+        <div class="error-badge"><span>●</span> Error 404 • Lost in Flow</div>
+
+        <div class="error-code" aria-hidden="true">404</div>
+        <h1 class="error-title">Ritual Not Found</h1>
+        <p class="error-desc">
+          The habit pathway, routine companion, or page you requested does not exist or has been
+          shifted into a new discipline track.
+        </p>
+
+        <nav class="recovery-grid" aria-label="Recovery links">
+          <a href="/" class="nav-chip">
+            <span class="nav-chip-icon">🏠</span>
+            <span class="nav-chip-label">Home</span>
+          </a>
+          <a href="/user-dashboard" class="nav-chip">
+            <span class="nav-chip-icon">📊</span>
+            <span class="nav-chip-label">Dashboard</span>
+          </a>
+          <a href="/routine" class="nav-chip">
+            <span class="nav-chip-icon">⏱️</span>
+            <span class="nav-chip-label">Routine</span>
+          </a>
+          <a href="/about" class="nav-chip">
+            <span class="nav-chip-icon">💡</span>
+            <span class="nav-chip-label">About</span>
+          </a>
+        </nav>
+
+        <div class="action-row">
+          <a href="/" class="btn btn-primary"> <span>⚡</span> Return to Main Flow </a>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="
+              window.history.length > 1 ? window.history.back() : (window.location.href = '/')
+            "
+          >
+            <span>←</span> Go Back
+          </button>
+        </div>
+      </main>
+
+      <footer class="footer-quote">
+        "Discipline is choosing between what you want now and what you want most."
+      </footer>
+    </div>
+  </body>
+</html>

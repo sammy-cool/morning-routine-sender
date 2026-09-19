@@ -156,7 +156,14 @@ async function getWallpaper(req, res) {
 
     const track =
       subscriber?.routineTrack || subscriber?.templateType || req.query.track || "deep-work";
-    const streak = req.query.streak ? Number(req.query.streak) : (subscriber?.streakCount ?? 1);
+
+    let streak = 0;
+    if (req.query.streak !== undefined && req.query.streak !== "") {
+      streak = Number(req.query.streak);
+    } else if (subscriber) {
+      streak = subscriber.streakCount ?? subscriber.streak_count ?? subscriber.streak ?? 0;
+    }
+    streak = Number.isFinite(streak) && streak >= 0 ? Math.floor(streak) : 0;
 
     const lifetimeCheckins = req.query.checkins
       ? Number(req.query.checkins)
@@ -181,10 +188,13 @@ async function getWallpaper(req, res) {
       habits = req.query.habits.split(",").map((h) => h.trim());
     }
 
-    const name = subscriber?.email
-      ? subscriber.email.split("@")[0]
-      : req.query.name ||
-        (identifier ? identifier.replace(/^@/, "").split("@")[0] : "Morning Builder");
+    const candidateName =
+      req.query.name ||
+      subscriber?.name ||
+      (subscriber?.email ? subscriber.email.split("@")[0] : "") ||
+      (identifier ? identifier.replace(/^@/, "").split("@")[0] : "") ||
+      "Morning Builder";
+    const name = String(candidateName).trim();
 
     const svg = generateWallpaperSvg({
       name,
@@ -195,6 +205,7 @@ async function getWallpaper(req, res) {
       author,
       habits,
       lifetimeCheckins,
+      timezone: tz,
     });
 
     res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
@@ -204,9 +215,10 @@ async function getWallpaper(req, res) {
     );
 
     if (req.query.download === "true" || req.query.download === "1") {
+      const unit = streak === 1 ? "day" : "days";
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="morning-routine-wallpaper-${streak}-days.svg"`,
+        `attachment; filename="morning-routine-wallpaper-${streak}-${unit}.svg"`,
       );
     }
 

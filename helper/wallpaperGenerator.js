@@ -76,15 +76,17 @@ function generateWallpaperSvg({
     "Mindful breathwork & reflection session",
   ],
   lifetimeCheckins = 21,
-  date = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }),
+  timezone = null,
+  date = null,
 } = {}) {
-  const safeStreak = parseInt(streak, 10) || 1;
-  const safeLifetime = Math.max(parseInt(lifetimeCheckins, 10) || safeStreak, safeStreak);
+  const parsedStreak = Number(streak);
+  const safeStreak =
+    Number.isFinite(parsedStreak) && parsedStreak >= 0 ? Math.floor(parsedStreak) : 0;
+  const parsedLifetime = Number(lifetimeCheckins);
+  const safeLifetime =
+    Number.isFinite(parsedLifetime) && parsedLifetime >= safeStreak
+      ? Math.floor(parsedLifetime)
+      : safeStreak;
   const milestone = escapeXml(getMilestoneTitle(safeStreak));
   const milestoneTier = getMilestoneTier(safeStreak);
   const trackInfo = getTrackDetails(track);
@@ -96,9 +98,29 @@ function generateWallpaperSvg({
   const safeHandle = escapeXml(cleanName.startsWith("@") ? cleanName : `@${cleanName}`);
   const userInitial = escapeXml((cleanName.replace(/[^a-zA-Z0-9]/g, "")[0] || "M").toUpperCase());
 
-  const safeDate = escapeXml(date.toUpperCase());
+  let resolvedDate = date;
+  if (!resolvedDate) {
+    try {
+      resolvedDate = new Date().toLocaleDateString("en-US", {
+        timeZone: timezone || "UTC",
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch {
+      resolvedDate = new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+  }
+  const safeDate = escapeXml(String(resolvedDate).toUpperCase());
   const safeWeather = escapeXml(weatherSpark || "22°C • Clear & Serene Morning");
   const safeAuthor = escapeXml(author || "Morning Focus Protocol");
+  const streakUnit = safeStreak === 1 ? "DAY" : "DAYS";
 
   // Top 3 Habits Normalization
   const defaultHabits = [
@@ -354,7 +376,7 @@ function generateWallpaperSvg({
   <g transform="translate(60, 1435)">
     <rect x="0" y="0" width="465" height="155" rx="26" fill="rgba(14, 20, 34, 0.75)" stroke="url(#glassBorder)" stroke-width="1.5" />
     <text x="35" y="38" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="700" fill="#94a3b8" letter-spacing="1.5">CURRENT STREAK</text>
-    <text x="35" y="95" font-family="'Plus Jakarta Sans', sans-serif" font-size="44" font-weight="900" fill="url(#flameGlow)" filter="url(#textGlow)">🔥 ${safeStreak} DAYS</text>
+    <text x="35" y="95" font-family="'Plus Jakarta Sans', sans-serif" font-size="44" font-weight="900" fill="url(#flameGlow)" filter="url(#textGlow)">🔥 ${safeStreak} ${streakUnit}</text>
     <text x="35" y="128" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" font-weight="600" fill="#94a3b8">Unbroken Morning Momentum</text>
   </g>
 

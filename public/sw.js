@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4.9.1";
+const CACHE_VERSION = "v4.9.2";
 const CACHE_NAME = `mrn-pwa-${CACHE_VERSION}`;
 
 // STATIC ASSETS ONLY (NO HTML, NO AUTH, NO SUBSCRIBER DATA)
@@ -7,6 +7,7 @@ const STATIC_ASSETS = [
   "/manifest.json",
   "/assets/logo.svg",
   "/assets/logo.png",
+  "/assets/logo-email.png",
   "/assets/mrn-brand-ico.png",
   "/assets/screenshot-desktop.png",
   "/assets/screenshot-mobile.png",
