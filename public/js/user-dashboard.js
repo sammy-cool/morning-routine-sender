@@ -3480,12 +3480,15 @@ globalThis.addEventListener("DOMContentLoaded", function () {
     // Auto-populate squad join code from URL params if present
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const joinCodeParam = urlParams.get("joinSquad");
-      if (joinCodeParam) {
-        const joinInput = document.getElementById("joinSquadCodeInput");
-        if (joinInput) {
-          joinInput.value = joinCodeParam.toUpperCase().trim();
-          showToast(`Squad invite code ${joinCodeParam} ready to join!`, "info");
+      const rawJoinCode = urlParams.get("joinSquad");
+      if (rawJoinCode) {
+        const cleanCode = rawJoinCode.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32);
+        if (cleanCode) {
+          const joinInput = document.getElementById("joinSquadCodeInput");
+          if (joinInput) {
+            joinInput.value = cleanCode.toUpperCase().trim();
+            showToast(`Squad invite code ${escapeHtml(cleanCode)} ready to join!`, "info");
+          }
         }
       }
     } catch (_err) {
@@ -3512,7 +3515,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           });
           const data = await res.json();
           if (res.ok && data.success) {
-            showToast(`🎉 Squad "${name}" created!`, "success");
+            showToast(`🎉 Squad "${escapeHtml(name)}" created!`, "success");
             newSquadNameInput.value = "";
             await loadAccountabilitySquad();
           } else {

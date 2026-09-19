@@ -18,7 +18,7 @@ router.get("/leaderboard", leaderboardController.getPublicLeaderboard);
 router.get("/hall-of-fame", leaderboardController.getPublicLeaderboard);
 router.get("/api/leaderboard", leaderboardController.getPublicLeaderboard);
 router.get("/streak/:handleOrEmail", pagesController.streakShare);
-router.get("/admin", (req, res) => res.redirect(302, "/admin-dashboard"));
+router.get("/admin", pagesController.admin);
 router.get("/user-dashboard", pagesController.userDashboard);
 router.get("/dashboard", pagesController.userDashboard);
 router.get("/404", pagesController.notFound);

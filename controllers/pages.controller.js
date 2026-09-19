@@ -355,9 +355,10 @@ async function streakShare(req, res) {
     } else {
       try {
         if (typeof db === "function") {
+          const escapedPrefix = cleanInput.replace(/[%_\\]/g, "\\$&");
           const row = await db("subscribers")
             .where("email", cleanInput)
-            .orWhere("email", "like", `${cleanInput}@%`)
+            .orWhere("email", "like", `${escapedPrefix}@%`)
             .first();
           if (row) {
             subscriber = {

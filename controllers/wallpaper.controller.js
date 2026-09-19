@@ -67,9 +67,10 @@ async function resolveSubscriber(identifier) {
   // 2. Handle / username prefix search in Knex
   try {
     const db = require("../db/knex");
+    const escapedPrefix = cleanId.replace(/[%_\\]/g, "\\$&");
     const row = await db("subscribers")
       .where("email", cleanId)
-      .orWhere("email", "like", `${cleanId}@%`)
+      .orWhere("email", "like", `${escapedPrefix}@%`)
       .first();
 
     if (row && row.email) {
@@ -185,7 +186,11 @@ async function getWallpaper(req, res) {
 
     let habits = subscriber?.customHabits;
     if (req.query.habits) {
-      habits = req.query.habits.split(",").map((h) => h.trim());
+      if (typeof req.query.habits === "string") {
+        habits = req.query.habits.split(",").map((h) => h.trim());
+      } else if (Array.isArray(req.query.habits)) {
+        habits = req.query.habits.map((h) => String(h).trim());
+      }
     }
 
     const candidateName =

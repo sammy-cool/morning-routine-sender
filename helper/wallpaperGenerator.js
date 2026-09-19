@@ -96,7 +96,7 @@ function generateWallpaperSvg({
 
   const cleanName = String(name || "builder").trim();
   const safeHandle = escapeXml(cleanName.startsWith("@") ? cleanName : `@${cleanName}`);
-  const userInitial = escapeXml((cleanName.replace(/[^a-zA-Z0-9]/g, "")[0] || "M").toUpperCase());
+  const userInitial = escapeXml(([...cleanName.replace(/[@\s]/g, "")][0] || "M").toUpperCase());
 
   let resolvedDate = date;
   if (!resolvedDate) {
