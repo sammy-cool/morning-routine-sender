@@ -578,8 +578,28 @@
         outline: none;
       }
 
-      .btn:active {
-        transform: scale(0.96);
+      .btn:active,
+      .sim-tab-btn:active,
+      .mock-check-item:active,
+      .dock-item:active {
+        transform: scale(0.975);
+      }
+
+      .btn:disabled,
+      button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      .btn:focus-visible,
+      .sim-tab-btn:focus-visible,
+      .dock-item:focus-visible,
+      .mock-check-item:focus-visible,
+      .input-text:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
       }
 
       .btn-sm {
@@ -958,6 +978,15 @@
         min-height: 20px;
         margin-top: 8px;
         font-weight: 600;
+        transition: var(--transition);
+      }
+
+      .form-status.success {
+        color: var(--accent-emerald) !important;
+      }
+
+      .form-status.error {
+        color: var(--accent-rose) !important;
       }
 
       /* Features */
@@ -1896,12 +1925,7 @@
                 <i class="fas fa-paper-plane" aria-hidden="true"></i> Subscribe
               </button>
             </div>
-            <p
-              id="subscriberSignupStatus"
-              class="form-status"
-              style="color: var(--accent-emerald)"
-              aria-live="polite"
-            ></p>
+            <p id="subscriberSignupStatus" class="form-status" aria-live="polite"></p>
           </form>
         </article>
 
@@ -1959,12 +1983,7 @@
                 <i class="fas fa-key" aria-hidden="true"></i> Send Link
               </button>
             </div>
-            <p
-              id="subscriberLoginStatus"
-              class="form-status"
-              style="color: var(--accent-cyan)"
-              aria-live="polite"
-            ></p>
+            <p id="subscriberLoginStatus" class="form-status" aria-live="polite"></p>
           </form>
         </article>
 
@@ -2363,7 +2382,7 @@
             href="#"
             id="toggleGenerate"
             style="
-              color: var(--primary);
+              color: #c4b5fd;
               font-size: 13px;
               font-weight: 600;
               text-decoration: none;
@@ -2397,7 +2416,7 @@
             aria-live="polite"
             style="
               margin-top: 12px;
-              color: var(--primary);
+              color: #c4b5fd;
               font-size: 14px;
               font-weight: 600;
               text-align: right;
@@ -2415,40 +2434,155 @@
           quote:
             '"The ability to perform deep work is becoming increasingly rare at exactly the same time it is becoming increasingly valuable."',
           author: "— Cal Newport, Deep Work",
+          checklist: [
+            "Zero Phone / Email for first 60 min",
+            "500ml Hydration + 10 min Sunshine",
+            "Define Top 1 Highest Leverage Deliverable",
+            "Initiate 25-min Pomodoro Deep Work Block",
+          ],
         },
         mindfulness: {
           subject: "🧘 Stoic Morning: Day 42 • Calm Clarity & Intentional Peace",
           quote:
             '"When you arise in the morning think of what a privilege it is to be alive, to think, to enjoy, to love."',
           author: "— Marcus Aurelius, Meditations",
+          checklist: [
+            "10-min Breathwork & Silent Meditation",
+            "500ml Warm Lemon Hydration",
+            "Gratitude Journal: 3 Intentional Wins",
+            "Read 1 Page of Stoic Philosophy",
+          ],
         },
         exec: {
           subject: "🚀 High-Performance Exec: Day 42 • High-Leverage Strategic Execution",
           quote:
             '"Focusing on the high-leverage activities produces an outsized return relative to the effort expended."',
           author: "— Andy Grove, High Output Management",
+          checklist: [
+            "Review Daily Top 3 Strategic Priorities",
+            "Calendar Defense: Eliminate Low-ROI Meetings",
+            "Dispatch Asynchronous Team Directives",
+            "60-min High-Leverage Deep Execution Block",
+          ],
         },
         learner: {
           subject: "📚 Lifelong Learner: Day 42 • Compounding Daily Wisdom & Insights",
           quote: '"Live as if you were to die tomorrow. Learn as if you were to live forever."',
           author: "— Mahatma Gandhi",
+          checklist: [
+            "20-min Reading High-Signal Non-Fiction",
+            "Extract & Synthesize 1 Core Mental Model",
+            "Spaced Repetition Knowledge Review",
+            "Draft Daily Insight in Knowledge Base",
+          ],
         },
         energizer: {
           subject: "🔥 Morning Energizer: Day 42 • High Energy, Movement & Vitality",
           quote: '"Energy flows where attention goes. Awaken your physiology to conquer the day."',
           author: "— High Vitality Protocol",
+          checklist: [
+            "20-min High-Energy HIIT or Mobility",
+            "Cold Shower Exposure + Wim Hof Breathing",
+            "High-Protein Nutrient-Dense Breakfast",
+            "Set Unstoppable Energy Intention for the Day",
+          ],
         },
       };
 
       function switchSimTrack(trackKey) {
+        if (window.UXCore?.haptics) {
+          window.UXCore.haptics.selection();
+        } else if (navigator.vibrate) {
+          try {
+            navigator.vibrate(8);
+          } catch (_e) {}
+        }
         document.querySelectorAll(".sim-tab-btn").forEach((btn) => {
-          btn.classList.toggle("active", btn.dataset.track === trackKey);
+          const isActive = btn.dataset.track === trackKey;
+          btn.classList.toggle("active", isActive);
+          btn.setAttribute("aria-selected", isActive ? "true" : "false");
+          if (isActive && typeof btn.scrollIntoView === "function") {
+            try {
+              btn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+            } catch (_e) {}
+          }
         });
         const data = TRACK_DATA[trackKey];
         if (!data) return;
-        document.getElementById("simEmailSubject").textContent = data.subject;
-        document.getElementById("simQuoteText").textContent = data.quote;
-        document.getElementById("simQuoteAuthor").textContent = data.author;
+
+        const bodyEl = document.querySelector(".email-mock-body");
+        if (bodyEl) {
+          bodyEl.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+          bodyEl.style.opacity = "0.35";
+          bodyEl.style.transform = "translateY(3px)";
+        }
+
+        setTimeout(() => {
+          const subjEl = document.getElementById("simEmailSubject");
+          const quoteEl = document.getElementById("simQuoteText");
+          const authEl = document.getElementById("simQuoteAuthor");
+          const gridEl = document.getElementById("simChecklistGrid");
+
+          if (subjEl) subjEl.textContent = data.subject;
+          if (quoteEl) quoteEl.textContent = data.quote;
+          if (authEl) authEl.textContent = data.author;
+
+          if (gridEl && Array.isArray(data.checklist)) {
+            gridEl.innerHTML = data.checklist
+              .map(
+                (item) => `
+                <div class="mock-check-item" role="checkbox" aria-checked="false" tabindex="0" onclick="toggleSimCheck(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSimCheck(this);}">
+                  <i class="fas fa-check-circle" style="color: var(--accent-cyan)"></i>
+                  <span>${item}</span>
+                </div>`,
+              )
+              .join("");
+          }
+
+          if (bodyEl) {
+            bodyEl.style.opacity = "1";
+            bodyEl.style.transform = "translateY(0)";
+          }
+        }, 120);
+      }
+
+      function toggleSimCheck(el) {
+        if (!el) return;
+        const isDone = el.classList.toggle("done");
+        el.setAttribute("aria-checked", isDone ? "true" : "false");
+
+        if (window.UXCore?.haptics) {
+          window.UXCore.haptics.light();
+        } else if (navigator.vibrate) {
+          try {
+            navigator.vibrate(10);
+          } catch (_e) {}
+        }
+
+        const grid = document.getElementById("simChecklistGrid");
+        if (!grid) return;
+        const total = grid.querySelectorAll(".mock-check-item").length;
+        const done = grid.querySelectorAll(".mock-check-item.done").length;
+        if (total > 0 && done === total) {
+          if (window.UXCore?.haptics) {
+            window.UXCore.haptics.success();
+          } else if (navigator.vibrate) {
+            try {
+              navigator.vibrate([20, 50, 20]);
+            } catch (_e) {}
+          }
+          if (window.UXCore?.sound) {
+            window.UXCore.sound.playSuccess();
+          }
+          if (typeof globalThis.confetti === "function") {
+            globalThis.confetti({
+              particleCount: 55,
+              spread: 65,
+              origin: { y: 0.7 },
+              colors: ["#22d3ee", "#7c3aed", "#34d399"],
+            });
+          }
+        }
       }
 
       function updateLiveClock() {
@@ -2459,6 +2593,7 @@
       }
       setInterval(updateLiveClock, 1000);
       updateLiveClock();
+      switchSimTrack("deep-work");
 
       // Mobile Navigation Drawer Toggle Handler
       (function initMobileNav() {
@@ -2530,6 +2665,11 @@
       </a>
     </nav>
 
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"
+    ></script>
+    <script defer src="/js/ux-core.js?v=4.3.0"></script>
     <script defer src="/js/landing-page-modal.js?v=4.2.0"></script>
     <script defer src="/js/subscriber-login.js?v=4.2.0"></script>
     <script defer src="/js/subscriber-signup.js?v=4.2.0"></script>

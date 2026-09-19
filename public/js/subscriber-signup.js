@@ -49,11 +49,16 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
       const email = emailInput.value.trim();
       if (!email) {
+        showToast("Please enter your email address to continue.", "warn");
         emailInput.focus();
         return;
       }
 
+      const originalBtnHtml = submitBtn.innerHTML;
       submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Subscribing...';
+      statusEl.className = "form-status";
       statusEl.textContent = "Sending…";
 
       try {
@@ -77,13 +82,37 @@ globalThis.addEventListener("DOMContentLoaded", function () {
 
         if (!resp.ok) {
           const errMsg = (data.errors || []).join(", ") || data.message || "Something went wrong.";
+          statusEl.className = "form-status error";
           statusEl.textContent = errMsg;
           showToast(errMsg, "error");
           return;
         }
 
         const msg = data.message || "Check your inbox to confirm your subscription.";
+        statusEl.className = "form-status success";
         statusEl.textContent = msg;
+
+        if (globalThis.UXCore?.haptics) {
+          globalThis.UXCore.haptics.success();
+        } else if (navigator.vibrate) {
+          try {
+            navigator.vibrate([15, 30, 15]);
+          } catch (_e) {
+            /* ignore haptic vibration failure on unsupported devices */
+          }
+        }
+        if (globalThis.UXCore?.sound) {
+          globalThis.UXCore.sound.playSuccess();
+        }
+        if (typeof globalThis.confetti === "function") {
+          globalThis.confetti({
+            particleCount: 75,
+            spread: 70,
+            origin: { y: 0.65 },
+            colors: ["#10b981", "#6366f1", "#38bdf8"],
+          });
+        }
+
         showToast(`🎉 ${msg}`, "success", {
           duration: 7000,
           cta: {
@@ -94,10 +123,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         emailInput.value = "";
       } catch (err) {
         console.error(err);
-        statusEl.textContent = "Network error. Please try again.";
-        showToast("Network error. Please try again.", "error");
+        const netErrMsg = "Network error. Please try again.";
+        statusEl.className = "form-status error";
+        statusEl.textContent = netErrMsg;
+        showToast(netErrMsg, "error");
       } finally {
         submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
       }
     });
   })();

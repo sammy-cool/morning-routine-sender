@@ -53,8 +53,14 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
+      const originalBtnHtml = submitBtn.innerHTML;
       submitBtn.disabled = true;
-      status.textContent = "Sending...";
+      submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Sending Link...';
+      if (status) {
+        status.className = "form-status";
+        status.textContent = "Sending...";
+      }
 
       try {
         const payload = {
@@ -77,21 +83,40 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         if (resp.ok) {
           const successMsg =
             data.message || "If that email is subscribed, a magic login link has been sent.";
-          if (status) status.textContent = successMsg;
+          if (status) {
+            status.className = "form-status success";
+            status.textContent = successMsg;
+          }
+          if (globalThis.UXCore?.haptics) {
+            globalThis.UXCore.haptics.success();
+          } else if (navigator.vibrate) {
+            try {
+              navigator.vibrate([15, 30, 15]);
+            } catch (_e) {
+              /* ignore haptic vibration failure on unsupported devices */
+            }
+          }
           showToast(successMsg, "success", { duration: 6000 });
           emailInput.value = "";
         } else {
           const errorMsg = data.message || "Unable to send login link. Please try again.";
-          if (status) status.textContent = errorMsg;
+          if (status) {
+            status.className = "form-status error";
+            status.textContent = errorMsg;
+          }
           showToast(errorMsg, "error");
         }
       } catch (err) {
         console.error(err);
         const netErrMsg = "Network error. Please try again.";
-        if (status) status.textContent = netErrMsg;
+        if (status) {
+          status.className = "form-status error";
+          status.textContent = netErrMsg;
+        }
         showToast(netErrMsg, "error");
       } finally {
         submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
       }
     });
   })();

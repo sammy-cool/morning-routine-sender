@@ -224,6 +224,13 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       errorMessage.textContent = message;
     }
 
+    function formatStreakTitle(streakVal) {
+      const val = Number(streakVal) || 0;
+      if (val <= 0) return "Ready to Ignite Day 1 ⚡";
+      if (val === 1) return "1-Day Streak Active 🔥";
+      return `${val}-Day Streak Active 🔥`;
+    }
+
     function renderSubscription(sub) {
       // Normalize isActive: true by default unless explicitly false
       const isActive = sub.isActive !== false && sub.isActive !== 0 && sub.isActive !== "false";
@@ -263,7 +270,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       if (streakHeroCard) {
         streakHeroCard.style.display = "flex";
         if (streakCountTitle) {
-          streakCountTitle.textContent = `${streak}-Day Streak Active 🔥`;
+          streakCountTitle.textContent = formatStreakTitle(streak);
         }
         if (streakSubtext) {
           if (streak > 0) {
@@ -271,6 +278,38 @@ globalThis.addEventListener("DOMContentLoaded", function () {
           } else {
             streakSubtext.textContent = "Start today's ritual to ignite your morning focus streak.";
           }
+        }
+      }
+
+      // Check-in CTA button state for today
+      const todayIso = new Date().toISOString().slice(0, 10);
+      let localTodayStr = todayIso;
+      if (sub.timezone) {
+        try {
+          localTodayStr = new Intl.DateTimeFormat("en-CA", { timeZone: sub.timezone }).format(
+            new Date(),
+          );
+        } catch (_tzErr) {
+          /* fallback to UTC ISO date if timezone conversion fails */
+        }
+      }
+      const isCheckedInToday = Boolean(
+        sub.lastCheckinDate &&
+        (sub.lastCheckinDate === todayIso || sub.lastCheckinDate === localTodayStr),
+      );
+
+      const checkinBtn = document.getElementById("dashboardCheckinBtn");
+      if (checkinBtn) {
+        if (isCheckedInToday) {
+          checkinBtn.innerHTML =
+            '<i class="fas fa-check-circle" aria-hidden="true"></i> Streak Maintained Today';
+          checkinBtn.disabled = true;
+          checkinBtn.classList.remove("pulse-cta");
+        } else {
+          checkinBtn.innerHTML =
+            '<i class="fas fa-bolt" aria-hidden="true"></i> 1-Click Habit Check-in';
+          checkinBtn.disabled = false;
+          checkinBtn.classList.add("pulse-cta");
         }
       }
 
@@ -1133,7 +1172,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         const optimisticStreak = prevStreak + 1;
 
         if (streakCountTitle) {
-          streakCountTitle.textContent = `${optimisticStreak}-Day Streak Active 🔥`;
+          streakCountTitle.textContent = formatStreakTitle(optimisticStreak);
         }
         if (streakSubtext) {
           streakSubtext.textContent = `You're on day ${optimisticStreak} of building your daily morning routine. Consistency creates mastery!`;
@@ -1141,6 +1180,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
         dashboardCheckinBtn.innerHTML =
           '<i class="fas fa-check" aria-hidden="true"></i> Streak Maintained';
         dashboardCheckinBtn.disabled = true;
+        dashboardCheckinBtn.classList.remove("pulse-cta");
 
         // 2. Multi-sensory Feedback: Haptic + Audio + Confetti
         if (globalThis.UXCore?.haptics) {
@@ -1187,7 +1227,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
             currentSubscriber.streakCount = finalStreak;
 
             if (streakCountTitle) {
-              streakCountTitle.textContent = `${finalStreak}-Day Streak Active 🔥`;
+              streakCountTitle.textContent = formatStreakTitle(finalStreak);
             }
             if (globalThis.AppBadging) {
               globalThis.AppBadging.updateStreakBadge(finalStreak);
@@ -1229,10 +1269,11 @@ globalThis.addEventListener("DOMContentLoaded", function () {
               "info",
             );
             dashboardCheckinBtn.disabled = false;
+            dashboardCheckinBtn.classList.add("pulse-cta");
             dashboardCheckinBtn.innerHTML =
               '<i class="fas fa-check-circle" aria-hidden="true"></i> 1-Click Check-in';
             if (streakCountTitle) {
-              streakCountTitle.textContent = `${prevStreak}-Day Streak Active 🔥`;
+              streakCountTitle.textContent = formatStreakTitle(prevStreak);
             }
           }
         } catch (_err) {

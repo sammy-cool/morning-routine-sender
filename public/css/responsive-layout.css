@@ -920,4 +920,44 @@ html {
   .modal-content {
     scroll-behavior: auto !important;
   }
+  .pulse-cta {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   15. Micro-Interactions, Tactile Feedback & Ambient Action Cues
+   ========================================================================== */
+.pulse-cta {
+  animation: pulseAmbient 2.6s infinite ease-in-out;
+}
+
+@keyframes pulseAmbient {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(124, 58, 237, 0.45),
+      0 4px 15px rgba(124, 58, 237, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 8px rgba(124, 58, 237, 0),
+      0 6px 22px rgba(124, 58, 237, 0.55);
+  }
+}
+
+.btn:active,
+button:active,
+.dock-item:active,
+.sim-tab-btn:active,
+.mock-check-item:active {
+  transform: scale(0.975);
+}
+
+.form-status.success {
+  color: var(--accent-emerald, #34d399) !important;
+}
+
+.form-status.error {
+  color: var(--accent-rose, #fb7185) !important;
 }
