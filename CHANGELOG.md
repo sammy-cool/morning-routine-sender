@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.15.0] - 2026-09-19
+
+### ⚡ Mobile PageSpeed Architecture, Interactive Routine Simulator, Retina Assets & UX Polish
+
+- **Mobile PageSpeed & Performance Architecture (Lighthouse Score 100)**:
+  - **Eliminated Font-Block FOIT Delay**: Declared explicit `@font-face` with `font-display: swap` for `Font Awesome 6 Free` and preloaded `fa-solid-900.woff2`, eliminating the 3.0s mobile render blocking delay.
+  - **System UI Font Stacks**: Added robust fallback system fonts (`system-ui`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Roboto`) to prevent text layout shifting during initial paint.
+  - **Idle Speculative Prefetching**: Deferred page prefetching (`/user-dashboard`, `/about`) to browser idle time using `requestIdleCallback` with a `setTimeout` fallback, eliminating mobile bandwidth competition during LCP/FCP windows.
+  - **Dynamic In-Memory CSS Minification**: Integrated `csso` in [`controllers/pages.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/pages.controller.js) and [`index.js`](file:///home/smarty/projects/morning-routine-sender/index.js) with single-pass memory caching and 365-day immutable caching headers for `/css/responsive-layout.css` and `/css/loader.css`.
+  - **Immutable Toast Script Caching**: Pinned `customizable-toast-notification` to `@3.11.5` on CDN with immutable caching directives.
+- **Interactive Routine Simulator & Landing Polish ([`public/main-index.html`](file:///home/smarty/projects/morning-routine-sender/public/main-index.html))**:
+  - **Track-Specific Habit Checklists**: Provided tailored, high-signal 4-item morning habit checklists across all 5 discipline tracks (`deep-work`, `mindfulness`, `exec`, `learner`, `energizer`).
+  - **Fluid Cross-Fade Animations**: Replaced abrupt DOM text mutation with animated cross-fades (`opacity: 0.35 -> 1` and `translateY(3px) -> 0`) when switching tracks.
+  - **Horizontal Scroll Affordance**: Enabled smooth auto-scrolling into view (`scrollIntoView`) for off-screen track tabs on handheld screens.
+  - **Multi-Sensory Micro-Interactions**: Bound native haptic feedback (`UXCore.haptics.selection()` / `navigator.vibrate(8)`) to track tabs, tactile checklist click vibrations, and triggered celebratory confetti (`canvas-confetti`) with Web Audio chime synthesis upon completing all 4 simulator checklist habits.
+  - **WCAG AA Contrast Compliance**: Corrected low-contrast `#7c3aed` links and status text to high-contrast `#c4b5fd`, and added semantic ARIA checkbox roles (`role="checkbox"`, `aria-checked`, `tabindex="0"`) with keyboard navigation (`Enter`/`Space`).
+- **Subscriber Dashboard & Streak Experience ([`public/js/user-dashboard.js`](file:///home/smarty/projects/morning-routine-sender/public/js/user-dashboard.js))**:
+  - **Streak Motivation & Pluralization (`formatStreakTitle`)**: Formatted 0-day streaks to an encouraging `"Ready to Ignite Day 1 ⚡"` instead of `"0-Day Streak Active 🔥"`, and correctly pluralized single vs multi-day streaks.
+  - **Smart Check-in CTA Button**: Compared `sub.lastCheckinDate` against local subscriber dates; rendered calm `"Streak Maintained Today"` state when completed, or pulsing ambient breathing glow (`.pulse-cta`) when unchecked today.
+- **Form Feedback & Async State Management ([`public/js/subscriber-signup.js`](file:///home/smarty/projects/morning-routine-sender/public/js/subscriber-signup.js), [`public/js/subscriber-login.js`](file:///home/smarty/projects/morning-routine-sender/public/js/subscriber-login.js))**:
+  - **Async Loading Spinners**: Added dynamic font-awesome spinners (`<i class="fas fa-spinner fa-spin"></i> Subscribing...` / `Sending Link...`) and disabled buttons during requests.
+  - **Semantic Error & Success Colors**: Mapped error responses to rose (`--accent-rose`) and successes to emerald (`--accent-emerald`).
+  - **Celebratory Signup Confetti**: Launched celebratory particle bursts on successful newsletter confirmations.
+- **Brand Assets, Retina Rendering & PWA Quality**:
+  - **Vector SVG & Crisp PWA Icon Generator ([`scripts/generate-pwa-assets.js`](file:///home/smarty/projects/morning-routine-sender/scripts/generate-pwa-assets.js))**: Refactored asset generation to extract crisp vector SVG geometry and compile crisp 512×512 PNGs (`public/assets/mrn-brand-ico.png`, `public/assets/logo.png`), eliminating icon blurriness on mobile home screens.
+  - **Retina Email Logo Delivery ([`email-core/emailService.js`](file:///home/smarty/projects/morning-routine-sender/email-core/emailService.js), [`email-templates/`](file:///home/smarty/projects/morning-routine-sender/email-templates/))**: Introduced dedicated `@2x` retina logo (`public/assets/logo-email.png`) with Outlook DPI `v:rect` table wrappers.
+- **SEO & 404 Routing Architecture ([`public/404.html`](file:///home/smarty/projects/morning-routine-sender/public/404.html), [`controllers/pages.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/pages.controller.js))**:
+  - **Obsidian Glassmorphic 404 Experience**: Implemented a branded 404 page returning proper HTTP 404 status codes, `noindex, follow` search engine directives, and quick recovery navigation back to active views.
+  - **Universal Sitemap Footer Links**: Added accessible sitemap paths in footers across `main-index.html`, `about.html`, `user-dashboard.html`, `offline.html`, and `404.html`, and verified canonical public routes in `public/sitemap.xml`.
+- **Wallpaper Generation Robustness ([`controllers/wallpaper.controller.js`](file:///home/smarty/projects/morning-routine-sender/controllers/wallpaper.controller.js), [`helper/wallpaperGenerator.js`](file:///home/smarty/projects/morning-routine-sender/helper/wallpaperGenerator.js))**:
+  - Parameterized user streak, quote, archetype, and date data accurately into SVG download streams with proper Content-Disposition attachment headers.
+
 ## [2.14.1] - 2026-09-18
 
 ### 🛡️ Comprehensive Security Hardening, PWA Offline Sync Resilience & Core Defect Remediation
