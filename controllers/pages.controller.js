@@ -5,6 +5,19 @@ const redis = require("../config/redisClient");
 const { safeCompare } = require("../helper/util");
 
 const ROOT_DIR = path.join(__dirname, "..");
+const csso = require("csso");
+
+function minifyInlineStyles(html) {
+  if (!html || typeof html !== "string") return html;
+  return html.replace(/<style>([\s\S]*?)<\/style>/gi, (match, css) => {
+    try {
+      const minified = csso.minify(css).css;
+      return `<style>${minified}</style>`;
+    } catch (_err) {
+      return match;
+    }
+  });
+}
 
 function escapeHtml(unsafe) {
   return (unsafe || "")
@@ -41,7 +54,10 @@ function getCachedTemplate(relativePath) {
   try {
     const fullPath = path.join(ROOT_DIR, relativePath);
     if (fs.existsSync(fullPath)) {
-      const content = fs.readFileSync(fullPath, "utf8");
+      let content = fs.readFileSync(fullPath, "utf8");
+      if (relativePath.endsWith(".html")) {
+        content = minifyInlineStyles(content);
+      }
       if (templateCache.size >= MAX_TEMPLATE_CACHE_SIZE && !templateCache.has(relativePath)) {
         const oldest = templateCache.keys().next().value;
         if (oldest) templateCache.delete(oldest);
@@ -218,7 +234,7 @@ function offline(req, res) {
 
 // GET /manifest.json
 function manifest(req, res) {
-  res.set("Cache-Control", "public, max-age=86400");
+  res.set("Cache-Control", "public, max-age=604800, immutable");
   res.sendFile(path.join(ROOT_DIR, "public", "manifest.json"));
 }
 

@@ -44,10 +44,13 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
       as="style"
     />
-
-    <!-- Speculative Navigation Prefetch -->
-    <link rel="prefetch" href="/routine" />
-    <link rel="prefetch" href="/about" />
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
 
     <!-- Non-render-blocking Google Fonts (preloaded above) -->
     <link
@@ -106,9 +109,9 @@
       <link rel="stylesheet" href="/css/responsive-layout.css" />
     </noscript>
 
-    <!-- Toast Notification CDN (latest) -->
+    <!-- Toast Notification CDN (pinned version for 365-day immutable caching) -->
     <script
-      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@latest/dist/index.umd.js"
+      src="https://cdn.jsdelivr.net/npm/customizable-toast-notification@3.11.5/dist/index.umd.js"
       defer
       crossorigin="anonymous"
     ></script>
@@ -122,6 +125,16 @@
     <script defer src="/js/ux-core.js?v=4.3.0"></script>
 
     <style>
+      /* Explicit Font Awesome font-display: swap to prevent FOIT and mobile FCP delay */
+      @font-face {
+        font-family: "Font Awesome 6 Free";
+        font-style: normal;
+        font-weight: 900;
+        font-display: swap;
+        src: url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2")
+          format("woff2");
+      }
+
       :root {
         --bg-main: #050608;
         --bg-surface: rgba(12, 17, 29, 0.8);
@@ -430,8 +443,15 @@
         padding: 0;
         font-family:
           "Plus Jakarta Sans",
+          system-ui,
           -apple-system,
           BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          "Helvetica Neue",
           sans-serif;
         -webkit-font-smoothing: antialiased;
       }
@@ -6176,5 +6196,24 @@
     </nav>
 
     <script defer src="/js/user-dashboard.js?v=4.3.0"></script>
+
+    <!-- Speculative Navigation Prefetch deferred to browser idle time (Zero-impact on FCP & LCP) -->
+    <script>
+      window.addEventListener("load", function () {
+        var prefetchRoutes = function () {
+          ["/routine", "/about"].forEach(function (url) {
+            var link = document.createElement("link");
+            link.rel = "prefetch";
+            link.href = url;
+            document.head.appendChild(link);
+          });
+        };
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(prefetchRoutes, { timeout: 3000 });
+        } else {
+          setTimeout(prefetchRoutes, 2000);
+        }
+      });
+    </script>
   </body>
 </html>

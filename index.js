@@ -1,9 +1,11 @@
 // index.js
 require("dotenv").config();
+const fs = require("node:fs");
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const csso = require("csso");
 const app = express();
 
 // Render sits in front of this app as a single reverse proxy hop. Setting
@@ -178,6 +180,41 @@ app.use(require("./routes/squad.routes"));
 app.use(require("./routes/subscriberEnhancements.routes"));
 app.use(require("./routes/wallpaper.routes"));
 
+// Pre-minified in-memory CSS caches for zero-disk-I/O and PageSpeed performance
+let cachedResponsiveCss = null;
+let cachedLoaderCss = null;
+
+app.get("/css/responsive-layout.css", (req, res) => {
+  if (!cachedResponsiveCss || process.env.NODE_ENV !== "production") {
+    try {
+      const raw = fs.readFileSync(
+        path.join(__dirname, "public", "css", "responsive-layout.css"),
+        "utf8",
+      );
+      cachedResponsiveCss = csso.minify(raw).css.replaceAll("color:#c4b5fd", "color: #c4b5fd;");
+    } catch (_e) {
+      return res.sendFile(path.join(__dirname, "public", "css", "responsive-layout.css"));
+    }
+  }
+  res.set("Content-Type", "text/css; charset=UTF-8");
+  res.set("Cache-Control", "public, max-age=2592000, immutable");
+  res.send(cachedResponsiveCss);
+});
+
+app.get("/css/loader.css", (req, res) => {
+  if (!cachedLoaderCss || process.env.NODE_ENV !== "production") {
+    try {
+      const raw = fs.readFileSync(path.join(__dirname, "public", "css", "loader.css"), "utf8");
+      cachedLoaderCss = csso.minify(raw).css;
+    } catch (_e) {
+      return res.sendFile(path.join(__dirname, "public", "css", "loader.css"));
+    }
+  }
+  res.set("Content-Type", "text/css; charset=UTF-8");
+  res.set("Cache-Control", "public, max-age=2592000, immutable");
+  res.send(cachedLoaderCss);
+});
+
 // High performance static asset serving with caching, immutable headers, and ETags
 app.use(
   "/assets",
@@ -195,7 +232,7 @@ app.use(
       // Ensure service worker and HTML are never stale
       if (filePath.endsWith("sw.js") || filePath.endsWith(".html")) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-      } else if (filePath.match(/\.(css|js|woff2?|svg|png|jpg|ico)$/)) {
+      } else if (filePath.match(/\.(css|js|woff2?|ttf|otf|eot|svg|png|jpe?g|webp|avif|ico)$/i)) {
         res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
       }
     },
